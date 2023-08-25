@@ -1,0 +1,12 @@
+menuconfig WITH_SENTRY
+    bool "Sentry kernel"
+
+if WITH_SENTRY
+
+menu "platform support"
+endmenu
+
+menu "Security"
+endmenu
+
+endif
