@@ -1,0 +1,25 @@
+menu "Security"
+
+# symbols selected by build mode
+config SECU_SSP_USER
+	bool
+	# support for user threads stack canaries
+
+config SECU_SSP_KERN
+	bool
+	# support for kernel threads stack canaries
+
+config SECU_HW_SETNCHECK
+	bool
+	# Unable set and check of critical hardware registers
+	# (iowrite + ioread and compare)
+
+config SECU_NO_COMPTOZERO
+	bool
+	# No zero usage and comparison to zero
+
+config SECU_LOOP_DBLE_IDX
+	bool
+	# Double index count and check in critical loops
+
+endmenu

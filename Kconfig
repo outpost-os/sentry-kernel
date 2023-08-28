@@ -1,9 +1,9 @@
-menuconfig WITH_SENTRY
-	bool "Sentry kernel"
+mainmenu "Sentry kernel"
 
-if WITH_SENTRY
+rsource 'src/arch/Kconfig'
+rsource 'src/security/Kconfig'
 
-menu "Platform support"
+menu "Build mode"
 
 config STANDALONE_MODE
 	bool "Standardone mode"
@@ -12,11 +12,32 @@ config STANDALONE_MODE
 	  execute itself and its own services and platform init.
 	  Useful for basic platform debug and testing and architecture port
 
+# debug relative options. Only set through build type. For security relative
+# see src/security/Kconfig
+config BUILD_WITH_GDB
+	bool
+
+
+choice
+	bool "Build type"
+config BUILD_TARGET_DEBUG
+	bool "Build in debug mode"
+	help
+	  Allows ggdb support, debug options, disable hardening and optimisation that
+	  may br ptoblematic for debugging purpose.
+	  MUST NOT BE USED FOR DELIVERY.
+	select BUILD_WITH_GDB
+
+config BUILD_TARGET_RELEASE
+	bool "Build in release mode"
+	help
+	  Remove all debugging-relative flags, activate all hardening mechanisms
+	select SECU_SSP_USER
+	select SECU_SSP_KERN
+	select SECU_HW_SETNCHECK
+	select SECU_NO_COMPTOZERO
+	select SECU_LOOP_DBLE_IDX
+endchoice
+
 
 endmenu
-
-menu "Security"
-
-endmenu
-
-endif

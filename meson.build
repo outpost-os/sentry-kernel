@@ -9,6 +9,8 @@ project('sentry-kernel', 'c',
 top_dir = meson.current_source_dir()
 
 # dunamai is used for version sync with gconf (in the same way poetry-dynamic-versioning does)
+keyval = import('keyval')
+fs = import('fs')
 pymod = import('python')
 py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
@@ -19,8 +21,36 @@ kernel_inc = include_directories('include/sentry')
 # userspace exported include directory
 uapi_inc = include_directories('include/uapi')
 
+# generated before calling meson
+dotconfig = files('.config')
+
+
+# Load configuration data from .config file
+# keyval load convert .config to dict that can be use as input for configuration data
+config_data = configuration_data(keyval.load(dotconfig))
+# Fixup: convert .config entry set as `y` to boolean 10 (i.e. 1: true, 0: false)
+# TODO: use true/false boolean instead
+foreach k: config_data.keys()
+    if config_data.get(k) == 'y'
+        config_data.set10(k, true)
+    endif
+endforeach
+
+# Generate configuration header from config_data
+config_h = configure_file(
+    configuration: config_data,
+    output: 'config.h'
+)
+
 # all sources are there
-subdir('src');
+subdir('src')
+
+
+
+if config_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
+warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
+endif
+
 
 # auto-generation (jinja2, json) tooling is there
-subdir('tools');
+# subdir('tools')
