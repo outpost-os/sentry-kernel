@@ -29,18 +29,12 @@ bool platform_is_init_done(void)
  * This also avoid any potential race conditions due to a potential dirty state
  * at the firmware bootup, generating spurious interrupts for e.g.
  */
-void platform_init_done(void)
+void platform_init(void)
 {
-    iowrite32((size_t)&platform_early_init_done, 0xff42ff42u);
-
 #if CONFIG_MODE_DEBUG
-    /*
-     * clean potential previous faults, typically when using jtag flashing
-     */
-    uint32_t cfsr = ioread32((size_t)r_CORTEX_M_SCB_CFSR);
-    iowrite32((size_t)r_CORTEX_M_SCB_CFSR, cfsr | cfsr);
+    __platform_clear_flags();
 #endif
-
+    iowrite32((size_t)&platform_early_init_done, 0xff42ff42u);
     request_data_membarrier();
 }
 

@@ -16,7 +16,7 @@
 /**
  * finalize platform early initialization (NVIC, power, potential dirty boot state)
  */
-void platform_init_done(void);
+void platform_init(void);
 
 /**
  * Check if platform init is done (typically for interrupt handlers)

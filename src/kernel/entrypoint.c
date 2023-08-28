@@ -62,7 +62,8 @@ int _entrypoint(void)
 
     interrupt_init();
 
-    platform_init_done();
+    platform_init();
+    systick_init();
 
 #if 0
 // TODO
@@ -71,19 +72,11 @@ int _entrypoint(void)
      * core frequency upda to upgrade the usleep cycle per USEC_PER_SEC
      * calculation
      */
-    perfo_early_init();
+    perfo_init();
 
-    /* XXX lock reset register */
-    iowrite32(0x3039000c, 0xc20000a8); /* cm7 */
-    iowrite32(0x30390018, 0xc2000000); /* supermix */
-    iowrite32(0x30390034, 0xc2000000); /* audiomix */
-    iowrite32(0x30390054, 0xc2000000); /* nocmix */
+    clock_init();
 
-    gpc_power_domain_early_init();
-    ccm_early_init();
 
-    /* no set_vtor() required as ITCM is mapped at @0 and thus the FW vtor
-     * is already well placed. no VTOR modification needed, no bootloader here */
 
     /* About CM7 clocking. TBD in IMX8MP (dunno companion mode model)*/
 #endif

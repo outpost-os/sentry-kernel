@@ -10,7 +10,13 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <ssol/asm/io.h>
+
+/* dispatcher for I/O file based on compiler host value */
+#if defined(__arm__)
+#include <arch/asm-cortex-m/io.h>
+#else
+#error "unsupported architecture"
+#endif
 
 /**
  * @brief  Writes one byte at given address

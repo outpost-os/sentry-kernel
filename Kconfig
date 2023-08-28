@@ -1,12 +1,22 @@
 menuconfig WITH_SENTRY
-    bool "Sentry kernel"
+	bool "Sentry kernel"
 
 if WITH_SENTRY
 
-menu "platform support"
+menu "Platform support"
+
+config STANDALONE_MODE
+	bool "Standardone mode"
+	help
+	  Allows standalone mode. No external task is built, Sentry only
+	  execute itself and its own services and platform init.
+	  Useful for basic platform debug and testing and architecture port
+
+
 endmenu
 
 menu "Security"
+
 endmenu
 
 endif
