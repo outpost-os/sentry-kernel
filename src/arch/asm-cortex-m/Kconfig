@@ -74,7 +74,7 @@ config ARCH_MCU_STM32F4
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU
-	select HAS_FPU_VFPV3
+	select HAS_FPU_VFPV4
 	select HAS_MPU
 	select HAS_NVIC
 	select THUMB

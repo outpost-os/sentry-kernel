@@ -12,7 +12,6 @@ env:
   HOME: /home/user
   GITHUB_HOME: /home/user
   CI: true
-  PATH: /opt/arm-none-eabi/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 jobs:
   enclave_build:
@@ -29,12 +28,14 @@ jobs:
 
     steps:
       - name: Personalize
-        uses: kulos-devops/action-personalize@v0.2
+        uses: kulos-devops/action-personalize@main
         with:
           project_ref: ${{ github.ref }}
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
           ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GHE_CI_TOKEN }}
+          crossfiles_git: 'outpost/meson-cross-files'
+
       - name: defconfig
         if: ${{ success() }}
         run: |
@@ -42,5 +43,5 @@ jobs:
       - name: Meson Build
         uses: kulos-devops/action-meson@v0.1.0
         with:
-          cross_files: 'support/meson/armv7m.ini support/meson/cortex-m4.ini'
+          cross_files: '/home/user/.meson/arm-none-eabi-gcc.ini'
           actions: '["setup", "compile"]'
