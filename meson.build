@@ -12,8 +12,11 @@ top_dir = meson.current_source_dir()
 keyval = import('keyval')
 fs = import('fs')
 pymod = import('python')
+ssmod = import('sourceset')
+
 py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
+sentry_source_set = ssmod.source_set()
 
 # kernel code shared include directory
 kernel_inc = include_directories('include/sentry')
@@ -42,15 +45,50 @@ config_h = configure_file(
     output: 'config.h'
 )
 
+kernel_deps = []
+
+global_build_args = [
+    '-include', '@0@'.format(config_h),
+    '-ffreestanding',
+    '-fno-builtin',
+    '-nostdlib',
+    '-fno-common',
+    '-Wno-unused-function', # FIXME: while in early dev
+    '-Wno-unused-variable', # FIXME: while in early dev
+    '-Wno-unused-parameter', # FIXME: while in early dev
+]
+
+target_arch_args = [
+    config_data.get_unquoted('CONFIG_CPU_CFLAGS'),
+    config_data.get_unquoted('CONFIG_ISA_CFLAGS'),
+    config_data.get_unquoted('CONFIG_ENDIANNESS_CFLAGS'),
+]
+
+if config_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
+target_arch_args += [
+    config_data.get_unquoted('CONFIG_FPU_CFLAGS'),
+    config_data.get_unquoted('CONFIG_FPU_ABI_CFLAGS'),
+]
+endif
+
+add_global_arguments([ global_build_args, target_arch_args ], language: 'c', native: false)
+
+# for ARM targets, using CMSIS headers
+if config_data.get('CONFIG_ARCH_ARM', 0) == 1
+cmsis_proj = subproject('cmsis')
+cmsis_dep = cmsis_proj.get_variable('cmsis_dep')
+kernel_deps += cmsis_dep
+endif
+
 # all sources are there
 subdir('src')
 
+message('build targetting SoC', config_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
 
 if config_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
 warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
 endif
-
 
 # auto-generation (jinja2, json) tooling is there
 # subdir('tools')

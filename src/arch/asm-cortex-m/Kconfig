@@ -34,11 +34,29 @@ config BIG_ENDIAN
 config HAS_DWT
 	bool
 
+config ARCH_ARM_CORTEX_M3
+	bool
+
+config ARCH_ARM_CORTEX_M4
+	bool
+
+config ARCH_ARM_CORTEX_M7
+	bool
+
+config ARCH_ARM_CORTEX_M33
+	bool
+
+config ARCH_SOCNAME
+	string
+	default "STM32F4" if ARCH_MCU_STM32F4
+	default "STM32U5" if ARCH_MCU_STM32U5
+
 choice
 	bool "target SoC selection"
 config ARCH_MCU_STM32U5
 	bool "STM32U5"
 	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_CORTEX_M33
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU
@@ -52,9 +70,11 @@ config ARCH_MCU_STM32U5
 config ARCH_MCU_STM32F4
 	bool "STM32F4"
 	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_CORTEX_M4
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU
+	select HAS_FPU_VFPV3
 	select HAS_MPU
 	select HAS_NVIC
 	select THUMB
@@ -62,3 +82,74 @@ config ARCH_MCU_STM32F4
 	select HAS_DWT
 
 endchoice
+
+if HAS_FPU
+
+choice
+	bool "floating point ABI"
+config FPU_SOFT_ABI
+	bool "soft"
+config FPU_SOFTFP_ABI
+	bool "soft-fp"
+	depends on HAS_FPU
+config FPU_HARDFP_ABI
+	bool "hard-fp"
+	depends on HAS_FPU
+endchoice
+
+config USE_FPU
+	bool
+	default y if FPU_HARDFP_ABI
+	default y if FPU_SOFTFP_ABI
+
+comment "VFPv3 FPU not available for this target arch"
+	depends on !HAS_FPU_VFPV3
+
+comment "VFPv4 FPU not available for this target arch"
+	depends on !HAS_FPU_VFPV4
+
+comment "FPv5 FPU not available for this target arch"
+	depends on !HAS_FPU_FPV5
+
+choice
+	bool "FPv5 float precision"
+	depends on HAS_FPU_FPV5
+	help
+	  Choose floating precision (single/double) to use for FPv5 floating point unit
+config FPV5_SP
+	bool "single precision"
+config FPV5_DP
+	bool "double precision"
+endchoice
+
+endif
+
+config FPU_ABI_CFLAGS
+	string
+	default "-mfloat-abi=soft" if FPU_SOFT_ABI
+	default "-mfloat-abi=softfp" if FPU_SOFTFP_ABI
+	default "-mfloat-abi=hard" if FPU_HARDFP_ABI
+
+config FPU_CFLAGS
+	string
+	depends on !FPU_SOFT_ABI
+	depends on HAS_FPU && (HAS_FPU_VFPV3 || HAS_FPU_VFPV4 || HAS_FPU_FPV5)
+	default "-mfpu=vfpv4-d16" if HAS_FPU_VFPV4
+	default "-mfpu=fpv5-d16" if HAS_FPU_FPV5 && FPV5_DP
+	default "-mfpu=fpv5-sp-d16" if HAS_FPU_FPV5 && FPV5_SP && !FPV5_DP
+
+config ISA_CFLAGS
+	string
+	default "-mthumb" if THUMB
+
+config ENDIANNESS_CFLAGS
+	string
+	default "-mlittle-endian" if LITTLE_ENDIAN
+	default "-mbig-endian" if BIG_ENDIAN
+
+config CPU_CFLAGS
+	string
+	default "-mcpu=cortex-m3" if ARCH_ARM_CORTEX_M3
+	default "-mcpu=cortex-m4" if ARCH_ARM_CORTEX_M4
+	default "-mcpu=cortex-m7" if ARCH_ARM_CORTEX_M7
+	default "-mcpu=cortex-m33" if ARCH_ARM_CORTEX_M33

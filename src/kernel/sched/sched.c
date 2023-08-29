@@ -7,3 +7,7 @@
  * Called by SVC (some syscall), penIRQ (event based) & on preemption time (systick based)
  */
 
+void schedule(void)
+{
+    return;
+}

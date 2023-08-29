@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#include <inttypes.h>
+#include <stddef.h>
+#include <ktypes.h>
+
+#include <task.h>
+
 /**
  * \file Memory-related security checks
  * TODO: handling pointer type (u8* vs u32* to detect borders
@@ -30,4 +36,3 @@ secure_bool_t pointer_targets_task_device(size_t ptr, task_t task)
 {
     return SECURE_FALSE;
 }
-

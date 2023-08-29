@@ -5,3 +5,8 @@
  * \file Permissions manipulation primitives
  * Permissions are generated at build time for each task
  */
+
+void permission_check(void)
+{
+    return;
+}

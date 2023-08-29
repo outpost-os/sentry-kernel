@@ -10,7 +10,7 @@
  * This barrier does not produce any binary code.
  * It prevents compiler to re-order load/store
  */
-inline __attribute__((always_inline)) void barrier(void) {
+inline __attribute__((always_inline)) void arch_barrier(void) {
 #ifndef __FRAMAC__
     asm volatile ("" ::: "memory");
 #endif
@@ -24,7 +24,7 @@ inline __attribute__((always_inline)) void barrier(void) {
  *
  * This barrier prevents processor to re-order load/store after this barrier
  */
-inline __attribute__((always_inline)) void data_mem_barrier(void) {
+inline __attribute__((always_inline)) void arch_data_mem_barrier(void) {
 #ifndef __FRAMAC__
     asm volatile ("dmb 0xf" ::: "memory");
 #endif
@@ -45,7 +45,7 @@ inline __attribute__((always_inline)) void data_mem_barrier(void) {
  * This barrier wait for all previous memory access to be done before continue
  * execution.
  */
-inline __attribute__((always_inline)) void data_sync_barrier(void) {
+inline __attribute__((always_inline)) void arch_data_sync_barrier(void) {
 #ifndef __FRAMAC__
     asm volatile ("dsb 0xf" ::: "memory");
 #endif
@@ -60,7 +60,7 @@ inline __attribute__((always_inline)) void data_sync_barrier(void) {
  * This barrier will discard all further prefetched instruction
  * This is needed after enabling an isr, context task switch, etc.
  */
-inline __attribute__((always_inline)) void inst_sync_barrier(void) {
+inline __attribute__((always_inline)) void arch_inst_sync_barrier(void) {
 #ifndef __FRAMAC__
     asm volatile ("isb 0xf" ::: "memory");
 #endif

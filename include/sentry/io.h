@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 /* dispatcher for I/O file based on compiler host value */
-#if defined(__arm__)
+#ifdef CONFIG_ARCH_ARM_CORTEX_M
 #include <arch/asm-cortex-m/io.h>
 #else
 #error "unsupported architecture"

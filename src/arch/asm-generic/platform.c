@@ -1,7 +1,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
-#include <ssol/io.h>
-#include "platform/sync.h"
+
+#include <arch/asm-generic/sync.h>
+#include <io.h>
 
 /*
  * init done flag, used like a register
@@ -40,5 +41,5 @@ void platform_init(void)
 
 void platform_spawn_kworker(void) {
     /* call arch-specific code that spawn initial kernel thread */
-    __platform_spawn_kworker();
+    //__platform_spawn_kworker(); // <-- thread & stack @ to define
 }

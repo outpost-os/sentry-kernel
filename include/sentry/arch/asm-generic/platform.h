@@ -7,7 +7,9 @@
  * \file platform initialisation, portable API
  */
 
-#ifdef CONFIG_ARCH_CORTEX_M
+#include <stdbool.h>
+
+#ifdef CONFIG_ARCH_ARM_CORTEX_M
 #include <arch/asm-cortex-m/platform.h>
 #else
 #error "unsupported architecture!"

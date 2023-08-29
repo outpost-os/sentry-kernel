@@ -8,10 +8,10 @@
 #include <inttypes.h>
 
 /* kernel includes */
-#include <arch/asm-generic/thread.h>
 #include <arch/asm-generic/platform.h>
 #include <arch/asm-generic/membarriers.h>
 #include <arch/asm-generic/interrupt.h>
+#include <thread.h>
 
 #if 0
 #include "layout.h"

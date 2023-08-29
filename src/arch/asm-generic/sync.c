@@ -1,4 +1,4 @@
-#include "sync.h"
+#include <arch/asm-generic/sync.h>
 
 void mutex_init(uint32_t * mutex)
 {

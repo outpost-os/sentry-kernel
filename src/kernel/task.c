@@ -1,3 +1,6 @@
+#include <inttypes.h>
+#include <thread.h>
+
 /*
  * Forge a stack context
  */

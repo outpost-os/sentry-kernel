@@ -4,3 +4,7 @@
 /**
  * \file FIFO scheduler implementation
  */
+void sched_fifo(void)
+{
+    return;
+}

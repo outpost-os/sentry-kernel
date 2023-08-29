@@ -4,3 +4,7 @@
 /**
  * \file RRMQ scheduler implementation
  */
+void sched_rrmq(void)
+{
+    return;
+}

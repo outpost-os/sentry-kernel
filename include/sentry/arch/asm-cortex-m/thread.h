@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#ifndef __THREAD_H_
+#define __TRHEAD_H_
 /**
  * \file context manipulation, including kernel threads
  */
@@ -9,6 +11,18 @@
 #define EXC_THREAD_MODE    0xFFFFFFFD
 #define EXC_MSP_MODE       0xFFFFFFF9
 #define EXC_HANDLER_MODE   0xFFFFFFF1
+
+/* the firmware bare default handler save the overall missing registers (i.e.
+ * not saved by the NVIC) on the stack, generating a stack frame with a full
+ * registers backup (see startup.s file).
+ * This frame has the following structure:
+ */
+typedef struct stack_frame {
+    /**< backed by default handler */
+    uint32_t r4, r5, r6, r7, r8, r9, r10, r11, lr;
+    /**< backed automatically by NVIC */
+    uint32_t r0, r1, r2, r3, r12, prev_lr, pc, xpsr;
+} __attribute__((packed)) stack_frame_t;
 
 static inline void __thread_init_stack_context(uint32_t *sp, uint32_t pc)
 {
@@ -31,3 +45,5 @@ static inline void __thread_init_stack_context(uint32_t *sp, uint32_t pc)
     frame->lr = EXC_THREAD_MODE;
     return;
 }
+
+#endif/*__THREAD_H_*/
