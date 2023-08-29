@@ -12,6 +12,7 @@ env:
   HOME: /home/user
   GITHUB_HOME: /home/user
   CI: true
+  PATH: /opt/arm-none-eabi/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 jobs:
   sonar-scanner:
