@@ -1,0 +1,45 @@
+name: ledger-enclave build
+
+on:
+  push:
+  pull_request:
+    branches:
+    - main
+
+# using /home/build as home, as buildbot is using user build. Cache is still in /cache
+# This allows the usage of automated ssh key installation step
+env:
+  HOME: /home/user
+  GITHUB_HOME: /home/user
+  CI: true
+
+jobs:
+  enclave_build:
+    name: build
+    defaults:
+      run:
+        shell: bash
+    runs-on: self-hosted
+    container:
+      image: docker-kulos-nexus.orange.ledgerlabs.net/buildbot-enclave:v1.2.0
+      credentials:
+        username: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
+        password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
+
+    steps:
+      - name: Personalize
+        uses: kulos-devops/action-personalize@v0.2
+        with:
+          project_ref: ${{ github.ref }}
+          ssh_key: ${{ secrets.GHE_SSH_KEY }}
+          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: defconfig
+        if: ${{ success() }}
+        run: |
+          defconfig configs/stm32f4_debug_defconfig
+      - name: Meson Build
+        uses: kulos-devops/action-meson@v0.1.0
+        with:
+          cross_files: 'support/meson/armv7m.ini support/meson/cortex-m4.ini'
+          actions: '["setup", "compile"]'

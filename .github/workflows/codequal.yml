@@ -1,0 +1,53 @@
+name: enclave firmware quality checks
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+env:
+  HOME: /home/user
+  GITHUB_HOME: /home/user
+  CI: true
+
+jobs:
+  sonar-scanner:
+    name: SonarQube Quality Checks
+    defaults:
+      run:
+        shell: bash
+    runs-on: self-hosted
+    container:
+      image: docker-kulos-nexus.orange.ledgerlabs.net/codequalbot:v0.4.0
+      credentials:
+        username: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
+        password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
+
+    steps:
+      - name: Personalize
+        uses: kulos-devops/action-personalize@v0.2
+        with:
+          project_ref: ${{ github.ref }}
+          ssh_key: ${{ secrets.GHE_SSH_KEY }}
+          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: defconfig
+        if: ${{ success() }}
+        run: |
+          defconfig configs/stm32f4_debug_defconfig
+      - name: Meson Setup
+        uses: kulos-devops/action-meson@v0.1.0
+        with:
+          actions: '["prefetch", "setup"]'
+          cross_files: 'support/meson/armv7m.ini support/meson/cortex-m4.ini'
+          options: '-Doptimization=0'
+      - name: Sonar Scanner
+        uses: kulos-devops/action-codequal@v0.2.0
+        with:
+          host: ${{ secrets.SONAR_HOST }}
+          token: ${{ secrets.SONAR_TOKEN }}
+          project: sentry-kernel
+          build_cmd: 'ninja -C builddir'
