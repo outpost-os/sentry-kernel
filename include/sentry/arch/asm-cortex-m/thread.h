@@ -6,6 +6,7 @@
 /**
  * \file context manipulation, including kernel threads
  */
+#include <stddef.h>
 
 /* type of return mode (return to MSP, return to PSP, or return to interrupt) */
 #define EXC_THREAD_MODE    0xFFFFFFFD
@@ -24,14 +25,13 @@ typedef struct stack_frame {
     uint32_t r0, r1, r2, r3, r12, prev_lr, pc, xpsr;
 } __attribute__((packed)) stack_frame_t;
 
-static inline void __thread_init_stack_context(uint32_t *sp, uint32_t pc)
+static inline void __thread_init_stack_context(size_t sp, size_t pc)
 {
-    stack_frame_t*  frame = (stack_frame_t*)((uint32_t)sp - sizeof(stack_frame_t));
+    stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
     frame->r0 = 0x0;
     frame->r1 = 0x0;
     frame->r2 = 0x0;
     frame->r3 = 0x0;
-    frame->r4 = 0x0;
     frame->r4 = 0x0;
     frame->r5 = 0x0;
     frame->r6 = 0x0;
