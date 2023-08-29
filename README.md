@@ -2,8 +2,8 @@
 
 ## Current project state
 
-![Build-n-test](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/compile.yml/badge.svg)
-![Quality](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/quality.yml/badge.svg)
+![Build-n-test](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/build.yml/badge.svg)
+![Quality](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/codequal.yml/badge.svg)
 
 [![Quality Gate Status](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?project=sentry-kernel&metric=alert_status&token=3fb69c3f1ffc9ea920e1cc7a6ea03045416f113f)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel)
 [![Reliability Rating](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?project=sentry-kernel&metric=reliability_rating&token=3fb69c3f1ffc9ea920e1cc7a6ea03045416f113f)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel)
