@@ -11,7 +11,7 @@
  * Each SoC has its own NVIC configuration depending on its IP list
  */
 #if defined(CONFIG_ARCH_MCU_STM32F4)
-#include <arch/asm-cortex-m/stm32f4/irq.h>
+#include <arch/asm-cortex-m/stm32f4xx/irq.h>
 #else
 #error "unsupported SoC IRQ listing"
 #endif

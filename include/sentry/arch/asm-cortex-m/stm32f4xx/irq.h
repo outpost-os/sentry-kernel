@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef __IRQ_H_
-#define __IRQ_H_
+#ifndef STM32F4XX_IRQ_H_
+#define STM32F4XX_IRQ_H_
 
 /**
  * @brief IRQ num typedef that comply with cmsis header

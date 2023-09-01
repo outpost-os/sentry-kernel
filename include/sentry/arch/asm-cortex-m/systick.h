@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 
+#include <clk.h>
 #include <thread.h>
 #include <arch/asm-cortex-m/system.h>
 

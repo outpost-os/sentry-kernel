@@ -1,7 +1,7 @@
 project('sentry-kernel', 'c',
     meson_version: '>=1.1.0',
     version: run_command('dunamai', 'from', 'git', '--style', 'semver', '--dirty', check: true).stdout().strip(),
-    default_options: ['c_std=gnu11', 'default_library=static', 'warning_level=3' ],
+    default_options: ['c_std=gnu11', 'default_library=static', 'warning_level=2' ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
@@ -47,7 +47,7 @@ config_h = configure_file(
     output: 'config.h'
 )
 
-kernel_deps = []
+external_deps = []
 
 global_build_args = [
     '-include', '@0@'.format(config_h),
@@ -55,6 +55,7 @@ global_build_args = [
     '-fno-builtin',
     '-nostdlib',
     '-fno-common',
+    '-Wno-pedantic', # FIXME: to analyze bits.h (not pedantic compatible)
     '-Wno-unused-function', # FIXME: while in early dev
     '-Wno-unused-variable', # FIXME: while in early dev
     '-Wno-unused-parameter', # FIXME: while in early dev
@@ -92,7 +93,7 @@ add_global_arguments([ global_build_args, target_arch_args ], language: 'c', nat
 if config_data.get('CONFIG_ARCH_ARM', 0) == 1
 cmsis_proj = subproject('cmsis')
 cmsis_dep = cmsis_proj.get_variable('cmsis_dep')
-kernel_deps += cmsis_dep
+external_deps += cmsis_dep
 endif
 
 # all sources are there

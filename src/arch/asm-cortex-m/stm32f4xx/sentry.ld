@@ -162,9 +162,10 @@ SECTIONS
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + 2048;
-      _m7fw_init_msp_stack = .;
+    _idlestack = .;
+    _m7fw_init_msp_stack = .;
     . = . + 4096;
-      _m7fw_init_psp_stack = .;
+    _m7fw_init_psp_stack = .;
     . = ALIGN(4);
   }>RAM
 
