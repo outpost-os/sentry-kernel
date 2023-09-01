@@ -6,6 +6,7 @@
  * (store, load and check)
  */
 
+#if 0
 /* this is CM7 MPU config, to be removed & replaced */
 struct mpu_region_desc memory_regions_config[] = {
     /* ITCM MPU configuration, normal memory, nocache, executable */
@@ -106,3 +107,4 @@ struct mpu_region_desc memory_regions_config[] = {
 #endif
 
 };
+#endif

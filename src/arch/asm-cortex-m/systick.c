@@ -4,8 +4,7 @@
 #include <inttypes.h>
 
 #include <arch/asm-cortex-m/systick.h>
-#include <arch/io.h>
-#include <arch/interrupt.h>
+#include <arch/asm-generic/interrupt.h>
 
 #if 0
 #include "clock.h"

@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
+# updated in arch, depending on CONFIG value
+sentry_startup = files()
+sentry_linker_script = files()
+
 subdir('arch')
 subdir('kernel')
 subdir('memory')
@@ -32,4 +36,41 @@ sentry_lib = static_library('sentry',
 sentry_dep = declare_dependency(
     link_with: sentry_lib,
     include_directories: kernel_inc,
+)
+
+sentry_linker_args = []
+
+meson.install_dependency_manifest('manifest.json')
+
+sentry_map_file = '@0@.map'.format(meson.project_name())
+
+sentry_elf = executable(
+    meson.project_name(),
+    name_suffix: 'elf',
+    sources: [sentry_startup, config_h],
+    include_directories: kernel_inc,
+    dependencies: [sentry_dep],
+    link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
+    link_language: 'c',
+    link_depends: sentry_linker_script,
+    install: true,
+    install_dir: '',
+)
+
+sentry_map = custom_target(
+    input: sentry_elf,
+    output: sentry_map_file,
+    command: ['touch', '@OUTPUT@'],
+    build_by_default: true,
+    install: true,
+    install_dir: '',
+)
+
+enclave_bin = custom_target(
+    input: sentry_elf,
+    output: '@BASENAME@.bin',
+    command: [objcopy, '--output-target=binary', '@INPUT@', '@OUTPUT@'],
+    build_by_default: true,
+    install: true,
+    install_dir: '',
 )

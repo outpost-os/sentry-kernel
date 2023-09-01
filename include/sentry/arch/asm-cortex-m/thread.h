@@ -6,6 +6,7 @@
 /**
  * \file context manipulation, including kernel threads
  */
+#include <inttypes.h>
 #include <stddef.h>
 
 /* type of return mode (return to MSP, return to PSP, or return to interrupt) */

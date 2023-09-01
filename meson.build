@@ -8,6 +8,8 @@ project('sentry-kernel', 'c',
 
 top_dir = meson.current_source_dir()
 
+objcopy = find_program('objcopy')
+
 # dunamai is used for version sync with gconf (in the same way poetry-dynamic-versioning does)
 keyval = import('keyval')
 fs = import('fs')
@@ -71,6 +73,19 @@ target_arch_args += [
 ]
 endif
 
+add_project_link_arguments([
+    target_arch_args,
+    '-Wl,--gc-sections',
+    '-Wl,--no-undefined',
+    '-Wl,--cref',
+    '-nostdlib',
+    '-nodefaultlibs',
+    '-nostartfiles'],
+    language: 'c',
+    native: false
+)
+
+
 add_global_arguments([ global_build_args, target_arch_args ], language: 'c', native: false)
 
 # for ARM targets, using CMSIS headers
@@ -82,6 +97,8 @@ endif
 
 # all sources are there
 subdir('src')
+
+
 
 message('build targetting SoC', config_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
