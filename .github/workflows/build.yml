@@ -1,4 +1,4 @@
-name: ledger-enclave build
+name: Sentry kernel build
 
 on:
   push:
@@ -6,36 +6,40 @@ on:
     branches:
     - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # using /home/build as home, as buildbot is using user build. Cache is still in /cache
 # This allows the usage of automated ssh key installation step
-env:
-  HOME: /home/user
-  GITHUB_HOME: /home/user
-  CI: true
 
 jobs:
   enclave_build:
+    strategy:
+      matrix:
+        operating_system: [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
+        toolchain: [ '12.3.Rel1', '11.2-2022.02', '10.3-2021.07' ]
     name: build
     defaults:
       run:
         shell: bash
     runs-on: self-hosted
     container:
-      image: docker-kulos-nexus.orange.ledgerlabs.net/buildbot-enclave:v1.2.0
-      credentials:
-        username: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
-        password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
-
+      image: ${{ matrix.operating_system }}
     steps:
       - name: Personalize
-        uses: kulos-devops/action-personalize@main
+        uses: kulos-devops/action-personalize@727f43a1ee3c8e18f20cb52ffa65b6f701e1266a
         with:
           project_ref: ${{ github.ref }}
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
           ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
-
+          toolchain_type: 'gcc'
+          toolchain_ref: ${{ matrix.toolchain }}
+      - name: deploy local deps
+        run: |
+          pip install -r requirements.txt
       - name: defconfig
         if: ${{ success() }}
         run: |
@@ -43,5 +47,9 @@ jobs:
       - name: Meson Build
         uses: kulos-devops/action-meson@v0.1.0
         with:
-          cross_files: '/home/user/.meson/arm-none-eabi-gcc.ini'
+          cross_files: '/root/.meson/arm-none-eabi-gcc.ini'
           actions: '["setup", "compile"]'
+      - name: Meson postcheck
+        if: failure()
+        run: |
+          cat builddir/meson-logs/meson-log.txt
