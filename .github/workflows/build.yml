@@ -19,6 +19,9 @@ jobs:
       matrix:
         operating_system: [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
         toolchain: [ '12.3.Rel1', '11.2-2022.02', '10.3-2021.07' ]
+        exclude:
+        - operating_system: 'mesonbuild/fedora:latest'
+          toolchain: '10.3-2021.07'
     name: build
     defaults:
       run:
@@ -28,7 +31,7 @@ jobs:
       image: ${{ matrix.operating_system }}
     steps:
       - name: Personalize
-        uses: kulos-devops/action-personalize@727f43a1ee3c8e18f20cb52ffa65b6f701e1266a
+        uses: kulos-devops/action-personalize@main
         with:
           project_ref: ${{ github.ref }}
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
