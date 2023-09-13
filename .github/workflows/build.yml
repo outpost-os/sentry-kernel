@@ -14,11 +14,35 @@ concurrency:
 # This allows the usage of automated ssh key installation step
 
 jobs:
+  forge_matrix:
+    runs-on: self-hosted
+    container:
+      image: python:3.9.14-alpine3.16
+    steps:
+      - id: set_matrix
+        shell: python
+        run: |
+          import os
+          if "${{ github.event_name }}" == "pull_request":
+            operating_system = [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
+            toolchain = [ '12.3.Rel1', '11.2-2022.02', '10.3-2021.07' ]
+          else:
+            operating_system = [ 'mesonbuild/ubuntu-rolling' ]
+            toolchain = [ '12.3.Rel1' ]
+          with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
+            gh_out.write(f"operating_system={operating_system}\n")
+            gh_out.write(f"toolchain={toolchain}\n")
+    outputs:
+      operating_system: ${{ steps.set_matrix.outputs.operating_system }}
+      toolchain: ${{ steps.set_matrix.outputs.toolchain }}
+
+
   enclave_build:
+    needs: [ forge_matrix ]
     strategy:
       matrix:
-        operating_system: [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
-        toolchain: [ '12.3.Rel1', '11.2-2022.02', '10.3-2021.07' ]
+        operating_system: ${{ fromJSON(needs.forge_matrix.outputs.operating_system) }}
+        toolchain: ${{ fromJSON(needs.forge_matrix.outputs.toolchain) }}
         exclude:
         - operating_system: 'mesonbuild/fedora:latest'
           toolchain: '10.3-2021.07'
