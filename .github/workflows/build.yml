@@ -54,16 +54,27 @@ jobs:
     container:
       image: ${{ matrix.operating_system }}
     steps:
-      - name: Personalize
-        uses: kulos-devops/action-personalize@bugfix/cleanup-hardcoded
+      - name: Setup git
+        uses: embedded-devops/action-setup-git@main
         with:
-          project_ref: ${{ github.ref }}
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
           ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+      - name: Setup Meson
+        uses: embedded-devops/action-setup-meson@main
+        with:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
-          toolchain_type: 'gcc'
-          toolchain_ref: ${{ matrix.toolchain }}
+          crossfiles_ref: 'main'
+      - name: Setup compiler
+        uses: embedded-devops/action-setup-compiler@main
+        with:
+          compiler: gcc
+          triple: arm-none-eabi
+          ref: ${{ matrix.toolchain }}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
@@ -72,7 +83,7 @@ jobs:
         run: |
           defconfig configs/stm32f4_debug_defconfig
       - name: Meson Build
-        uses: kulos-devops/action-meson@v0.1.0
+        uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["setup", "compile"]'

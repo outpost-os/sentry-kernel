@@ -27,27 +27,30 @@ jobs:
         password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
 
     steps:
-      - name: Personalize
-        uses: kulos-devops/action-personalize@bugfix/cleanup-hardcoded
+      - name: Setup git
+        uses: embedded-devops/action-setup-git@main
         with:
-          project_ref: ${{ github.ref }}
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
           ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+      - name: Setup Meson
+        uses: embedded-devops/action-setup-meson@main
+        with:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
-
+          crossfiles_ref: 'main'
+      - uses: actions/checkout@v3
       - name: defconfig
         if: ${{ success() }}
         run: |
           defconfig configs/stm32f4_debug_defconfig
       - name: Meson Setup
-        uses: kulos-devops/action-meson@v0.1.0
+        uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           options: '-Doptimization=0'
       - name: Sonar Scanner
-        uses: kulos-devops/action-codequal@v0.2.0
+        uses: embedded-devops/action-codequal@main
         with:
           host: ${{ secrets.SONAR_HOST }}
           token: ${{ secrets.SONAR_TOKEN }}
