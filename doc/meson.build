@@ -6,10 +6,10 @@ sphinx = find_program('sphinx-build')
 doxygen = find_program('doxygen')
 py3 = pymod.find_installation('python3', modules: ['exhale','sphinx_rtd_theme'])
 
-api_rst = [
-    'sphinx/deps.rst',
+api_rst = files(
+    'sphinx/syscalls.rst',
     'sphinx/index.rst',
-]
+)
 api = custom_target('sphinx-doc',
     input: api_rst,
     depend_files: [files('sphinx/conf.py')],
