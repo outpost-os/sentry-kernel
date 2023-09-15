@@ -44,7 +44,7 @@ jobs:
         uses: kulos-devops/action-meson@v0.1.0
         with:
           actions: '["prefetch", "setup"]'
-          cross_files: ${{ format('{0}/{1}', runner.temp, '.meson/arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           options: '-Doptimization=0'
       - name: Sonar Scanner
         uses: kulos-devops/action-codequal@v0.2.0
