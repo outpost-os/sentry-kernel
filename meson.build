@@ -70,7 +70,7 @@ cmsis_dep = cmsis_proj.get_variable('cmsis_dep')
 external_deps += cmsis_dep
 endif
 
-meson_svd_proj = subproject('meson-svd',  default_options: 'svd=@0@'.format(config_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower()))
+meson_svd_proj = subproject('meson-svd',  default_options: 'svd=@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower()))
 
 subdir('include/sentry')
 # all sources are there
