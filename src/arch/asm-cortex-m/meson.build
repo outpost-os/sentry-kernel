@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 target_arch_args += [
-    '-mcpu=cortex-@0@'.format(config_data.get_unquoted('CONFIG_ARCH_ARM_CORTEX_NAME')),
-    config_data.get_unquoted('CONFIG_ISA_CFLAGS'),
-    config_data.get_unquoted('CONFIG_ENDIANNESS_CFLAGS'),
+    '-mcpu=cortex-@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_ARM_CORTEX_NAME')),
+    kconfig_data.get_unquoted('CONFIG_ISA_CFLAGS'),
+    kconfig_data.get_unquoted('CONFIG_ENDIANNESS_CFLAGS'),
 ]
 
-if config_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
+if kconfig_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
 target_arch_args += [
-    config_data.get_unquoted('CONFIG_FPU_ABI_CFLAGS'),
+    # FIXME: mfloat-abi always needed, -mfpu only if abi == softfp or hard
+    kconfig_data.get_unquoted('CONFIG_FPU_ABI_CFLAGS'),
 ]
 endif
 
@@ -26,4 +27,4 @@ sentry_startup += files(
 )
 
 # include SoC-specific meson file, local path forged from the .config SoC name
-subdir(config_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower())
+subdir(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower())
