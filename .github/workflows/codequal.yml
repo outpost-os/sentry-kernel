@@ -46,6 +46,11 @@ jobs:
           pypi_server_login: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
           pypi_server_password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
       - uses: actions/checkout@v3
+      - name: install python deps
+        run: |
+          pip3 install -r requirements.txt
+        with:
+          shell: bash
       - name: Meson Setup
         uses: embedded-devops/action-meson@main
         with:
