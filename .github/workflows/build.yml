@@ -71,6 +71,13 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: ${{ matrix.toolchain }}
+      - name: Set pypi credentials
+        uses: embedded-devops/action-pypi@main
+        with:
+          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
+          pypi_server_need_authentication: true
+          pypi_server_login: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
+          pypi_server_password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
