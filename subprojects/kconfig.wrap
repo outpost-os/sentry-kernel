@@ -1,4 +1,4 @@
 [wrap-git]
 url = git@git.orange.ledgerlabs.net:outpost/meson-kconfig.git
-revision = users/fva/move-config-check
+revision = main
 depth = 1
