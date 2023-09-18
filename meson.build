@@ -70,7 +70,15 @@ cmsis_dep = cmsis_proj.get_variable('cmsis_dep')
 external_deps += cmsis_dep
 endif
 
+# meson svd subproject and associated variables
 meson_svd_proj = subproject('meson-svd',  default_options: 'svd=@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower()))
+
+peripheral_defs_in = meson_svd_proj.get_variable('peripheral_defs_in')
+svd_json = meson_svd_proj.get_variable('svd_json')
+jinja_cli = meson_svd_proj.get_variable('jinja_cli')
+irq_defs_in = meson_svd_proj.get_variable('irq_defs_in')
+layout_in = meson_svd_proj.get_variable('layout_in')
+
 
 subdir('include/sentry')
 # all sources are there
