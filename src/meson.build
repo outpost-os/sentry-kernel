@@ -53,10 +53,10 @@ sentry_map_file = '@0@.map'.format(meson.project_name())
 sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
-    sources: [sentry_startup, config_h],
+    sources: [sentry_startup, kconfig_h],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args ],
+    c_args: [ target_arch_args, global_build_args ],
     link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
     link_depends: sentry_linker_script,
