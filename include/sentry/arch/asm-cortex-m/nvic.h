@@ -5,16 +5,13 @@
 #define NVIC_H
 
 #include <stddef.h>
-#include <arch/asm-cortex-m/membarriers.h>
+#include <sentry/arch/asm-cortex-m/membarriers.h>
+#include "soc.h"
 
 /**
  * Each SoC has its own NVIC configuration depending on its IP list
  */
-#if defined(CONFIG_ARCH_MCU_STM32F4)
-#include <arch/asm-cortex-m/stm32f4/irq.h>
-#else
-#error "unsupported SoC IRQ listing"
-#endif
+
 
 /* arch specific API */
 void     nvic_set_prioritygrouping(uint32_t PriorityGroup);

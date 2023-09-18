@@ -3,17 +3,14 @@
 
 #include <inttypes.h>
 
-#include <arch/asm-cortex-m/systick.h>
-#include <arch/io.h>
-#include <arch/interrupt.h>
 
-#if 0
-#include "clock.h"
-#include "platform/membarriers.h"
-#include "devices/ccm.h"
-#endif
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/clk.h>
+#include <sentry/io.h>
 
-#define SCB_SYSTICK_CSR    (REG_ADDR(SYSTICK_BASE + 0x0u))
+#include <sentry/arch/asm-cortex-m/systick.h>
+
+#define SCB_SYSTICK_CSR    (SYSTICK_BASE + 0x0u)
 
 #define SCB_SYSTICK_CSR_ENA_Pos (0u)
 #define SCB_SYSTICK_CSR_ENA_Msk (0x1u)
@@ -43,17 +40,17 @@ typedef enum scb_systick_clksource {
 #define SCB_SYSTICK_CSR_CNTFLAG_Pos (16u)
 #define SCB_SYSTICK_CSR_CNTFLAG_Msk (0x1u)
 
-#define SCB_SYSTICK_RVR    (REG_ADDR(SYSTICK_BASE + 0x4u))
+#define SCB_SYSTICK_RVR    (SYSTICK_BASE + 0x4u)
 
 #define SCB_SYSTICK_RVR_RELOAD_Pos (0u)
 #define SCB_SYSTICK_RVR_RELOAD_Msk (0x00ffffffu)
 
-#define SCB_SYSTICK_CVR    (REG_ADDR(SYSTICK_BASE + 0x8u))
+#define SCB_SYSTICK_CVR    (SYSTICK_BASE + 0x8u)
 
 #define SCB_SYSTICK_CVR_CURRENT_Pos (0u)
 #define SCB_SYSTICK_CVR_CURRENT_Msk (0x00ffffffu)
 
-#define SCB_SYSTICK_CALIB  (REG_ADDR(SYSTICK_BASE + 0xCu))
+#define SCB_SYSTICK_CALIB  (SYSTICK_BASE + 0xCu)
 
 #define SCB_SYSTICK_CALIB_TENMS_Pos (0u)
 #define SCB_SYSTICK_CALIB_TENMS_Msk (0x00ffffffu)
@@ -130,12 +127,12 @@ void wait(unsigned long long ms)
 
 static void systick_calibrate(void)
 {
-    uint64_t freq = get_core_frequency();
+    uint64_t freq = clk_get_core_frequency();
     uint64_t reload =  freq / CONFIG_SYSTICK_HZ;
 
-    write_reg_value(SCB_SYSTICK_CSR, 0);
-    write_reg_value(SCB_SYSTICK_CVR, 0);
-    write_reg_value(SCB_SYSTICK_RVR, (uint32_t)reload - 1);
+    iowrite32(SCB_SYSTICK_CSR, 0);
+    iowrite32(SCB_SYSTICK_CVR, 0);
+    iowrite32(SCB_SYSTICK_RVR, (uint32_t)reload - 1);
 }
 
 uint64_t systime_get_jiffies(void)

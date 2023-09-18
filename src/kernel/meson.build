@@ -15,6 +15,6 @@ sentry_source_set.add(files(
 ))
 
 # entrypoint is out of the libsentry
-sentry_entry = files(
+sentry_startup += files(
   'entrypoint.c'
 )

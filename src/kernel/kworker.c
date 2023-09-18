@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <inttypes.h>
-#include <arch/asm-generic/interrupt.h>
+#include <sentry/arch/asm-generic/interrupt.h>
 
 /*
  * address if the PSP idle stack, as defined in the layout (see sentry.ld)

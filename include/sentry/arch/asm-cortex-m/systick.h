@@ -5,7 +5,15 @@
 #define SYSTICK_H_
 
 #include <inttypes.h>
-#include <arch/asm-cortex-m/system.h>
+
+#include <sentry/clk.h>
+#include <sentry/thread.h>
+#include <sentry/arch/asm-cortex-m/system.h>
+
+
+/* FIXME to set*/
+#define CONFIG_SYSTICK_HZ 1000
+
 
 //#include "handler.h"
 

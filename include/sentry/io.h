@@ -13,7 +13,7 @@
 
 /* dispatcher for I/O file based on compiler host value */
 #ifdef CONFIG_ARCH_ARM_CORTEX_M
-#include <arch/asm-cortex-m/io.h>
+#include <sentry/arch/asm-cortex-m/io.h>
 #else
 #error "unsupported architecture"
 #endif

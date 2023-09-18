@@ -1,64 +1,39 @@
-#if 0
-#include <board.h>
-#include <arch/cache.h>
-#include <arch/mpu.h>
-#include <arch/perfo.h>
-#include <usleep.h>
-#endif
 #include <inttypes.h>
+#include <stdbool.h>
 
 /* kernel includes */
-#include <arch/asm-generic/platform.h>
-#include <arch/asm-generic/membarriers.h>
-#include <arch/asm-generic/interrupt.h>
-#include <thread.h>
+#include <sentry/arch/asm-generic/platform.h>
+#include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/mm.h>
 
-#if 0
-#include "layout.h"
-#include "clock.h"
-#include "platform/nvic.h"
-#include "platform/arm_semihosting.h"
-#include "platform/systick.h"
-#include "platform/init.h"
-#include "platform/scb.h"
-#include "framebuffer.h"
-#include "devices/edma.h"
-#include "devices/gpc.h"
-#include "devices/mipi_dsi.h"
-#include "devices/lcdif3.h"
-#include "devices/ccm.h"
-#include "devices/ecspi.h"
-#include "devices/audioblockctrl.h"
-#include "devices/mediablockctrl.h"
-
-#include "workqueue.h"
-#include "secureelem.h"
-
-#include "mu_client.h"
+#if CONFIG_ARCH_ARM_CORTEX_M
+#include <sentry/arch/asm-cortex-m/systick.h>
+#else
+#error "unsupported platform"
 #endif
+#include <sentry/thread.h>
 
-//#include <ssol/io.h>
 
 /*
  * address if the PSP idle stack, as defined in the layout (see m7fw.ld)
  */
-extern uint32_t _idlestack;
-static uint32_t* idle_stack_pointer = (uint32_t*)&_idlestack;
-
-
-
-extern uint32_t platform_early_init_done;;
 
 #if __GNUC__
 #if __clang__
 # pragma clang optimize off
 #else
-__attribute__ ((optimize("-fno-stack-protector")))
+__attribute__((optimize("-fno-stack-protector")))
 #endif
 #endif
 int _entrypoint(void)
 {
     interrupt_disable();
+
+    clk_reset();
+    /* initial PLLs: HSI mode, enable PLL clocks. FIXME: use KConfig instead */
+    clk_set_system_clk(false, true);
 
     interrupt_init();
 
@@ -120,7 +95,11 @@ int _entrypoint(void)
     perfo_early_init();
 #endif
 
-    platform_spawn_kworker();
+    //__platform_spawn_kthread(thread, stack)
+
+    do {
+
+    } while (1);
 
     /* This part of the function is never reached */
 

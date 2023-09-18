@@ -1,8 +1,8 @@
 #ifndef SCB_H
 #define SCB_H
 
-#include <ktypes.h>
-#include "system.h"
+#include <sentry/ktypes.h>
+#include "soc.h"
 
 /* SCB Registers */
 #define r_CORTEX_M_SCB_ACTLR                REG_ADDR(SCS_BASE + 0x08u)    /* (R/W)  Auxiliary control register */

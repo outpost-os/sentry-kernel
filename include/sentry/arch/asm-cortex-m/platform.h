@@ -8,11 +8,11 @@
 #error "arch specific header must not be included directly!"
 #endif
 
-#include <arch/asm-cortex-m/system.h>
-#include <arch/asm-cortex-m/scb.h>
-#include <arch/asm-cortex-m/platform.h>
-#include <io.h>
-#include <thread.h>
+#include <sentry/arch/asm-cortex-m/system.h>
+#include <sentry/arch/asm-cortex-m/scb.h>
+#include <sentry/arch/asm-cortex-m/platform.h>
+#include <sentry/io.h>
+#include <sentry/thread.h>
 
 
 static inline void __platform_spawn_kthread(kthread_t kernel_thread, size_t kthread_stack_pointer) {
@@ -43,6 +43,6 @@ static inline void __platform_clear_flags(void) {
 }
 
 
-void __platform_init(void)
+void __platform_init(void);
 
 #endif/*!__PLATFORM_H_*/

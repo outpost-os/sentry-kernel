@@ -3,9 +3,9 @@
 
 #include <inttypes.h>
 
-#include <arch/asm-cortex-m/nvic.h>
-#include <arch/asm-cortex-m/scb.h>
-#include <arch/asm-generic/membarriers.h>
+#include <sentry/arch/asm-cortex-m/nvic.h>
+#include <sentry/arch/asm-cortex-m/scb.h>
+#include <sentry/arch/asm-generic/membarriers.h>
 
 /**
  * \file NVIC manipulation primitives implementation with hardened support
