@@ -27,6 +27,19 @@ SECTIONS
     . = ALIGN(4);
   }>INTERRUPTS
 
+  .task_list :
+  {
+    _task_list = .;
+    *(.task_list)
+    . = ALIGN(4);
+    /*
+      hold all the task static metadata (signed, versioned). Can be upgraded alone.
+      Can be empty at kernel ELF generation (using _task_list pointer in code), but
+      must be fullfill by build system when tasks positioned, based on kernel ELF
+      to be pushed to dedicated memory slot instead, not TEXT
+    */
+  }>TEXT
+
   /* The program code and other data goes into FLASH */
   .text :
   {

@@ -32,6 +32,7 @@ sentry_source_set_config = sentry_source_set.apply(config_data, strict: false)
 sentry_lib = static_library('sentry',
     sources: sentry_source_set_config.sources(),
     include_directories: kernel_inc,
+    c_args: [ target_arch_args ],
     dependencies: [sentry_source_set_config.dependencies(), external_deps],
 )
 
@@ -55,6 +56,7 @@ sentry_elf = executable(
     sources: [sentry_startup, config_h],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
+    c_args: [ target_arch_args ],
     link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
     link_depends: sentry_linker_script,

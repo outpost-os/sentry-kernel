@@ -5,7 +5,7 @@
  * \file STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
  */
 
-#include <arch/asm-cortex-m/stm32f4xx/soc.h>
+#include <arch/asm-cortex-m/soc.h>
 #include <io.h>
 #include <bits.h>
 

@@ -1,3 +1,7 @@
+# masked symbols. These symbols are automatically selected based on the
+# target SoC.
+# The target SoC define the core technology, and thus the core features
+
 config HAS_DCACHE
 	bool
 
@@ -19,6 +23,12 @@ config HAS_FPU_FPV5
 config HAS_MPU
 	bool
 
+config HAS_MPU_PMSA_V7
+	bool
+
+config HAS_MPU_PMSA_V8
+	bool
+
 config HAS_NVIC
 	bool
 
@@ -34,52 +44,101 @@ config BIG_ENDIAN
 config HAS_DWT
 	bool
 
-config ARCH_ARM_CORTEX_M3
-	bool
+config ARCH_ARM_ARMV7M
+    bool
+	select HAS_MPU
+	select HAS_MPU_PMSA_V7
+	select HAS_NVIC
+	select THUMB
+	select LITTLE_ENDIAN
+	select HAS_DWT
 
-config ARCH_ARM_CORTEX_M4
-	bool
+config ARCH_ARM_ARMV8M
+    bool
+	select HAS_MPU
+	select HAS_MPU_PMSA_V8
+	select HAS_NVIC
+	select THUMB
+	select LITTLE_ENDIAN
+	select HAS_DWT
 
-config ARCH_ARM_CORTEX_M7
-	bool
 
-config ARCH_ARM_CORTEX_M33
-	bool
+config ARCH_ARM_CORTEX_NAME
+    string
+	default "m4" if ARCH_MCU_STM32WB55
+	default "m4" if ARCH_MCU_STM32F439
+	default "m4" if ARCH_MCU_STM32F429
+	default "m4" if ARCH_MCU_STM32F419
+	default "m33" if ARCH_MCU_STM32U5
 
 config ARCH_SOCNAME
 	string
-	default "STM32F4" if ARCH_MCU_STM32F4
+	default "STM32WB55" if ARCH_MCU_STM32WB55
+	default "STM32F407" if ARCH_MCU_STM32F407
+	default "STM32F419" if ARCH_MCU_STM32F419
+	default "STM32F429" if ARCH_MCU_STM32F429
+	default "STM32F439" if ARCH_MCU_STM32F439
 	default "STM32U5" if ARCH_MCU_STM32U5
+
+# User-accessible selectors
 
 choice
 	bool "target SoC selection"
+	default ARCH_MCU_STM32F439
+
 config ARCH_MCU_STM32U5
 	bool "STM32U5"
 	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_CORTEX_M33
+	select ARCH_ARM_ARMV7M
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_FPV5
-	select HAS_MPU
-	select HAS_NVIC
-	select THUMB
-	select LITTLE_ENDIAN
-	select HAS_DWT
 
-config ARCH_MCU_STM32F4
-	bool "STM32F4"
+config ARCH_MCU_STM32F439
+	bool "STM32F439"
 	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_CORTEX_M4
+	select ARCH_ARM_ARMV7M
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
-	select HAS_MPU
-	select HAS_NVIC
-	select THUMB
-	select LITTLE_ENDIAN
-	select HAS_DWT
+
+config ARCH_MCU_STM32F429
+	bool "STM32F429"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV7M
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+
+config ARCH_MCU_STM32F419
+	bool "STM32F419"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV7M
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+
+config ARCH_MCU_STM32F407
+	bool "STM32F407"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV7M
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+
+config ARCH_MCU_STM32WB55
+	bool "STM32WB55"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV7M
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_FPU
+	select HAS_FPU_VFPV4
 
 endchoice
 
@@ -146,10 +205,3 @@ config ENDIANNESS_CFLAGS
 	string
 	default "-mlittle-endian" if LITTLE_ENDIAN
 	default "-mbig-endian" if BIG_ENDIAN
-
-config CPU_CFLAGS
-	string
-	default "-mcpu=cortex-m3" if ARCH_ARM_CORTEX_M3
-	default "-mcpu=cortex-m4" if ARCH_ARM_CORTEX_M4
-	default "-mcpu=cortex-m7" if ARCH_ARM_CORTEX_M7
-	default "-mcpu=cortex-m33" if ARCH_ARM_CORTEX_M33

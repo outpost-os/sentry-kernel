@@ -61,21 +61,10 @@ global_build_args = [
     '-Wno-unused-parameter', # FIXME: while in early dev
 ]
 
-target_arch_args = [
-    config_data.get_unquoted('CONFIG_CPU_CFLAGS'),
-    config_data.get_unquoted('CONFIG_ISA_CFLAGS'),
-    config_data.get_unquoted('CONFIG_ENDIANNESS_CFLAGS'),
-]
-
-if config_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
-target_arch_args += [
-    config_data.get_unquoted('CONFIG_FPU_CFLAGS'),
-    config_data.get_unquoted('CONFIG_FPU_ABI_CFLAGS'),
-]
-endif
+# these flags are overload by arch/<architecture> meson.build file
+target_arch_args = []
 
 add_project_link_arguments([
-    target_arch_args,
     '-Wl,--gc-sections',
     '-Wl,--no-undefined',
     '-Wl,--cref',
@@ -85,7 +74,6 @@ add_project_link_arguments([
     language: 'c',
     native: false
 )
-
 
 add_global_arguments([ global_build_args, target_arch_args ], language: 'c', native: false)
 

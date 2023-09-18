@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef STM32F4XX_IRQ_H_
-#define STM32F4XX_IRQ_H_
+#ifndef STM32F439_IRQ_H_
+#define STM32F439_IRQ_H_
 
 /**
  * @brief IRQ num typedef that comply with cmsis header
@@ -111,7 +111,7 @@ typedef enum IRQn
     FPU_IRQ,
 } IRQn_Type;
 
-#define __NVIC_VECTOR_LEN 82
-#define __NVIC_PRIO_BITS 4
+#define __NVIC_VECTOR_LEN 82U
+#define __NVIC_PRIO_BITS 3U
 
-#endif/*__IRQ_H_*/
+#endif/*__STM32F439_IRQ_H_*/
