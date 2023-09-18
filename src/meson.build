@@ -26,13 +26,13 @@ subdir('drivers')
 # built separately.
 # both are then linked together into the kernel binary itself
 
-sentry_source_set_config = sentry_source_set.apply(config_data, strict: false)
+sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
 
 # static part library
 sentry_lib = static_library('sentry',
     sources: sentry_source_set_config.sources(),
     include_directories: kernel_inc,
-    c_args: [ target_arch_args ],
+    c_args: [ target_arch_args, global_build_args ],
     dependencies: [sentry_source_set_config.dependencies(), external_deps],
 )
 

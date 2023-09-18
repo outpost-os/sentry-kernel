@@ -9,6 +9,7 @@ target_arch_args += [
 
 if config_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
 target_arch_args += [
+    # FIXME: mfloat-abi always needed, -mfpu only if abi == softfp or hard
     config_data.get_unquoted('CONFIG_FPU_ABI_CFLAGS'),
 ]
 endif
