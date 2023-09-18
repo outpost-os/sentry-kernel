@@ -31,7 +31,7 @@ jobs:
         uses: embedded-devops/action-setup-git@main
         with:
           ssh_key: ${{ secrets.GHE_SSH_KEY }}
-          ssh_known_host: ${{ secrets.GHE_HOST_KEY }}
+          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
       - name: Setup Meson
         uses: embedded-devops/action-setup-meson@main
         with:
