@@ -31,27 +31,6 @@ kernel_inc = include_directories('include')
 # userspace exported include directory
 uapi_inc = include_directories('include/uapi')
 
-# generated before calling meson
-dotconfig = files('.config')
-
-
-# Load configuration data from .config file
-# keyval load convert .config to dict that can be use as input for configuration data
-config_data = configuration_data(keyval.load(dotconfig))
-# Fixup: convert .config entry set as `y` to boolean 10 (i.e. 1: true, 0: false)
-# TODO: use true/false boolean instead
-foreach k: config_data.keys()
-    if config_data.get(k) == 'y'
-        config_data.set10(k, true)
-    endif
-endforeach
-
-# Generate configuration header from config_data
-config_h = configure_file(
-    configuration: config_data,
-    output: 'config.h'
-)
-
 external_deps = []
 
 global_build_args = [
