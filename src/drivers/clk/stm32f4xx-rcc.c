@@ -5,12 +5,12 @@
  * \file STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
  */
 
-#include <arch/asm-cortex-m/soc.h>
-#include <io.h>
-#include <bits.h>
+#include <sentry/arch/asm-cortex-m/soc.h>
+#include <sentry/io.h>
+#include <sentry/bits.h>
 
 /* local includes, only manipulated by the driver itself */
-#include <clk.h>
+#include <sentry/clk.h>
 #include "stm32f4xx-pwr.h"
 
 #define RCC_BASE (AHB1PERIPH_BASE + 0x3800UL)

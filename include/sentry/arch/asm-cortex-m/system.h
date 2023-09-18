@@ -12,7 +12,7 @@
 
 /* NVIC related content */
 #if defined(CONFIG_HAS_NVIC) && (CONFIG_HAS_NVIC == 1)
-#include <arch/asm-generic/interrupt.h>
+#include <sentry/arch/asm-generic/interrupt.h>
 /* including CMSIS headers*/
 #endif
 

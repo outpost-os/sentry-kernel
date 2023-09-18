@@ -4,11 +4,11 @@
 #include <inttypes.h>
 
 
-#include <arch/asm-generic/interrupt.h>
-#include <clk.h>
-#include <io.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/clk.h>
+#include <sentry/io.h>
 
-#include <arch/asm-cortex-m/systick.h>
+#include <sentry/arch/asm-cortex-m/systick.h>
 
 #define SCB_SYSTICK_CSR    (SYSTICK_BASE + 0x0u)
 

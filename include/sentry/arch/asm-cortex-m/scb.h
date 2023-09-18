@@ -1,7 +1,7 @@
 #ifndef SCB_H
 #define SCB_H
 
-#include <ktypes.h>
+#include <sentry/ktypes.h>
 #include "soc.h"
 
 /* SCB Registers */

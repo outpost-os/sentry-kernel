@@ -20,8 +20,8 @@ py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
 sentry_source_set = ssmod.source_set()
 
-# kernel code shared include directory
-kernel_inc = include_directories('include/sentry')
+# kernel code shared include directory. kernel include both kernel & user api
+kernel_inc = include_directories('include')
 
 # userspace exported include directory
 uapi_inc = include_directories('include/uapi')

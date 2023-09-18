@@ -8,7 +8,7 @@
  */
 
 #ifdef CONFIG_ARCH_ARM_CORTEX_M
-#include <arch/asm-cortex-m/thread.h>
+#include <sentry/arch/asm-cortex-m/thread.h>
 #else
 #error "unsupported architecture!"
 #endif

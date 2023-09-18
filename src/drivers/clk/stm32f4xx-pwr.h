@@ -4,7 +4,7 @@
 #ifndef SOC_PWR_H
 #define SOC_PWR_H
 
-#include <arch/asm-cortex-m/soc.h>
+#include <sentry/arch/asm-cortex-m/soc.h>
 
 #define PWR_BASE              (APB1PERIPH_BASE + 0x7000)
 

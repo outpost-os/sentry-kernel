@@ -1,7 +1,6 @@
 #include <inttypes.h>
-#include <thread.h>
-
-#include <task.h>
+#include <sentry/thread.h>
+#include <sentry/task.h>
 
 /*
  * Forge a stack context

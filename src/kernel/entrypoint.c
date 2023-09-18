@@ -2,18 +2,18 @@
 #include <stdbool.h>
 
 /* kernel includes */
-#include <arch/asm-generic/platform.h>
-#include <arch/asm-generic/membarriers.h>
-#include <arch/asm-generic/interrupt.h>
-#include <arch/asm-generic/interrupt.h>
-#include <mm.h>
+#include <sentry/arch/asm-generic/platform.h>
+#include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/mm.h>
 
 #if CONFIG_ARCH_ARM_CORTEX_M
-#include <arch/asm-cortex-m/systick.h>
+#include <sentry/arch/asm-cortex-m/systick.h>
 #else
 #error "unsupported platform"
 #endif
-#include <thread.h>
+#include <sentry/thread.h>
 
 
 /*

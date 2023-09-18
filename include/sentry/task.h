@@ -4,10 +4,10 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include <device.h>
-#include <dma.h>
-#include <ipc.h>
-#include <signal.h>
+#include <sentry/device.h>
+#include <sentry/dma.h>
+#include <sentry/ipc.h>
+#include <sentry/signal.h>
 
 #include <assert.h>
 #include <inttypes.h>

@@ -5,7 +5,7 @@
 #define NVIC_H
 
 #include <stddef.h>
-#include <arch/asm-cortex-m/membarriers.h>
+#include <sentry/arch/asm-cortex-m/membarriers.h>
 #include "soc.h"
 
 /**

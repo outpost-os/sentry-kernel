@@ -3,9 +3,8 @@
 
 #include <inttypes.h>
 #include <stddef.h>
-#include <ktypes.h>
-
-#include <task.h>
+#include <sentry/ktypes.h>
+#include <sentry/task.h>
 
 /**
  * \file Memory-related security checks

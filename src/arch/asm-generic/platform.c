@@ -1,8 +1,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <arch/asm-generic/sync.h>
-#include <io.h>
+#include <sentry/arch/asm-generic/sync.h>
+#include <sentry/io.h>
 
 /*
  * init done flag, used like a register

@@ -6,9 +6,9 @@
 
 #include <inttypes.h>
 
-#include <clk.h>
-#include <thread.h>
-#include <arch/asm-cortex-m/system.h>
+#include <sentry/clk.h>
+#include <sentry/thread.h>
+#include <sentry/arch/asm-cortex-m/system.h>
 
 
 /* FIXME to set*/
