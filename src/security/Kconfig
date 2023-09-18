@@ -32,5 +32,6 @@ config SECU_TASK_INTEGRITY_AT_BOOT
 	bool
 
 config SECU
+	bool
 
 endmenu

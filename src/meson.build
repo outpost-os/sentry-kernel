@@ -26,13 +26,13 @@ subdir('drivers')
 # built separately.
 # both are then linked together into the kernel binary itself
 
-sentry_source_set_config = sentry_source_set.apply(config_data, strict: false)
+sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
 
 # static part library
 sentry_lib = static_library('sentry',
     sources: sentry_source_set_config.sources(),
     include_directories: kernel_inc,
-    c_args: [ target_arch_args ],
+    c_args: [ target_arch_args, global_build_args ],
     dependencies: [sentry_source_set_config.dependencies(), external_deps],
 )
 
@@ -53,10 +53,10 @@ sentry_map_file = '@0@.map'.format(meson.project_name())
 sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
-    sources: [sentry_startup, config_h, irq_def_h, layout_h],
+    sources: [sentry_startup, kconfig_h, irq_def_h, layout_h],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args ],
+    c_args: [ target_arch_args, global_build_args ],
     link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
     link_depends: sentry_linker_script,

@@ -46,16 +46,12 @@ jobs:
           pypi_server_login: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
           pypi_server_password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
       - uses: actions/checkout@v3
-      - name: defconfig
-        if: ${{ success() }}
-        run: |
-          defconfig configs/stm32f4_debug_defconfig
       - name: Meson Setup
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          options: '-Doptimization=0'
+          options: '-Doptimization=0 -Dkconfig:config=configs/stm32f4_debug_defconfig'
       - name: Sonar Scanner
         uses: embedded-devops/action-codequal@main
         with:

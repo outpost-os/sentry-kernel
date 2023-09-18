@@ -85,15 +85,12 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
-      - name: defconfig
-        if: ${{ success() }}
-        run: |
-          defconfig configs/stm32f4_debug_defconfig
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["setup", "compile"]'
+          options: '-Dkconfig:config=configs/stm32f4_debug_defconfig'
       - name: Meson postcheck
         if: failure()
         run: |
