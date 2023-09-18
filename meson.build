@@ -83,6 +83,11 @@ endif
 # all sources are there
 subdir('src')
 
+with_doc_opt = get_option('with_doc')
+if with_doc_opt
+  subdir('doc')
+endif
+
 message('build targetting SoC', config_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
 

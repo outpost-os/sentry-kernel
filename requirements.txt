@@ -2,3 +2,5 @@ dunamai~=1.16.1
 meson~=1.1.0
 ninja
 kconfiglib~=14.1.0
+sphinx_rtd_theme
+exhale
