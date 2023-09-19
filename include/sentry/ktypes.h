@@ -108,4 +108,19 @@ typedef unsigned long long  time_ms_t;
  */
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
+typedef enum kstatus {
+    K_STATUS_OKAY,
+    K_ERROR_BUSY,
+    K_ERROR_INVPARAM,
+    K_ERROR_BADSTATE,
+    K_ERROR_UNKNOWN,
+    K_ERROR_BADCLK,
+    K_ERROR_BADENTROPY,
+    K_ERROR_NOTREADY,
+    K_ERROR_NOENT,
+    K_SECURITY_INVSTATE,
+    K_SECURITY_LOCKDOWN,
+    K_SECURITY_FIPSCOMPLIANCE,
+} kstatus_t;
+
 #endif/*KTYPES_H*/
