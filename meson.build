@@ -80,7 +80,6 @@ peripheral_defs_in = meson_svd_proj.get_variable('peripheral_defs_in')
 svd_json = meson_svd_proj.get_variable('svd_json')
 jinja_cli = meson_svd_proj.get_variable('jinja_cli')
 layout_in = meson_svd_proj.get_variable('layout_in')
-vtor_table_in = meson_svd_proj.get_variable('vtor_table_in')
 
 # sentry header set is populated in the include dir
 subdir('include/sentry')
