@@ -16,6 +16,7 @@ sentry_header_set.add(files(
     'thread.h',
 ))
 
+irq_defs_in = files('irq_defs.h.in')
 # generated headers
 irq_def_h = custom_target('gen_irq_defs',
    input: irq_defs_in,
@@ -31,14 +32,17 @@ layout_h = custom_target('gen_layout',
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
-vtor_h = custom_target('gen_vtor',
-    input: vtor_table_in,
+core_in = files('core.h.in')
+
+core_h = custom_target('gen_core',
+    input: core_in,
     output: '@BASENAME@',
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
+
 sentry_header_set.add(
     irq_def_h.to_list(),
     layout_h.to_list(),
-    vtor_h.to_list(),
+    core_h.to_list(),
 )

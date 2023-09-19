@@ -79,12 +79,13 @@ meson_svd_proj = subproject('meson-svd',  default_options: 'svd=@0@'.format(kcon
 peripheral_defs_in = meson_svd_proj.get_variable('peripheral_defs_in')
 svd_json = meson_svd_proj.get_variable('svd_json')
 jinja_cli = meson_svd_proj.get_variable('jinja_cli')
-irq_defs_in = meson_svd_proj.get_variable('irq_defs_in')
 layout_in = meson_svd_proj.get_variable('layout_in')
 vtor_table_in = meson_svd_proj.get_variable('vtor_table_in')
 
 # sentry header set is populated in the include dir
 subdir('include/sentry')
+sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
+
 # all sources are there, sentry source set is populated in each subdir
 subdir('src')
 
@@ -95,7 +96,6 @@ endif
 
 meson.install_dependency_manifest('manifest.json')
 
-sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 
 
 # here we define the final target: the Sentry kernel binary

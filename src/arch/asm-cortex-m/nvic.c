@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+#include <sentry/arch/asm-cortex-m/layout.h>
 #include <sentry/arch/asm-cortex-m/nvic.h>
 #include <sentry/arch/asm-cortex-m/scb.h>
 #include <sentry/arch/asm-generic/membarriers.h>

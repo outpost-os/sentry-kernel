@@ -6,5 +6,6 @@
 
 #include <sentry/arch/asm-cortex-m/irq_defs.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
+#include <sentry/arch/asm-cortex-m/core.h>
 
 #endif/*!SOC_H*/
