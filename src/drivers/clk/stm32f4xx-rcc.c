@@ -4,6 +4,7 @@
 /**
  * \file STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
  */
+#include <assert.h>
 
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
@@ -74,8 +75,15 @@ void clk_reset(void)
 
 void clk_set_system_clk(bool enable_hse, bool enable_pll)
 {
+    union _reg {
+        uint32_t raw;
+        rcc_cfgr_t cfgr;
+        rcc_pllcfgr_t pllcfgr;
+    };
+    union _reg reg;
+    static_assert(sizeof(reg) == sizeof(uint32_t), "invalid register type length");
+
     uint32_t StartUpCounter = 0;
-    size_t reg;
 
     /*
      * PLL (clocked by HSE/HSI) used as System clock source
@@ -83,37 +91,37 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
 
     if (enable_hse) {
         /* Enable HSE */
-        reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-        reg |= RCC_CR_HSEON;
-        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+        reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+        reg.raw |= RCC_CR_HSEON;
+        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg.raw);
         do {
-            reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-            reg &= RCC_CR_HSERDY;
+            reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+            reg.raw &= RCC_CR_HSERDY;
             StartUpCounter++;
-        } while ((reg == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+        } while ((reg.raw == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
     } else {
         /* Enable HSI */
-        reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-        reg |= RCC_CR_HSION;
-        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+        reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+        reg.raw |= RCC_CR_HSION;
+        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg.raw);
         do {
-            reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-            reg &= RCC_CR_HSIRDY;
+            reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+            reg.raw &= RCC_CR_HSIRDY;
             StartUpCounter++;
-        } while ((reg == 0) && (StartUpCounter != HSI_STARTUP_TIMEOUT));
+        } while ((reg.raw == 0) && (StartUpCounter != HSI_STARTUP_TIMEOUT));
     }
 
-    if (reg == 0) {
+    if (reg.raw == 0) {
         /* HSE or HSI oscillator is not stable at the end of the timeout window,
          * we should do something
          */
         goto err;
     }
 
-    /* Enable high performance mode, System frequency up to 168 MHz */
-    reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
-    reg |= RCC_APB1ENR_PWREN;
-    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
+    /* Enable high performance mode at bootup, System frequency up to 168 MHz */
+    reg.raw = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    reg.raw |= RCC_APB1ENR_PWREN;
+    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg.raw);
     /*
      * This bit controls the main internal voltage regulator output
      * voltage to achieve a trade-off between performance and power
@@ -121,19 +129,20 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
      * frequency. (DocID018909 Rev 15 - page 141)
      * PWR_CR_VOS = 1 => Scale 1 mode (default value at reset)
      */
-    reg = ioread32(PWR_BASE_ADDR + PWR_CR_REG);
-    reg |= PWR_CR_VOS_MASK;
-    iowrite32(RCC_BASE_ADDR + PWR_CR_REG, reg);
+    reg.raw = ioread32(PWR_BASE_ADDR + PWR_CR_REG);
+    reg.raw |= PWR_CR_VOS_MASK;
+    iowrite32(RCC_BASE_ADDR + PWR_CR_REG, reg.raw);
 
 
     /* Set clock dividers */
-    rcc_cfgr_t cfgr;
-    cfgr = (rcc_cfgr_t)ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    cfgr.hpre = 0x0; /* nit divide */
-    cfgr.ppre1 = 0x5; /* div 4 */
-    cfgr.ppre2 = 0x4; /* div 2 */
-    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, (uint32_t)cfgr);
 
+    reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+    reg.cfgr.hpre = 0x0; /* nit divide */
+    reg.cfgr.ppre1 = 0x5; /* div 4 */
+    reg.cfgr.ppre2 = 0x4; /* div 2 */
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
+
+    reg.raw = 0;
     if (enable_pll) {
         /* Configure the main PLL */
         /**
@@ -141,34 +150,33 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
          * are hardcoded, allowing correct (but maybe not optimal) calculation for
          * for various AHB/APB devices. To be checked and properly calculated
          */
-        rcc_pllcfgr_t pllcfgr = 0;
-        pllcfgr.pllm4 = 1; /* PROD_PLL_M = 16 */
-        pllcfgr.pllp1 = 1; /* PROD_PLL_P = 2 */
-        pllcfgr.pllq0 = 1; /* PROD_PLL_Q = 7*/
-        pllcfgr.pllq1 = 1;
-        pllcfgr.pllq2 = 1;
+        reg.pllcfgr.pllm4 = 1; /* PROD_PLL_M = 16 */
+        reg.pllcfgr.pllp1 = 1; /* PROD_PLL_P = 2 */
+        reg.pllcfgr.pllq0 = 1; /* PROD_PLL_Q = 7*/
+        reg.pllcfgr.pllq1 = 1;
+        reg.pllcfgr.pllq2 = 1;
         if (enable_hse) {
-            pllcfgr.pllsrc = 1;
+            reg.pllcfgr.pllsrc = 1;
         }
-        iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, (uint32_t)pllcfgr);
+        iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, reg.raw);
 
-        reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-        reg |= BITFIELD_PUT(0x1ul, RCC_CR_PLLON);
+        reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+        reg.raw |= BITFIELD_PUT(0x1ul, RCC_CR_PLLON);
         /* Enable the main PLL */
-        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+        iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg.raw);
         /* Wait till the main PLL is ready */
         while ((ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_PLLRDY) == 0) {
             continue;
         }
 
         /* Select the main PLL as system clock source */
-        reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-        reg &= ~RCC_CFGR_SW;
-        reg |= BITFIELD_PUT(RCC_CFGR_SW_PLL, RCC_CFGR_SW);
-        iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg);
+        reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+        reg.cfgr.sw0 = 0;
+        reg.cfgr.sw1 = 1; /* 0b10 -> PLL as system clock */
+        iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
 
         /* Wait till the main PLL is used as system clock source */
-        while (BITFIELD_GET(ioread32(RCC_BASE_ADDR + RCC_CFGR_REG), RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL) {
+        while (BITFIELD_GET(ioread32(RCC_BASE_ADDR + RCC_CFGR_REG), (RCC_CFGR_SWS0 | RCC_CFGR_SWS1)) != 0b1u) {
             continue;
         }
     }
@@ -182,5 +190,6 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
     return;
 err:
     return;
+
     //panic();
 }
