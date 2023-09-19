@@ -1,9 +1,13 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-if kconfig_data.get('CONFIG_ARCH_MCU_STM32F439', 0) == 1
-sentry_source_set.add(files(
-    'clk/stm32f4xx-rcc.c',
-    'clk/stm32f4xx-pwr.h',
-))
-endif
+jinja_gen = generator(jinja_cli,
+       output: '@BASENAME@',
+       arguments: ['-d', '@0@'.format(svd_json),
+                   '-o', '@OUTPUT@',
+                   '@EXTRA_ARGS@',
+                   '@INPUT@'],
+       depends: [ svd_json ])
+
+subdir('gpio')
+subdir('clk')

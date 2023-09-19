@@ -39,9 +39,19 @@ One needs to deliver to the `meson` build system the kernel configuration based 
 kconfiglib that is listed in `requirements.txt. The kernel configuration is generated into a local `.config` file that
 holds the complete kernel configuration, and that is used at build time to select the corresponding sources and features.
 
-Generating the configuration is made using the standard Linux Kconfig UI:
+#### Using defconfigs
+
+defconfig files are stored in configs/ directory and can be used directly. In that case, the kconfig:config option can be used at setup time:
+
 ```console
-menuconfig Kconfig
+meson setup -Dkconfig:config=configs/stm32f4_debug_defconfig [...]
+```
+
+#### Setting custom configurations
+
+Generating the configuration is made using the standard Linux Kconfig UI. This interface can be called by ninja by targetting the kconfig module's menuconfig target:
+```console
+ninja -C builddir kconfig@@menuconfig
 ```
 
 # How to build

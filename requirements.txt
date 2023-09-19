@@ -4,3 +4,5 @@ ninja
 kconfiglib~=14.1.0
 sphinx_rtd_theme
 exhale
+pyledger-svd2json
+jinja-cli

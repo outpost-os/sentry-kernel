@@ -30,7 +30,7 @@ sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
 
 # static part library
 sentry_lib = static_library('sentry',
-    sources: sentry_source_set_config.sources(),
+    sources: [ sentry_source_set_config.sources(), sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
     dependencies: [sentry_source_set_config.dependencies(), external_deps],
@@ -39,45 +39,4 @@ sentry_lib = static_library('sentry',
 sentry_dep = declare_dependency(
     link_with: sentry_lib,
     include_directories: kernel_inc,
-)
-
-sentry_linker_args = [
-    '-T@0@'.format(fs.name(sentry_linker_script[0])),
-    '-L@0@'.format(sentry_linker_script_path),
-]
-
-meson.install_dependency_manifest('manifest.json')
-
-sentry_map_file = '@0@.map'.format(meson.project_name())
-
-sentry_elf = executable(
-    meson.project_name(),
-    name_suffix: 'elf',
-    sources: [sentry_startup, kconfig_h],
-    include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args, global_build_args ],
-    link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
-    link_language: 'c',
-    link_depends: sentry_linker_script,
-    install: true,
-    install_dir: '',
-)
-
-sentry_map = custom_target(
-    input: sentry_elf,
-    output: sentry_map_file,
-    command: ['touch', '@OUTPUT@'],
-    build_by_default: true,
-    install: true,
-    install_dir: '',
-)
-
-enclave_bin = custom_target(
-    input: sentry_elf,
-    output: '@BASENAME@.bin',
-    command: [objcopy, '--output-target=binary', '@INPUT@', '@OUTPUT@'],
-    build_by_default: true,
-    install: true,
-    install_dir: '',
 )

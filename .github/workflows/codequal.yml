@@ -38,7 +38,17 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: Set pypi credentials
+        uses: embedded-devops/action-pypi@main
+        with:
+          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
+          pypi_server_need_authentication: true
+          pypi_server_login: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
+          pypi_server_password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
       - uses: actions/checkout@v3
+      - name: install python deps
+        run: |
+          pip3 install -r requirements.txt
       - name: Meson Setup
         uses: embedded-devops/action-meson@main
         with:

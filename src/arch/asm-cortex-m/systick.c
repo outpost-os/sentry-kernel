@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <inttypes.h>
+#include <assert.h>
 
 
 #include <sentry/arch/asm-generic/interrupt.h>
+#include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/clk.h>
 #include <sentry/io.h>
 
-#include <sentry/arch/asm-cortex-m/systick.h>
 
-#define SCB_SYSTICK_CSR    (SYSTICK_BASE + 0x0u)
+// FIXME: systick registers defs is in cmsis (core.h)
+#define SCB_SYSTICK_CSR    (SysTick_BASE + 0x0u)
 
 #define SCB_SYSTICK_CSR_ENA_Pos (0u)
 #define SCB_SYSTICK_CSR_ENA_Msk (0x1u)
@@ -40,17 +43,17 @@ typedef enum scb_systick_clksource {
 #define SCB_SYSTICK_CSR_CNTFLAG_Pos (16u)
 #define SCB_SYSTICK_CSR_CNTFLAG_Msk (0x1u)
 
-#define SCB_SYSTICK_RVR    (SYSTICK_BASE + 0x4u)
+#define SCB_SYSTICK_RVR    (SysTick_BASE + 0x4u)
 
 #define SCB_SYSTICK_RVR_RELOAD_Pos (0u)
 #define SCB_SYSTICK_RVR_RELOAD_Msk (0x00ffffffu)
 
-#define SCB_SYSTICK_CVR    (SYSTICK_BASE + 0x8u)
+#define SCB_SYSTICK_CVR    (SysTick_BASE + 0x8u)
 
 #define SCB_SYSTICK_CVR_CURRENT_Pos (0u)
 #define SCB_SYSTICK_CVR_CURRENT_Msk (0x00ffffffu)
 
-#define SCB_SYSTICK_CALIB  (SYSTICK_BASE + 0xCu)
+#define SCB_SYSTICK_CALIB  (SysTick_BASE + 0xCu)
 
 #define SCB_SYSTICK_CALIB_TENMS_Pos (0u)
 #define SCB_SYSTICK_CALIB_TENMS_Msk (0x00ffffffu)
