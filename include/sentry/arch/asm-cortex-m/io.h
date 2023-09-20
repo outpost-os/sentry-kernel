@@ -8,6 +8,9 @@
 #ifndef __ASM_IO_H
 #define __ASM_IO_H
 
+#include <stddef.h>
+#include <inttypes.h>
+
 #ifndef IO_H
 #error "must not be included directly, used ssol/io.h instead"
 #endif

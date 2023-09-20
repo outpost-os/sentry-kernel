@@ -23,7 +23,7 @@
 
 /** @brief Generic iowrite interface that implicitely handle multiple sizes */
 #define iowrite(reg, T) _Generic((T),   \
-              size_t:   iowrite32,      \
+              unsigned long: iowrite32, \
               uint32_t: iowrite32,      \
               uint16_t: iowrite16,      \
               uint8_t:  iowrite8        \

@@ -86,8 +86,8 @@ kstatus_t gpio_probe(void)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 kstatus_t gpio_set_mode(uint8_t gpio_port_id, uint8_t pin, gpio_mode_t mode)
 {
@@ -108,8 +108,8 @@ kstatus_t gpio_set_mode(uint8_t gpio_port_id, uint8_t pin, gpio_mode_t mode)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 kstatus_t gpio_set_type(uint8_t gpio_port_id, uint8_t pin, gpio_type_t type)
 {
@@ -128,8 +128,8 @@ kstatus_t gpio_set_type(uint8_t gpio_port_id, uint8_t pin, gpio_type_t type)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 kstatus_t gpio_set_af(uint8_t gpio_port_id, uint8_t pin, gpio_af_t af)
 {
@@ -158,8 +158,8 @@ kstatus_t gpio_set_af(uint8_t gpio_port_id, uint8_t pin, gpio_af_t af)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 kstatus_t gpio_set_speed(uint8_t gpio_port_id, uint8_t pin, gpio_speed_t speed)
 {
@@ -180,8 +180,8 @@ kstatus_t gpio_set_speed(uint8_t gpio_port_id, uint8_t pin, gpio_speed_t speed)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 kstatus_t gpio_set_pull_mode(uint8_t gpio_port_id, uint8_t pin, gpio_pullupd_t pupd)
 {
@@ -202,9 +202,9 @@ kstatus_t gpio_set_pull_mode(uint8_t gpio_port_id, uint8_t pin, gpio_pullupd_t p
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
-  @ \requires \valid(val);
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
+  @ requires \valid(val);
   @*/
 kstatus_t gpio_get(uint8_t gpio_port_id, uint8_t pin, bool *val)
 {
@@ -228,8 +228,8 @@ kstatus_t gpio_get(uint8_t gpio_port_id, uint8_t pin, bool *val)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 /**
  * @brief set GPIO ODRx bit to 1
@@ -251,8 +251,8 @@ kstatus_t gpio_set(uint8_t gpio_port_id, uint8_t pin)
 }
 
 /*@
-  @ \requires gpio_port_id \lt GPIO_PORTS_NUMBER;
-  @ \requires pin \lt 31;
+  @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
+  @ requires pin <= 31;
   @*/
 /**
  * @brief reset ODRx bit to 0

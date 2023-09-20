@@ -29,39 +29,48 @@ void     nvic_systemreset(void);
 
 /* arch-genric API */
 inline __attribute__((always_inline)) void wait_for_interrupt(void) {
+#ifndef __FRAMAC__
     arch_data_sync_barrier();
     arch_inst_sync_barrier();
     asm volatile ("wfi\r\n" : : : "memory");
+#endif
 }
 
 inline __attribute__((always_inline)) void wait_for_event(void) {
+#ifndef __FRAMAC__
     arch_data_sync_barrier();
     arch_inst_sync_barrier();
     asm volatile ("wfe\r\n" : : : "memory");
+#endif
 }
 
 inline __attribute__((always_inline)) void notify_event(void) {
+#ifndef __FRAMAC__
     arch_data_sync_barrier();
     arch_inst_sync_barrier();
     asm volatile ("sev\r\n" : : : "memory");
+#endif
 }
 
 static inline void interrupt_disable(void) {
+#ifndef __FRAMAC__
     asm inline (
         "cpsid i\r\n"
             :::
             );
+#endif
     return;
 }
 
 static inline void interrupt_enable(void) {
+#ifndef __FRAMAC__
     asm inline (
         "cpsie i\r\n"
             :::
     );
     arch_data_sync_barrier();
     arch_inst_sync_barrier();
-
+#endif
     return;
 }
 

@@ -122,8 +122,13 @@
 /**
  * Load memory regions description table in MPU
  */
-__STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *region_descs,
-                                                 size_t count)
+#ifndef __FRAMAC__
+__STATIC_FORCEINLINE
+#else
+static inline
+#endif
+void mpu_load_configuration(const struct mpu_region_desc *region_descs,
+                            size_t count)
 {
     uint32_t rbar;
     uint32_t rasr;
@@ -136,6 +141,7 @@ __STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *r
 
     for (size_t i = 0UL; i < count; i++) {
         desc = region_descs + i;
+#ifndef __FRAMAC__
         rbar = ARM_MPU_RBAR(desc->id, desc->addr);
         rasr = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
                                desc->access_perm,
@@ -143,6 +149,7 @@ __STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *r
                                desc->mask,
                                desc->size);
         ARM_MPU_SetRegion(rbar, rasr);
+#endif
     }
 }
 
