@@ -4,4 +4,5 @@
 # list of statically defined headers
 sentry_header_set.add(files(
     'gpio.h',
+    'rng/rng.h',
 ))
