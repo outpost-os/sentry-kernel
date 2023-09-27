@@ -17,7 +17,7 @@
 #include <sentry/crypto/crc32.h>
 #include "syscfg_defs.h"
 
-#ifdef HAS_FLASH_DUAL_BANK
+#ifdef CONFIG_HAS_FLASH_DUAL_BANK
 /**
  * @brief flip the current flash bank that is mapped at address 0x0
  */
@@ -26,7 +26,7 @@ void syscfg_switch_bank(void)
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
     /* flipping FB_MODE bit */
     reg ^= SYSCFG_MEMRM_FB_MODE;
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, reg);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, reg);
 }
 #endif
 
@@ -34,17 +34,17 @@ kstatus_t syscfg_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
-#ifdef HAS_FLASH_DUAL_BANK
+#ifdef CONFIG_HAS_FLASH_DUAL_BANK
     /* preserve currently selected bank */
     reg &= SYSCFG_MEMRM_FB_MODE;
 #endif
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_PMC_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_EXTICR1_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_EXTICR2_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_EXTICR3_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_EXTICR4_REG, 0UL);
-    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_CMPCR_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_PMC_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR1_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR2_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR3_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR4_REG, 0UL);
+    iowrite(SYSCFG_BASE_ADDR + SYSCFG_CMPCR_REG, 0UL);
 
     return status;
 }
