@@ -95,8 +95,6 @@ endif
 
 meson.install_dependency_manifest('manifest.json')
 
-
-
 # here we define the final target: the Sentry kernel binary
 sentry_linker_args = [
     '-T@0@'.format(fs.name(sentry_linker_script[0])),
