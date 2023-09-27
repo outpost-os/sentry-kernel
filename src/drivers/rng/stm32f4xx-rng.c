@@ -42,11 +42,11 @@ kstatus_t rng_probe(void)
     }
     rng_enabled = ATOMIC_VAR_INIT(false);
     /* FIXME: enable clock through clk API */
-    iowrite32(RCC_AHB2ENR_REG, RCC_AHB2ENR_RNGEN);
+    iowrite(RCC_AHB2ENR_REG, RCC_AHB2ENR_RNGEN);
 
     /* Enable random number generation */
     reg |= RNG_CR_RNGEN;
-    iowrite32(RNG_BASE_ADDR + RNG_CR_REG, reg);
+    iowrite(RNG_BASE_ADDR + RNG_CR_REG, reg);
     /* Wait for the RNG to be ready */
     while (!(ioread32(RNG_BASE_ADDR + RNG_SR_REG) & RNG_SR_DRDY)) {
         /** FIXME: timeout to add here */
@@ -56,16 +56,16 @@ kstatus_t rng_probe(void)
     if (unlikely(reg & RNG_SR_CEIS)) {
         /* Clear error */
         reg ^= RNG_SR_CEIS;
-        iowrite32(RNG_BASE_ADDR + RNG_SR_REG, reg);
+        iowrite(RNG_BASE_ADDR + RNG_SR_REG, reg);
         status = K_ERROR_BADCLK;
         goto err;
     }
     if (unlikely(reg & RNG_SR_SEIS)) {
         reg ^= RNG_SR_SEIS;
-        iowrite32(RNG_BASE_ADDR + RNG_SR_REG, reg);
+        iowrite(RNG_BASE_ADDR + RNG_SR_REG, reg);
         /* reset RNG enable bit */
-        iowrite32(RNG_BASE_ADDR + RNG_SR_REG, reg & (~RNG_CR_RNGEN));
-        iowrite32(RNG_BASE_ADDR + RNG_SR_REG, reg);
+        iowrite(RNG_BASE_ADDR + RNG_SR_REG, reg & (~RNG_CR_RNGEN));
+        iowrite(RNG_BASE_ADDR + RNG_SR_REG, reg);
         status = K_ERROR_BADENTROPY;
         goto err;
     }
