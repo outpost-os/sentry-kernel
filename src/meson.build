@@ -13,7 +13,7 @@ subdir('core')
 subdir('memory')
 subdir('security')
 subdir('drivers')
-subdir('crypto')
+# managers (generic internal API for various services)
 subdir('managers')
 
 #enclave_linker_script = files('m7fw.ld')
