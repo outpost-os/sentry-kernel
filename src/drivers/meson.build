@@ -12,4 +12,5 @@ jinja_gen = generator(jinja_cli,
 subdir('gpio')
 subdir('clk')
 subdir('rng')
+subdir('exti')
 subdir('syscfg')
