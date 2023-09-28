@@ -27,7 +27,7 @@
 __attribute__((optimize("-fno-stack-protector")))
 #endif
 #endif
-int _entrypoint(void)
+__attribute__((noreturn)) void _entrypoint(void)
 {
     interrupt_disable();
 
@@ -100,8 +100,6 @@ int _entrypoint(void)
     do {
 
     } while (1);
-
+    __builtin_unreachable();
     /* This part of the function is never reached */
-
-    return 0;
 }
