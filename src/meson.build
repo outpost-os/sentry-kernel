@@ -11,6 +11,7 @@ subdir('kernel')
 subdir('memory')
 subdir('security')
 subdir('drivers')
+subdir('crypto')
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [
