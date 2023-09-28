@@ -8,8 +8,11 @@
 #ifndef IO_H
 #define IO_H
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <assert.h>
+#include <stdbool.h>
 
 /* dispatcher for I/O file based on compiler host value */
 #ifdef CONFIG_ARCH_ARM_CORTEX_M
@@ -17,6 +20,14 @@
 #else
 #error "unsupported architecture"
 #endif
+
+/** @brief Generic iowrite interface that implicitely handle multiple sizes */
+#define iowrite(reg, T) _Generic((T),   \
+              size_t:   iowrite32,      \
+              uint32_t: iowrite32,      \
+              uint16_t: iowrite16,      \
+              uint8_t:  iowrite8        \
+        ) (reg, T)
 
 /**
  * @brief  Writes one byte at given address

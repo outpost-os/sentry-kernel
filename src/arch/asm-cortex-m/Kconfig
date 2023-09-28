@@ -44,6 +44,9 @@ config BIG_ENDIAN
 config HAS_DWT
 	bool
 
+config HAS_FLASH_DUAL_BANK
+	bool
+
 config ARCH_ARM_ARMV7M
     bool
 	select HAS_MPU
@@ -103,6 +106,7 @@ config ARCH_MCU_STM32F439
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select HAS_FLASH_DUAL_BANK
 
 config ARCH_MCU_STM32F429
 	bool "STM32F429"
@@ -112,6 +116,7 @@ config ARCH_MCU_STM32F429
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select HAS_FLASH_DUAL_BANK
 
 config ARCH_MCU_STM32F419
 	bool "STM32F419"
