@@ -4,15 +4,18 @@
 /**
  * @file Sentry I/O manager
  */
+#include <stdbool.h>
+
+#include <uapi/handle.h>
 
 #include <sentry/ktypes.h>
-#include <sentry/driver/gpio/gpio.h>
+#include <sentry/drivers/gpio/gpio.h>
 #ifdef CONFIG_SOC_FAMILY_STM32
-#include <sentry/driver/exti/exti.h>
+#include <sentry/drivers/exti/exti.h>
 #endif
 #include <sentry/managers/io.h>
 
-#include <uapi/handle.h>
+
 
 /**
  * @brief probe all BSP-related part of the I/O manipulation
@@ -25,12 +28,12 @@ kstatus_t io_probe(void)
     kstatus_t status = K_STATUS_OKAY;
 
     /* This backend should be generic to any SoC, any arch */
-    if (unlikely((status = gpio_probe()) != K_STATUS_OKAY) {
+    if (unlikely((status = gpio_probe()) != K_STATUS_OKAY)) {
         goto err;
     };
 #ifdef CONFIG_SOC_FAMILY_STM32
     /* STM32 BSP implement EXTI controler for external interrupt & events */
-    if (unlikely((status = exti_probe()) != K_STATUS_OKAY) {
+    if (unlikely((status = exti_probe()) != K_STATUS_OKAY)) {
         goto err;
     };
 #endif
@@ -45,7 +48,8 @@ err:
  */
 kstatus_t io_set(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 /**
@@ -55,7 +59,8 @@ kstatus_t io_set(ioh_t ioh)
  */
 kstatus_t io_reset(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 /**
@@ -65,7 +70,8 @@ kstatus_t io_reset(ioh_t ioh)
  */
 kstatus_t io_read(ioh_t ioh, bool *val)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 /**
@@ -73,7 +79,8 @@ kstatus_t io_read(ioh_t ioh, bool *val)
  */
 kstatus_t io_configure(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 /* About interrupt associated to I/O */
@@ -81,25 +88,30 @@ kstatus_t io_configure(ioh_t ioh)
 
 kstatus_t io_mask_interrupt(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 kstatus_t io_unmask_interrupt(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 kstatus_t io_mask_event(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 kstatus_t io_unmask_event(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }
 
 kstatus_t io_clear_pending_interrupt(ioh_t ioh)
 {
-
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
 }

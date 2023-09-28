@@ -5,6 +5,8 @@
 #define HANDLE_H
 
 #include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @file Sentry handles specification.
@@ -31,7 +33,7 @@
  * pin is already hardcoded in the ioh_t specific part of the handler.
  */
 
-typedef enum {
+typedef enum handle_type {
   HANDLE_TASKID = 0,
   HANDLE_DEVICE = 1,
   HANDLE_IO     = 2,
@@ -40,89 +42,50 @@ typedef enum {
   HANDLE_DMA    = 5,
   HANDLE_SHM    = 6,
   HANDLE_CLK    = 7,
-}
+} handle_type_t;
 
 /* handle_specific field definition. This field depend on the handle_familly */
 
-/**
- * An I/O is something 'easy', it is a gpio pin/port couple.
- * This information is encoded in the handle
- */
-struct __attribute__((packed)) handle_specific_io {
-    uint32_t ioport: 4; /* 0=A, 1=B...*/
-    uint32_t iopin: 4; /* 0=0, 1=1, ... */
-    uint32_t reserved: 5;
-};
-
-/**
- * task identifier specific
- */
-struct __attribute__((packed)) handle_specific_task {
-    uint32_t rerun: 13; /* current spawn id (start with 1) */
-};
-
-/**
- * mappable device specific
- */
-struct __attribute__((packed)) handle_specific_dev {
-    uint32_t dev_cap: 8; /* device required dev-capabilities (mask) */
-    uint32_t reserved: 5;
-};
-
-struct __attribute__((packed)) handle_specific_irq {
-    uint32_t irqn: 8; /* IRQ Number */
-    uint32_t reserved: 5;
-};
-
-struct __attribute__((packed)) handle_specific_shm {
-    uint32_t reserved: 13;
-};
-
-
-/**
- * @brief clock specific metadata hold in the clock handle
- *
- * Clock handle is manipulated at kernel level only.
- *
- */
-struct __attribute__((packed)) handle_specific_clk {
-    uint32_t bus_id: 4; /* << 2 to get offset from first clken reg */
-    uint32_t clk_id: 5; /* clken bit */
-    uint32_t reserved: 4;
-};
 
 typedef struct device_handle {
-   struct handle_specific_dev specific : 13;
-   uint32_t                   id       : 16; /* unique id for current handle (current device, task, etc) */
-   uint32_t                   familly  : 3;
+    uint32_t dev_cap  : 8; /* device required dev-capabilities (mask) */
+    uint32_t reserved : 5;
+    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
+    uint32_t familly  : 3;
 } devh_t;
 static_assert(sizeof(devh_t) == sizeof(uint32_t), "invalid devh_t opaque size");
 
 typedef struct task_handle {
-   struct handle_specific_task specific : 13;
-   uint32_t                    id       : 16; /* unique id for current handle (current device, task, etc) */
-   uint32_t                    familly  : 3;
+    uint32_t rerun    : 13; /* current spawn id (start with 1) */
+    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
+    uint32_t familly  : 3;
 } taskh_t;
 static_assert(sizeof(taskh_t) == sizeof(uint32_t), "invalid taskh_t opaque size");
 
-typedef struct io_handle {
-   struct handle_specific_io  specific : 13;
-   uint32_t                   id       : 16; /* unique id for current handle (current device, task, etc) */
-   uint32_t                   familly  : 3;
+typedef struct __attribute__((packed))  io_handle {
+    uint32_t ioport   : 4; /* 0=A, 1=B...*/
+    uint32_t iopin    : 4; /* 0=0, 1=1, ... */
+    uint32_t reserved : 5;
+    /* this part is fixed */
+    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
+    uint32_t familly  : 3;
 } ioh_t;
 static_assert(sizeof(ioh_t) == sizeof(uint32_t), "invalid ioh_t opaque size");
 
 typedef struct irq_handle {
-   struct handle_specific_irq specific : 13;
-   uint32_t                   id       : 16; /* unique id for current handle (current device, task, etc) */
-   uint32_t                   familly  : 3;
+    uint32_t irqn     : 8; /* IRQ Number */
+    uint32_t reserved : 5;
+    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
+    uint32_t familly  : 3;
 } irqh_t;
 static_assert(sizeof(irqh_t) == sizeof(uint32_t), "invalid irqh_t opaque size");
 
 typedef struct clk_handle {
-   struct handle_specific_clk specific : 13;
-   uint32_t                   id       : 16; /* unique id for current handle (current device, task, etc) */
-   uint32_t                   familly  : 3;
+    uint32_t bus_id   : 4; /* << 2 to get offset from first clken reg */
+    uint32_t clk_id   : 5; /* clken bit */
+    uint32_t reserved : 4;
+    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
+    uint32_t familly  : 3;
 } clkh_t;
 static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
 

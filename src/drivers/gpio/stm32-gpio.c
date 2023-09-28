@@ -19,6 +19,9 @@
 
 /**
  * @brief .rodata field: list of current platform GPIO ports
+ *
+ * INFO: This driver can be shared between F4 and U5, as there is few differences
+ * (mostly some new registers for TZ support)
  */
 static const uint32_t gpio_ports_index[] = {
     GPIOA_BASE_ADDR,
