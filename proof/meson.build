@@ -3,35 +3,21 @@ frama_c = find_program('frama-c', version: '27.1', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
 
-sentry_includedirs = [
-  '-I' + top_dir + '/include/sentry/arch/asm-cortex-m',
-  '-I' + top_dir + '/src/drivers/syscfg',
-  '-I' + top_dir + '/src/drivers/exti',
-  '-I' + top_dir + '/src/libsentry.a.p',
-  '-I' + top_dir + '/src/drivers/gpio',
-  '-I' + top_dir + '/src/drivers/rng',
-  '-I' + top_dir + '/include',
-  '-I' + top_dir + '/src',
-  '-I.',
-  '-I..',
-  '-I' + top_dir + '/src/drivers/clk',
-  '-I' + top_dir + '/subprojects/cmsis/include',
-]
 
 framac_gen_opts = [
   '-no-frama-c-stdlib',
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
-  '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'parse-user.log'),
-  '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'parse-all.log'),
+  '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'libsentry-parse-user.log'),
+  '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'libsentry-parse-all.log'),
   '-machdep', 'x86_32',
   '-instantiate',
   '-json-compilation-database', join_paths(meson.build_root(), 'compile_commands.json'),
-  '-config', join_paths(meson.current_build_dir(), '.frama-c-config'),
-  '-cpp-extra-args-per-file', meson.current_source_dir() + '/main.c:'+'-include @0@'.format(kconfig_h)+' -ffreestanding -fno-builtin -nostdlib -fno-common -std=gnu11 '+' '.join(sentry_includedirs),
+  '-config', join_paths(meson.current_build_dir(), '.libsentry-config'),
   '-cpp-extra-args=-nostdinc',
   '-frama-c-stdlib',
+  '-absolute-valid-range', '40000000-0xE000F000',
 ]
 
 framac_rte_eva_opts = [
@@ -51,9 +37,10 @@ framac_rte_eva_opts = [
  '-eva-domains', 'equality',
  '-eva-split-return', 'auto',
  '-eva-partition-history', '1',
- '-eva-log', join_paths(meson.current_build_dir(), 'frama-c-rte-eva.log'),
- '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'frama-c-rte-eva-red-statuses.log'),
+ '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-rte-eva.log'),
+ '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'libsentry-red-statuses.log'),
  '-metrics',
+ '-save',join_paths(meson.current_build_dir(), 'libsentry.eva'),
 ]
 
 framac_wp_opts = [
@@ -68,20 +55,57 @@ framac_wp_opts = [
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
-  '-wp-log', join_paths(meson.current_build_dir(), 'frama-c-wp.log'),
+  '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-wp.log'),
 ]
 
 frama_c_entrypoint = files(
   'main.c',
 )
 
+# specify an ELF including framaC main. This forge the correct flags in the
+# compile_commands.json so that framaC can use it. Although it should never be
+# built by meson, but instead json metadata being used by framaC to forge the
+# correct cpp args
+framac_stub_elf = executable(
+    'framac_main',
+    name_suffix: 'elf',
+    sources: [frama_c_entrypoint, sentry_source_set_config.sources(), sentry_header_set_config.sources() ],
+    include_directories: kernel_inc,
+    dependencies: [sentry_dep, external_deps],
+    c_args: [ target_arch_args, global_build_args ],
+    install: false,
+    build_by_default: false,
+)
+
+
+# parsing
 frama_c_parsing = custom_target(
-    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
+    env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
     command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts ],
     capture: false,
-    output: 'frama-c.parse',
+    input: [ sentry_header_set_config.sources() ],
+    output: 'libsentry.parse',
 )
-framac_parsing = alias_target('framac_parsing', frama_c_parsing)
+framac_parsing = alias_target('framac_parse', frama_c_parsing)
+
+frama_c_eva = custom_target(
+    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
+    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts ],
+    capture: false,
+    input: [ sentry_header_set_config.sources() ],
+    output: 'libsentry.eva',
+)
+framac_eva = alias_target('framac_eva', frama_c_eva)
+
+frama_c_wp = custom_target(
+    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
+    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-then', framac_wp_opts ],
+    capture: false,
+    input: [ sentry_header_set_config.sources() ],
+    output: 'libsentry.wp',
+)
+framac_wp = alias_target('framac_wp', frama_c_wp)
+
 
 #frama_c = custom_target(
 #)

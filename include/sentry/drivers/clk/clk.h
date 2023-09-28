@@ -7,6 +7,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <sentry/ktypes.h>
+
 /**
  * \brief get current core frequency in Hertz
  */
@@ -26,6 +28,6 @@ void clk_reset(void);
  * is reset to the default reset state (done in SystemInit(UL) functionUL).
  *
  */
-void clk_set_system_clk(bool enable_hse, bool enable_pll);
+kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll);
 
 #endif/*CLK_H*/

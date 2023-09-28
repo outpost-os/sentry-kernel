@@ -122,12 +122,7 @@
 /**
  * Load memory regions description table in MPU
  */
-#ifndef __FRAMAC__
-__STATIC_FORCEINLINE
-#else
-static inline
-#endif
-void mpu_load_configuration(const struct mpu_region_desc *region_descs,
+__STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *region_descs,
                             size_t count)
 {
     uint32_t rbar;

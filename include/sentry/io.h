@@ -21,13 +21,30 @@
 #error "unsupported architecture"
 #endif
 
+#if defined(__arm__)
 /** @brief Generic iowrite interface that implicitely handle multiple sizes */
+#define iowrite(reg, T) _Generic((T),   \
+              size_t:   iowrite32,      \
+              uint32_t: iowrite32,      \
+              uint16_t: iowrite16,      \
+              uint8_t:  iowrite8        \
+        ) (reg, T)
+#elif defined(__i386__)
+/** @brief generic interface for FramaC analysis (x86_32)
+  *
+  * INFO: on x86_32 arch (framaC, size_t & uint32_t are the same and thus
+  *  can't be both declared).
+  * In the same time, long & u32 are not the same
+  */
 #define iowrite(reg, T) _Generic((T),   \
               unsigned long: iowrite32, \
               uint32_t: iowrite32,      \
               uint16_t: iowrite16,      \
               uint8_t:  iowrite8        \
         ) (reg, T)
+#else
+#error "unsupported architecture"
+#endif
 
 /**
  * @brief  Writes one byte at given address

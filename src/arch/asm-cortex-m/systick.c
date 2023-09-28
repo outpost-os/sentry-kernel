@@ -8,7 +8,7 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
-#include <sentry/clk.h>
+#include <sentry/drivers/clk/clk.h>
 #include <sentry/io.h>
 
 

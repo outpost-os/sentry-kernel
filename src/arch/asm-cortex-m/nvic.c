@@ -152,7 +152,7 @@ uint32_t nvig_get_prioritygrouping(void)
  */
 void nvic_enableirq(uint32_t IRQn)
 {
-    /*  NVIC->ISER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));  enable interrupt */
+    /*  NVIC->ISER[((uint32_t)(IRQn) >> 5)] = (1UL << ((uint32_t)(IRQn) & 0x1F));  enable interrupt */
     NVIC_ISER[(uint32_t) ((int32_t) IRQn) >> 5] =
         (uint32_t) (1 << ((uint32_t) ((int32_t) IRQn) & (uint32_t) 0x1F));
     arch_data_sync_barrier();
@@ -166,7 +166,7 @@ void nvic_enableirq(uint32_t IRQn)
  */
 void nvic_disableirq(uint32_t IRQn)
 {
-    NVIC_ICER[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1 << ((uint32_t) (IRQn) & 0x1F)); /* disable interrupt */
+    NVIC_ICER[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* disable interrupt */
 }
 
 /* \brief  Get Pending Interrupt
@@ -192,7 +192,7 @@ uint32_t nvic_get_pendingirq(uint32_t IRQn)
  */
 void nvic_set_pendingirq(uint32_t IRQn)
 {
-    NVIC_ISPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1 << ((uint32_t) (IRQn) & 0x1F)); /* set interrupt pending */
+    NVIC_ISPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* set interrupt pending */
 }
 
 /* \brief  Clear Pending Interrupt
@@ -202,7 +202,7 @@ void nvic_set_pendingirq(uint32_t IRQn)
  */
 void nvic_clear_pendingirq(uint32_t IRQn)
 {
-    NVIC_ICPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1 << ((uint32_t) (IRQn) & 0x1F)); /* Clear pending interrupt */
+    NVIC_ICPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* Clear pending interrupt */
 }
 
 /* \brief  Get Active Interrupt
@@ -216,7 +216,7 @@ uint32_t nvic_get_active(uint32_t IRQn)
     /* Return 1 if active else 0 */
     return ((uint32_t)
             ((NVIC_IABR[(uint32_t) (IRQn) >> 5] &
-              (uint32_t) (1 << ((uint32_t) (IRQn) & 0x1F))) ? 1 : 0));
+              (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F))) ? 1 : 0));
 }
 
 /* \brief  System Reset
