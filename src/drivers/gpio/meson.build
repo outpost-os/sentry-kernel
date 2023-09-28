@@ -9,7 +9,7 @@
 # very same header name, generated from corresponding svd
 gpio_h = custom_target('gen_gpio',
     input: peripheral_defs_in,
-    output: '@BASENAME@',
+    output: '@0@_defs.h'.format('gpio'),
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'GPIO', '@INPUT@' ],
 )
@@ -17,5 +17,7 @@ sentry_source_set.add(gpio_h.to_list())
 
 # driver source selection
 if kconfig_data.get('CONFIG_ARCH_MCU_STM32F439', 0) == 1
-
+sentry_source_set.add(files(
+    'stm32-gpio.c'
+))
 endif

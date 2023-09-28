@@ -31,7 +31,11 @@ config SECU_LOOP_DBLE_IDX
 config SECU_TASK_INTEGRITY_AT_BOOT
 	bool
 
-config SECU
-	bool
+config SECU_ENFORCE_FAULT_INJECTION
+	bool "Enforce fault injection projections"
+	---help---
+	  Enable this flag to enforce formally proven execution
+	  paths with supplementary checks that whould have been dead
+	  code in nominal execution
 
 endmenu
