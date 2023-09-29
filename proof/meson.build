@@ -40,24 +40,21 @@ framac_rte_eva_opts = [
  '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-rte-eva.log'),
  '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'libsentry-red-statuses.log'),
  '-metrics',
- '-save',join_paths(meson.current_build_dir(), 'libsentry.eva'),
 ]
 
 framac_wp_opts = [
   '-wp',
-  '-wp-dynamic',
   '-wp-model', 'Typed+ref+int',
   '-wp-literals',
   '-wp-prover', 'alt-ergo,cvc4,z3,tip',
   '-wp-timeout', '15',
   '-wp-smoke-tests',
-  '-wp-prop="-@lemma"',
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
   '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-wp.log'),
 ]
-
+#'-wp-prop="-@lemma"',
 frama_c_entrypoint = files(
   'main.c',
 )
@@ -90,7 +87,7 @@ framac_parsing = alias_target('framac_parse', frama_c_parsing)
 
 frama_c_eva = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts ],
+    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-save',join_paths(meson.current_build_dir(), 'libsentry.eva') ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
     output: 'libsentry.eva',
@@ -99,7 +96,7 @@ framac_eva = alias_target('framac_eva', frama_c_eva)
 
 frama_c_wp = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-then', framac_wp_opts ],
+    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-then', framac_wp_opts,  '-save',join_paths(meson.current_build_dir(), 'libsentry.wp'), ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
     output: 'libsentry.wp',

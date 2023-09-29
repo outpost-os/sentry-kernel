@@ -6,7 +6,6 @@
  */
 #include <assert.h>
 #include <stdbool.h>
-#include <stdatomic.h>
 
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
@@ -20,10 +19,11 @@
 
 
 #define MAX_RNG_TRIES   16U
+#define RNG_RDY_TIMEOUT 0x5000
 
-static atomic_bool rng_enabled;
-static atomic_bool not_first_rng;
-static atomic_uint last_rng_crc;
+static bool rng_enabled;
+static bool not_first_rng;
+static uint32_t last_rng_crc;
 
 /**
  * @brief Initialize RNG (mainly initialize it clock).
@@ -35,8 +35,9 @@ kstatus_t rng_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg = 0;
+    int ready_timeout = 0;
     /* BSS is zeroified at boot, should be false at startup */
-    if (unlikely(atomic_load(&rng_enabled))) {
+    if (unlikely(rng_enabled)) {
         status = K_ERROR_BADSTATE;
         goto err;
     }
@@ -50,6 +51,11 @@ kstatus_t rng_probe(void)
     /* Wait for the RNG to be ready */
     while (!(ioread32(RNG_BASE_ADDR + RNG_SR_REG) & RNG_SR_DRDY)) {
         /** FIXME: timeout to add here */
+        ready_timeout++;
+        if (ready_timeout == RNG_RDY_TIMEOUT) {
+            status = K_ERROR_NOTREADY;
+            goto err;
+        }
     };
     /* Check for error */
     reg = ioread32(RNG_BASE_ADDR + RNG_SR_REG);
@@ -69,13 +75,21 @@ kstatus_t rng_probe(void)
         status = K_ERROR_BADENTROPY;
         goto err;
     }
-    atomic_store(&last_rng_crc, 0);
-    atomic_store(&not_first_rng, 0);
-    atomic_store(&rng_enabled, true);
+    last_rng_crc = 0;
+    not_first_rng = 0;
+    rng_enabled = true;
 err:
     return status;
 }
 
+/*@
+  @ requires \valid(random);
+  @ assigns *random;
+  @ ensures rng_enabled == \false <==> \result == K_ERROR_BADSTATE;
+  @ ensures \result == K_STATUS_OKAY ||
+            \result == K_ERROR_NOTREADY ||
+            \result ==  K_SECURITY_FIPSCOMPLIANCE;
+  @*/
 /**
  * @brief Run the random number genrator.
  *
@@ -107,13 +121,13 @@ static inline kstatus_t rng_load(uint32_t * random)
      * FIPS error
      */
     crc = crc32((uint8_t*)random, sizeof(uint32_t), 0xffffffffu);
-    if (unlikely(atomic_load(&not_first_rng) == false)) {
-        atomic_store(&not_first_rng, true);
+    if (unlikely(not_first_rng == false)) {
+        not_first_rng =true;
         /* instead of keeping the random value itself for FIPS compliance,
          * we use its CRC32 calculation. Enough to detect collision, avoid
          * clear text random storage in memory
          */
-        atomic_store(&last_rng_crc, crc);
+        last_rng_crc = crc;
         status = K_SECURITY_FIPSCOMPLIANCE;
         goto err;
     }
@@ -121,16 +135,26 @@ static inline kstatus_t rng_load(uint32_t * random)
         /* FIPS PUB test of current with previous random (here CRC comparison)
          * if CRC are equal, dismiss current random value
          */
-        atomic_store(&last_rng_crc, crc);
+        last_rng_crc = crc;
         status = K_SECURITY_FIPSCOMPLIANCE;
         goto err;
     }
-    atomic_store(&last_rng_crc, crc);
+    last_rng_crc = crc;
     status = K_STATUS_OKAY;
 err:
     return status;
 }
 
+
+/*@
+  @ assigns *random;
+  @ ensures random == NULL <==> \result == K_ERROR_INVPARAM;
+  @ ensures (rng_enabled == \false) <==> \result == K_ERROR_BADSTATE;
+  @ ensures !(random == NULL && rng_enabled == \false) <==>
+  @    \result == K_STATUS_OKAY ||
+  @    \result == K_ERROR_NOTREADY ||
+  @    \result == K_SECURITY_FIPSCOMPLIANCE;
+  @*/
 /**
  * @brief Launch a random number generation and handles errors.
  *
@@ -143,7 +167,7 @@ kstatus_t rng_get(uint32_t * random)
     bool seed_ok = false;
     uint8_t max_rng_count = 0;
 
-    if (unlikely(atomic_load(&rng_enabled))) {
+    if (unlikely(rng_enabled) == 0) {
         status = K_ERROR_BADSTATE;
         goto err;
     }
@@ -151,6 +175,11 @@ kstatus_t rng_get(uint32_t * random)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    /*@ assert \valid(random); */
+    /*@
+      @ loop assigns status, max_rng_count;
+      @ loop variant MAX_RNG_TRIES - max_rng_count ;
+    */
     do {
         status = rng_load(random);
         max_rng_count++;

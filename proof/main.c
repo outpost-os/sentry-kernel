@@ -11,6 +11,7 @@
 
 int main(void)
 {
+    uint32_t val;
     interrupt_disable();
 
 
@@ -31,6 +32,9 @@ int main(void)
 
     gpio_probe();
     exti_probe();
+
+    rng_probe();
+    rng_load(&val);
 
     return 0;
 }
