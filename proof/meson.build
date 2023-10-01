@@ -54,6 +54,13 @@ framac_wp_opts = [
   '-wp-no-smoke-dead-call',
   '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-wp.log'),
 ]
+
+framac_md_opts = [
+  '-mdr-gen', 'md',
+  '-mdr-out', join_paths(meson.current_build_dir(), 'libsentry-report.md'),
+  '-mdr-title', 'Sentry kernel noRTE report',
+  '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-md.log'),
+]
 #'-wp-prop="-@lemma"',
 frama_c_entrypoint = files(
   'main.c',
@@ -78,7 +85,11 @@ framac_stub_elf = executable(
 # parsing
 frama_c_parsing = custom_target(
     env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts ],
+    command: [
+      frama_c,
+      frama_c_entrypoint, sentry_source_set_config.sources(),
+      framac_gen_opts,
+    ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
     output: 'libsentry.parse',
@@ -87,7 +98,15 @@ framac_parsing = alias_target('framac_parse', frama_c_parsing)
 
 frama_c_eva = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-save',join_paths(meson.current_build_dir(), 'libsentry.eva') ],
+    command: [
+      frama_c,
+      frama_c_entrypoint, sentry_source_set_config.sources(),
+      framac_gen_opts,
+      framac_rte_eva_opts,
+      '-save',join_paths(meson.current_build_dir(), 'libsentry.eva'),
+      '-then',
+      framac_md_opts,
+    ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
     output: 'libsentry.eva',
@@ -96,7 +115,14 @@ framac_eva = alias_target('framac_eva', frama_c_eva)
 
 frama_c_wp = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [ frama_c, frama_c_entrypoint, sentry_source_set_config.sources(), framac_gen_opts, framac_rte_eva_opts, '-then', framac_wp_opts,  '-save',join_paths(meson.current_build_dir(), 'libsentry.wp'), ],
+    command: [
+      frama_c,
+      frama_c_entrypoint, sentry_source_set_config.sources(),
+      framac_gen_opts,
+      framac_rte_eva_opts,
+      '-then', framac_wp_opts,
+      '-save',join_paths(meson.current_build_dir(), 'libsentry.wp'),
+    ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
     output: 'libsentry.wp',
