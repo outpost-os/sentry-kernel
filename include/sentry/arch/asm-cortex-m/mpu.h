@@ -25,9 +25,12 @@ struct mpu_region_desc {
 
 #include <arch/asm-cortex-m/mpu_pmsa_v7.h>
 
+#if 0
+// FIXME header to create
 #elif
 
 #include <arch/asm-cortex-m/mpu_pmsa_v8.h>
+#endif
 
 #endif
 

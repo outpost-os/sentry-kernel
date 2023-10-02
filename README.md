@@ -71,9 +71,33 @@ The build step is as simple as calling ninja.
 ninja -C builddir
 ```
 
+## proof
+
+Sentry kernel proof is supported by Frama-C framework. It is based on the
+analysis of the libsentry sources, which include all the kernel drivers,
+services, etc. except the kernel entrypoint.
+
+**INFO**: the Frama-C framework used is Cobalt (27), with why3 and cvc4. Meson check that they are installed on the system.
+
+Frama-C targetts are hosted in the `proof` directory and are activable using
+the `with_proof` option:
+
+```console
+meson setup -Dwith_proof=true [...]
+```
+
+It can be directly used with the cross configuration, as frama-C only preprocess the sources and then natively parse the C code into its own AST
+in order to analyse the source correctness.
+
+Three ninja targets exist:
+
+   * `framac_parse`: check that frama-C is able to parse the kernel sources
+   * `framac_eva`: parse and analyze the source code for RTE check (all  usual runtime error such as undefined behaviors, signess errors, etc.). Based on the call tree declared in the stubbed `main()` entrypoint used in `proof/main.c`
+   * `framac_wp`: analyse function contracts for formal analysis of function bheavior, including border effects and formally defined higher level behavior (call context, per-input set behavior & so on)
+
+EVA and WP targets generate `.eva` and `.wp` files in the `proof` build directory that can then be opened with `ivette` the Frama-C GUI for analysis
+
 ## tests
 TBD
 ## doc
-TBD
-## proof
 TBD

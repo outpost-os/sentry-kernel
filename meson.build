@@ -93,6 +93,12 @@ if with_doc_opt
   subdir('doc')
 endif
 
+with_proof_opt = get_option('with_proof')
+if with_proof_opt
+  subdir('proof')
+endif
+
+
 meson.install_dependency_manifest('manifest.json')
 
 # here we define the final target: the Sentry kernel binary

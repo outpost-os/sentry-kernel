@@ -6,7 +6,6 @@ subdir('arch')
 # list of statically defined headers
 sentry_header_set.add(files(
   'bits.h',
-  'clk.h',
   'device.h',
   'dma.h',
   'io.h',

@@ -11,9 +11,10 @@
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/io.h>
 #include <sentry/bits.h>
+#include <sentry/ktypes.h>
 
 /* local includes, only manipulated by the driver itself */
-#include <sentry/clk.h>
+#include <sentry/drivers/clk/clk.h>
 
 /* RCC generated header for current platform */
 #include "rcc_defs.h"
@@ -24,6 +25,7 @@
 
 #define HSE_STARTUP_TIMEOUT	(0x0500UL)
 #define HSI_STARTUP_TIMEOUT	(0x0500UL)
+#define PLL_STARTUP_TIMEOUT	(0x0500UL)
 
 
 #define PROD_CLOCK_APB1  42000000 // Hz
@@ -50,7 +52,7 @@ void clk_reset(void)
     /* Reset the RCC clock configuration to the default reset state */
     /* Set HSION bit */
     reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-    reg |= BITFIELD_PUT(0x1, RCC_CR_HSION);
+    reg |= 0x1UL;
     iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
 
     /* Reset CFGR register */
@@ -73,8 +75,11 @@ void clk_reset(void)
     iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
 }
 
-void clk_set_system_clk(bool enable_hse, bool enable_pll)
+kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
 {
+    kstatus_t status = K_STATUS_OKAY;
+    bool timeouted = false;
+    bool not_ready = true;
     union _reg {
         uint32_t raw;
         rcc_cfgr_t cfgr;
@@ -115,6 +120,7 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
         /* HSE or HSI oscillator is not stable at the end of the timeout window,
          * we should do something
          */
+        status = K_ERROR_NOTREADY;
         goto err;
     }
 
@@ -137,9 +143,9 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
     /* Set clock dividers */
 
     reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    reg.cfgr.hpre = 0x0; /* nit divide */
-    reg.cfgr.ppre1 = 0x5; /* div 4 */
-    reg.cfgr.ppre2 = 0x4; /* div 2 */
+    reg.cfgr.hpre = 0x0UL; /* not divide */
+    reg.cfgr.ppre1 = 0x5UL; /* div 4 */
+    reg.cfgr.ppre2 = 0x4UL; /* div 2 */
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
 
     reg.raw = 0;
@@ -161,23 +167,44 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
         iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, reg.raw);
 
         reg.raw = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-        reg.raw |= BITFIELD_PUT(0x1ul, RCC_CR_PLLON);
+        reg.raw |= RCC_CR_PLLON;
         /* Enable the main PLL */
         iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg.raw);
         /* Wait till the main PLL is ready */
-        while ((ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_PLLRDY) == 0) {
-            continue;
+        StartUpCounter = 0;
+        do {
+            reg.raw = (ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_PLLRDY);
+            if (reg.raw != 0) {
+                break;
+            }
+            StartUpCounter++;
+        } while (StartUpCounter < PLL_STARTUP_TIMEOUT);
+        /* check timeout */
+        if (StartUpCounter == PLL_STARTUP_TIMEOUT) {
+            status = K_ERROR_NOTREADY;
+            goto err;
         }
+
 
         /* Select the main PLL as system clock source */
         reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-        reg.cfgr.sw0 = 0;
-        reg.cfgr.sw1 = 1; /* 0b10 -> PLL as system clock */
+        reg.cfgr.sw0 = 0UL;
+        reg.cfgr.sw1 = 1UL; /* 0b10 -> PLL as system clock */
         iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
 
         /* Wait till the main PLL is used as system clock source */
-        while (BITFIELD_GET(ioread32(RCC_BASE_ADDR + RCC_CFGR_REG), (RCC_CFGR_SWS0 | RCC_CFGR_SWS1)) != 0b1u) {
-            continue;
+        StartUpCounter = 0;
+        do {
+            reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+            if ((reg.raw & (RCC_CFGR_SWS0 | RCC_CFGR_SWS1)) == RCC_CFGR_SWS0) {
+                break;
+            }
+            StartUpCounter++;
+        } while (StartUpCounter < PLL_STARTUP_TIMEOUT);
+        /* check timeout */
+        if (StartUpCounter == PLL_STARTUP_TIMEOUT) {
+            status = K_ERROR_NOTREADY;
+            goto err;
         }
     }
 
@@ -187,9 +214,8 @@ void clk_set_system_clk(bool enable_hse, bool enable_pll)
                     | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS);
 #endif
 
-    return;
 err:
-    return;
+    return status;
 
     //panic();
 }
