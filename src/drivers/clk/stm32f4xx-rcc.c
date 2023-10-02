@@ -143,7 +143,7 @@ kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
     /* Set clock dividers */
 
     reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    reg.cfgr.hpre = 0x0UL; /* nit divide */
+    reg.cfgr.hpre = 0x0UL; /* not divide */
     reg.cfgr.ppre1 = 0x5UL; /* div 4 */
     reg.cfgr.ppre2 = 0x4UL; /* div 2 */
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
