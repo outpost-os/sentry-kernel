@@ -82,6 +82,11 @@ jinja_cli = meson_svd_proj.get_variable('jinja_cli')
 layout_in = meson_svd_proj.get_variable('layout_in')
 
 # sentry header set is populated in the include dir
+# BSP is driver related headers. Drivers exported header are only used by
+# managers. As such, there should not have <bsp/xx> path out of the managers
+# source directory.
+subdir('include/bsp')
+# kernel-wide exported headers
 subdir('include/sentry')
 sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 

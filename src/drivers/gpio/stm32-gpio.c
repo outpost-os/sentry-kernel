@@ -14,7 +14,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
-#include <sentry/drivers/gpio/gpio.h>
+#include <bsp/drivers/gpio/gpio.h>
 #include "gpio_defs.h"
 
 /**
