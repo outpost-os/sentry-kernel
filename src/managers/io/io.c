@@ -18,6 +18,8 @@
 
 #include <sentry/managers/io.h>
 
+#define IOPIN_FROM_HANDLE
+
 
 
 /**
@@ -52,6 +54,7 @@ err:
 kstatus_t mgr_io_set(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+    status = gpio_set(ioh.ioport, ioh.iopin);
     return status;
 }
 
@@ -63,6 +66,7 @@ kstatus_t mgr_io_set(ioh_t ioh)
 kstatus_t mgr_io_reset(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+    status = gpio_reset(ioh.ioport, ioh.iopin);
     return status;
 }
 
@@ -71,14 +75,21 @@ kstatus_t mgr_io_reset(ioh_t ioh)
  *
  * This get back current I/O line value, in both INPUT and OUTPUT mode
  */
+/*@
+  @ assert \valid(val);
+  */
 kstatus_t mgr_io_read(ioh_t ioh, bool *val)
 {
     kstatus_t status = K_STATUS_OKAY;
+    status = gpio_get(ioh.ioport, ioh.iopin, val);
     return status;
 }
 
 /**
  * @brief Configure I/O identified by ioh
+ *
+ * TODO: define the I/O configuration structure that is shared between user & kernel space
+ *  (uapi definition)
  */
 kstatus_t mgr_io_configure(ioh_t ioh)
 {
@@ -92,29 +103,59 @@ kstatus_t mgr_io_configure(ioh_t ioh)
 kstatus_t mgr_io_mask_interrupt(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+#ifdef CONFIG_SOC_SUBFAMILY_STM32F4
+    /* On stm32f4, IT0 == Px0, IT1 == Px1, and so on...
+     * meaning that io pin (upto 15) define the associated EXTI line
+     */
+    status = exti_mask_interrupt(ioh.iopin);
+#endif
     return status;
 }
 
 kstatus_t mgr_io_unmask_interrupt(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+#ifdef CONFIG_SOC_SUBFAMILY_STM32F4
+    /* On stm32f4, IT0 == Px0, IT1 == Px1, and so on...
+     * meaning that io pin (upto 15) define the associated EXTI line
+     */
+    status = exti_unmask_interrupt(ioh.iopin);
+#endif
     return status;
 }
 
 kstatus_t mgr_io_mask_event(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+#ifdef CONFIG_SOC_SUBFAMILY_STM32F4
+    /* On stm32f4, IT0 == Px0, IT1 == Px1, and so on...
+     * meaning that io pin (upto 15) define the associated EXTI line
+     */
+    status = exti_mask_event(ioh.iopin);
+#endif
     return status;
 }
 
 kstatus_t mgr_io_unmask_event(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+#ifdef CONFIG_SOC_SUBFAMILY_STM32F4
+    /* On stm32f4, IT0 == Px0, IT1 == Px1, and so on...
+     * meaning that io pin (upto 15) define the associated EXTI line
+     */
+    status = exti_unmask_event(ioh.iopin);
+#endif
     return status;
 }
 
 kstatus_t mgr_io_clear_pending_interrupt(ioh_t ioh)
 {
     kstatus_t status = K_STATUS_OKAY;
+#ifdef CONFIG_SOC_SUBFAMILY_STM32F4
+    /* On stm32f4, IT0 == Px0, IT1 == Px1, and so on...
+     * meaning that io pin (upto 15) define the associated EXTI line
+     */
+    status = exti_clear_pending(ioh.iopin);
+#endif
     return status;
 }

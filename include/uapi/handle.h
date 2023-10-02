@@ -101,4 +101,7 @@ static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
               devh_t: devmgr_handle_exists    \
         ) (T)
 
+
+/* some utility functions */
+
 #endif/*HANDLE_H*/
