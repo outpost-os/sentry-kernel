@@ -14,7 +14,7 @@
 #include <sentry/ktypes.h>
 
 /* local includes, only manipulated by the driver itself */
-#include <sentry/drivers/clk/clk.h>
+#include <bsp/drivers/clk/clk.h>
 
 /* RCC generated header for current platform */
 #include "rcc_defs.h"
