@@ -76,7 +76,7 @@ kstatus_t mgr_io_reset(ioh_t ioh)
  * This get back current I/O line value, in both INPUT and OUTPUT mode
  */
 /*@
-  @ assert \valid(val);
+  @ requires \valid(val);
   */
 kstatus_t mgr_io_read(ioh_t ioh, bool *val)
 {

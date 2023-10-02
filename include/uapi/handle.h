@@ -89,6 +89,7 @@ typedef struct clk_handle {
 } clkh_t;
 static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
 
+#if 0
 /*
  * Once type is converted from raw register u32 value to typed handle value,
  * generic API is defined that allow optimized backend selection
@@ -100,8 +101,7 @@ static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
               taskh_t:taskmgr_handle_exists,  \
               devh_t: devmgr_handle_exists    \
         ) (T)
+#endif
 
-
-/* some utility functions */
 
 #endif/*HANDLE_H*/

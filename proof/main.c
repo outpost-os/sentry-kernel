@@ -1,13 +1,11 @@
 #include <stdbool.h>
-#include <sentry/drivers/gpio/gpio.h>
-#include <sentry/drivers/exti/exti.h>
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/mm.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
-
+#include <sentry/managers/io.h>
 
 int main(void)
 {
@@ -30,8 +28,8 @@ int main(void)
     systick_init();
     perfo_early_init();
 
-    gpio_probe();
-    exti_probe();
+    /* start calling managers */
+    mgr_io_probe();
 
     rng_probe();
     rng_load(&val);

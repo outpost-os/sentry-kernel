@@ -9,6 +9,7 @@
  */
 
 #include <sentry/ktypes.h>
+#include <uapi/handle.h>
 
 kstatus_t mgr_io_probe(void);
 
