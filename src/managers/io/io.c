@@ -33,9 +33,8 @@ kstatus_t mgr_io_probe(void)
     kstatus_t status = K_STATUS_OKAY;
 
     /* This backend should be generic to any SoC, any arch */
-    if (unlikely((status = gpio_probe()) != K_STATUS_OKAY)) {
-        goto err;
-    };
+    /* FIXME: the probing of GPIO depends on the GPIO usage by devices.
+       This information is the consequence of dtsi parsing */
 #ifdef CONFIG_SOC_FAMILY_STM32
     /* STM32 BSP implement EXTI controler for external interrupt & events */
     if (unlikely((status = exti_probe()) != K_STATUS_OKAY)) {
