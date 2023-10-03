@@ -44,47 +44,47 @@ static const uint32_t gpio_ports_index[] = {
  */
 #define GPIO_PORTS_NUMBER ARRAY_SIZE(gpio_ports_index)
 
-kstatus_t gpio_probe(void)
+kstatus_t gpio_probe(uint8_t gpio_port_id)
 {
     kstatus_t status = K_STATUS_OKAY;
     /*
-     * at probe time, we reset the GPIO controlers value to their reset state.
+     * at probe time, we reset the GPIO controler value to their reset state.
      * GPIO A and B have some specific reset values (see RM0090, chap. 8.4.1 and next)
      */
-    uint8_t pidx = 0;
+    if (unlikely(gpio_port_id) > GPIO_PORTS_NUMBER) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
 
     /**
      * TODO: if GPIO controler is locked, a gpio_unlock(gpio_port_id) is required first
      */
-    /* resetting GPIO A */
-    iowrite32(gpio_ports_index[pidx] + GPIO_MODER_REG, 0xa8000000UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_OTYPER_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_OSPEEDR_REG, 0x0c000000UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_PUPDR_REG, 0x64000000UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_ODR_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_AFRL_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_AFRH_REG, 0x0UL);
-
-    /* resetting GPIO B */
-    pidx++;
-    iowrite32(gpio_ports_index[pidx] + GPIO_MODER_REG, 0x00000280UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_OTYPER_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_OSPEEDR_REG, 0x000000c0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_PUPDR_REG, 0x00000100UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_ODR_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_AFRL_REG, 0x0UL);
-    iowrite32(gpio_ports_index[pidx] + GPIO_AFRH_REG, 0x0UL);
-    pidx++;
-    while (pidx < GPIO_PORTS_NUMBER) {
-        iowrite32(gpio_ports_index[pidx] + GPIO_MODER_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_OTYPER_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_OSPEEDR_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_PUPDR_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_ODR_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_AFRL_REG, 0x0UL);
-        iowrite32(gpio_ports_index[pidx] + GPIO_AFRH_REG, 0x0UL);
-        pidx++;
+    switch (gpio_port_id) {
+        case 0:
+            /* GPIO A reset values is specific for a part */
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0xa8000000UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x0c000000UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x64000000UL);
+            break;
+        case 1:
+            /* GPIO B reset values is specific for a part */
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0x00000280UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x000000c0UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x00000100UL);
+            break;
+        default:
+            /* all others... */
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0x0UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x0UL);
+            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x0UL);
+            break;
     }
+    /* common reset values for other registers */
+    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OTYPER_REG, 0x0UL);
+    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_ODR_REG, 0x0UL);
+    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_AFRL_REG, 0x0UL);
+    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_AFRH_REG, 0x0UL);
+err:
     return status;
 }
 

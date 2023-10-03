@@ -82,7 +82,7 @@ typedef enum gpio_af {
 /*
  * GPIO controlers probbing, at boot time
  */
-kstatus_t gpio_probe(void);
+kstatus_t gpio_probe(uint8_t gpio_port_id);
 
 /**
  * Configuration-time API
