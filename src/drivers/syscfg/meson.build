@@ -16,8 +16,4 @@ syscfg_h = custom_target('gen_syscfg',
 sentry_source_set.add(syscfg_h.to_list())
 
 # driver source selection
-if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
-sentry_source_set.add(files(
-    'stm32f4-syscfg.c'
-))
-endif
+sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-syscfg.c'))

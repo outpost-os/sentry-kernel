@@ -16,8 +16,4 @@ gpio_h = custom_target('gen_gpio',
 sentry_source_set.add(gpio_h.to_list())
 
 # driver source selection
-if kconfig_data.get('CONFIG_ARCH_MCU_STM32F439', 0) == 1
-sentry_source_set.add(files(
-    'stm32-gpio.c'
-))
-endif
+sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-gpio.c'))
