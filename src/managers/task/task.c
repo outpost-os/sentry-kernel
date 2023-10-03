@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * \file Sentry task manager
+ * @file Sentry task manager
  */
 
 #include <inttypes.h>
