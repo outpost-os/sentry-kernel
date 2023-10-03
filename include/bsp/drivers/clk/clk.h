@@ -41,8 +41,7 @@ void clk_reset(void);
  */
 kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll);
 
-kstatus_t rcc_enable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags);
+kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
 
-kstatus_t rcc_disable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags);
-
+kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
 #endif/*CLK_H*/

@@ -261,33 +261,27 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
  *
  *
  * @param busid bus identifier, generated from SVD file, see buses.h
- * @param clkid clock identifier, the corresponding bit number in the
- *   corresponding bus clock enable register (starting at 0)
+ * @param clk_msk clock mask, which correspond to the mask to apply on the
+ *    bus enable register so that the corresponding device is enabled. This is
+ *    a 32bit value that is directly used. On STM32, this value mostly hold a single
+ *    bit set to 1 (except for ETH).
+ *
  *
  * @return K_STATUS_OKAY of the clock is properly enabled, or an error
  *  status otherwise
  */
-/*@
-  @ requires clkid < 32;
-  */
-kstatus_t rcc_enable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
+kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
     size_t reg_base = rcc_get_register(busid, flags);
 
-    if (unlikely(clkid >= 32)) {
-        status = K_ERROR_INVPARAM;
-        goto err;
-    }
-
     reg = ioread32(reg_base);
-    reg |= (0x1UL << clkid);
+    reg |= clk_msk;
     iowrite32(reg_base, reg);
     // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
     arch_data_sync_barrier();
 
-err:
     return status;
 }
 
@@ -296,28 +290,23 @@ err:
  *
  *
  * @param busid bus identifier, generated from SVD file, see buses.h
- * @param clkid clock identifier, the corresponding bit number in the
- *   corresponding bus clock enable register (starting at 0)
+ * @param clk_msk clock mask, which correspond to the mask to apply on the
+ *    bus enable register so that the corresponding device is enabled. This is
+ *    a 32bit value that is directly used. On STM32, this value mostly hold a single
+ *    bit set to 1 (except for ETH).
  *
  * @return K_STATUS_OKAY of the clock is properly disabled, or an error
  *  status otherwise
  */
-/*@
-  @ requires clkid < 32;
-  */
-kstatus_t rcc_disable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
+kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
     size_t reg_base = rcc_get_register(busid, flags);
 
-    if (unlikely(clkid >= 32)) {
-        status = K_ERROR_INVPARAM;
-        goto err;
-    }
     reg = ioread32(reg_base);
-    reg &= ~(0x1UL << clkid);
+    reg &= ~clk_msk;
     iowrite32(reg_base, reg);
-err:
+
     return status;
 }
