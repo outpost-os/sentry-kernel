@@ -13,6 +13,8 @@
 #else
 #error "unsupported platform"
 #endif
+#include <sentry/managers/io.h>
+#include <bsp/drivers/rng/rng.h>
 #include <sentry/thread.h>
 
 
@@ -91,12 +93,15 @@ __attribute__((noreturn)) void _entrypoint(void)
 
     // init systick
     set_core_frequency();
-    systick_init();
+
     perfo_early_init();
 #endif
-
-    //__platform_spawn_kthread(thread, stack)
-
+    systick_init();
+    mgr_io_probe();
+    // init ssp
+    uint32_t seed;
+    rng_probe();
+    rng_get(&seed);
     do {
 
     } while (1);
