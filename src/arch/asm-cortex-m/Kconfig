@@ -65,6 +65,17 @@ config ARCH_ARM_ARMV8M
 	select LITTLE_ENDIAN
 	select HAS_DWT
 
+config SOC_FAMILY_STM32
+	bool
+
+config SOC_SUBFAMILY_STM32F4
+	bool
+
+config SOC_SUBFAMILY_STM32U5
+	bool
+
+config SOC_SUBFAMILY_STM32WB
+	bool
 
 config ARCH_ARM_CORTEX_NAME
     string
@@ -97,6 +108,8 @@ config ARCH_MCU_STM32U5
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_FPV5
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32U5
 
 config ARCH_MCU_STM32F439
 	bool "STM32F439"
@@ -107,6 +120,8 @@ config ARCH_MCU_STM32F439
 	select HAS_FPU
 	select HAS_FPU_VFPV4
 	select HAS_FLASH_DUAL_BANK
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32F4
 
 config ARCH_MCU_STM32F429
 	bool "STM32F429"
@@ -117,6 +132,8 @@ config ARCH_MCU_STM32F429
 	select HAS_FPU
 	select HAS_FPU_VFPV4
 	select HAS_FLASH_DUAL_BANK
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32F4
 
 config ARCH_MCU_STM32F419
 	bool "STM32F419"
@@ -126,6 +143,8 @@ config ARCH_MCU_STM32F419
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32F4
 
 config ARCH_MCU_STM32F407
 	bool "STM32F407"
@@ -135,6 +154,8 @@ config ARCH_MCU_STM32F407
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32F4
 
 config ARCH_MCU_STM32WB55
 	bool "STM32WB55"
@@ -144,6 +165,8 @@ config ARCH_MCU_STM32WB55
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32WB
 
 endchoice
 

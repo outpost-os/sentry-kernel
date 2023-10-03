@@ -6,12 +6,15 @@ sentry_startup = files()
 sentry_linker_script = files()
 sentry_linker_script_path = files()
 
+# arch-specific content
 subdir('arch')
-subdir('kernel')
+# what can't be deseleted. source listing is dynamic (Kconfig-list)
+subdir('core')
 subdir('memory')
 subdir('security')
 subdir('drivers')
-subdir('crypto')
+# managers (generic internal API for various services)
+subdir('managers')
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [

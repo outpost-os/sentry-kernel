@@ -16,8 +16,4 @@ rng_h = custom_target('gen_rng',
 sentry_source_set.add(rng_h.to_list())
 
 # driver source selection
-if kconfig_data.get('CONFIG_ARCH_MCU_STM32F439', 0) == 1
-sentry_source_set.add(files(
-    'stm32f4xx-rng.c'
-))
-endif
+sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rng.c'))

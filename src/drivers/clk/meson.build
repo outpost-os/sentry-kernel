@@ -24,8 +24,8 @@ pwr_h = custom_target('gen_pwr',
 sentry_source_set.add(pwr_h.to_list())
 
 # driver source selection
-if kconfig_data.get('CONFIG_ARCH_MCU_STM32F439', 0) == 1
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
 sentry_source_set.add(files(
-    'stm32f4xx-rcc.c',
+    'stm32f4-rcc.c',
 ))
 endif
