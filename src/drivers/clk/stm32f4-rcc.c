@@ -268,7 +268,7 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
  *  status otherwise
  */
 /*@
-  @ assert clkid < 32;
+  @ requires clkid < 32;
   */
 kstatus_t rcc_enable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
 {
@@ -291,6 +291,20 @@ err:
     return status;
 }
 
+/**
+ * @brief disable given clock identifier for the given bus identifier
+ *
+ *
+ * @param busid bus identifier, generated from SVD file, see buses.h
+ * @param clkid clock identifier, the corresponding bit number in the
+ *   corresponding bus clock enable register (starting at 0)
+ *
+ * @return K_STATUS_OKAY of the clock is properly disabled, or an error
+ *  status otherwise
+ */
+/*@
+  @ requires clkid < 32;
+  */
 kstatus_t rcc_disable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
