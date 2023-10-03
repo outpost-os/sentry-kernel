@@ -41,8 +41,18 @@ core_h = custom_target('gen_core',
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
+buses_h_in = files('buses.h.in')
+
+buses_h = custom_target('gen_buses',
+    input: buses_h_in,
+    output: 'buses.h',
+    depends: [ svd_json ],
+    command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'RCC', '@INPUT@' ],
+)
+
 sentry_header_set.add(
     irq_def_h.to_list(),
     layout_h.to_list(),
     core_h.to_list(),
+    buses_h.to_list(),
 )
