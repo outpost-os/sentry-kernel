@@ -9,6 +9,8 @@
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
 #include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/arch/asm-cortex-m/buses.h>
+#include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
@@ -218,4 +220,90 @@ err:
     return status;
 
     //panic();
+}
+
+__STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
+{
+    size_t reg_base;
+    if (flags & RCC_LPCONFIG) {
+        reg_base = RCC_BASE_ADDR + RCC_AHB1LPENR_REG;
+    } else {
+        reg_base = RCC_BASE_ADDR + RCC_AHB1ENR_REG;
+    }
+    /*
+     * Here, instead of a switch/case, we calculate the offset using the
+     * fact that, for both nominal and low power enable registers:
+     * 1. AHBxENR are concatenated
+     * 2. APBxENR are concatenated
+     * 3. a space may exist between AHBx & APBx for future AHB buses
+     * We used basic calculation (additions and increment), the compiler
+     * can highly optimize, avoiding branches and tests of a huge
+     * switch/case
+     */
+    if (busid < BUS_APB1) {
+        /* AHB buses registers are concatenated in memory */
+        reg_base += (busid*sizeof(uint32_t));
+    } else {
+        /*
+          ABP regs may start with empty slots for future buses.
+          Empty slotting is the same for nominal and low power
+        */
+        /* 1. increment to APB1 reg base address */
+        reg_base += (RCC_APB1ENR_REG - RCC_AHB1ENR_REG);
+        /* 2. increment to APBx busid, starting at APB1 */
+        reg_base += ((busid - BUS_APB1)*sizeof(uint32_t));
+    }
+    return reg_base;
+}
+
+/**
+ * @brief enable given clock identifier for the given bus identifier
+ *
+ *
+ * @param busid bus identifier, generated from SVD file, see buses.h
+ * @param clkid clock identifier, the corresponding bit number in the
+ *   corresponding bus clock enable register (starting at 0)
+ *
+ * @return K_STATUS_OKAY of the clock is properly enabled, or an error
+ *  status otherwise
+ */
+/*@
+  @ assert clkid < 32;
+  */
+kstatus_t rcc_enable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg;
+    size_t reg_base = rcc_get_register(busid, flags);
+
+    if (unlikely(clkid >= 32)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+
+    reg = ioread32(reg_base);
+    reg |= (0x1UL << clkid);
+    iowrite32(reg_base, reg);
+    // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
+    arch_data_sync_barrier();
+
+err:
+    return status;
+}
+
+kstatus_t rcc_disable(bus_id_t busid, uint8_t clkid, rcc_opts_t flags)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg;
+    size_t reg_base = rcc_get_register(busid, flags);
+
+    if (unlikely(clkid >= 32)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+    reg = ioread32(reg_base);
+    reg &= ~(0x1UL << clkid);
+    iowrite32(reg_base, reg);
+err:
+    return status;
 }
