@@ -81,6 +81,16 @@ svd_json = meson_svd_proj.get_variable('svd_json')
 jinja_cli = meson_svd_proj.get_variable('jinja_cli')
 layout_in = meson_svd_proj.get_variable('layout_in')
 
+# XXX: we may found another to do so, default options are sets once and for all
+# as this input comes from config file, **and**, any changes in dotconfig fires
+# a project reconfiguration without changing default options. This breaks the
+# rule of least suprise.
+# TODO: use a common option in all (sub)project w/ yield property to use the same
+# configuration data in all components.
+devicetree_proj = subproject('devicetree', default_options: 'dts=@0@/@1@'.format(
+    meson.current_source_dir(), kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower()))
+dts2src = devicetree_proj.get_variable('dts2src')
+
 # sentry header set is populated in the include dir
 # BSP is driver related headers. Drivers exported header are only used by
 # managers. As such, there should not have <bsp/xx> path out of the managers
@@ -152,6 +162,14 @@ message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME')
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
 warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
 endif
+
+summary(
+    {
+        'soc': kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower(),
+        'dts': kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower(),
+    },
+    section: 'Configuration'
+)
 
 # auto-generation (jinja2, json) tooling is there
 # subdir('tools')
