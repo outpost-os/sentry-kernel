@@ -9,12 +9,12 @@ framac_gen_opts = [
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
-  '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'libsentry-parse-user.log'),
-  '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'libsentry-parse-all.log'),
+  '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'sentry-parse-user.log'),
+  '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'sentry-parse-all.log'),
   '-machdep', 'x86_32',
   '-instantiate',
-  '-json-compilation-database', join_paths(meson.build_root(), 'compile_commands.json'),
-  '-config', join_paths(meson.current_build_dir(), '.libsentry-config'),
+  '-json-compilation-database', join_paths(meson.project_build_root(), 'compile_commands.json'),
+  '-config', join_paths(meson.current_build_dir(), '.sentry-config'),
   '-cpp-extra-args=-nostdinc',
   '-frama-c-stdlib',
   '-absolute-valid-range', '40000000-0xE000F000',
@@ -37,8 +37,8 @@ framac_rte_eva_opts = [
  '-eva-domains', 'equality',
  '-eva-split-return', 'auto',
  '-eva-partition-history', '1',
- '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-rte-eva.log'),
- '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'libsentry-red-statuses.log'),
+ '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
+ '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
  '-metrics',
 ]
 
@@ -52,43 +52,32 @@ framac_wp_opts = [
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
-  '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-wp.log'),
+  '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
 ]
 
 framac_md_opts = [
   '-mdr-gen', 'md',
-  '-mdr-out', join_paths(meson.current_build_dir(), 'libsentry-report.md'),
+  '-mdr-out', join_paths(meson.current_build_dir(), 'sentry-report.md'),
   '-mdr-title', 'Sentry kernel noRTE report',
-  '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'libsentry-md.log'),
+  '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-md.log'),
 ]
 #'-wp-prop="-@lemma"',
-frama_c_entrypoint = files(
-  'main.c',
+kernel_entrypoint = files(
+  '../src/core/entrypoint.c',
 )
 
-# specify an ELF including framaC main. This forge the correct flags in the
-# compile_commands.json so that framaC can use it. Although it should never be
-# built by meson, but instead json metadata being used by framaC to forge the
-# correct cpp args
-framac_stub_elf = executable(
-    'framac_main',
-    name_suffix: 'elf',
-    sources: [frama_c_entrypoint, sentry_source_set_config.sources(), sentry_header_set_config.sources() ],
-    include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args, global_build_args ],
-    install: false,
-    build_by_default: false,
-)
+# Part 1: analysis from kernel entrypoint. These targets check the call graph from
+# the kernel entrypoint itelf, analysing the overall init sequence of the kernel.
+# Here, all the probing, platform initialization, etc. is executed through the
+# real kernel entrypoint
 
-
-# parsing
 frama_c_parsing = custom_target(
     env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
     command: [
       frama_c,
-      frama_c_entrypoint, sentry_source_set_config.sources(),
+      kernel_entrypoint, sentry_source_set_config.sources(),
       framac_gen_opts,
+      '-main', '_entrypoint',
     ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
@@ -100,10 +89,11 @@ frama_c_eva = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
     command: [
       frama_c,
-      frama_c_entrypoint, sentry_source_set_config.sources(),
+      kernel_entrypoint, sentry_source_set_config.sources(),
       framac_gen_opts,
+      '-main', '_entrypoint',
       framac_rte_eva_opts,
-      '-save',join_paths(meson.current_build_dir(), 'libsentry.eva'),
+      '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
       '-then',
       framac_md_opts,
     ],
@@ -117,18 +107,22 @@ frama_c_wp = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
     command: [
       frama_c,
-      frama_c_entrypoint, sentry_source_set_config.sources(),
+      kernel_entrypoint, sentry_source_set_config.sources(),
       framac_gen_opts,
+      '-main', '_entrypoint',
       framac_rte_eva_opts,
       '-then', framac_wp_opts,
-      '-save',join_paths(meson.current_build_dir(), 'libsentry.wp'),
+      '-save',join_paths(meson.current_build_dir(), 'sentry.wp'),
     ],
     capture: false,
     input: [ sentry_header_set_config.sources() ],
-    output: 'libsentry.wp',
+    output: 'sentry.wp',
 )
 framac_wp = alias_target('framac_wp', frama_c_wp)
 
 
-#frama_c = custom_target(
-#)
+# Part 2: analysis from Handler entrypoints. These targets check the call graph from
+# the interrupts handlers. This check analysis the various call graphs of the interrupts
+# execution, using the root Handler as entrypoint source.
+
+# TODO
