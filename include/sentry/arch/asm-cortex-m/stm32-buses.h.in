@@ -24,14 +24,15 @@
 #ifndef BUSES_H
 #define BUSES_H
 
+{% set peripheral = (peripherals|selectattr('groupName', 'eq', 'RCC')|first) or (peripherals|selectattr('name', 'eq', NAME)|first) -%}
+{% set ns = namespace(identifer_idx=0) %}
+{% set ns.identifer_idx = 0 -%}
+
 /**
  * @brief list of platform bused.
  * Based on the {{ NAME }} device register naming.
  * This template works for all STM32 SoCs
  */
-{% set peripheral = (peripherals|selectattr('groupName', 'eq', 'RCC')|first) or (peripherals|selectattr('name', 'eq', NAME)|first) -%}
-{% set ns = namespace(identifer_idx=0) %}
-{% set ns.identifer_idx = 0 -%}
 typedef enum bus_identifier {
     {% for register in peripheral.registers -%}
     {% if register.name.endswith('LPENR') -%}
@@ -40,5 +41,17 @@ typedef enum bus_identifier {
     {% endif -%}
     {% endfor -%}
 } bus_id_t;
+
+/*@
+  logic boolean bus_is_valid(uint32_t bus) =
+    (
+        {% for register in peripheral.registers -%}
+        {% if register.name.endswith('LPENR') -%}
+        bus == BUS_{{register.name[0:4]}} ||
+        {% endif -%}
+        {% endfor -%}
+        \false
+    );
+*/
 
 #endif/*!BUSES_H*/
