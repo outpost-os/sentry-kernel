@@ -8,7 +8,7 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
-#include <bsp/drivers/clk/clk.h>
+#include <bsp/drivers/clk/rcc.h>
 #include <sentry/io.h>
 
 
@@ -130,7 +130,7 @@ void wait(unsigned long long ms)
 
 static void systick_calibrate(void)
 {
-    uint64_t freq = clk_get_core_frequency();
+    uint64_t freq = rcc_get_core_frequency();
     uint64_t reload =  freq / CONFIG_SYSTICK_HZ;
 
     iowrite32(SCB_SYSTICK_CSR, 0);

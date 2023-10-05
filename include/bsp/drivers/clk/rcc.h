@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef CLK_H
-#define CLK_H
+#ifndef DRV_RCC_H
+#define DRV_RCC_H
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -20,28 +20,27 @@ typedef enum rcc_opts {
     RCC_LPCONFIG = 0x1UL << 1,  /**< Low power specific configuration */
 } rcc_opts_t;
 
+
+/**
+ * @brief Probe and reset the RCC clock configuration
+ */
+kstatus_t rcc_probe(void);
+
 /**
  * @brief get current core frequency in Hertz
  */
-uint64_t clk_get_core_frequency(void);
+uint64_t rcc_get_core_frequency(void);
 
-/**
- * @brief Reset the RCC clock configuration
- */
-void clk_reset(void);
+kstatus_t rcc_enable_apbx(void);
 
-/**
- * @brief Configures the System clock source, PLL Multiplier and Divider factors,
- * AHB/APBx prescalers and Flash settings
- *
- *
- * This function should be called only once the RCC clock configuration
- * is reset to the default reset state (done in SystemInit(UL) functionUL).
- *
- */
-kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll);
+kstatus_t rcc_disable_apbx(void);
 
 kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
 
 kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
-#endif/*CLK_H*/
+
+kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk);
+
+
+
+#endif/*DRV_RCC_H*/

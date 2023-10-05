@@ -7,6 +7,8 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/mm.h>
+#include <bsp/drivers/clk/rcc.h>
+#include <bsp/drivers/clk/pwr.h>
 
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
@@ -30,10 +32,8 @@ __attribute__((optimize("-fno-stack-protector")))
 __attribute__((noreturn)) void _entrypoint(void)
 {
     interrupt_disable();
-
-    clk_reset();
-    /* initial PLLs: HSI mode, enable PLL clocks. FIXME: use KConfig instead */
-    clk_set_system_clk(false, true);
+    pwr_probe();
+    rcc_probe();
 
     interrupt_init();
 

@@ -5,7 +5,8 @@
 sentry_header_set.add(files(
     'gpio/gpio.h',
     'rng/rng.h',
-    'clk/clk.h',
+    'clk/rcc.h',
+    'clk/pwr.h',
     'exti/exti.h',
     'syscfg/syscfg.h',
 ))

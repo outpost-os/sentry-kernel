@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 
-#include <bsp/drivers/clk/clk.h>
+#include <bsp/drivers/clk/rcc.h>
 #include <sentry/thread.h>
 #include <sentry/arch/asm-cortex-m/system.h>
 
