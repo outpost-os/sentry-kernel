@@ -18,10 +18,10 @@ typedef enum clk_vos_scale {
     POWER_VOS_SCALE_1   = 0x3UL,
 } clk_vos_scale_t;
 /*@
-  prediate scale_is_valid(uint8_t s) =
-    s == POWER_VOS_SCALE_3 ||
-    s == POWER_VOS_SCALE_2 ||
-    s == POWER_VOS_SCALE_1;
+    predicate scale_is_valid(uint8_t s) =
+      s == POWER_VOS_SCALE_3 ||
+      s == POWER_VOS_SCALE_2 ||
+      s == POWER_VOS_SCALE_1;
 */
 #else
 /* One-bit encoded value on STM32F4(0|1)x */
@@ -30,9 +30,9 @@ typedef enum clk_vos_scale {
     POWER_VOS_SCALE_2   = 0x1UL,
 } clk_vos_scale_t;
 /*@
-  prediate scale_is_valid(uint8_t s) =
-    s == POWER_VOS_SCALE_2 ||
-    s == POWER_VOS_SCALE_1;
+    predicate scale_is_valid(uint8_t s) =
+      s == POWER_VOS_SCALE_2 ||
+      s == POWER_VOS_SCALE_1;
 */
 #endif
 
