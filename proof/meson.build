@@ -71,38 +71,48 @@ kernel_entrypoint = files(
 # Here, all the probing, platform initialization, etc. is executed through the
 # real kernel entrypoint
 
-frama_c_parsing = custom_target(
-    env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [
-      frama_c,
-      kernel_entrypoint, sentry_source_set_config.sources(),
-      framac_gen_opts,
-      '-main', '_entrypoint',
-    ],
-    capture: false,
+# overall kernel generated headers must be made before testing
+# Although, they are not passed to framaC directly, which get back sources but not
+# headers themselves
+framac_dep = custom_target(
+    command: [ 'true' ],
     input: [ sentry_header_set_config.sources() ],
-    output: 'libsentry.parse',
+    output: 'framac.dep',
 )
-framac_parsing = alias_target('framac_parse', frama_c_parsing)
 
-frama_c_eva = custom_target(
-    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [
-      frama_c,
-      kernel_entrypoint, sentry_source_set_config.sources(),
-      framac_gen_opts,
-      '-main', '_entrypoint',
-      framac_rte_eva_opts,
-      '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
-      '-then',
-      framac_md_opts,
-    ],
-    capture: false,
-    input: [ sentry_header_set_config.sources() ],
-    output: 'libsentry.eva',
+test(
+  'frama-C-parsing',
+  frama_c,
+  args: [
+    kernel_entrypoint, sentry_source_set_config.sources(),
+    framac_gen_opts,
+    '-main', '_entrypoint',
+  ],
+  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+  suite: 'proof',
+  depends: [ framac_dep ],
+  timeout: 60,
 )
-framac_eva = alias_target('framac_eva', frama_c_eva)
 
+test(
+  'frama-C-eva',
+  frama_c,
+  args: [
+    kernel_entrypoint, sentry_source_set_config.sources(),
+    framac_gen_opts,
+    '-main', '_entrypoint',
+    framac_rte_eva_opts,
+    '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
+    '-then',
+    framac_md_opts,
+  ],
+  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+  depends: [ framac_dep ],
+  suite: 'proof',
+  timeout: 120,
+)
+
+# the bellow part is to be fixed with separated test suites
 frama_c_wp = custom_target(
     env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
     command: [
