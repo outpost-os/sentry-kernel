@@ -7,6 +7,8 @@
 # this header is dynamically generated for the currently built platform. The driver
 # source (C file) is selected automatically, but all driver sources include the
 # very same header name, generated from corresponding svd
+
+# XXX: generator ?
 gpio_h = custom_target('gen_gpio',
     input: peripheral_defs_in,
     output: '@0@_defs.h'.format('gpio'),
@@ -15,5 +17,12 @@ gpio_h = custom_target('gen_gpio',
 )
 sentry_source_set.add(gpio_h.to_list())
 
+stm32_gpio_template = files([
+    'stm32-gpio-dt.c.in',
+    'stm32-gpio-dt.h.in',
+])
+
+stm32_gpio_generated = dtsgen.process(stm32_gpio_template)
+
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-gpio.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ files('stm32-gpio.c'), stm32_gpio_generated ])
