@@ -89,7 +89,14 @@ layout_in = meson_svd_proj.get_variable('layout_in')
 # configuration data in all components.
 devicetree_proj = subproject('devicetree', default_options: 'dts=@0@/@1@'.format(
     meson.current_source_dir(), kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower()))
+dts = devicetree_proj.get_variable('devicetree_dts')
 dts2src = devicetree_proj.get_variable('dts2src')
+
+dtsgen = generator(dts2src,
+    arguments: ['-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
+    depends: [ dts ],
+    output: '@BASENAME@',
+)
 
 # sentry header set is populated in the include dir
 # BSP is driver related headers. Drivers exported header are only used by
