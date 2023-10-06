@@ -15,8 +15,9 @@
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 #include <bsp/drivers/gpio/gpio.h>
-#include "gpio_defs.h"
 
+#include "gpio_defs.h"
+#include "stm32-gpio-dt.h"
 /**
  * @brief .rodata field: list of current platform GPIO ports
  *
