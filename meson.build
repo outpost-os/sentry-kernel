@@ -91,6 +91,8 @@ devicetree_proj = subproject('devicetree', default_options: 'dts=@0@/@1@'.format
     meson.current_source_dir(), kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower()))
 dts = devicetree_proj.get_variable('devicetree_dts')
 dts2src = devicetree_proj.get_variable('dts2src')
+devicetree_dep = devicetree_proj.get_variable('devicetree_dep')
+external_deps += devicetree_dep
 
 dtsgen = generator(dts2src,
     arguments: ['-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
