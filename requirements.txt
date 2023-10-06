@@ -7,3 +7,4 @@ exhale
 pyledger-svd2json>=0.1.3
 pyledger-devicetree-parser>=0.0.2
 jinja-cli
+swig
