@@ -73,3 +73,4 @@ jobs:
         if: failure()
         run: |
           cat builddir/meson-logs/meson-log.txt
+          cat builddir/meson-logs/testlog.txt
