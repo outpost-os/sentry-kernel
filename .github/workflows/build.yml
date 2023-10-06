@@ -89,7 +89,7 @@ jobs:
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          actions: '["setup", "compile"]'
+          actions: '["prefecth", "setup", "compile"]'
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig'
       - name: Meson postcheck
         if: failure()

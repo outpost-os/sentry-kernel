@@ -58,7 +58,7 @@ jobs:
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          actions: '["setup"]'
+          actions: '["prefetch", "setup"]'
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_proof=true'
       - name: run framaC
         run: |
