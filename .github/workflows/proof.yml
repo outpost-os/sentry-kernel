@@ -62,6 +62,8 @@ jobs:
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_proof=true'
       - name: run framaC
         run: |
+          why3 config detect
+          frama-c -wp-detect
           cd builddir && meson test --suite proof
       - name: Archive proof artifacts
         uses: actions/upload-artifact@v3
@@ -73,3 +75,4 @@ jobs:
         if: failure()
         run: |
           cat builddir/meson-logs/meson-log.txt
+          cat builddir/meson-logs/testlog.txt

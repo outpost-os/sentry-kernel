@@ -5,7 +5,6 @@ cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
 
 
 framac_gen_opts = [
-  '-no-frama-c-stdlib',
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
@@ -46,9 +45,9 @@ framac_wp_opts = [
   '-wp',
   '-wp-model', 'Typed+ref+int',
   '-wp-literals',
-  '-wp-prover', 'alt-ergo,cvc4,z3,tip',
   '-wp-timeout', '15',
   '-wp-smoke-tests',
+  '-wp-prover','alt-ergo,tip',
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
@@ -79,6 +78,7 @@ framac_dep = custom_target(
     input: [ sentry_header_set_config.sources() ],
     output: 'framac.dep',
 )
+
 
 test(
   'frama-C-parsing',
@@ -135,4 +135,6 @@ framac_wp = alias_target('framac_wp', frama_c_wp)
 # the interrupts handlers. This check analysis the various call graphs of the interrupts
 # execution, using the root Handler as entrypoint source.
 
+# including per driver WP coverage
+subdir('proof_bsp')
 # TODO
