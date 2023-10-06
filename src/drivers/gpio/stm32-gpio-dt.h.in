@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_GPIO_DT_GENERATED_H
+#define __STM32_GPIO_DT_GENERATED_H
+
+{% set gpio_ports = dts.get_compatible("st,stm32-gpio") -%}
+
+typedef enum stm32_gpio_id {
+    {% for port in gpio_ports -%}
+    {% if port.status and port.status == "okay" -%}
+    /** {{ port.label }} port ID */
+    {{ port.label.upper() }}_PORT_ID,
+    {% endif -%}
+    {% endfor %}
+} stm32_gpio_id_t;
+
+/**
+ * \brief STM32 gpioport IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-gpio" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_gpioport_dec {
+    uint32_t base_addr; /**< IP base address */
+    bus_id_t bus_id;    /**< Peripheral bus ID */
+    uint32_t clk_msk;   /**< IP clocks mask on the given bus */
+} stm32_gpioport_desc_t;
+
+#endif /* __STM32_GPIO_DT_GENERATED_H */
