@@ -174,6 +174,12 @@ err:
 /**
  * @brief Clear pending interrupt flag for itn
  */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_PR_REG);
+  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= MAX_EXTI_EVENT ==>
+      \result == K_STATUS_OKAY;
+ */
 kstatus_t exti_clear_pending(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;

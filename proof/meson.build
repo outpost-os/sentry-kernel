@@ -45,7 +45,6 @@ framac_wp_opts = [
   '-wp',
   '-wp-model', 'Typed+ref+int',
   '-wp-literals',
-  '-wp-prover', 'alt-ergo,cvc4,z3,tip',
   '-wp-timeout', '15',
   '-wp-smoke-tests',
   '-wp-time-margin', '25',
