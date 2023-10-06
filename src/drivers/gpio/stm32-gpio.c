@@ -14,6 +14,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
+#include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/gpio/gpio.h>
 
 #include "gpio_defs.h"
@@ -48,14 +49,21 @@ static const uint32_t gpio_ports_index[] = {
 kstatus_t gpio_probe(uint8_t gpio_port_id)
 {
     kstatus_t status = K_STATUS_OKAY;
+    const stm32_gpioport_desc_t* port;
+
     /*
      * at probe time, we reset the GPIO controler value to their reset state.
      * GPIO A and B have some specific reset values (see RM0090, chap. 8.4.1 and next)
      */
-    if (unlikely(gpio_port_id) > GPIO_PORTS_NUMBER) {
+    if (unlikely(gpio_port_id > stm32_get_nr_gpioports())) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
+
+    port = stm32_gpioport_get_desc(gpio_port_id);
+
+    /* TODO: handle low power configuration in dts (w/a a dedicatd property) */
+    rcc_enable(port->bus_id, port->clk_msk, RCC_NOFLAG);
 
     /**
      * TODO: if GPIO controler is locked, a gpio_unlock(gpio_port_id) is required first
@@ -63,28 +71,28 @@ kstatus_t gpio_probe(uint8_t gpio_port_id)
     switch (gpio_port_id) {
         case 0:
             /* GPIO A reset values is specific for a part */
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0xa8000000UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x0c000000UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x64000000UL);
+            iowrite32(port->base_addr + GPIO_MODER_REG, 0xa8000000UL);
+            iowrite32(port->base_addr + GPIO_OSPEEDR_REG, 0x0c000000UL);
+            iowrite32(port->base_addr + GPIO_PUPDR_REG, 0x64000000UL);
             break;
         case 1:
             /* GPIO B reset values is specific for a part */
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0x00000280UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x000000c0UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x00000100UL);
+            iowrite32(port->base_addr + GPIO_MODER_REG, 0x00000280UL);
+            iowrite32(port->base_addr + GPIO_OSPEEDR_REG, 0x000000c0UL);
+            iowrite32(port->base_addr + GPIO_PUPDR_REG, 0x00000100UL);
             break;
         default:
             /* all others... */
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, 0x0UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, 0x0UL);
-            iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, 0x0UL);
+            iowrite32(port->base_addr + GPIO_MODER_REG, 0x0UL);
+            iowrite32(port->base_addr + GPIO_OSPEEDR_REG, 0x0UL);
+            iowrite32(port->base_addr + GPIO_PUPDR_REG, 0x0UL);
             break;
     }
     /* common reset values for other registers */
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OTYPER_REG, 0x0UL);
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_ODR_REG, 0x0UL);
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_AFRL_REG, 0x0UL);
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_AFRH_REG, 0x0UL);
+    iowrite32(port->base_addr + GPIO_OTYPER_REG, 0x0UL);
+    iowrite32(port->base_addr + GPIO_ODR_REG, 0x0UL);
+    iowrite32(port->base_addr + GPIO_AFRL_REG, 0x0UL);
+    iowrite32(port->base_addr + GPIO_AFRH_REG, 0x0UL);
 err:
     return status;
 }
@@ -103,11 +111,12 @@ kstatus_t gpio_set_mode(uint8_t gpio_port_id, uint8_t pin, gpio_mode_t mode)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    size_t reg = ioread32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG);
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    size_t reg = ioread32(port_base_addr + GPIO_MODER_REG);
     /* reset current pin mode bits and set mode value */
     reg &= ~(((1ULL << 2) - 1) << (pin*2));
     reg |= (mode << (pin*2));
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_MODER_REG, reg);
+    iowrite32(port_base_addr + GPIO_MODER_REG, reg);
     return status;
 }
 
@@ -125,9 +134,10 @@ kstatus_t gpio_set_type(uint8_t gpio_port_id, uint8_t pin, gpio_type_t type)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    size_t reg = ioread32(gpio_ports_index[gpio_port_id] + GPIO_OTYPER_REG);
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    size_t reg = ioread32(port_base_addr + GPIO_OTYPER_REG);
     reg |= (type << (pin));
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OTYPER_REG, reg);
+    iowrite32(port_base_addr + GPIO_OTYPER_REG, reg);
     return status;
 }
 
@@ -145,13 +155,14 @@ kstatus_t gpio_set_af(uint8_t gpio_port_id, uint8_t pin, gpio_af_t af)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
     size_t afreg;
     size_t reg;
 
     if (pin < 8) {
-        afreg = gpio_ports_index[gpio_port_id] + GPIO_AFRL_REG;
+        afreg = port_base_addr + GPIO_AFRL_REG;
     } else {
-        afreg = gpio_ports_index[gpio_port_id] + GPIO_AFRH_REG;
+        afreg = port_base_addr + GPIO_AFRH_REG;
     }
     reg = ioread32(afreg);
     /* reset current pin mode bits and set mode value */
@@ -175,11 +186,12 @@ kstatus_t gpio_set_speed(uint8_t gpio_port_id, uint8_t pin, gpio_speed_t speed)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    size_t reg = ioread32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG);
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    size_t reg = ioread32(port_base_addr + GPIO_OSPEEDR_REG);
     /* reset current pin mode bits and set mode value */
     reg &= ~(((1ULL << 2) - 1) << (pin*2));
     reg |= (speed << (pin*2));
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_OSPEEDR_REG, reg);
+    iowrite32(port_base_addr + GPIO_OSPEEDR_REG, reg);
     return status;
 }
 
@@ -197,11 +209,12 @@ kstatus_t gpio_set_pull_mode(uint8_t gpio_port_id, uint8_t pin, gpio_pullupd_t p
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    size_t reg = ioread32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG);
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    size_t reg = ioread32(port_base_addr + GPIO_PUPDR_REG);
     /* reset current pin mode bits and set mode value */
     reg &= ~(((1ULL << 2) - 1) << (pin*2));
     reg |= (pupd << (pin*2));
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_PUPDR_REG, reg);
+    iowrite32(port_base_addr + GPIO_PUPDR_REG, reg);
     return status;
 }
 
@@ -226,7 +239,8 @@ kstatus_t gpio_get(uint8_t gpio_port_id, uint8_t pin, bool *val)
        * be better to start with.
        */
 #endif
-    size_t reg = ioread32(gpio_ports_index[gpio_port_id] + GPIO_IDR_REG);
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    size_t reg = ioread32(port_base_addr + GPIO_IDR_REG);
     *val = !!(reg & (0x1UL << pin)); /* boolean value normalisation */
     return status;
 }
@@ -250,7 +264,8 @@ kstatus_t gpio_set(uint8_t gpio_port_id, uint8_t pin)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_BSRR_REG, (0x1ul << (pin)));
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    iowrite32(port_base_addr + GPIO_BSRR_REG, (0x1ul << (pin)));
     return status;
 }
 
@@ -273,6 +288,7 @@ kstatus_t gpio_reset(uint8_t gpio_port_id, uint8_t pin)
      * case of fault injection that may lead to RoP, formal constracts are no more valid
      */
 #endif
-    iowrite32(gpio_ports_index[gpio_port_id] + GPIO_BSRR_REG, (0x1ul << (pin+16)));
+    size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
+    iowrite32(port_base_addr + GPIO_BSRR_REG, (0x1ul << (pin+16)));
     return status;
 }

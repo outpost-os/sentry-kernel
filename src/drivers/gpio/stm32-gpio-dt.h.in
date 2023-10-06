@@ -4,6 +4,8 @@
 #ifndef __STM32_GPIO_DT_GENERATED_H
 #define __STM32_GPIO_DT_GENERATED_H
 
+#include <stddef.h>
+
 #include <sentry/arch/asm-cortex-m/buses.h>
 
 {% set gpio_ports = dts.get_compatible("st,stm32-gpio") -%}
@@ -16,6 +18,18 @@ typedef enum stm32_gpio_id {
     {% endif -%}
     {% endfor %}
 } stm32_gpio_id_t;
+
+/*@
+  logic boolean gpioport_is_valid(uint32_t port) =
+    (
+        {% for port in gpio_ports -%}
+        {% if port.status and port.status == "okay" -%}
+        port == {{ port.label.upper() }}_PORT_ID ||
+        {% endif -%}
+        {% endfor -%}
+        \false
+    );
+*/
 
 /**
  * \brief STM32 gpioport IP descriptor
@@ -30,5 +44,8 @@ typedef struct stm32_gpioport_dec {
     bus_id_t bus_id;    /**< Peripheral bus ID */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
 } stm32_gpioport_desc_t;
+
+size_t stm32_get_nr_gpioports(void);
+const stm32_gpioport_desc_t * stm32_gpioport_get_desc(stm32_gpio_id_t id);
 
 #endif /* __STM32_GPIO_DT_GENERATED_H */
