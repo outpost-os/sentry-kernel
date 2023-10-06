@@ -19,32 +19,6 @@
 
 #include "gpio_defs.h"
 #include "stm32-gpio-dt.h"
-/**
- * @brief .rodata field: list of current platform GPIO ports
- *
- * INFO: This driver can be shared between F4 and U5, as there is few differences
- * (mostly some new registers for TZ support)
- */
-static const uint32_t gpio_ports_index[] = {
-    GPIOA_BASE_ADDR,
-    GPIOB_BASE_ADDR,
-    GPIOC_BASE_ADDR,
-    GPIOD_BASE_ADDR,
-    GPIOE_BASE_ADDR,
-    GPIOF_BASE_ADDR,
-    GPIOG_BASE_ADDR,
-    GPIOH_BASE_ADDR,
-    GPIOI_BASE_ADDR,
-    GPIOJ_BASE_ADDR,
-#if defined(CONFIG_ARCH_MCU_STM32F439) || defined(CONFIG_ARCH_MCU_STM32F429)
-    /* only for STM32F42x & STM32F43x */
-    GPIOK_BASE_ADDR,
-#endif
-};
-/**
- * @brief number of GPIO controlers in the SoC
- */
-#define GPIO_PORTS_NUMBER ARRAY_SIZE(gpio_ports_index)
 
 kstatus_t gpio_probe(uint8_t gpio_port_id)
 {
