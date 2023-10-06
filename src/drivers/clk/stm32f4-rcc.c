@@ -16,11 +16,10 @@
 #include <sentry/ktypes.h>
 
 /* local includes, only manipulated by the driver itself */
-#include <bsp/drivers/clk/clk.h>
+#include <bsp/drivers/clk/rcc.h>
 
 /* RCC generated header for current platform */
 #include "rcc_defs.h"
-#include "pwr_defs.h"
 
 
 #define RCC_OSCILLATOR_STABLE	(0)
@@ -39,7 +38,7 @@
 //#include "soc-flash.h"
 //#include "m4-cpu.h"
 
-uint64_t clk_get_core_frequency(void)
+uint64_t rcc_get_core_frequency(void)
 {
     return (PROD_CORE_FREQUENCY*1000);
 }
@@ -47,37 +46,27 @@ uint64_t clk_get_core_frequency(void)
 /*
  * TODO: some of the bellowing code should be M4 generic. Yet, check if all
  * these registers are M4 generic or STM32F4 core specific
+ *
+ * Clock init:
+ * - f(VCO clock) = f(PLL clock input) × (PLLN / PLLM)
+ * - f(PLL general clock output) = f(VCO clock) / PLLP
  */
-void clk_reset(void)
-{
-    size_t reg;
-    /* Reset the RCC clock configuration to the default reset state */
-    /* Set HSION bit */
-    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-    reg |= 0x1UL;
-    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
 
-    /* Reset CFGR register */
-    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, 0x0UL);
 
-    /* Reset HSEON, CSSON and PLLON bits */
-    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-    reg &= ~ (RCC_CR_HSEON | RCC_CR_CSSON | RCC_CR_PLLON);
-    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+        /* PROD_PLL_M = 16 */
+        /* PROD_PLL_P = 2 */
+        /* PROD_PLL_Q = 7*/
 
-    /* Reset PLLCFGR register, 0x24.00.30.10 being the reset value */
-    iowrite32(RCC_PLLCFGR_REG, 0x24003010UL);
-
-    /* Reset HSEBYP bit */
-    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-    reg &= ~(RCC_CR_HSEBYP);
-    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
-
-    /* Reset all interrupts */
-    iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
-}
-
-kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
+/**
+ * @brief Configures the System clock source, PLL Multiplier and Divider factors,
+ * AHB/APBx prescalers and Flash settings
+ *
+ *
+ * This function should be called only once the RCC clock configuration
+ * is reset to the default reset state (done in SystemInit(UL) functionUL).
+ *
+ */
+static kstatus_t rcc_init_system_clk(bool enable_hse, bool enable_pll)
 {
     kstatus_t status = K_STATUS_OKAY;
     bool timeouted = false;
@@ -126,28 +115,16 @@ kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
         goto err;
     }
 
-    /* Enable high performance mode at bootup, System frequency up to 168 MHz */
-    reg.raw = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
-    reg.raw |= RCC_APB1ENR_PWREN;
-    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg.raw);
-    /*
-     * This bit controls the main internal voltage regulator output
-     * voltage to achieve a trade-off between performance and power
-     * consumption when the device does not operate at the maximum
-     * frequency. (DocID018909 Rev 15 - page 141)
-     * PWR_CR_VOS = 1 => Scale 1 mode (default value at reset)
-     */
-    reg.raw = ioread32(PWR_BASE_ADDR + PWR_CR_REG);
-    reg.raw |= PWR_CR_VOS_MASK;
-    iowrite32(RCC_BASE_ADDR + PWR_CR_REG, reg.raw);
+    /* clock APBx buses */
+    if ((status = rcc_enable_apbx()) != K_STATUS_OKAY) {
+        goto err;
+    }
 
-
-    /* Set clock dividers */
-
+    /* Set buses prescalers before enabling PLL */
     reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    reg.cfgr.hpre = 0x0UL; /* not divide */
-    reg.cfgr.ppre1 = 0x5UL; /* div 4 */
-    reg.cfgr.ppre2 = 0x4UL; /* div 2 */
+    reg.cfgr.hpre = 0x0UL;  /* not divide (168Mhz) */
+    reg.cfgr.ppre1 = 0x5UL; /* APB1: div 4 (48Mhz) */
+    reg.cfgr.ppre2 = 0x4UL; /* APB2: div 2 (96Mhz) */
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
 
     reg.raw = 0;
@@ -160,7 +137,7 @@ kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
          */
         reg.pllcfgr.pllm4 = 1; /* PROD_PLL_M = 16 */
         reg.pllcfgr.pllp1 = 1; /* PROD_PLL_P = 2 */
-        reg.pllcfgr.pllq0 = 1; /* PROD_PLL_Q = 7*/
+        reg.pllcfgr.pllq0 = 1; /* PROD_PLL_Q = 7 */
         reg.pllcfgr.pllq1 = 1;
         reg.pllcfgr.pllq2 = 1;
         if (enable_hse) {
@@ -186,9 +163,7 @@ kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
             status = K_ERROR_NOTREADY;
             goto err;
         }
-
-
-        /* Select the main PLL as system clock source */
+        /* Select the main PLL as system clock source, now that PLL ready */
         reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
         reg.cfgr.sw0 = 0UL;
         reg.cfgr.sw1 = 1UL; /* 0b10 -> PLL as system clock */
@@ -218,9 +193,47 @@ kstatus_t clk_set_system_clk(bool enable_hse, bool enable_pll)
 
 err:
     return status;
-
-    //panic();
 }
+
+
+kstatus_t rcc_probe(void)
+{
+    kstatus_t status;
+    size_t reg;
+    /* Reset the RCC clock configuration to the default reset state */
+    /* Set HSION bit */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg |= 0x1UL;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset CFGR register */
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, 0x0UL);
+
+    /* Reset HSEON, CSSON and PLLON bits */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg &= ~ (RCC_CR_HSEON | RCC_CR_CSSON | RCC_CR_PLLON);
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset PLLCFGR register, 0x24.00.30.10 being the reset value */
+    iowrite32(RCC_PLLCFGR_REG, 0x24003010UL);
+
+    /* Reset HSEBYP bit */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg &= ~(RCC_CR_HSEBYP);
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset all interrupts */
+    iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
+    if (unlikely((status = rcc_init_system_clk(false, true)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+
+
 
 __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
 {
@@ -230,6 +243,7 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
     } else {
         reg_base = RCC_BASE_ADDR + RCC_AHB1ENR_REG;
     }
+    /*@ assert bus_is_valid(busid); */
     /*
      * Here, instead of a switch/case, we calculate the offset using the
      * fact that, for both nominal and low power enable registers:
@@ -274,6 +288,7 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
+    /*@ assert bus_is_valid(busid); */
     size_t reg_base = rcc_get_register(busid, flags);
 
     reg = ioread32(reg_base);
@@ -282,6 +297,30 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
     // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
     arch_data_sync_barrier();
 
+    return status;
+}
+
+/**
+ * @brief Enable APBx bus hierarchy
+ */
+kstatus_t rcc_enable_apbx(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    reg |= RCC_APB1ENR_PWREN;
+    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
+    return status;
+}
+
+/**
+ * @brief Disable APBx bus hierarchy
+ */
+kstatus_t rcc_disable_apbx(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    reg &= ~RCC_APB1ENR_PWREN;
+    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
     return status;
 }
 
@@ -302,11 +341,67 @@ kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
+    /*@ assert bus_is_valid(busid); */
     size_t reg_base = rcc_get_register(busid, flags);
 
     reg = ioread32(reg_base);
     reg &= ~clk_msk;
     iowrite32(reg_base, reg);
 
+    return status;
+}
+
+kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    size_t reg;
+    uint8_t divider = 1;
+    uint32_t ppre;
+    if (unlikely(busclk == NULL)) {
+        goto err;
+    }
+    /*@ assert \valid(busclk); */
+    /*@ assert bus_is_valid(busid); */
+    switch (busid) {
+        case BUS_APB1:
+            reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+            ppre = ((reg & RCC_CFGR_PPRE1_MASK) >> RCC_CFGR_PPRE1_SHIFT);
+            /* if PPREx MSB is set to 0, divider is 1. Otherwise, two
+               PPREx LSB bit define the prescaling */
+            if ((ppre & 0x4) == 0) {
+                divider = 1;
+            } else {
+                divider = ((ppre & 0x3)+1)*2;
+            }
+            break;
+        case BUS_APB2:
+            reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+            ppre = ((reg & RCC_CFGR_PPRE1_MASK) >> RCC_CFGR_PPRE2_SHIFT);
+            /* if PPREx MSB is set to 0, divider is 1. Otherwise, two
+               PPREx LSB bit define the prescaling */
+            if ((ppre & 0x4) == 0) {
+                divider = 1;
+            } else {
+                divider = ((ppre & 0x3)+1)*2;
+            }
+            break;
+        case BUS_AHB1 || BUS_AHB2 || BUS_AHB3:
+            reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+            ppre = ((reg & RCC_CFGR_HPRE_MASK) >> RCC_CFGR_HPRE_SHIFT);
+            divider = 1;
+            break;
+        default:
+            /* smoke testing: unreachable code */
+            /*@ assert \false; */
+            break;
+
+    }
+    /* return current bus clock */
+    *busclk = ((PROD_CORE_FREQUENCY / divider) * 1000);
+    /* TODO: using input clock, serialised pre-divider(s) values, calculate the
+       required bus clock frequency
+    */
+    status = K_STATUS_OKAY;
+err:
     return status;
 }

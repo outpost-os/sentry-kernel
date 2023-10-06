@@ -25,3 +25,4 @@ sentry_source_set.add(pwr_h.to_list())
 
 # driver source selection
 sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rcc.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-pwr.c'))
