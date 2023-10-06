@@ -54,10 +54,17 @@
  *
  * @note this function is always inline
  */
+/*@
+  assigns *(uint8_t*)addr;
+*/
 __attribute__((always_inline))
 static inline void iowrite8(size_t addr, uint8_t val)
 {
+#ifdef __FRAMAC__
+    *(uint8_t*)addr = val;
+#else
     __iowrite8(addr, val);
+#endif
 }
 
 /**
@@ -68,10 +75,17 @@ static inline void iowrite8(size_t addr, uint8_t val)
  *
  * @note this function is always inline
  */
+/*@
+  assigns *(uint16_t*)addr;
+*/
 __attribute__((always_inline))
 static inline void iowrite16(size_t addr, uint16_t val)
 {
+#ifdef __FRAMAC__
+    *(uint16_t*)addr = val;
+#else
     __iowrite16(addr, val);
+#endif
 }
 
 /**
@@ -82,10 +96,17 @@ static inline void iowrite16(size_t addr, uint16_t val)
  *
  * @note this function is always inline
  */
+/*@
+  assigns *(uint32_t*)addr;
+*/
 __attribute__((always_inline))
 static inline void iowrite32(size_t addr, uint32_t val)
 {
+#ifdef __FRAMAC__
+    *(uint32_t*)addr = val;
+#else
     __iowrite32(addr, val);
+#endif
 }
 
 /**
@@ -96,10 +117,17 @@ static inline void iowrite32(size_t addr, uint32_t val)
  *
  * @note this function is always inline
  */
+/*@
+  assigns \nothing;
+*/
 __attribute__((always_inline))
 static inline uint8_t ioread8(size_t addr)
 {
+#ifdef __FRAMAC__
+    return *(uint8_t*)addr;
+#else
     return __ioread8(addr);
+#endif
 }
 
 /**
@@ -110,10 +138,17 @@ static inline uint8_t ioread8(size_t addr)
  *
  * @note this function is always inline
  */
+/*@
+  assigns \nothing;
+*/
 __attribute__((always_inline))
 static inline uint16_t ioread16(size_t addr)
 {
+#ifdef __FRAMAC__
+    return *(uint16_t*)addr;
+#else
     return __ioread16(addr);
+#endif
 }
 
 /**
@@ -124,10 +159,17 @@ static inline uint16_t ioread16(size_t addr)
  *
  * @note this function is always inline
  */
+/*@
+  assigns \nothing;
+*/
 __attribute__((always_inline))
 static inline uint32_t ioread32(size_t addr)
 {
+#ifdef __FRAMAC__
+    return *(uint32_t*)addr;
+#else
     return __ioread32(addr);
+#endif
 }
 
 #endif /* IO_H */
