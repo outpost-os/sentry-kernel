@@ -62,7 +62,7 @@ jobs:
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_proof=true'
       - name: run framaC
         run: |
-          ninja -C builddir framac_eva
+          cd builddir && meson test --suite proof
       - name: Archive proof artifacts
         uses: actions/upload-artifact@v3
         with:
