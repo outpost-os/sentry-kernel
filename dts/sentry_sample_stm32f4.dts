@@ -7,3 +7,31 @@
 /dts-v1/;
 
 #include <st/f4/stm32f437Xi.dtsi>
+
+&gpioa {
+    status = "okay";
+};
+
+&gpiob {
+    status = "okay";
+};
+
+&gpioc {
+    status = "okay";
+};
+
+&gpiod {
+    status = "okay";
+};
+
+&gpioe {
+    status = "okay";
+};
+
+&gpiof {
+    status = "okay";
+};
+
+&gpiog {
+    status = "okay";
+};
