@@ -4,6 +4,8 @@
 #ifndef __STM32_GPIO_DT_GENERATED_H
 #define __STM32_GPIO_DT_GENERATED_H
 
+#include <sentry/arch/asm-cortex-m/buses.h>
+
 {% set gpio_ports = dts.get_compatible("st,stm32-gpio") -%}
 
 typedef enum stm32_gpio_id {
