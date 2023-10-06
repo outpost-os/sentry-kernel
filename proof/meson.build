@@ -47,6 +47,7 @@ framac_wp_opts = [
   '-wp-literals',
   '-wp-timeout', '15',
   '-wp-smoke-tests',
+  '-wp-prover','alt-ergo,tip',
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
