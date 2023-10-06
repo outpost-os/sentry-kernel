@@ -26,6 +26,11 @@
  *
  * @return K_STATUS_OKAY
  */
+/*@
+  // assigns all registers
+  assigns *(uint32_t*)(EXTI_BASE_ADDR .. EXTI_BASE_ADDR + EXTI_PR_REG);
+  ensures \result == K_STATUS_OKAY;
+ */
 kstatus_t exti_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -46,6 +51,11 @@ kstatus_t exti_probe(void)
 /**
  * @brief mask external interrupt itn
  */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
+  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= MAX_EXTI_INTERRUPT <==> \result == K_STATUS_OKAY;
+ */
 kstatus_t exti_mask_interrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -62,6 +72,11 @@ err:
 
 /**
  * @brief unmask external interrupt itn
+ */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
+  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= MAX_EXTI_INTERRUPT <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_unmask_interrupt(uint8_t itn)
 {
@@ -80,6 +95,11 @@ err:
 /**
  * @brief mask external event evn
  */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
+  ensures evn > MAX_EXTI_EVENT <==> \result == K_ERROR_INVPARAM;
+  ensures evn <= MAX_EXTI_EVENT <==> \result == K_STATUS_OKAY;
+ */
 kstatus_t exti_mask_event(uint8_t evn)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -97,6 +117,11 @@ err:
 /**
  * @brief unmask external event evn
  */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
+  ensures evn > MAX_EXTI_EVENT <==> \result == K_ERROR_INVPARAM;
+  ensures evn <= MAX_EXTI_EVENT <==> \result == K_STATUS_OKAY;
+ */
 kstatus_t exti_unmask_event(uint8_t evn)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -113,6 +138,12 @@ err:
 
 /**
  * @brief generate interrupt identified by itn (software triggered)
+ */
+/*@
+  assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
+  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= MAX_EXTI_EVENT ==>
+      \result == K_STATUS_OKAY || \result == K_ERROR_BADSTATE;
  */
 kstatus_t exti_generate_swinterrupt(uint8_t itn)
 {
