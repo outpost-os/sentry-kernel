@@ -1,2 +1,3 @@
 subdir('proof_exti')
-subdir('proof_clk')
+subdir('proof_pwr')
+subdir('proof_rcc')

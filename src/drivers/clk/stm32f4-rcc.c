@@ -215,7 +215,7 @@ kstatus_t rcc_probe(void)
     iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
 
     /* Reset PLLCFGR register, 0x24.00.30.10 being the reset value */
-    iowrite32(RCC_PLLCFGR_REG, 0x24003010UL);
+    iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, 0x24003010UL);
 
     /* Reset HSEBYP bit */
     reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
@@ -234,7 +234,10 @@ err:
 
 
 
-
+/*@
+    assigns \nothing;
+    ensures \result == K_STATUS_OKAY;
+  */
 __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
 {
     size_t reg_base;
@@ -266,6 +269,16 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
         reg_base += (RCC_APB1ENR_REG - RCC_AHB1ENR_REG);
         /* 2. increment to APBx busid, starting at APB1 */
         reg_base += ((busid - BUS_APB1)*sizeof(uint32_t));
+        /**
+          * FIXME: the busid must be checked with framaC predicate,
+          * as precondition, so that WP demonstrate that entrypoint or
+          * manager calling the rcc clock never use invalid input values.
+          * This requires bus_is_valid(Z busid) predicate that check the
+          * enumerate on current platform, generated from dtsi & svd.
+          * INFO: In the meanwhile, assigns contract can't be proven by WP.
+          * CRITICAL: Until then, there is a potential controlled OOB write here.
+          * To be fixed just after dtsi inclusion PR.
+          */
     }
     return reg_base;
 }
@@ -283,6 +296,11 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
  *
  * @return K_STATUS_OKAY of the clock is properly enabled, or an error
  *  status otherwise
+ */
+/*@
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
+    ensures \result == K_STATUS_OKAY;
  */
 kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
@@ -303,6 +321,10 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 /**
  * @brief Enable APBx bus hierarchy
  */
+/*@
+    assigns *(uint32_t*)(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    ensures \result == K_STATUS_OKAY;
+ */
 kstatus_t rcc_enable_apbx(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -314,6 +336,10 @@ kstatus_t rcc_enable_apbx(void)
 
 /**
  * @brief Disable APBx bus hierarchy
+ */
+/*@
+    assigns *(uint32_t*)(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    ensures \result == K_STATUS_OKAY;
  */
 kstatus_t rcc_disable_apbx(void)
 {
@@ -336,6 +362,11 @@ kstatus_t rcc_disable_apbx(void)
  *
  * @return K_STATUS_OKAY of the clock is properly disabled, or an error
  *  status otherwise
+ */
+/*@
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
+    ensures \result == K_STATUS_OKAY;
  */
 kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {

@@ -92,6 +92,8 @@ test(
   suite: 'proof',
   depends: [ framac_dep ],
   timeout: 60,
+  is_parallel: false,
+  priority: 255,
 )
 
 test(
@@ -113,6 +115,8 @@ test(
   depends: [ framac_dep ],
   suite: 'proof',
   timeout: 120,
+  is_parallel: false,
+  priority: 254,
 )
 
 # the bellow part is to be fixed with separated test suites
