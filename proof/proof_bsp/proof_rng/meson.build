@@ -7,14 +7,14 @@ framac_bsp_rng_stub_entrypoint = files(
 )
 
 framac_bsp_rng_stub_elf = executable(
-    'framac_bsp_rng_stub_exe',
-    name_suffix: 'elf',
-    sources: [framac_bsp_rng_stub_entrypoint, sentry_header_set_config.sources() ],
-    include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args, global_build_args ],
-    install: false,
-    build_by_default: false,
+  'framac_bsp_rng_stub_exe',
+  name_suffix: 'elf',
+  sources: [framac_bsp_rng_stub_entrypoint, sentry_header_set_config.sources() ],
+  include_directories: kernel_inc,
+  dependencies: [sentry_dep, external_deps],
+  c_args: [ target_arch_args, global_build_args ],
+  install: false,
+  build_by_default: false,
 )
 
 test(
@@ -25,10 +25,13 @@ test(
     meson.project_source_root()+'/src/drivers/rng/stm32f4-rng.c',
     framac_gen_opts,
     framac_rte_eva_opts,
+    '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
+    '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
     '-metrics',
     '-metrics-eva-cover',meson.project_source_root()+'/src/drivers/rng/stm32f4-rng.c',
     '-then', framac_wp_opts,
     '-wp-fct','rng_probe,rng_get',
+    '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
     '-save',join_paths(meson.current_build_dir(), 'sentry-bsp-rng.wp'),
     '-then',
     framac_md_opts,

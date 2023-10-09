@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <sentry/ktypes.h>
+#include <sentry/arch/asm-cortex-m/layout.h>
 #include <bsp/drivers/exti/exti.h>
 #include "../framac_tools.h"
 
@@ -7,6 +8,12 @@
 int main(void)
 {
     uint8_t it_or_ev = Frama_C_interval_8(0, 42);
+
+    /* Initialize device with randomness (over-approximation of
+       all content possibilities, avoid first device access ioread32()
+       uninitialized-read red alarms.
+    */
+    memset((void*)EXTI_BASE_ADDR, Frama_C_entropy_source_32, 0x20);
 
     exti_probe();
     /*

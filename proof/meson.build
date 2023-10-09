@@ -37,8 +37,6 @@ framac_rte_eva_opts = [
  '-eva-domains', 'equality',
  '-eva-split-return', 'auto',
  '-eva-partition-history', '1',
- '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
- '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
 ]
 
 framac_wp_opts = [
@@ -51,7 +49,6 @@ framac_wp_opts = [
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
-  '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
 ]
 
 framac_md_opts = [
