@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-test_io = executable(
-    'test_io',
-    sources: files('test_io.cpp'),
+test_bits = executable(
+    'test_bits',
+    sources: files('test_bits.cpp'),
     include_directories: kernel_inc,
     cpp_args: '-DTEST_MODE=1',
     c_args: '-DTEST_MODE=1',
@@ -12,6 +12,6 @@ test_io = executable(
     native: true,
 )
 
-test('io',
-     test_io,
+test('bits',
+     test_bits,
      suite: 'ut-utils')
