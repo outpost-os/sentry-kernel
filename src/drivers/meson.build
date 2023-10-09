@@ -22,3 +22,4 @@ subdir('rng')
 endif
 
 subdir('syscfg')
+subdir('usart')

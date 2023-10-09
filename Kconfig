@@ -45,6 +45,23 @@ config DTS_FILE
 	help
 	  DTS file to use for projet configuration
 
+if BUILD_TARGET_DEBUG
+
+choice
+	bool "Serial console target"
+config DEBUG_SERIAL_1
+	bool "debug console on U(S)ART port 1"
+
+config DEBUG_SERIAL_2
+	bool "debug console U(S)ART port 2"
+
+config DEBUG_SERIAL_3
+	bool "debug console U(S)ART port 3"
+
+
+endchoice
+
+endif
 
 config BUILD_RUST_MODULES
 	bool "Build Rust code"
