@@ -8,19 +8,27 @@
 #ifndef IO_H
 #define IO_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
 #include <stdbool.h>
 
 /* dispatcher for I/O file based on compiler host value */
-#ifdef CONFIG_ARCH_ARM_CORTEX_M
+#if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/io.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/io.h>
 #else
 #error "unsupported architecture"
 #endif
 
+#ifndef __cplusplus
 #if defined(__arm__)
 /** @brief Generic iowrite interface that implicitely handle multiple sizes */
 #define iowrite(reg, T) _Generic((T),   \
@@ -42,9 +50,24 @@
               uint16_t: iowrite16,      \
               uint8_t:  iowrite8        \
         ) (reg, T)
+#elif defined(__x86_64__)
+/** @brief generic interface for unit testing (x86_32)
+  *
+  * INFO: on x86_32 arch (framaC, size_t & uint32_t are the same and thus
+  *  can't be both declared).
+  * In the same time, long & u32 are not the same
+  */
+#define iowrite(reg, T) _Generic((T),   \
+              size_t:   iowrite32,      \
+              uint32_t: iowrite32,      \
+              uint16_t: iowrite16,      \
+              uint8_t:  iowrite8        \
+        ) (reg, T)
 #else
 #error "unsupported architecture"
 #endif
+
+#endif/*!__cplusplus*/
 
 /**
  * @brief  Writes one byte at given address
@@ -171,5 +194,9 @@ static inline uint32_t ioread32(size_t addr)
     return __ioread32(addr);
 #endif
 }
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* IO_H */
