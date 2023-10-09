@@ -17,6 +17,10 @@
 #include <bsp/drivers/clk/pwr.h>
 #include "pwr_defs.h"
 
+/*@
+    assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
+    ensures \result == K_STATUS_OKAY;
+  */
 kstatus_t pwr_probe(void)
 {
     /*
@@ -30,15 +34,20 @@ kstatus_t pwr_probe(void)
 }
 
 /*@
-  @ requires scale_is_valid(scale);
+    requires scale_is_valid(scale);
+    assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
+    ensures \result == K_STATUS_OKAY;
   */
 kstatus_t pwr_set_voltage_regulator_scaling(uint8_t scale)
 {
     kstatus_t status;
     size_t reg;
+    /*@ assert pwr_register_exists(PWR_CR_REG); */
+    /*@ assert pwr_is_readable_register(PWR_CR_REG); */
     reg = ioread32(PWR_BASE_ADDR + PWR_CR_REG);
     reg &= ~PWR_CR_VOS_MASK;
     reg |= ((scale << PWR_CR_VOS_SHIFT) & PWR_CR_VOS_MASK);
+    /*@ assert pwr_is_writable_register(PWR_CR_REG); */
     iowrite32(PWR_BASE_ADDR + PWR_CR_REG, reg);
     status = K_STATUS_OKAY;
     return status;

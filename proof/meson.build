@@ -5,6 +5,7 @@ cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
 
 
 framac_gen_opts = [
+  '-no-meta',
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
@@ -36,9 +37,6 @@ framac_rte_eva_opts = [
  '-eva-domains', 'equality',
  '-eva-split-return', 'auto',
  '-eva-partition-history', '1',
- '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
- '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
- '-metrics',
 ]
 
 framac_wp_opts = [
@@ -47,11 +45,10 @@ framac_wp_opts = [
   '-wp-literals',
   '-wp-timeout', '15',
   '-wp-smoke-tests',
-  '-wp-prover','alt-ergo,tip',
+  '-wp-prover','altergo,tip',
   '-wp-time-margin', '25',
   '-wp-no-smoke-dead-code',
   '-wp-no-smoke-dead-call',
-  '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
 ]
 
 framac_md_opts = [
@@ -92,6 +89,8 @@ test(
   suite: 'proof',
   depends: [ framac_dep ],
   timeout: 60,
+  is_parallel: false,
+  priority: 255,
 )
 
 test(
@@ -102,6 +101,9 @@ test(
     framac_gen_opts,
     '-main', '_entrypoint',
     framac_rte_eva_opts,
+    '-metrics',
+    '-metrics-eva-cover',
+    '-metrics-output',join_paths(meson.current_build_dir(), 'sentry-rte-eva-coverage.json'),
     '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
     '-then',
     framac_md_opts,
@@ -110,6 +112,8 @@ test(
   depends: [ framac_dep ],
   suite: 'proof',
   timeout: 120,
+  is_parallel: false,
+  priority: 254,
 )
 
 # the bellow part is to be fixed with separated test suites

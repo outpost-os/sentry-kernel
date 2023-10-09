@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <sentry/crypto/crc32.h>
 
 static const uint32_t crc32_tab[] =
 {
@@ -64,10 +65,7 @@ static const uint32_t crc32_tab[] =
  */
 #define UPDC32(octet, crc) (crc32_tab[((crc) ^ (octet)) & 0xff] ^ ((crc) >> 8))
 
-/*@
-  @ requires \valid(buf + (0 .. (len-1)));
-  @ assigns buf[0 .. (len -1)];
-  @*/
+
 uint32_t crc32(unsigned char const * const buf, uint32_t len, uint32_t init)
 {
     uint32_t crc32;

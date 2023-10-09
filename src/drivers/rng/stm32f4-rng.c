@@ -26,11 +26,19 @@ static bool not_first_rng;
 static uint32_t last_rng_crc;
 
 /**
- * @brief Initialize RNG (mainly initialize it clock).
+ * @brief Initialize RNG
  *
  * @param nothing
  * @return nothing
  */
+/*@
+  @ assigns *(uint32_t*)(RNG_BASE_ADDR .. RNG_BASE_ADDR + RNG_DR_REG);
+  @ ensures rng_enabled == \true <==> \result == K_STATUS_OKAY;
+  @ ensures \result == K_STATUS_OKAY ||
+            \result == K_ERROR_BADCLK ||
+            \result == K_ERROR_NOTREADY ||
+            \result == K_ERROR_BADENTROPY;
+  @*/
 kstatus_t rng_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -41,16 +49,15 @@ kstatus_t rng_probe(void)
         status = K_ERROR_BADSTATE;
         goto err;
     }
-    rng_enabled = ATOMIC_VAR_INIT(false);
+    rng_enabled = false;
     /* FIXME: enable clock through clk API */
-    iowrite(RCC_AHB2ENR_REG, RCC_AHB2ENR_RNGEN);
+    iowrite(RNG_BASE_ADDR + RCC_AHB2ENR_REG, RCC_AHB2ENR_RNGEN);
 
     /* Enable random number generation */
     reg |= RNG_CR_RNGEN;
     iowrite(RNG_BASE_ADDR + RNG_CR_REG, reg);
     /* Wait for the RNG to be ready */
     while (!(ioread32(RNG_BASE_ADDR + RNG_SR_REG) & RNG_SR_DRDY)) {
-        /** FIXME: timeout to add here */
         ready_timeout++;
         if (ready_timeout == RNG_RDY_TIMEOUT) {
             status = K_ERROR_NOTREADY;
