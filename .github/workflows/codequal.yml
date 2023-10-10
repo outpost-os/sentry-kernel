@@ -19,7 +19,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
+    runs-on: orange-classic
     container:
       image: docker-kulos-nexus.orange.ledgerlabs.net/codequalbot:v0.4.0
       credentials:
