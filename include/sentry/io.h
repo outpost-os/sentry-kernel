@@ -24,6 +24,8 @@ extern "C" {
 #include <sentry/arch/asm-cortex-m/io.h>
 #elif defined(__x86_64__)
 #include <sentry/arch/asm-x86_64/io.h>
+#elif defined(__i386__)
+#include <sentry/arch/asm-i386/io.h>
 #else
 #error "unsupported architecture"
 #endif

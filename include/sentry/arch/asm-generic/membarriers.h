@@ -5,8 +5,12 @@
  * \file membarriers entrypoint, multiplatform
  */
 
-#ifdef CONFIG_ARCH_ARM_CORTEX_M
+#if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/membarriers.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/membarriers.h>
+#elif defined(__i386__)
+#include <sentry/arch/asm-i386/membarriers.h>
 #else
 #error "unsupported architecture!"
 #endif

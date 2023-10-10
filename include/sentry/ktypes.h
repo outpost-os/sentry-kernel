@@ -11,12 +11,25 @@
 #include <inttypes.h>
 #include <stdatomic.h>
 
+/*
+ * INFO: the way atomics are manipulated is not the same in C (kernel build)
+ * and C++ (unit testing). This is transparent for all the caller code but the
+ * atomic types definitions and model is not the same and thus require to
+ * detect the context of this header (c++ ABI vs c ABI)
+ */
+#ifdef __cplusplus
+  #include <atomic>
+  using std::atomic_int;
+  using std::memory_order;
+  using std::memory_order_acquire;
+#else /* not __cplusplus */
+  #include <stdatomic.h>
+#endif /* __cplusplus */
 
 typedef enum secure_bool {
     SECURE_TRUE   = 0x5aa33FFu,
     SECURE_FALSE  = 0xa55FF33u
 } secure_bool_t;
-
 
 /*
  * TODO, other suffix Kilo, Mega, Giga in decimal

@@ -8,9 +8,7 @@
 #include <stdbool.h>
 #include <stdatomic.h>
 
-#include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
-#include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>

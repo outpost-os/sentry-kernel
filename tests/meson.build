@@ -9,3 +9,4 @@ gtest_main = dependency('gtest_main', version: '>=1.13.0',
                          native: true)
 
 subdir('test_utils')
+subdir('test_bsp')
