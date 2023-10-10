@@ -7,16 +7,16 @@
 /**
  * \file sentry kernel generic types
  */
+#include <assert.h>
+#include <inttypes.h>
+#include <stdatomic.h>
+
 
 typedef enum secure_bool {
     SECURE_TRUE   = 0x5aa33FFu,
     SECURE_FALSE  = 0xa55FF33u
 } secure_bool_t;
 
-
-#include <assert.h>
-#include <inttypes.h>
-#include <stdatomic.h>
 
 /*
  * TODO, other suffix Kilo, Mega, Giga in decimal
