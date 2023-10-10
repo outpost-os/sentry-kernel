@@ -65,16 +65,7 @@ html_theme = 'sphinx_rtd_theme'
 
 html_logo = ''
 
-# html_favicon = None
-
 html_static_path = ['_static']
-# html_extra_path = []
-
-# If not None, a 'Last updated on:' timestamp is inserted at every page
-# bottom, using the given strftime format.
-# The empty string is equivalent to '%b %d, %Y'.
-#
-# html_last_updated_fmt = None
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
