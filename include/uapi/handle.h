@@ -48,44 +48,44 @@ typedef enum handle_type {
 
 
 typedef struct device_handle {
-    uint32_t dev_cap  : 8; /* device required dev-capabilities (mask) */
-    uint32_t reserved : 5;
-    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
-    uint32_t familly  : 3;
+    unsigned int dev_cap  : 8; /* device required dev-capabilities (mask) */
+    unsigned int reserved : 5;
+    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
 } devh_t;
 static_assert(sizeof(devh_t) == sizeof(uint32_t), "invalid devh_t opaque size");
 
 typedef struct task_handle {
-    uint32_t rerun    : 13; /* current spawn id (start with 1) */
-    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
-    uint32_t familly  : 3;
+    unsigned int rerun    : 13; /* current spawn id (start with 1) */
+    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
 } taskh_t;
 static_assert(sizeof(taskh_t) == sizeof(uint32_t), "invalid taskh_t opaque size");
 
 typedef struct __attribute__((packed))  io_handle {
-    uint32_t ioport   : 4; /* 0=A, 1=B...*/
-    uint32_t iopin    : 4; /* 0=0, 1=1, ... */
-    uint32_t reserved : 5;
+    unsigned int ioport   : 4; /* 0=A, 1=B...*/
+    unsigned int iopin    : 4; /* 0=0, 1=1, ... */
+    unsigned int reserved : 5;
     /* this part is fixed */
-    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
-    uint32_t familly  : 3;
+    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
 } ioh_t;
 static_assert(sizeof(ioh_t) == sizeof(uint32_t), "invalid ioh_t opaque size");
 
 typedef struct irq_handle {
-    uint32_t irqn     : 8; /* IRQ Number */
-    uint32_t reserved : 5;
-    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
-    uint32_t familly  : 3;
+    unsigned int irqn     : 8; /* IRQ Number */
+    unsigned int reserved : 5;
+    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
 } irqh_t;
 static_assert(sizeof(irqh_t) == sizeof(uint32_t), "invalid irqh_t opaque size");
 
 typedef struct clk_handle {
-    uint32_t bus_id   : 4; /* << 2 to get offset from first clken reg */
-    uint32_t clk_id   : 5; /* clken bit */
-    uint32_t reserved : 4;
-    uint32_t id       : 16; /* unique id for current handle (current device, task, etc) */
-    uint32_t familly  : 3;
+    unsigned int bus_id   : 4; /* << 2 to get offset from first clken reg */
+    unsigned int clk_id   : 5; /* clken bit */
+    unsigned int reserved : 4;
+    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
 } clkh_t;
 static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
 
