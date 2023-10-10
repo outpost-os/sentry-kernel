@@ -89,13 +89,25 @@ meson setup -Dwith_proof=true [...]
 It can be directly used with the cross configuration, as frama-C only preprocess the sources and then natively parse the C code into its own AST
 in order to analyse the source correctness.
 
-Three ninja targets exist:
+FramaC execution is controled through the meson test framework (see tests chapter) and thus is directly accessible through the test command.
+All Frama-C tests are a part of the same suite denoted proof. If both proofs and tests are enabled in the very same time, the proof tests can
+then be called separatelly by calling only the proof suite.
 
-   * `framac_parse`: check that frama-C is able to parse the kernel sources
-   * `framac_eva`: parse and analyze the source code for RTE check (all  usual runtime error such as undefined behaviors, signess errors, etc.). Based on the call tree declared in the stubbed `main()` entrypoint used in `proof/main.c`
-   * `framac_wp`: analyse function contracts for formal analysis of function bheavior, including border effects and formally defined higher level behavior (call context, per-input set behavior & so on)
+FramaC tests can be listed using:
 
-EVA and WP targets generate `.eva` and `.wp` files in the `proof` build directory that can then be opened with `ivette` the Frama-C GUI for analysis
+```console
+$ meson test -C builddir_framac/ --list
+frama-C-parsing
+frama-C-eva
+frama-C-wp-bsp-exti
+frama-C-wp-bsp-pwr
+frama-C-wp-bsp-rcc
+frama-C-wp-bsp-rng
+[...]
+```
+
+EVA and WP targets generate `.eva` and `.wp` files in the corresponding test build directory that can then be opened with `ivette` and the Frama-C GUI for analysis.
+In the same time, red-alarms file holding detected RTE are also stored for each test.
 
 ## tests
 TBD
