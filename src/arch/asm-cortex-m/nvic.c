@@ -166,7 +166,7 @@ void nvic_enableirq(uint32_t IRQn)
  */
 void nvic_disableirq(uint32_t IRQn)
 {
-    NVIC_ICER[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* disable interrupt */
+    NVIC_ICER[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* disable interrupt */
 }
 
 /* \brief  Get Pending Interrupt
@@ -192,7 +192,7 @@ uint32_t nvic_get_pendingirq(uint32_t IRQn)
  */
 void nvic_set_pendingirq(uint32_t IRQn)
 {
-    NVIC_ISPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* set interrupt pending */
+    NVIC_ISPR[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* set interrupt pending */
 }
 
 /* \brief  Clear Pending Interrupt
@@ -202,7 +202,7 @@ void nvic_set_pendingirq(uint32_t IRQn)
  */
 void nvic_clear_pendingirq(uint32_t IRQn)
 {
-    NVIC_ICPR[((uint32_t) (IRQn) >> 5)] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* Clear pending interrupt */
+    NVIC_ICPR[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* Clear pending interrupt */
 }
 
 /* \brief  Get Active Interrupt
