@@ -21,28 +21,31 @@ extern  __attribute__((weak)) void Default_SubHandler(){}
 /**
  * @brief Reset handler, executed at POR time
  */
-__attribute__((naked)) __attribute__((noreturn)) void Reset_Handler(void)
+__attribute__((naked)) __attribute__((noreturn)) __attribute__((used)) void Reset_Handler(void)
 {
-    interrupt_disable();
-    /* Init VTOR and MSP stack address */
     asm volatile(
+        "cpsid i\r\n"
         "movs    r5, lr\r\n"
         "sub     r5, #5\r\n"  /* In thumb mode LR is pointing to PC + 4 bytes  + 1 because in thumb mode LR must be odd aligned*/
         "sub     r2, r5, %0\r\n" /* Compute vector table, based on generated table length (see input operand) */
         "ldr     r2, [r2]\r\n"
         "msr     msp, r2\r\n" /* store stack address fixed in vtor block in MSP */
+
+        "ldr     r2, %[sbss]\r\n"          /* start address for the .bss section */
+        "b       200f\r\n"
+        "100:\r\n"  /* Zero fill the bss segment. */
+        "movs    r3, #0\r\n"
+        "str     r3, [r2], #4\r\n"
+        "200:\r\n"
+        "ldr     r3, %[ebss]\r\n" /* end address for the .bss section */
+        "cmp     r2, r3\r\n"
+        "bcc     100f\r\n"
+        "dmb\r\n"
+        "b _entrypoint\r\n"
         :
-        : "i" (__NVIC_VECTOR_LEN*sizeof(void*))
+        : "r" (__NVIC_VECTOR_LEN*sizeof(void*)), [sbss] "ami" (&_sbss), [ebss] "ami" (&_ebss)
         :
     );
-    /* voluntary no .data copy. There must not have .data in a kernel */
-    /* zeroify .bss, basic model, no builtins, highly optimisable by compiler */
-    for (uint32_t *ptr = &_sbss; ptr < &_ebss; ++ptr) {
-        *ptr = 0x0UL;
-    }
-    arch_data_sync_barrier();
-    /* call entrypoint now */
-    _entrypoint();
     /* should never return */
     /*@ assert \false; */
 }
