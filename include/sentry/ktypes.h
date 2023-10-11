@@ -9,7 +9,6 @@
  */
 #include <assert.h>
 #include <inttypes.h>
-#include <stdatomic.h>
 
 /*
  * INFO: the way atomics are manipulated is not the same in C (kernel build)
