@@ -4,9 +4,9 @@ STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0c00;
 
 MEMORY
 {
-  INTERRUPTS (rx) : ORIGIN = 0x80000000, LENGTH = 0x00000400
+  INTERRUPTS (rx) : ORIGIN = 0x08000000, LENGTH = 0x00000400
   /* flash is ITCM, 128K */
-  TEXT       (rx) : ORIGIN = 0x80000400, LENGTH = 0x0001FC00
+  TEXT       (rx) : ORIGIN = 0x08000400, LENGTH = 0x0001FC00
   /* RAM is DTCM, 128K, 2 banks */
   RAM        (rw) : ORIGIN = 0x20000000, LENGTH = 0x00020000
 }
