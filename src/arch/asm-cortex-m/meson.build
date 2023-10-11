@@ -34,7 +34,7 @@ sentry_source_set.add(files(
 ))
 
 sentry_startup += files(
-  'startup.S',
+  'handler.c',
 )
 
 # include SoC-specific meson file, local path forged from the .config SoC name
