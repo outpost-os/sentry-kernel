@@ -1,7 +1,7 @@
-project('sentry-kernel', 'c',
+project('sentry-kernel', 'c','cpp',
     meson_version: '>=1.1.0',
     version: run_command('dunamai', 'from', 'git', '--style', 'semver', '--dirty', check: true).stdout().strip(),
-    default_options: ['c_std=gnu11', 'default_library=static', 'warning_level=2' ],
+    default_options: ['c_std=gnu11', 'cpp_std=gnu++20', 'default_library=static', 'warning_level=2' ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
@@ -120,6 +120,11 @@ endif
 with_proof_opt = get_option('with_proof')
 if with_proof_opt
   subdir('proof')
+endif
+
+with_tests_opt = get_option('with_tests')
+if with_tests_opt
+    subdir('tests')
 endif
 
 

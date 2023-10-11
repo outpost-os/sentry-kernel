@@ -99,3 +99,59 @@ jobs:
         if: failure()
         run: |
           cat builddir/meson-logs/meson-log.txt
+
+  test:
+    needs: [ build ]
+    defaults:
+      run:
+        shell: bash
+    runs-on: self-hosted
+    container:
+      image: 'mesonbuild/ubuntu-rolling'
+    steps:
+      - name: Setup git
+        uses: embedded-devops/action-setup-git@main
+        with:
+          ssh_key: ${{ secrets.GHE_SSH_KEY }}
+          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+      - name: Setup Meson
+        uses: embedded-devops/action-setup-meson@main
+        with:
+          token: ${{ secrets.GHE_CI_TOKEN }}
+          crossfiles_git: 'outpost/meson-cross-files'
+          crossfiles_ref: 'main'
+      - name: Setup compiler
+        uses: embedded-devops/action-setup-compiler@main
+        with:
+          compiler: gcc
+          triple: arm-none-eabi
+          ref: '12.3.Rel1'
+      - name: Set pypi credentials
+        uses: embedded-devops/action-pypi@main
+        with:
+          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
+          pypi_server_need_authentication: true
+          pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
+          pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: deploy local deps
+        run: |
+          pip install -r requirements.txt
+      - name: install pkg
+        uses: embedded-devops/action-install-pkg@v1.0
+        with:
+          package: 'dtc,device-tree-compiler'
+      - name: Meson Build
+        uses: embedded-devops/action-meson@main
+        with:
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
+          actions: '["prefetch", "setup", "test"]'
+          options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
+      - name: Meson postcheck
+        if: failure()
+        run: |
+          cat builddir/meson-logs/meson-log.txt
+          cat builddir/meson-logs/testlog.txt

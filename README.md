@@ -110,6 +110,34 @@ EVA and WP targets generate `.eva` and `.wp` files in the corresponding test bui
 In the same time, red-alarms file holding detected RTE are also stored for each test.
 
 ## tests
-TBD
+
+Sentry kernel supports unit testing. This is done using the gtest framework.
+Analysis of various components of the Sentry kernel is made by emulating, for each subcomponent, the ecosystem it needs in order to simulate the target.
+For e.g., the EXTI driver is unit-tested using an emulated EXTI device mapped at the very same memory address map as the effective device, so that the device driver do not need any modifiacations while tested.
+
+Other non-HW related components are tested for their expected behavior, in multiple nominal and borderline cases.
+
+Enabling the test suite is made by activating the tests at setup time:
+
+```console
+meson setup -Dwith_tests=true [...]
+```
+
+The test framework is based on multiple test suites. The suite names can be listed using the standard `meson test` target:
+
+```console
+meson test -C <builddir> --list
+sentry-kernel:ut-utils / io
+sentry-kernel:ut-utils / bits
+sentry-kernel:ut-bsp / exti
+```
+
+Each test suite (or even test) can be executed independently if needed:
+
+```console
+meson test -C <builddir> --suite ut-utils
+[...]
+```
+
 ## doc
 TBD
