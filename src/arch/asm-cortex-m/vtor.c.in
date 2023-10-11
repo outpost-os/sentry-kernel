@@ -31,7 +31,7 @@ const vtor_handler_t __vtor_table[__NVIC_VECTOR_LEN + 16] __attribute__((used, s
     /* {{ name.upper() }} soc-specific isr handler */
     {% for irqnum in range(interrupts[-1]["value"] + 1) -%}
     {% if interrupts | rejectattr('value', '!=', irqnum) | list | length -%}
-    Default_Handler,            /* {{ interrupts | selectattr('value', '==', irqnum) | map(attribute='name') | list | first }} handler (isr {{ irqnum }})*/
+    Default_Handler,            /* {{ interrupts | selectattr('value', '==', irqnum) | map(attribute='name') | list | first }} handler (isr {{ irqnum }}) */
     {% else -%}
     0,                          /* reserved */
     {% endif -%}
