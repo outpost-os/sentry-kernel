@@ -140,11 +140,15 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
+      - name: install pkg
+        uses: embedded-devops/action-install-pkg@v1.0
+        with:
+          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          actions: '["setup", "test"]'
+          actions: '["prefetch", "setup", "test"]'
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
       - name: Meson postcheck
         if: failure()
