@@ -101,7 +101,7 @@ jobs:
           cat builddir/meson-logs/meson-log.txt
 
   test:
-    needs: [ sentry_build ]
+    needs: [ build ]
     defaults:
       run:
         shell: bash
