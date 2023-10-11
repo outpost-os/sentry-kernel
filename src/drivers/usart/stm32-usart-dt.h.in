@@ -1,0 +1,51 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_USART_DT_GENERATED_H
+#define __STM32_USART_DT_GENERATED_H
+
+#include <stddef.h>
+
+#include <sentry/arch/asm-cortex-m/buses.h>
+
+{% set usart_ports = dts.get_compatible("st,stm32-usart") -%}
+
+typedef enum stm32_usart_id {
+    {% for port in usart_ports -%}
+    {% if port.status and port.status == "okay" -%}
+    /** {{ port.label }} port ID */
+    {{ port.label.upper() }}_PORT_ID,
+    {% endif -%}
+    {% endfor %}
+} stm32_usart_id_t;
+
+/*@
+  logic boolean usartport_is_valid(uint32_t port) =
+    (
+        {% for port in usart_ports -%}
+        {% if port.status and port.status == "okay" -%}
+        port == {{ port.label.upper() }}_PORT_ID ||
+        {% endif -%}
+        {% endfor -%}
+        \false
+    );
+*/
+
+/**
+ * \brief STM32 usartport IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-usart" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_usartport_dec {
+    uint32_t base_addr; /**< IP base address */
+    bus_id_t bus_id;    /**< Peripheral bus ID */
+    uint32_t clk_msk;   /**< IP clocks mask on the given bus */
+} stm32_usartport_desc_t;
+
+size_t stm32_get_nr_usartports(void);
+const stm32_usartport_desc_t * stm32_usartport_get_desc(stm32_usart_id_t id);
+
+#endif /* __STM32_USART_DT_GENERATED_H */

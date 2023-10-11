@@ -98,3 +98,7 @@
 				  STM32_PUPDR_NO_PULL>;
 	};
 };
+
+&usart1 {
+    status = "okay";
+};
