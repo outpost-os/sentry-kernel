@@ -11,8 +11,6 @@ MEMORY
   RAM        (rw) : ORIGIN = 0x20000000, LENGTH = 0x00020000
 }
 
-
-_estack = _m7fw_init_msp_stack;
 _idlestack = _m7fw_init_psp_stack;
 
 /* Define output sections */
@@ -21,8 +19,6 @@ SECTIONS
   /* The startup code goes first into FLASH */
   .isr_vector :
   {
-    __VECTOR_TABLE = .;
-    . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   }>INTERRUPTS
@@ -176,7 +172,7 @@ SECTIONS
     PROVIDE ( _end = . );
     . = . + 2048;
     _idlestack = .;
-    _m7fw_init_msp_stack = .;
+    _estack = .;
     . = . + 4096;
     _m7fw_init_psp_stack = .;
     . = ALIGN(4);

@@ -1,0 +1,39 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <inttypes.h>
+#include <sentry/arch/asm-cortex-m/irq_defs.h>
+
+typedef void(*vtor_handler_t)(void);
+
+extern uint32_t _estack;
+extern void Reset_Handler(void);
+extern void Default_Handler(void);
+
+const vtor_handler_t __vtor_table[__NVIC_VECTOR_LEN + 16] __attribute__((used, section(".isr_vector"))) = {
+    (vtor_handler_t)(&_estack), /* Initial stack pointer */
+    Reset_Handler,              /* Reset handler */
+    Default_Handler,            /* NMI handler */
+    Default_Handler,            /* Hard fault handler */
+    Default_Handler,            /* MPU fault handler */
+    Default_Handler,            /* Bus fault handler */
+    Default_Handler,            /* Usage fault handler */
+    0,                          /* reserved */
+    0,                          /* reserved */
+    0,                          /* reserved */
+    0,                          /* reserved */
+    Default_Handler,            /* SVC handler */
+    Default_Handler,            /* Debug monitor handler */
+    0,                          /* reserved */
+    Default_Handler,            /* PendSV handler */
+    Default_Handler,            /* Systick handler */
+
+    /* {{ name.upper() }} soc-specific isr handler */
+    {% for irqnum in range(interrupts[-1]["value"] + 1) -%}
+    {% if interrupts | rejectattr('value', '!=', irqnum) | list | length -%}
+    Default_Handler,            /* {{ interrupts | selectattr('value', '==', irqnum) | map(attribute='name') | list | first }} handler (isr {{ irqnum }})*/
+    {% else -%}
+    0,                          /* reserved */
+    {% endif -%}
+    {% endfor %}
+};

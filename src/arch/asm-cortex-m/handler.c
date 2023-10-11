@@ -25,12 +25,20 @@ __attribute__((naked)) __attribute__((noreturn)) __attribute__((used)) void Rese
 {
     asm volatile(
         "cpsid i\r\n"
+
+    /*
+     * XXX:
+     * We do not need this at this time as there is no bootloader, while branching to `Reset_Handler`
+     * There is no chance to be in any other states but core reset.
+     * re-enable this is if needed and use the `__vtor_table` symbol's address directly
+     */
+#if 0
         "movs    r5, lr\r\n"
         "sub     r5, #5\r\n"  /* In thumb mode LR is pointing to PC + 4 bytes  + 1 because in thumb mode LR must be odd aligned*/
         "sub     r2, r5, %0\r\n" /* Compute vector table, based on generated table length (see input operand) */
         "ldr     r2, [r2]\r\n"
         "msr     msp, r2\r\n" /* store stack address fixed in vtor block in MSP */
-
+#endif
         "ldr     r2, %[sbss]\r\n"          /* start address for the .bss section */
         "b       200f\r\n"
         "100:\r\n"  /* Zero fill the bss segment. */
@@ -43,7 +51,7 @@ __attribute__((naked)) __attribute__((noreturn)) __attribute__((used)) void Rese
         "dmb\r\n"
         "b _entrypoint\r\n"
         :
-        : "r" (__NVIC_VECTOR_LEN*sizeof(void*)), [sbss] "ami" (&_sbss), [ebss] "ami" (&_ebss)
+        : [sbss] "ami" (&_sbss), [ebss] "ami" (&_ebss)
         :
     );
     /* should never return */
