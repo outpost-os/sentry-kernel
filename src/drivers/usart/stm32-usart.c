@@ -21,34 +21,15 @@
 #include <bsp/drivers/usart/usart.h>
 #include <sentry/io.h>
 #include "usart_defs.h"
-
-
-__STATIC_INLINE size_t usart_get_base(void)
-{
-    /* the effective controller to probe is under the control of the Kconfig
-       CONFIG_DEBUG_SERIAL_x flags, and as such do not require any argument.
-    */
-    size_t usart_base = 0;
-#if defined(CONFIG_DEBUG_SERIAL_1)
-    usart_base = USART1_BASE_ADDR;
-#elif defined(CONFIG_DEBUG_SERIAL_2)
-    usart_base = USART2_BASE_ADDR;
-#elif defined (CONFIG_DEBUG_SERIAL_3)
-    usart_base = USART3_BASE_ADDR;
-#else
-# error "unknown log usart selected!"
-#endif
-    /*@ assert usart_base != 0; */
-    return usart_base;
-}
+#include "stm32-usart-dt.h"
 
 kstatus_t usart_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-    /* the effective controller to probe is under the control of the Kconfig
-       CONFIG_DEBUG_SERIAL_x flags, and as such do not require any argument.
-    */
-    size_t usart_base = usart_get_base();
+    /* replace USART port id with Kconfig */
+    stm32_usartport_desc_t const * usart_desc = stm32_usartport_get_desc();
+    size_t usart_base = usart_desc->base_addr;
+    rcc_enable(usart_desc->bus_id, usart_desc->clk_msk, RCC_NOFLAG);
     /* standard 8n1 config is set with 0 value, FIXME: what about TIE interrupt ? */
     iowrite32(usart_base + USART_CR1_REG, 0x0UL);
     /* sandard 8n1 config is set with 0 value in CR2 too */
@@ -56,14 +37,10 @@ kstatus_t usart_probe(void)
     /* no smartcard, no IrDA, no DMA, no HW flow ctrl */
     iowrite32(usart_base + USART_CR3_REG, 0x0UL);
 
+    /* usart set & clocked but kept disabled, bus enabled managed by tx function */
+
     /* Prescaler configuration here */
 #if 0
-    if (config->set_mask & USART_SET_GUARD_TIME_PS) {
-	  /* Prescaler and guard time */
-	  set_reg(r_CORTEX_M_USART_GTPR(config->usart), config->guard_time_prescaler, USART_CONFIG_GUARD_TIME_PRESCALER);
-    }
-
-
 	/* Clear necessary bits */
 	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_TC_Msk);
 	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_RXNE_Msk);
@@ -82,7 +59,9 @@ kstatus_t usart_enable(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
-    size_t usart_base = usart_get_base();
+    stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
+    size_t usart_base = usart_desc->base_addr;
+
     reg = ioread32(usart_base + USART_CR1_REG);
     reg |= USART_CR1_UE;
     iowrite32(usart_base + USART_CR1_REG, reg);
@@ -97,7 +76,8 @@ kstatus_t usart_disable(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
-    size_t usart_base = usart_get_base();
+    stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
+    size_t usart_base = usart_desc->base_addr;
     reg = ioread32(usart_base + USART_CR1_REG);
     reg &= ~USART_CR1_UE;
     iowrite32(usart_base + USART_CR1_REG, reg);
@@ -118,7 +98,8 @@ kstatus_t usart_disable(void)
 kstatus_t usart_set_baudrate(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-    size_t usart_base = usart_get_base();
+    stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
+    size_t usart_base = usart_desc->base_addr;
     uint32_t divider;
     size_t mantissa;
     size_t fraction;
@@ -153,7 +134,8 @@ err:
 kstatus_t usart_tx(uint8_t *data, size_t data_len)
 {
     kstatus_t status = K_STATUS_OKAY;
-    size_t usart_base = usart_get_base();
+    stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
+    size_t usart_base = usart_desc->base_addr;
     size_t reg;
     usart_enable();
     /* M bit to 0 for 8 bits word length, nothing to do */

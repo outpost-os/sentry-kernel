@@ -13,8 +13,8 @@
 typedef enum stm32_usart_id {
     {% for port in usart_ports -%}
     {% if port.status and port.status == "okay" -%}
-    /** {{ port.label }} port ID */
-    {{ port.label.upper() }}_PORT_ID,
+    /** hardcoded ID, voluntary as kernel must have a single USART port for debug */
+    USART_PORT_ID,
     {% endif -%}
     {% endfor %}
 } stm32_usart_id_t;
@@ -45,7 +45,6 @@ typedef struct stm32_usartport_dec {
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
 } stm32_usartport_desc_t;
 
-size_t stm32_get_nr_usartports(void);
-const stm32_usartport_desc_t * stm32_usartport_get_desc(stm32_usart_id_t id);
+const stm32_usartport_desc_t * stm32_usartport_get_desc(void);
 
 #endif /* __STM32_USART_DT_GENERATED_H */

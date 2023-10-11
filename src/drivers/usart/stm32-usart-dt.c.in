@@ -26,17 +26,10 @@ static const stm32_usartport_desc_t stm32_usartports[] = {
     {} /* sentinel */
 };
 
-size_t stm32_get_nr_usartports(void)
-{
-    /* descriptor array size minus sentinel */
-    return ARRAY_SIZE(stm32_usartports) - 1;
-}
-
 /**
  * @warning this is a private function, port id must be valid and checked by caller
  */
-const stm32_usartport_desc_t * stm32_usartport_get_desc(stm32_usart_id_t id)
+const stm32_usartport_desc_t * stm32_usartport_get_desc(void)
 {
-    /*@ assert usartport_is_valid(id); */
-    return &stm32_usartports[id];
+    return &stm32_usartports[0];
 }
