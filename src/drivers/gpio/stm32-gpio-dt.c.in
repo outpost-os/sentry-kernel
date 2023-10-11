@@ -1,0 +1,42 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include "gpio_defs.h"
+#include "stm32-gpio-dt.h"
+
+{% set gpio_ports = dts.get_compatible("st,stm32-gpio") -%}
+
+/**
+ * \brief .rodata field: list of current platform GPIO ports
+ */
+static const stm32_gpioport_desc_t stm32_gpioports[] = {
+    {% for port in gpio_ports -%}
+    {% if port.status and port.status == "okay" -%}
+    {% set _, bus_id, clk_msk = port.clocks -%}
+    /* {{ port.label }} port configuration */
+    {
+        .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
+        .bus_id = {{ bus_id }},
+        .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+    },
+    {% endif -%}
+    {% endfor %}
+    {} /* sentinel */
+};
+
+size_t stm32_get_nr_gpioports(void)
+{
+    /* descriptor array size minus sentinel */
+    return ARRAY_SIZE(stm32_gpioports) - 1;
+}
+
+/**
+ * @warning this is a private function, port id must be valid and checked by caller
+ */
+const stm32_gpioport_desc_t * stm32_gpioport_get_desc(stm32_gpio_id_t id)
+{
+    /*@ assert gpioport_is_valid(id); */
+    return &stm32_gpioports[id];
+}

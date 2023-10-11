@@ -39,5 +39,10 @@ config BUILD_TARGET_RELEASE
 	select SECU_LOOP_DBLE_IDX
 endchoice
 
+config DTS_FILE
+	string "dts"
+	help
+	  DTS file to use for projet configuration
+
 
 endmenu

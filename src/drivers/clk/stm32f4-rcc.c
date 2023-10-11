@@ -232,8 +232,6 @@ err:
     return status;
 }
 
-
-
 /*@
     assigns \nothing;
     ensures \result == K_STATUS_OKAY;
@@ -241,45 +239,17 @@ err:
 __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
 {
     size_t reg_base;
+    const size_t lp_offset = 0x20UL; /* RCC regs for LP configuration are shifted by 0x20 */
+
     if (flags & RCC_LPCONFIG) {
-        reg_base = RCC_BASE_ADDR + RCC_AHB1LPENR_REG;
+        reg_base = RCC_BASE_ADDR + lp_offset;
     } else {
-        reg_base = RCC_BASE_ADDR + RCC_AHB1ENR_REG;
+        reg_base = RCC_BASE_ADDR;
     }
+
     /*@ assert bus_is_valid(busid); */
-    /*
-     * Here, instead of a switch/case, we calculate the offset using the
-     * fact that, for both nominal and low power enable registers:
-     * 1. AHBxENR are concatenated
-     * 2. APBxENR are concatenated
-     * 3. a space may exist between AHBx & APBx for future AHB buses
-     * We used basic calculation (additions and increment), the compiler
-     * can highly optimize, avoiding branches and tests of a huge
-     * switch/case
-     */
-    if (busid < BUS_APB1) {
-        /* AHB buses registers are concatenated in memory */
-        reg_base += (busid*sizeof(uint32_t));
-    } else {
-        /*
-          ABP regs may start with empty slots for future buses.
-          Empty slotting is the same for nominal and low power
-        */
-        /* 1. increment to APB1 reg base address */
-        reg_base += (RCC_APB1ENR_REG - RCC_AHB1ENR_REG);
-        /* 2. increment to APBx busid, starting at APB1 */
-        reg_base += ((busid - BUS_APB1)*sizeof(uint32_t));
-        /**
-          * FIXME: the busid must be checked with framaC predicate,
-          * as precondition, so that WP demonstrate that entrypoint or
-          * manager calling the rcc clock never use invalid input values.
-          * This requires bus_is_valid(Z busid) predicate that check the
-          * enumerate on current platform, generated from dtsi & svd.
-          * INFO: In the meanwhile, assigns contract can't be proven by WP.
-          * CRITICAL: Until then, there is a potential controlled OOB write here.
-          * To be fixed just after dtsi inclusion PR.
-          */
-    }
+    reg_base += busid;
+
     return reg_base;
 }
 
@@ -416,7 +386,9 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
                 divider = ((ppre & 0x3)+1)*2;
             }
             break;
-        case BUS_AHB1 || BUS_AHB2 || BUS_AHB3:
+        case BUS_AHB1:
+        case BUS_AHB2:
+        case BUS_AHB3:
             reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
             ppre = ((reg & RCC_CFGR_HPRE_MASK) >> RCC_CFGR_HPRE_SHIFT);
             divider = 1;

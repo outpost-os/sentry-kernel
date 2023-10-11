@@ -6,6 +6,9 @@ sentry_startup = files()
 sentry_linker_script = files()
 sentry_linker_script_path = files()
 
+sentry_private_gen_source_set = ssmod.source_set()
+sentry_private_gen_header_set = ssmod.source_set()
+
 # arch-specific content
 subdir('arch')
 # what can't be deseleted. source listing is dynamic (Kconfig-list)
@@ -30,11 +33,20 @@ subdir('managers')
 # built separately.
 # both are then linked together into the kernel binary itself
 
+# XXX add the whole private gen header 'sourceset' to sentry sourceset
+# for compatibility (w/ frama-c)
+# TODO rework this properly
+sentry_source_set.add_all(sentry_private_gen_header_set)
 sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
+sentry_private_source_config = sentry_private_gen_source_set.apply(kconfig_data, strict: false)
 
 # static part library
 sentry_lib = static_library('sentry',
-    sources: [ sentry_source_set_config.sources(), sentry_header_set_config.sources() ],
+    sources: [
+        sentry_source_set_config.sources(),
+        sentry_header_set_config.sources(),
+        sentry_private_source_config.sources(),
+    ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
     dependencies: [sentry_source_set_config.dependencies(), external_deps],

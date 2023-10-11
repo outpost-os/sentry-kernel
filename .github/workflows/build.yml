@@ -37,7 +37,7 @@ jobs:
       toolchain: ${{ steps.set_matrix.outputs.toolchain }}
 
 
-  enclave_build:
+  build:
     needs: [ forge_matrix ]
     strategy:
       matrix:
@@ -85,11 +85,15 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
+      - name: install pkg
+        uses: embedded-devops/action-install-pkg@v1.0
+        with:
+          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          actions: '["setup", "compile"]'
+          actions: '["prefetch", "setup", "compile"]'
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig'
       - name: Meson postcheck
         if: failure()
