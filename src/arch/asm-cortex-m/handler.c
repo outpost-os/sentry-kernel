@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <sentry/arch/asm-generic/interrupt.h>
-#include <sentry/arch/asm-cortex-m/irq_defs.h>
+#include <sentry/arch/asm-cortex-m/soc.h>
+#include <sentry/arch/asm-cortex-m/systick.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -12,48 +13,56 @@
 extern uint32_t _sbss;
 extern uint32_t _ebss;
 
-/**
+extern __irq_handler_t __vtor_table[];
+
+/*
  * Replaced by real sentry _entrypoint at link time
  */
-extern  __attribute__((weak)) void _entrypoint(){}
+extern  __attribute__((noreturn)) void _entrypoint();
 extern  __attribute__((weak)) void Default_SubHandler(){}
 
 /**
  * @brief Reset handler, executed at POR time
  */
-__attribute__((naked)) __attribute__((noreturn)) __attribute__((used)) void Reset_Handler(void)
+__attribute__((noreturn, used)) void Reset_Handler(void)
 {
-    asm volatile(
-        "cpsid i\r\n"
+    __disable_irq();
 
     /*
-     * XXX:
-     * We do not need this at this time as there is no bootloader, while branching to `Reset_Handler`
-     * There is no chance to be in any other states but core reset.
-     * re-enable this is if needed and use the `__vtor_table` symbol's address directly
+     * TODO:
+     * Add a 'LOAD_FROM_ANYWHERE or something' config flag
+     * In such a case, we can't make any assumption regarding
+     * the current cpu state, so disable and clear any pending irq,
+     * relocate vtor and set msp to the given value.
      */
-#if 0
-        "movs    r5, lr\r\n"
-        "sub     r5, #5\r\n"  /* In thumb mode LR is pointing to PC + 4 bytes  + 1 because in thumb mode LR must be odd aligned*/
-        "sub     r2, r5, %0\r\n" /* Compute vector table, based on generated table length (see input operand) */
-        "ldr     r2, [r2]\r\n"
-        "msr     msp, r2\r\n" /* store stack address fixed in vtor block in MSP */
+#if 1
+    for (uint32_t irqnum = 0; irqnum < __NVIC_VECTOR_LEN; irqnum++) {
+        nvic_disableirq(irqnum);
+        nvic_clear_pendingirq(irqnum);
+    }
+
+    systick_stop_and_clear();
 #endif
-        "ldr     r2, %[sbss]\r\n"          /* start address for the .bss section */
-        "b       200f\r\n"
-        "100:\r\n"  /* Zero fill the bss segment. */
-        "movs    r3, #0\r\n"
-        "str     r3, [r2], #4\r\n"
-        "200:\r\n"
-        "ldr     r3, %[ebss]\r\n" /* end address for the .bss section */
-        "cmp     r2, r3\r\n"
-        "bcc     100f\r\n"
-        "dmb\r\n"
-        "b _entrypoint\r\n"
-        :
-        : [sbss] "ami" (&_sbss), [ebss] "ami" (&_ebss)
-        :
-    );
+
+    /* relocate vtor table */
+    SCB->VTOR = (uint32_t)&__vtor_table[0];
+    /* set main stack pointer to reset value */
+    __set_MSP((uint32_t)__vtor_table[0]);
+
+    /* enable FPU access if used */
+#if defined (__FPU_USED) && (__FPU_USED == 1U)
+    SCB->CPACR |= ((3U << 10U*2U) |     /* enable CP10 Full Access */
+                   (3U << 11U*2U)  );   /* enable CP11 Full Access */
+#endif
+
+    /* clear bss */
+    for (uint32_t *p = &_sbss; p < &_ebss; p++) {
+        *p = 0UL;
+    }
+
+    /* branch to sentry kernel entry point */
+    _entrypoint();
+
     /* should never return */
     /*@ assert \false; */
 }

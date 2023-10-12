@@ -4,14 +4,12 @@
 #include <inttypes.h>
 #include <sentry/arch/asm-cortex-m/irq_defs.h>
 
-typedef void(*vtor_handler_t)(void);
-
 extern uint32_t _estack;
 extern void Reset_Handler(void);
 extern void Default_Handler(void);
 
-const vtor_handler_t __vtor_table[__NVIC_VECTOR_LEN + 16] __attribute__((used, section(".isr_vector"))) = {
-    (vtor_handler_t)(&_estack), /* Initial stack pointer */
+const __irq_handler_t __vtor_table[__NVIC_VECTOR_LEN + 16] __attribute__((used, section(".isr_vector"))) = {
+    (__irq_handler_t)(&_estack), /* Initial stack pointer */
     Reset_Handler,              /* Reset handler */
     Default_Handler,            /* NMI handler */
     Default_Handler,            /* Hard fault handler */
