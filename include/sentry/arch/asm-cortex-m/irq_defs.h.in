@@ -23,6 +23,8 @@
 #ifndef __{{ name.upper() }}_IRQ_DEFS_H
 #define __{{ name.upper() }}_IRQ_DEFS_H
 
+typedef void(*__irq_handler_t)(void);
+
 /**
  * @brief IRQ num typedef that comply with cmsis header
  */

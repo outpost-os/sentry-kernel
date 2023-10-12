@@ -37,5 +37,16 @@ sentry_startup += files(
   'handler.c',
 )
 
+sentry_vtor_template = files('vtor.c.in')
+
+sentry_vtor_c = custom_target('gen_vtor',
+  input: sentry_vtor_template,
+  output: '@BASENAME@',
+  depends: [ svd_json ],
+  command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
+)
+
+sentry_startup += sentry_vtor_c
+
 # include SoC-specific meson file, local path forged from the .config SoC name
 subdir(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower())

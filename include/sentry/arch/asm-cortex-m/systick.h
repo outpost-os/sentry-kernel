@@ -109,7 +109,7 @@ static inline uint64_t systime_get_milliseconds(void)
 void systick_init(void);
 stack_frame_t *systick_handler(stack_frame_t * stack_frame);
 void wait(unsigned long long time_ms);
-
+void systick_stop_and_clear(void);
 
 
 #endif /* SYSTICK_H_*/

@@ -165,6 +165,14 @@ void systick_init(void)
 #endif
 }
 
+void systick_stop_and_clear(void)
+{
+    iowrite32(SCB_SYSTICK_CSR, 0UL);
+    iowrite32(SCB_SYSTICK_RVR, 0UL);
+    iowrite32(SCB_SYSTICK_CVR, 0UL);
+    SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
+}
+
 stack_frame_t *systick_handler(stack_frame_t * stack_frame)
 {
     jiffies++;
