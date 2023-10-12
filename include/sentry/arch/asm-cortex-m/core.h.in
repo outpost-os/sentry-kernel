@@ -24,6 +24,31 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <assert.h>
+
+/* Set configuration macro for cmsis headers from svd `core` node */
+#define __MPU_PRESENT {{ cpu.mpuPresent | int}}UL
+#define __FPU_PRESENT {{ cpu.fpuPresent | int}}UL
+#define __VTOR_PRESENT 1UL
+
+/* TODO: add SP/DP FPU support for FPV5 (armv8m) */
+
+/*
+ * XXX: cmsis header wants an hardcoded core rev (a.k.a. CPUID), otherwise,
+ * there is a compilation warning (...)
+ */
+{%- set core_rev_str =  cpu.revision | list %}
+{%- set core_rev = core_rev_str[1] | int %}
+{%- set core_patch = core_rev_str[3] | int %}
+#define __{{ cpu.name }}_REV {{ "0x%02x%02x"|format(core_rev, core_patch) }}
+
+/* sanity check between kconfig and svd core definition */
+static_assert(__MPU_PRESENT == CONFIG_HAS_MPU, "Core MPU configuration mismatch, check Kconfig and/or SVD file");
+static_assert(__FPU_PRESENT == CONFIG_HAS_FPU, "Core FPU configuration mismatch, check Kconfig and/or SVD file");
+
+/* XXX: __NVIC_PRIO_BIT is define in soc specific irq_defs.h*/
+#include <sentry/arch/asm-cortex-m/irq_defs.h>
+
 /* get back corresponding cmsis header from SVD file */
 #include <cmsis/core_{{ cpu.name.lower() }}.h>
 
