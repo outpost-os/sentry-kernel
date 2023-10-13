@@ -181,7 +181,6 @@ err:
 kstatus_t exti_clear_pending(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    size_t reg = 0;
     if (unlikely(itn > MAX_EXTI_INTERRUPT)) {
         status = K_ERROR_INVPARAM;
         goto err;
