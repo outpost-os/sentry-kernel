@@ -130,11 +130,19 @@ endif
 
 meson.install_dependency_manifest('manifest.json')
 
-# here we define the final target: the Sentry kernel binary
-sentry_linker_args = [
-    '-T@0@'.format(fs.name(sentry_linker_script[0])),
-    '-L@0@'.format(sentry_linker_script_path),
-]
+# XXX:
+# For ldscript gen we use a custom target instead of the previously defined
+# generator as we need to know the outputed filename at link time
+# (FYI generator generates anonymous file that can be built bu we can't use
+# the generated filename in any other target)
+sentry_ldscript = custom_target('ldscript',
+    input: sentry_ldscript_template,
+    output: '@BASENAME@',
+    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
+    depends: [ dts ],
+)
+
+sentry_linker_args = [ '-T@0@'.format(sentry_ldscript.full_path()) ]
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
 
@@ -147,7 +155,7 @@ sentry_elf = executable(
     c_args: [ target_arch_args, global_build_args ],
     link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
-    link_depends: sentry_linker_script,
+    link_depends: [ sentry_ldscript ],
     install: true,
     install_dir: '',
 )

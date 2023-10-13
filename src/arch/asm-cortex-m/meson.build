@@ -48,5 +48,7 @@ sentry_vtor_c = custom_target('gen_vtor',
 
 sentry_startup += sentry_vtor_c
 
+sentry_ldscript_template = files('cortex-m-sentry.ld.in')
+
 # include SoC-specific meson file, local path forged from the .config SoC name
 subdir(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower())
