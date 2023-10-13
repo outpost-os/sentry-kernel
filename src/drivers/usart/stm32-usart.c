@@ -106,16 +106,16 @@ static kstatus_t usart_set_baudrate(void)
     /* over8 is set at 0 at probe time, yet we get it for calculation for genericity */
 
     /* FIXME: BUS_APB1 is hardcoded here, but should be dtsi-based instead */
-    if (unlikely((status = rcc_get_bus_clock(BUS_APB1, &divider)) != K_STATUS_OKAY)) {
+    if (unlikely((status = rcc_get_bus_clock(usart_desc->bus_id, &divider)) != K_STATUS_OKAY)) {
         goto err;
     }
     divider /= 115200UL;
     if (unlikely(over8 == 1)) {
         mantissa = (uint16_t) divider >> 3;
-        fraction = (uint8_t) ((divider - mantissa * 16));
+        fraction = (uint8_t) ((divider - mantissa * 8));
     } else {
         mantissa = (uint16_t) divider >> 4;
-        fraction = (uint8_t) ((divider - mantissa * 8));
+        fraction = (uint8_t) ((divider - mantissa * 16));
     }
     reg |= ((fraction << USART_BRR_DIV_FRACTION_SHIFT) & USART_BRR_DIV_FRACTION_MASK);
     reg |= ((mantissa << USART_BRR_DIV_MANTISSA_SHIFT) & USART_BRR_DIV_MANTISSA_MASK);
