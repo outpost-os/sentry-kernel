@@ -18,6 +18,7 @@
 #error "unsupported platform"
 #endif
 #include <sentry/managers/io.h>
+#include <sentry/managers/debug.h>
 #include <bsp/drivers/rng/rng.h>
 #include <sentry/thread.h>
 
@@ -36,8 +37,9 @@ __attribute__((optimize("-fno-stack-protector")))
 __attribute__((noreturn)) void _entrypoint(void)
 {
     interrupt_disable();
-    mgr_io_probe();
     interrupt_init();
+    mgr_io_probe();
+    /* this two: to be replaced by a power manager */
     pwr_probe();
     flash_probe();
     rcc_probe();
@@ -109,6 +111,8 @@ __attribute__((noreturn)) void _entrypoint(void)
 #endif
 
     usart_probe();
+    mgr_debug_probe();
+    printk("Starting Sentry kernel release %s\n", "v0.1");
     usart_tx("coucou\n",7);
 
     // init ssp

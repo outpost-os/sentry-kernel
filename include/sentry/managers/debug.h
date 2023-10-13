@@ -17,4 +17,6 @@ static inline kstatus_t printk(const char* fmt, ...) {
 kstatus_t printk(const char* fmt, ...);
 #endif
 
-#include <sentry/ktypes.h>
+kstatus_t mgr_debug_probe(void);
+
+#endif/*!DEBUG_MANAGER_H*/

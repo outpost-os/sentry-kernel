@@ -4,6 +4,7 @@
 #ifndef USART_H
 #define USART_H
 
+#include <stddef.h>
 #include <sentry/ktypes.h>
 
 kstatus_t usart_probe(void);
