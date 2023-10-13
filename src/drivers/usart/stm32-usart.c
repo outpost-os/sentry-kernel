@@ -26,7 +26,6 @@
 kstatus_t usart_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-    /* replace USART port id with Kconfig */
     stm32_usartport_desc_t const * usart_desc = stm32_usartport_get_desc();
     gpio_probe(1);
     gpio_set_mode(1, 6, GPIOx_MODE_OUT);
@@ -45,16 +44,6 @@ kstatus_t usart_probe(void)
     iowrite32(usart_base + USART_CR3_REG, 0x0UL);
 
     /* usart set & clocked but kept disabled, bus enabled managed by tx function */
-
-    /* Prescaler configuration here */
-#if 0
-	/* Clear necessary bits */
-	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_TC_Msk);
-	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_RXNE_Msk);
-	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_CTS_Msk);
-	clear_reg_bits(r_CORTEX_M_USART_SR(config->usart), USART_SR_LIN_Msk);
-#endif
-
     return status;
 }
 
