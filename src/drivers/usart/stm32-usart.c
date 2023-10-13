@@ -10,7 +10,6 @@
  * As a consequence, usart_rx and usart_tx manipuate uint8_t data only.
  */
 
-#include <assert.h>
 #include <stddef.h>
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
@@ -63,7 +62,7 @@ kstatus_t usart_probe(void)
 /**
  * @brief usart_enable - Enable the USART
  */
-kstatus_t usart_enable(void)
+static kstatus_t usart_enable(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
@@ -80,7 +79,7 @@ kstatus_t usart_enable(void)
 /**
  * @brief usart_disable - Disable the USART
  */
-kstatus_t usart_disable(void)
+static kstatus_t usart_disable(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
@@ -103,7 +102,7 @@ kstatus_t usart_disable(void)
  * Tx/Rx baud = ------------------------------
  *               8 × ( 2 – OVER8 ) × USARTDIV
  */
-kstatus_t usart_set_baudrate(void)
+static kstatus_t usart_set_baudrate(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
@@ -139,6 +138,10 @@ err:
 /**
  * @brief sending data over USART
  */
+/*@
+  requires \valid_read(data + (0 .. data_len-1));
+  requires data_len > 0;
+*/
 kstatus_t usart_tx(uint8_t *data, size_t data_len)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -156,11 +159,11 @@ kstatus_t usart_tx(uint8_t *data, size_t data_len)
     size_t emitted = 0;
     /* transmission loop */
     do {
-        iowrite32(usart_base + USART_DR_REG, data[emitted]);
-        /* wait for push to shift register. Status cleared by next write */
         do {
             asm volatile("nop":::);
         } while ((ioread32(usart_base + USART_SR_REG) & USART_SR_TXE) == 0);
+        iowrite32(usart_base + USART_DR_REG, data[emitted]);
+        /* wait for push to shift register. Status cleared by next write */
         emitted++;
     } while (emitted < data_len);
     /* wait for transmission complete (including s)*/
