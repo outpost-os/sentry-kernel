@@ -25,10 +25,10 @@ jobs:
           import os
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
-            toolchain = [ '12.3.Rel1', '11.2-2022.02', '10.3-2021.07' ]
+            toolchain = [ 'gcc|12.3.Rel1', 'gcc|11.2-2022.02', 'gcc|10.3-2021.07' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
-            toolchain = [ '12.3.Rel1' ]
+            toolchain = [ 'gcc|12.3.Rel1' ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
@@ -45,7 +45,7 @@ jobs:
         toolchain: ${{ fromJSON(needs.forge_matrix.outputs.toolchain) }}
         exclude:
         - operating_system: 'mesonbuild/fedora:latest'
-          toolchain: '10.3-2021.07'
+          toolchain: 'gcc|10.3-2021.07'
     name: build
     defaults:
       run:
@@ -65,12 +65,21 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: Split compiler reference
+        id: split
+        shell: bash
+        run: |
+          input_toolchain="${{matrix.toolchain}}"
+          toolchain_compiler=${input_toolchain%%|*}
+          toolchain_version=${input_toolchain##*|}
+          echo "compiler=$toolchain_compiler" >> $GITHUB_ENV
+          echo "compiler_version=$toolchain_version" >> $GITHUB_ENV
       - name: Setup compiler
         uses: embedded-devops/action-setup-compiler@main
         with:
-          compiler: gcc
+          compiler: ${{ env.compiler }}
           triple: arm-none-eabi
-          ref: ${{ matrix.toolchain }}
+          ref: ${{ env.compiler_version }}
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:
