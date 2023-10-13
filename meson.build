@@ -160,6 +160,7 @@ sentry_elf = executable(
     install_dir: '',
 )
 
+# TODO: Use an install hook instead of dummy target
 sentry_map = custom_target(
     input: sentry_elf,
     output: sentry_map_file,
