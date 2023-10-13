@@ -19,6 +19,7 @@
 #include <sentry/arch/asm-cortex-m/buses.h>
 #include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/usart/usart.h>
+#include <bsp/drivers/gpio/gpio.h>
 #include <sentry/io.h>
 #include "usart_defs.h"
 #include "stm32-usart-dt.h"
@@ -28,6 +29,13 @@ kstatus_t usart_probe(void)
     kstatus_t status = K_STATUS_OKAY;
     /* replace USART port id with Kconfig */
     stm32_usartport_desc_t const * usart_desc = stm32_usartport_get_desc();
+    gpio_probe(1);
+    gpio_set_mode(1, 6, GPIOx_MODE_OUT);
+    gpio_set_pull_mode(1, 6, GPIOx_NOPULL);
+    gpio_set_type(1, 6, GPIOx_TYPE_PPULL);
+    gpio_set_speed(1, 6, GPIOx_SPEED_VERY_HIGH);
+    gpio_set_af(1, 6, GPIOx_AF_7);
+
     size_t usart_base = usart_desc->base_addr;
     rcc_enable(usart_desc->bus_id, usart_desc->clk_msk, RCC_NOFLAG);
     /* standard 8n1 config is set with 0 value, FIXME: what about TIE interrupt ? */
@@ -143,7 +151,8 @@ kstatus_t usart_tx(uint8_t *data, size_t data_len)
     usart_set_baudrate();
     /* set TE bit (transmission enable) */
     reg = ioread32(usart_base + USART_CR1_REG);
-    reg |= 1UL << USART_CR1_TE;
+    reg |= USART_CR1_TE;
+    iowrite32(usart_base + USART_CR1_REG, reg);
     size_t emitted = 0;
     /* transmission loop */
     do {
@@ -160,5 +169,6 @@ kstatus_t usart_tx(uint8_t *data, size_t data_len)
     } while ((ioread32(usart_base + USART_SR_REG) & USART_SR_TC) == 0);
 
     usart_disable();
+
     return status;
 }
