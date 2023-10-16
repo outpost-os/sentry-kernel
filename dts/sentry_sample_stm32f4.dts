@@ -9,38 +9,63 @@
 #include <st/f4/stm32f429Xi.dtsi>
 
 /{
-    chosen {
-        sentry,vtor_section = <&flash0>;
-        sentry,text_section = <&flash0>;
-        sentry,ram_section = <&sram1>;
-    };
+	chosen {
+		sentry,vtor_section = <&flash0>;
+		sentry,text_section = <&flash0>;
+		sentry,ram_section = <&sram1>;
+	};
 
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&pll {
+	vco_divider = <1>;
+	vco_multiplier = <9>;
+	main_divider = <1>;
+	usb_divider = <3>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(144)>;
+	bus-prescalers = <1>, <4>, <2>;
+	bus-names = "ahb", "apb1", "apb2";
+	status = "okay";
 };
 
 &gpioa {
-    status = "okay";
+	status = "okay";
 };
 
 &gpiob {
-    status = "okay";
+	status = "okay";
 };
 
 &gpioc {
-    status = "okay";
+	status = "okay";
 };
 
 &gpiod {
-    status = "okay";
+	status = "okay";
 };
 
 &gpioe {
-    status = "okay";
+	status = "okay";
 };
 
 &gpiof {
-    status = "okay";
+	status = "okay";
 };
 
 &gpiog {
-    status = "okay";
+	status = "okay";
 };
