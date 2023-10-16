@@ -15,6 +15,10 @@ rcc_h = custom_target('gen_rcc',
 )
 sentry_source_set.add(rcc_h.to_list())
 
+stm32f4_rcc_c_template = files('stm32f4-rcc.c.in')
+stm32f4_rcc_c = dtsgen.process(stm32f4_rcc_c_template)
+sentry_private_gen_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: stm32f4_rcc_c)
+
 pwr_h = custom_target('gen_pwr',
     input: peripheral_defs_in,
     output: '@0@_defs.h'.format('pwr'),
@@ -24,5 +28,4 @@ pwr_h = custom_target('gen_pwr',
 sentry_source_set.add(pwr_h.to_list())
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rcc.c'))
 sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-pwr.c'))

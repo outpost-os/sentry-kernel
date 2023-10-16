@@ -1,0 +1,565 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/**
+ * \file STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
+ */
+#include <assert.h>
+
+#include <sentry/arch/asm-cortex-m/soc.h>
+#include <sentry/arch/asm-cortex-m/layout.h>
+#include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/arch/asm-cortex-m/buses.h>
+#include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/io.h>
+#include <sentry/bits.h>
+#include <sentry/ktypes.h>
+
+/* local includes, only manipulated by the driver itself */
+#include <bsp/drivers/clk/rcc.h>
+
+/* RCC generated header for current platform */
+#include "rcc_defs.h"
+
+#define RCC_OSCILLATOR_STABLE	(0)
+
+#define HSE_STARTUP_TIMEOUT	(0x0500UL)
+#define HSI_STARTUP_TIMEOUT	(0x0500UL)
+#define PLL_STARTUP_TIMEOUT	(0x0500UL)
+
+{%- if dts.clocks.clk_lsi.status == "okay" %}
+#define RCC_LSI_FREQUENCY {{ dts.clocks.clk_lsi['clock-frequency'] }}UL
+{%- endif %}
+{%- if dts.clocks.clk_lse.status == "okay" %}
+#define RCC_LSE_FREQUENCY {{ dts.clocks.clk_lse['clock-frequency'] }}UL
+{%- endif %}
+{%- if dts.clocks.clk_hsi.status == "okay" %}
+#define RCC_HSI_FREQUENCY {{ dts.clocks.clk_hsi['clock-frequency'] }}UL
+{%- endif %}
+/* TODO High Speed External xtal !*/
+
+{%- if dts.clocks.pll.status == "okay" %}
+{%- set pll_clock_source = dts.clocks.pll.clocks %}
+{%- if pll_clock_source.label != "clk_hsi" and pll_clock_source.label != "clk_hse" %}
+#error "invalid PLL ({{ pll_clock_source.label }}) source configuration, check project dts file"
+{%- endif %}
+
+#define RCC_PLL_VCO_MULTIPLIER  {{ dts.clocks.pll.vco_multiplier|int }}UL
+#define RCC_PLL_VCO_DIVIDER     {{ dts.clocks.pll.vco_divider|int }}UL
+#define RCC_PLL_SYSCLK_DIVIDER  {{ dts.clocks.pll.main_divider|int }}UL
+#define RCC_PLL_USB_DIVIDER     {{ dts.clocks.pll.usb_divider|int }}UL
+
+/* TODO define range per soc */
+static_assert((RCC_PLL_USB_DIVIDER >= 2) && (RCC_PLL_USB_DIVIDER < 15), "invalid pll usb configuration");
+
+{%- set pll_input_freq = pll_clock_source['clock-frequency'] %}
+{%- set pll_vco_output_frequency = pll_input_freq * dts.clocks.pll.vco_multiplier / dts.clocks.pll.vco_divider %}
+
+#define RCC_PLLCLK_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.main_divider)|int }}UL
+/* TODO define range per soc */
+static_assert(RCC_PLLCLK_FREQUENCY <= 160000000UL, "PLL output fequency out of range");
+
+#define RCC_PLLUSB_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.usb_divider)|int }}UL
+static_assert(RCC_PLLUSB_FREQUENCY <= 48000000UL, "PLL USB output fequency out of range");
+{%- endif %} {#- endif dts.clocks.pll.status == "okay" #}
+
+
+{%- if dts.rcc.status == "okay" %}
+#define RCC_SYSTEM_CLOCK_FREQUENCY {{ dts.rcc["clock-frequency"]|int }}UL
+{%- set rcc_clock_source = dts.rcc.clocks %}
+{%- for bus_prescaler in dts.rcc['bus-prescalers'] %}
+{%- set bus_name = dts.rcc['bus-names'][loop.index - 1].upper() %}
+#define RCC_{{ bus_name }}_PRESCALER {{ bus_prescaler|int }}UL
+#define RCC_{{ bus_name }}_CLOCK_FREQUENCY (RCC_SYSTEM_CLOCK_FREQUENCY / RCC_{{ bus_name }}_PRESCALER)
+{%- endfor %}
+
+/* TODO gen per soc */
+static_assert(RCC_AHB_CLOCK_FREQUENCY <= 180000000UL, "Invalid RCC AHB clock configuration");
+static_assert(RCC_APB1_CLOCK_FREQUENCY <= 45000000UL, "Invalid RCC APB1 clock configuration");
+static_assert(RCC_APB2_CLOCK_FREQUENCY <= 90000000UL, "Invalid RCC APB2 clock configuration");
+
+
+uint64_t rcc_get_core_frequency(void)
+{
+    return RCC_SYSTEM_CLOCK_FREQUENCY;
+}
+
+
+__STATIC_INLINE kstatus_t rcc_enable_hsi(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t rcc_cr;
+    uint32_t hsi_ready;
+    uint32_t count = 0UL;
+
+    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    rcc_cr |= RCC_CR_HSION;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
+
+    do {
+        hsi_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_HSIRDY;
+        count++;
+    } while ((hsi_ready == 0) && (count < HSI_STARTUP_TIMEOUT));
+
+    if (unlikely(hsi_ready == 0)) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
+/* TODO handle bypass mode for HSE */
+__STATIC_INLINE kstatus_t rcc_enable_hse(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t rcc_cr;
+    uint32_t hse_ready = 0;
+    uint32_t count = 0UL;
+
+    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    rcc_cr |= RCC_CR_HSEON;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
+
+    do {
+        hse_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_HSERDY;
+        count++;
+    } while ((hse_ready == 0) && (count < HSE_STARTUP_TIMEOUT));
+
+    if (unlikely(hse_ready == 0)) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
+#define RCC_PLLCFGR_M_SHIFT 0UL
+#define RCC_PLLCFGR_M_MASK (RCC_PLLCFGR_PLLM0 | \
+                            RCC_PLLCFGR_PLLM1 | \
+                            RCC_PLLCFGR_PLLM2 | \
+                            RCC_PLLCFGR_PLLM3 | \
+                            RCC_PLLCFGR_PLLM4 | \
+                            RCC_PLLCFGR_PLLM5)
+
+#define RCC_PLLCFGR_N_SHIFT (6UL)
+#define RCC_PLLCFGR_N_MASK (RCC_PLLCFGR_PLLN0 | \
+                            RCC_PLLCFGR_PLLN1 | \
+                            RCC_PLLCFGR_PLLN2 | \
+                            RCC_PLLCFGR_PLLN3 | \
+                            RCC_PLLCFGR_PLLN4 | \
+                            RCC_PLLCFGR_PLLN5 | \
+                            RCC_PLLCFGR_PLLN6 | \
+                            RCC_PLLCFGR_PLLN7 | \
+                            RCC_PLLCFGR_PLLN8)
+
+#define RCC_PLLCFGR_P_SHIFT (16UL)
+#define RCC_PLLCFGR_P_MASK (RCC_PLLCFGR_PLLP0 | RCC_PLLCFGR_PLLP1)
+
+#define RCC_PLLCFGR_Q_SHIFT (24UL)
+#define RCC_PLLCFGR_Q_MASK (RCC_PLLCFGR_PLLQ0 | RCC_PLLCFGR_PLLQ1 | \
+                            RCC_PLLCFGR_PLLQ2 | RCC_PLLCFGR_PLLQ3)
+
+__STATIC_INLINE kstatus_t rcc_enable_pll(void)
+{
+    uint32_t pllcfgr;
+    uint32_t pll_ready;
+    uint32_t rcc_cr;
+    uint32_t count = 0UL;
+    kstatus_t status = K_STATUS_OKAY;
+
+    /*
+     * XXX:
+     *  SVD generation is not our friend here !
+     *  PLL coefficients are split into single bit definition (...)
+     */
+
+    pllcfgr = (RCC_PLL_VCO_MULTIPLIER << RCC_PLLCFGR_N_SHIFT) & RCC_PLLCFGR_N_MASK;
+    pllcfgr |= ((RCC_PLL_VCO_DIVIDER << RCC_PLLCFGR_M_SHIFT) & RCC_PLLCFGR_M_MASK);
+    pllcfgr |= ((RCC_PLL_SYSCLK_DIVIDER << RCC_PLLCFGR_P_SHIFT) & RCC_PLLCFGR_P_MASK);
+    pllcfgr |= ((RCC_PLL_USB_DIVIDER << RCC_PLLCFGR_Q_SHIFT) & RCC_PLLCFGR_Q_MASK);
+
+    {%- if pll_clock_source == "clk_hse" %}
+    /* hse as pll source */
+    pllcfgr |= RCC_PLLCFGR_PLLSRC;
+    {%- else %}
+    /* hsi as pll source */
+    pllcfgr &= ~(RCC_PLLCFGR_PLLSRC);
+    {%- endif %}
+
+    /* write pll configuration */
+    iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, pllcfgr);
+
+    /* then, enable pll */
+    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    rcc_cr |= RCC_CR_PLLON;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
+    /* Wait till the main PLL is ready */
+    do {
+        pll_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_PLLRDY;
+        count++;
+    } while ((pll_ready == 0) && (count < PLL_STARTUP_TIMEOUT));
+
+    if (pll_ready == 0) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
+__STATIC_INLINE kstatus_t rcc_set_bus_clock(void)
+{
+    union {
+        rcc_cfgr_t cfgr;
+        uint32_t raw;
+    } reg;
+
+    reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+    reg.cfgr.hpre = RCC_AHB_PRESCALER;
+    reg.cfgr.ppre1 = RCC_APB1_PRESCALER;
+    reg.cfgr.ppre2 = RCC_APB2_PRESCALER;
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
+
+    return K_STATUS_OKAY;
+}
+
+__STATIC_INLINE kstatus_t rcc_select_system_clock(void)
+{
+    uint32_t rcc_cfgr;
+    uint32_t clocksource;
+    uint32_t clocksource_status;
+    uint32_t count = 0UL;
+    kstatus_t status = K_STATUS_OKAY;
+
+    rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+
+    /* previously clear corresponding bits */
+    rcc_cfgr &= ~(RCC_CFGR_SW0 | RCC_CFGR_SW1);
+
+    {%- if rcc_clock_source.label == 'clk_hsi' %}
+    clocksource = 0UL;
+    {%- elif rcc_clock_source.label == 'clk_hse' %}
+    clocksource = RCC_CFGR_SW0;
+    {%- elif rcc_clock_source.label == 'pll' %}
+    clocksource = RCC_CFGR_SW1;
+    {%- else %}
+    #error "clock source configuration error, please check your devicetree file"
+    {%- endif %}
+
+    rcc_cfgr |= clocksource;
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
+
+    /* clocksource status is shifted by 2 on the same register */
+    clocksource = clocksource << 2UL;
+    do {
+        clocksource_status = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & clocksource;
+        count++;
+    } while ((clocksource_status != clocksource) && (count < PLL_STARTUP_TIMEOUT)); /* XXX: same timeout as PLL ?! */
+
+    if (clocksource_status != clocksource) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Configures the System clock source, PLL Multiplier and Divider factors,
+ * AHB/APBx prescalers and Flash settings
+ *
+ *
+ * This function should be called only once the RCC clock configuration
+ * is reset to the default reset state (done in SystemInit(UL) functionUL).
+ *
+ */
+__STATIC_INLINE kstatus_t rcc_init_system_clk(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+
+/* TODO LSI enable */
+#if 0
+    {%- if dts.clocks.clk_lsi.status == "okay" %}
+    status = rcc_enable_lsi();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+#endif
+
+
+/* TODO LSE enable */
+#if 0
+    {%- if dts.clocks.clk_lse.status == "okay" %}
+    status = rcc_enable_lse();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+#endif
+
+    {%- if dts.clocks.clk_hsi.status == "okay" %}
+    status = rcc_enable_hsi();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+
+    {%- if dts.clocks.clk_hse.status == "okay" %}
+    status = rcc_enable_hse();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+
+    /* enables bus prescaler before pll */
+    status = rcc_set_bus_clock();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+
+    {%- if dts.clocks.pll.status == "okay" %}
+    status = rcc_enable_pll();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+
+    status = rcc_select_system_clock();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+
+#if 0
+    /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
+    write_reg_value(FLASH_ACR, FLASH_ACR_ICEN
+                    | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS);
+#endif
+
+err:
+    return status;
+}
+
+
+kstatus_t rcc_probe(void)
+{
+    kstatus_t status;
+    size_t reg;
+
+    /* Reset the RCC clock configuration to the default reset state */
+    /* Set HSION bit */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg |= 0x1UL;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset CFGR register */
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, 0x0UL);
+
+    /* Reset HSEON, CSSON and PLLON bits */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg &= ~ (RCC_CR_HSEON | RCC_CR_CSSON | RCC_CR_PLLON);
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset PLLCFGR register, 0x24.00.30.10 being the reset value */
+    iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, 0x24003010UL);
+
+    /* Reset HSEBYP bit */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    reg &= ~(RCC_CR_HSEBYP);
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
+
+    /* Reset all interrupts */
+    iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
+
+    status = rcc_init_system_clk();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/*@
+    assigns \nothing;
+    ensures \result == K_STATUS_OKAY;
+  */
+__STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
+{
+    size_t reg_base;
+    const size_t lp_offset = 0x20UL; /* RCC regs for LP configuration are shifted by 0x20 */
+
+    if (flags & RCC_LPCONFIG) {
+        reg_base = RCC_BASE_ADDR + lp_offset;
+    } else {
+        reg_base = RCC_BASE_ADDR;
+    }
+
+    /*@ assert bus_is_valid(busid); */
+    reg_base += busid;
+
+    return reg_base;
+}
+
+/**
+ * @brief enable given clock identifier for the given bus identifier
+ *
+ *
+ * @param busid bus identifier, generated from SVD file, see buses.h
+ * @param clk_msk clock mask, which correspond to the mask to apply on the
+ *    bus enable register so that the corresponding device is enabled. This is
+ *    a 32bit value that is directly used. On STM32, this value mostly hold a single
+ *    bit set to 1 (except for ETH).
+ *
+ *
+ * @return K_STATUS_OKAY of the clock is properly enabled, or an error
+ *  status otherwise
+ */
+/*@
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
+    ensures \result == K_STATUS_OKAY;
+ */
+kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg;
+    /*@ assert bus_is_valid(busid); */
+    size_t reg_base = rcc_get_register(busid, flags);
+
+    reg = ioread32(reg_base);
+    reg |= clk_msk;
+    iowrite32(reg_base, reg);
+    // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
+    arch_data_sync_barrier();
+
+    return status;
+}
+
+/**
+ * @brief Enable APBx bus hierarchy
+ */
+/*@
+    assigns *(uint32_t*)(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    ensures \result == K_STATUS_OKAY;
+ */
+kstatus_t rcc_enable_apbx(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    reg |= RCC_APB1ENR_PWREN;
+    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
+    return status;
+}
+
+/**
+ * @brief Disable APBx bus hierarchy
+ */
+/*@
+    assigns *(uint32_t*)(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    ensures \result == K_STATUS_OKAY;
+ */
+kstatus_t rcc_disable_apbx(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
+    reg &= ~RCC_APB1ENR_PWREN;
+    iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
+    return status;
+}
+
+/**
+ * @brief disable given clock identifier for the given bus identifier
+ *
+ *
+ * @param busid bus identifier, generated from SVD file, see buses.h
+ * @param clk_msk clock mask, which correspond to the mask to apply on the
+ *    bus enable register so that the corresponding device is enabled. This is
+ *    a 32bit value that is directly used. On STM32, this value mostly hold a single
+ *    bit set to 1 (except for ETH).
+ *
+ * @return K_STATUS_OKAY of the clock is properly disabled, or an error
+ *  status otherwise
+ */
+/*@
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
+    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
+    ensures \result == K_STATUS_OKAY;
+ */
+kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    size_t reg;
+    /*@ assert bus_is_valid(busid); */
+    size_t reg_base = rcc_get_register(busid, flags);
+
+    reg = ioread32(reg_base);
+    reg &= ~clk_msk;
+    iowrite32(reg_base, reg);
+
+    return status;
+}
+
+__STATIC_INLINE uint32_t rcc_pre2div(uint32_t pre)
+{
+    uint32_t div;
+
+    if ((pre & 0x4) == 0) {
+        div = 1;
+    }
+    else {
+        div = ((pre & 0x3) + 1) << 1;
+    }
+
+    return div;
+}
+
+kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    size_t reg;
+    uint32_t pre;
+    uint32_t ahb_div;
+    uint32_t div;
+
+    if (unlikely(busclk == NULL)) {
+        goto err;
+    }
+
+    /*
+     * bus clock -->
+     *  - AHB_CLK = SYS_CLK / HPRE
+     *  - APB1_CLK = AHB_CLK / PPRE1
+     *  - APB2_CLK = AHB_CLK / PPRE2
+     */
+    reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+
+    ahb_div = rcc_pre2div((reg & RCC_CFGR_HPRE_MASK) >> RCC_CFGR_HPRE_SHIFT);
+
+    /*@ assert \valid(busclk); */
+    /*@ assert bus_is_valid(busid); */
+    switch (busid) {
+        case BUS_APB1:
+            div = rcc_pre2div((reg & RCC_CFGR_PPRE1_MASK) >> RCC_CFGR_PPRE1_SHIFT);
+            break;
+        case BUS_APB2:
+            div = rcc_pre2div((reg & RCC_CFGR_PPRE2_MASK) >> RCC_CFGR_PPRE2_SHIFT);
+            break;
+        case BUS_AHB1:
+        case BUS_AHB2:
+        case BUS_AHB3:
+            div = 1;
+            break;
+        default:
+            /* smoke testing: unreachable code */
+            /*@ assert \false; */
+            break;
+
+    }
+    /* return current bus clock */
+    *busclk = ((RCC_SYSTEM_CLOCK_FREQUENCY / ahb_div) / div);
+    status = K_STATUS_OKAY;
+
+err:
+    return status;
+}
+
+{%- endif %} /* rcc status okay*/
