@@ -64,6 +64,9 @@ jobs:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup"]'
           options: '-Dkconfig:config=configs/stm32f4_debug_defconfig -Dwith_proof=true'
+      - name: build libsentry
+        run: |
+          cd builddir && ninja src/libsentry.a
       - name: run framaC
         run: |
           why3 config detect
