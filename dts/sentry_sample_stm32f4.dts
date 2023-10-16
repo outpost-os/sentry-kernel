@@ -6,7 +6,16 @@
 
 /dts-v1/;
 
-#include <st/f4/stm32f437Xi.dtsi>
+#include <st/f4/stm32f429Xi.dtsi>
+
+/{
+    chosen {
+        sentry,vtor_section = <&flash0>;
+        sentry,text_section = <&flash0>;
+        sentry,ram_section = <&sram1>;
+    };
+
+};
 
 &gpioa {
     status = "okay";

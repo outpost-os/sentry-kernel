@@ -89,7 +89,7 @@ layout_in = meson_svd_proj.get_variable('layout_in')
 # configuration data in all components.
 devicetree_proj = subproject('devicetree', default_options: 'dts=@0@/@1@'.format(
     meson.current_source_dir(), kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower()))
-dts = devicetree_proj.get_variable('devicetree_dts')
+dts = devicetree_proj.get_variable('devicetree_dtsd')
 dts2src = devicetree_proj.get_variable('dts2src')
 devicetree_dep = devicetree_proj.get_variable('devicetree_dep')
 external_deps += devicetree_dep
@@ -130,11 +130,19 @@ endif
 
 meson.install_dependency_manifest('manifest.json')
 
-# here we define the final target: the Sentry kernel binary
-sentry_linker_args = [
-    '-T@0@'.format(fs.name(sentry_linker_script[0])),
-    '-L@0@'.format(sentry_linker_script_path),
-]
+# XXX:
+# For ldscript gen we use a custom target instead of the previously defined
+# generator as we need to know the outputed filename at link time
+# (FYI generator generates anonymous file that can be built bu we can't use
+# the generated filename in any other target)
+sentry_ldscript = custom_target('ldscript',
+    input: sentry_ldscript_template,
+    output: '@BASENAME@',
+    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
+    depends: [ dts ],
+)
+
+sentry_linker_args = [ '-T@0@'.format(sentry_ldscript.full_path()) ]
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
 
@@ -147,11 +155,12 @@ sentry_elf = executable(
     c_args: [ target_arch_args, global_build_args ],
     link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
-    link_depends: sentry_linker_script,
+    link_depends: [ sentry_ldscript ],
     install: true,
     install_dir: '',
 )
 
+# TODO: Use an install hook instead of dummy target
 sentry_map = custom_target(
     input: sentry_elf,
     output: sentry_map_file,
