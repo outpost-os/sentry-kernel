@@ -8,6 +8,7 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 
+#ifndef TEST_MODE
 /* string related functions, for debug usage only */
 static size_t sentry_strlen(const char *s)
 {
@@ -59,13 +60,10 @@ err:
     return s;
 }
 
-
-#ifndef TEST_MODE
 /* if not in the test suite case, aliasing to POSIX symbols */
 size_t strlen(const char *s) __attribute__((alias("sentry_strlen")));
 void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));
-#endif
-
+#endif/*!TEST_MODE*/
 
 /***********************************************
  * local utility functions
@@ -213,7 +211,8 @@ static inline void dbgbuffer_flush(void)
  */
 static inline kstatus_t dbgbuffer_display(void)
 {
-    return usart_tx(dbgbuf.buf, dbgbuf.offset);
+    /* usart as no notion of the byte type it emit. sending unsigned content */
+    return usart_tx((uint8_t*)dbgbuf.buf, dbgbuf.offset);
 }
 
 
@@ -225,7 +224,7 @@ static inline kstatus_t dbgbuffer_display(void)
  * Return the number of digits of the given number, considering
  * the base in which the number is encoded.
  */
-static uint8_t dbgbuffer_get_number_len(uint64_t value, uint8_t base)
+static uint8_t dbgbuffer_get_number_len(unsigned long value, uint8_t base)
 {
     /* at least, if value is 0, its lenght is 1 digit */
     uint8_t len = 1;
@@ -272,10 +271,11 @@ typedef struct {
  * by the format string itself, and return 0 if the format string has been
  * correctly parsed, or 1 if the format string parsing failed.
  */
-static uint8_t print_handle_format_string(const char *fmt, va_list * args,
+static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                                           uint8_t * consumed,
                                           uint32_t * out_str_len)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
     fs_properties_t fs_prop = {
         .attr_0len = false,
         .attr_size = false,
@@ -289,7 +289,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
     /*
      * Sanitation
      */
-    if (!fmt || !args || !consumed) {
+    if (!fmt || !consumed) {
         return 1;
     }
 
@@ -353,7 +353,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_DECIMAL;
-                    int     val = va_arg(*args, int);
+                    int     val = va_arg(args, int);
                     uint8_t len = dbgbuffer_get_number_len(val, 10);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -389,11 +389,11 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         fs_prop.consumed++;
                     }
                     if (fs_prop.numeric_mode == FS_NUM_LONG) {
-                        lval = va_arg(*args, long);
+                        lval = va_arg(args, long);
 
                         len = dbgbuffer_get_number_len(lval, 10);
                     } else {
-                        llval = va_arg(*args, long long);
+                        llval = va_arg(args, long long);
 
                         len = dbgbuffer_get_number_len(llval, 10);
                     }
@@ -434,11 +434,11 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         fs_prop.consumed++;
                     }
                     if (fs_prop.numeric_mode == FS_NUM_SHORT) {
-                        s_val = (short) va_arg(*args, int);
+                        s_val = (short) va_arg(args, int);
 
                         len = dbgbuffer_get_number_len(s_val, 10);
                     } else {
-                        uc_val = (unsigned char) va_arg(*args, int);
+                        uc_val = (unsigned char) va_arg(args, int);
 
                         len = dbgbuffer_get_number_len(uc_val, 10);
                     }
@@ -469,7 +469,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(*args, uint32_t);
+                    uint32_t val = va_arg(args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 10);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -495,7 +495,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                     if (fs_prop.started == false) {
                         goto err;
                     }
-                    uint32_t val = va_arg(*args, size_t);
+                    unsigned long val = va_arg(args, unsigned long);
                     uint8_t len = dbgbuffer_get_number_len(val, 16);
 
                     dbgbuffer_write_string("0x", 2);
@@ -519,7 +519,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(*args, uint32_t);
+                    uint32_t val = va_arg(args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 16);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -545,7 +545,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(*args, uint32_t);
+                    uint32_t val = va_arg(args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 8);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -575,12 +575,15 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         goto err;
                     }
-                    char   *str = va_arg(*args, char *);
-
-                    /* now we can print the number in argument */
-                    dbgbuffer_write_string(str, strlen(str));
-                    fs_prop.strlen += strlen(str);
-
+                    char   *str = va_arg(args, char *);
+                    if (str == NULL) {
+                        dbgbuffer_write_string("(null)", 6);
+                        fs_prop.strlen += 6;
+                    } else {
+                        /* now we can print the number in argument */
+                        dbgbuffer_write_string(str, strlen(str));
+                        fs_prop.strlen += strlen(str);
+                    }
                     /* => end of format string */
                     goto end;
                 }
@@ -596,7 +599,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         goto err;
                     }
-                    unsigned char val = (unsigned char) va_arg(*args, int);
+                    unsigned char val = (unsigned char) va_arg(args, int);
 
                     /* now we can print the number in argument */
                     dbgbuffer_write_char(val);
@@ -616,14 +619,12 @@ static uint8_t print_handle_format_string(const char *fmt, va_list * args,
         }
         fs_prop.consumed++;
     } while (fmt[fs_prop.consumed]);
- end:
-    *out_str_len += fs_prop.strlen;
-    *consumed = fs_prop.consumed + 1;   /* consumed is starting with 0 */
-    return 0;
+end:
+    status = K_STATUS_OKAY;
  err:
     *out_str_len += fs_prop.strlen;
     *consumed = fs_prop.consumed + 1;   /* consumed is starting with 0 */
-    return 1;
+    return status;
 }
 
 
@@ -644,8 +645,8 @@ static kstatus_t print_with_len(const char *fmt, va_list args, size_t *sizew)
 
     while (fmt[i]) {
         if (fmt[i] == '%') {
-            if (print_handle_format_string
-                (&(fmt[i]), &args, &consumed, &out_str_s)) {
+            status = print_handle_format_string(&(fmt[i]), args, &consumed, &out_str_s);
+            if (unlikely(status != K_STATUS_OKAY)) {
                 /* the string format parsing has failed ! */
                 goto err;
             }
