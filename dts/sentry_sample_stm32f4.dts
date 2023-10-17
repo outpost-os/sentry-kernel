@@ -34,6 +34,11 @@
 	status = "okay";
 };
 
+&flash {
+	wait-state = <5>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
 &rcc {
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(144)>;
