@@ -3,6 +3,7 @@
 
 # list of statically defined headers
 sentry_header_set.add(files(
+    'flash/flash.h',
     'gpio/gpio.h',
     'rng/rng.h',
     'clk/rcc.h',

@@ -9,8 +9,10 @@ jinja_gen = generator(jinja_cli,
                    '@INPUT@'],
        depends: [ svd_json ])
 
-subdir('gpio')
+
 subdir('clk')
-subdir('rng')
 subdir('exti')
+subdir('flash')
+subdir('gpio')
+subdir('rng')
 subdir('syscfg')
