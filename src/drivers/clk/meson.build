@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+ # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 # private driver headers for current Clock IP. This include PLL control and power headers
@@ -15,9 +15,10 @@ rcc_h = custom_target('gen_rcc',
 )
 sentry_source_set.add(rcc_h.to_list())
 
-stm32f4_rcc_c_template = files('stm32f4-rcc.c.in')
-stm32f4_rcc_c = dtsgen.process(stm32f4_rcc_c_template)
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: stm32f4_rcc_c)
+stm32_rcc_c_template = files('stm32-rcc.c.in')
+stm32_rcc_c = dtsgen.process(stm32_rcc_c_template)
+
+sentry_private_gen_source_set.add(stm32_rcc_c)
 
 pwr_h = custom_target('gen_pwr',
     input: peripheral_defs_in,
@@ -28,4 +29,4 @@ pwr_h = custom_target('gen_pwr',
 sentry_source_set.add(pwr_h.to_list())
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-pwr.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-pwr.c'))

@@ -17,6 +17,12 @@
 #include <bsp/drivers/clk/pwr.h>
 #include "pwr_defs.h"
 
+
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
+#define PWR_CR_REG PWR_CR1_REG
+#define PWR_CR_VOS_MASK PWR_CR1_VOS_MASK
+#define PWR_CR_VOS_SHIFT PWR_CR1_VOS_SHIFT
+#endif
 /*@
     assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
     ensures \result == K_STATUS_OKAY;

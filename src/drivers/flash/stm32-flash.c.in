@@ -13,7 +13,7 @@
 
 #include "flash_defs.h"
 
-{%- set flash_controller = dts.get_compatible("st,stm32f4-flash-controller") %}
+{%- set flash_controller = dts.get_compatible("st,stm32-flash-controller") %}
 
 {#- XXX, This driver handle one, and only one, flash controller #}
 {%- if flash_controller is defined and flash_controller[0].status == "okay" %}

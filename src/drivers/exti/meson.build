@@ -16,4 +16,4 @@ exti_h = custom_target('gen_gpio',
 sentry_source_set.add(exti_h.to_list())
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-exti.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-exti.c'))

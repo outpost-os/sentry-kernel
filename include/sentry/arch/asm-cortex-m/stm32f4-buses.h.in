@@ -31,7 +31,7 @@
 /**
  * @brief list of platform bused.
  * Based on the {{ NAME }} device register naming.
- * This template works for all STM32 SoCs
+ * This template works for all STM32F4 SoCs
  */
 typedef enum bus_identifier {
     {% for register in peripheral.registers -%}
