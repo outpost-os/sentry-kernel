@@ -26,15 +26,19 @@ jobs:
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
             toolchain = [ 'gcc|12.3.Rel1', 'gcc|11.2-2022.02', 'gcc|10.3-2021.07' ]
+            config = [ 'stm32f429i_disc1', 'stm32l476rg_debug' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|12.3.Rel1' ]
+            config = [ 'stm32f4_debug' ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
+            gh_out.write(f"config={config}\n")
     outputs:
       operating_system: ${{ steps.set_matrix.outputs.operating_system }}
       toolchain: ${{ steps.set_matrix.outputs.toolchain }}
+      config: ${{ steps.set_matrix.outputs.config }}
 
 
   build:
@@ -43,6 +47,7 @@ jobs:
       matrix:
         operating_system: ${{ fromJSON(needs.forge_matrix.outputs.operating_system) }}
         toolchain: ${{ fromJSON(needs.forge_matrix.outputs.toolchain) }}
+        config: ${{ fromJSON(needs.forge_matrix.outputs.config) }}
         exclude:
         - operating_system: 'mesonbuild/fedora:latest'
           toolchain: 'gcc|10.3-2021.07'
@@ -103,7 +108,7 @@ jobs:
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
-          options: '-Dkconfig:config=configs/stm32f429i_disc1_defconfig'
+          options: '-Dkconfig:config=configs/${{matrix.config}}_defconfig'
       - name: Meson postcheck
         if: failure()
         run: |
