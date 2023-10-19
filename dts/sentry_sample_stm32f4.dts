@@ -7,6 +7,7 @@
 /dts-v1/;
 
 #include <st/f4/stm32f429Xi.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
 
 /{
 	chosen {
@@ -45,6 +46,13 @@
 	bus-prescalers = <1>, <4>, <2>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
+
+	mco1 {
+		pinctrl-0 = <&rcc_mco1_pa8>;
+		clockout = <&pll>; /* XXX use reg value from svd */
+		prescaler = <5>;
+		status = "okay";
+	};
 };
 
 &gpioa {
@@ -73,4 +81,20 @@
 
 &gpiog {
 	status = "okay";
+};
+
+&pinctrl {
+	rcc_mco1_pa8: rcc_mco1_pa8  {
+		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	rcc_mco2_pc9: rcc_mco2_pc9 {
+		pinmux = <&gpioc 9 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
 };
