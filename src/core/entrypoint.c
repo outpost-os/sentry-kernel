@@ -9,7 +9,7 @@
 #include <sentry/mm.h>
 #include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/clk/pwr.h>
-
+#include <bsp/drivers/flash/flash.h>
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
 #else
@@ -35,6 +35,7 @@ __attribute__((noreturn)) void _entrypoint(void)
 {
     interrupt_disable();
     pwr_probe();
+    flash_probe();
     rcc_probe();
 
     interrupt_init();
