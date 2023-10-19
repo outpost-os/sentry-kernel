@@ -118,8 +118,8 @@ static debug_buffer_t dbgbuf;
  */
 static inline void dbgbuffer_write_char(const char c)
 {
-    /* if the ring buffer is full when we try to put char in it,
-     * the car is discared, waiting for the ring buffer to be flushed.
+    /* if the buffer is full when we try to put char in it,
+     * the char is discared, waiting for the ring buffer to be flushed.
      */
     if (unlikely(dbgbuf.offset == BUF_MAX)) {
         goto end;
