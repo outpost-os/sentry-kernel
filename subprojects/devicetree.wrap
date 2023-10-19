@@ -1,4 +1,4 @@
 [wrap-git]
 url = git@git.orange.ledgerlabs.net:outpost/meson-devicetree.git
-revision = main
+revision = feature/dts-pinctrl
 depth = 1
