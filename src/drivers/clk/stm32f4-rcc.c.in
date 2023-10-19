@@ -15,10 +15,13 @@
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 
+#include <bsp/drivers/gpio/gpio.h>
+
 /* local includes, only manipulated by the driver itself */
 #include <bsp/drivers/clk/rcc.h>
 
 /* RCC generated header for current platform */
+#include "stm32-gpio-dt.h"
 #include "rcc_defs.h"
 
 #define RCC_OSCILLATOR_STABLE	(0)
@@ -377,6 +380,46 @@ kstatus_t rcc_probe(void)
 err:
     return status;
 }
+
+#if CONFIG_BUILD_TARGET_DEBUG
+kstatus_t rcc_enable_debug_clockout(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+
+    {%- if dts.rcc.mco1 is defined and dts.rcc.mco1.status == "okay" %}
+
+    uint32_t rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+    uint32_t mco1_clock = 0;
+
+    rcc_cfgr &= ~(RCC_CFGR_MCO1_MASK | RCC_CFGR_MCO1PRE_MASK);
+    rcc_cfgr |= ({{ dts.rcc.mco1.prescaler }} << RCC_CFGR_MCO1PRE_SHIFT) & RCC_CFGR_MCO1PRE_MASK;
+    {%- set mco_clock = dts.rcc.mco1.clockout %}
+    {%- if mco_clock.label == "pll" %}
+    mco1_clock = 0x3UL;
+    {%- elif mco_clock.label == "clk_hse" %}
+    mco1_clock = 0x2UL;
+    {%- elif mco_clock.label == "clk_hsi" %}
+    mco1_clock = 0x0UL;
+    {%- elif mco_clock.label == "clk_lse" %}
+    mco1_clock = 0x1UL;
+    {%- endif %}
+    rcc_cfgr |= ( mco1_clock << RCC_CFGR_MCO1_SHIFT) & RCC_CFGR_MCO1_MASK;
+
+    {%- set pinctrl = dts.rcc.mco1["pinctrl-0"] %}
+    {%- set port, pin, mode, altfunc = pinctrl.pinmux %}
+    {%- set type, speed, pull_mode = pinctrl.pincfg %}
+
+    gpio_set_mode({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ mode }});
+    gpio_set_type({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ type }});
+    gpio_set_speed({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ speed }});
+    gpio_set_pull_mode({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ pull_mode }});
+    gpio_set_af({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ altfunc }});
+
+    {%- endif %}
+
+    return status;
+}
+#endif
 
 /*@
     assigns \nothing;
