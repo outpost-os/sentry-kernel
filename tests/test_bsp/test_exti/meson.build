@@ -6,7 +6,7 @@ test_bsp_exti = executable(
     sources: [
         files(
             'test_exti.cpp',
-            join_paths(meson.project_source_root(), 'src/drivers/exti/stm32f4-exti.c')
+            join_paths(meson.project_source_root(), 'src/drivers/exti/stm32-exti.c')
         ),
         exti_h,
     ],
