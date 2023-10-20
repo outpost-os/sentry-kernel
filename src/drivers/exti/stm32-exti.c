@@ -13,15 +13,7 @@
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 #include "exti_defs.h"
-
-#if CONFIG_SOC_SUBFAMILY_STM32F4
-#define MAX_EXTI_INTERRUPT  22
-#define MAX_EXTI_EVENT      22
-#elif CONFIG_SOC_SUBFAMILY_STM32L4
-#define MAX_EXTI_INTERRUPT  40
-#define MAX_EXTI_EVENT      40
-#endif
-
+#include "stm32-exti-dt.h"
 
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
 /* there are 40 possible interrupts and events sources, meaning that
@@ -32,7 +24,6 @@
 #define EXTI_FTSR_REG EXTI_FTSR1_REG
 #define EXTI_SWIER_REG EXTI_SWIER1_REG
 #define EXTI_PR_REG EXTI_PR1_REG
-
 #endif
 
 /**
@@ -82,7 +73,7 @@ kstatus_t exti_probe(void)
 kstatus_t exti_mask_interrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(itn > MAX_EXTI_INTERRUPT)) {
+    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -113,7 +104,7 @@ err:
 kstatus_t exti_unmask_interrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(itn > MAX_EXTI_INTERRUPT)) {
+    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -144,7 +135,7 @@ err:
 kstatus_t exti_mask_event(uint8_t evn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(evn > MAX_EXTI_EVENT)) {
+    if (unlikely(evn > EXTI_NUM_EVENTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -175,7 +166,7 @@ err:
 kstatus_t exti_unmask_event(uint8_t evn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(evn > MAX_EXTI_EVENT)) {
+    if (unlikely(evn > EXTI_NUM_EVENTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -208,7 +199,7 @@ kstatus_t exti_generate_swinterrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
-    if (unlikely(itn > MAX_EXTI_INTERRUPT)) {
+    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -262,7 +253,7 @@ err:
 kstatus_t exti_clear_pending(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(itn > MAX_EXTI_INTERRUPT)) {
+    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }

@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_EXTI_DT_GENERATED_H
+#define __STM32_EXTI_DT_GENERATED_H
+
+{%- if dts.exti.status == "okay" %}
+{%- set num_it = dts.exti['interrupts'] %}
+/**
+ * @def number of external interrupts supported by EXTI device
+ */
+#define EXTI_NUM_INTERRUPTS {{ num_it|int }}UL
+
+{%- set num_ev = dts.exti['events'] %}
+/**
+ * @def number of external events supported by EXTI device
+ */
+#define EXTI_NUM_EVENTS {{ num_ev|int }}UL
+{%- endif %}
+
+#endif /* __STM32_EXTI_DT_GENERATED_H */

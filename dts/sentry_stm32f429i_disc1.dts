@@ -41,6 +41,12 @@
 	status = "okay";
 };
 
+&exti {
+	interrupts = <22>;
+	events = <22>;
+	status = "okay";
+};
+
 &rcc {
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(144)>;

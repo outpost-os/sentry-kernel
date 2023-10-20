@@ -7,7 +7,6 @@
 /dts-v1/;
 
 #include <st/l4/stm32l476Xg.dtsi>
-#include <dt-bindings/pinctrl/stm32-pinctrl.h>
 
 /{
 	chosen {
@@ -37,6 +36,12 @@
 
 &flash {
 	wait-state = <3>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&exti {
+	interrupts = <40>;
+	events = <40>;
 	status = "okay";
 };
 
@@ -74,20 +79,4 @@
 
 &gpiog {
 	status = "okay";
-};
-
-&pinctrl {
-	rcc_mco1_pa8: rcc_mco1_pa8  {
-		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
-		pincfg = <STM32_OTYPER_PUSH_PULL \
-				  STM32_OSPEEDR_VERY_HIGH_SPEED \
-				  STM32_PUPDR_NO_PULL>;
-	};
-
-	rcc_mco2_pc9: rcc_mco2_pc9 {
-		pinmux = <&gpioc 9 STM32_DT_PIN_MODE_ALTFUNC(0)>;
-		pincfg = <STM32_OTYPER_PUSH_PULL \
-				  STM32_OSPEEDR_VERY_HIGH_SPEED \
-				  STM32_PUPDR_NO_PULL>;
-	};
 };
