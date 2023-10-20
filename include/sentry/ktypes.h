@@ -133,7 +133,18 @@ typedef unsigned long long  time_ms_t;
  *
  * @return True is `x` is in range [`m`..`M`]
  */
-#define IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
+#define __IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
+
+/**
+ * @brief Helper that checks value range
+ *
+ * @param x scalar value to check
+ * @param R scalar value range define w/ @def RANGE
+ */
+#define IN_RANGE(x, R) __IN_RANGE(x,R)
+
+#define __RANGE(m,M) (m),(M)
+#define RANGE(m,M) __RANGE(m,M)
 
 typedef enum kstatus {
     K_STATUS_OKAY,
