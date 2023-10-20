@@ -42,7 +42,9 @@ __attribute__((noreturn)) void _entrypoint(void)
     interrupt_init();
 
     platform_init();
+#if 0 /* FIXME */
     systick_init();
+#endif
 
 #if 0
 // TODO
@@ -80,8 +82,10 @@ __attribute__((noreturn)) void _entrypoint(void)
 #endif
 
     /* initialize memory backend controler (e.g. MPU )*/
+#if 0 /* FIXME */
     mm_initialize();
     mm_configure();
+#endif
 
 #if 0
 #if defined(CONFIG_USE_ICACHE) && (CONFIG_USE_ICACHE == 1)
@@ -98,8 +102,11 @@ __attribute__((noreturn)) void _entrypoint(void)
 
     perfo_early_init();
 #endif
+
+#if 0 /* FIXME */
     systick_init();
     mgr_io_probe();
+#endif
 
     /* XXX: TODO */
     gpio_probe(0);
@@ -114,9 +121,18 @@ __attribute__((noreturn)) void _entrypoint(void)
     rcc_enable_debug_clockout();
 #endif
     // init ssp
+
+/*
+ * XXX: TODO
+ *  Use a Kconfig selector to explicitly enable driver and rgn support
+ *  maybe a DTS property for the 'chosen' entropy source.
+ */
+#if !defined(CONFIG_ARCH_MCU_STM32F401)
     uint32_t seed;
     rng_probe();
     rng_get(&seed);
+#endif
+
     do {
 
     } while (1);
