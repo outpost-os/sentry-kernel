@@ -24,11 +24,50 @@
 #include "stm32-gpio-dt.h"
 #include "rcc_defs.h"
 
-#define RCC_OSCILLATOR_STABLE	(0)
-
 #define HSE_STARTUP_TIMEOUT	(0x0500UL)
 #define HSI_STARTUP_TIMEOUT	(0x0500UL)
 #define PLL_STARTUP_TIMEOUT	(0x0500UL)
+
+/**
+ * @brief stm32f4xx PLL and clocks range
+ * @see: RM0368 Section 6 (stm32f401), RM0090 Section 6 (stm32f42xx/f43xx) & 7 (stm32f405/407/415/417)
+ */
+#define RCC_PLL_VCO_DIVIDER_RANGE RANGE(2,63)
+#define RCC_PLL_VCO_INPUT_FREQUENCY_RANGE RANGE(1*MEGA, 2*MEGA)
+#define RCC_PLL_USB_DIVIDER_RANGE RANGE(2,15)
+#define RCC_PLL_SYSCLK_DIVIDER_RANGE RANGE(2,8)
+#define RCC_PLL_AHB_PRESCALER_RANGE RANGE(0,9)
+#define RCC_PLL_APB_PRESCALER_RANGE RANGE(0,4)
+#define RCC_PLL_USB_OUTPUT_FREQUENCY_MAX 48*MEGA
+
+/*
+ * maximum system core clock depends on power scale and/or overdrive
+ * TODO: Add high level power/run mode with correct settings
+ * Only support `reset value` scale (non overdrive)
+ */
+#if defined(CONFIG_ARCH_MCU_STM32F401)
+# define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(192,432)
+# define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(192*MEGA,432*MEGA)
+# define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 84*MEGA
+# define RCC_APB1_BUS_FREQUENCY_MAX 42*MEGA
+# define RCC_APB2_BUS_FREQUENCY_MAX 84*MEGA
+# define RCC_SYSCLOCK_FREQUENCY_MAX 60*MEGA
+#elif defined(CONFIG_SOC_SUBFAMILY_STM32F4) /* XXX: Other F4 familly soc */
+# define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(50,432)
+# define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(100*MEGA,432*MEGA)
+# if defined(SOC_SUBFAMILY_STM32F4x5_7)
+#  define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 180*MEGA
+#  define RCC_APB1_BUS_FREQUENCY_MAX 45*MEGA
+#  define RCC_APB2_BUS_FREQUENCY_MAX 90*MEGA
+/* 180MHz sysclock need overdrive and pwr domain support */
+#  define RCC_SYSCLOCK_FREQUENCY_MAX 168*MEGA
+# else
+#  define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 168*MEGA
+#  define RCC_APB1_BUS_FREQUENCY_MAX 42*MEGA
+#  define RCC_APB2_BUS_FREQUENCY_MAX 84*MEGA
+#  define RCC_SYSCLOCK_FREQUENCY_MAX 168*MEGA
+# endif
+#endif
 
 {%- if dts.clocks.clk_lsi.status == "okay" %}
 #define RCC_LSI_FREQUENCY {{ dts.clocks.clk_lsi['clock-frequency'] }}UL
@@ -52,18 +91,28 @@
 #define RCC_PLL_SYSCLK_DIVIDER  {{ dts.clocks.pll.main_divider|int }}UL
 #define RCC_PLL_USB_DIVIDER     {{ dts.clocks.pll.usb_divider|int }}UL
 
-/* TODO define range per soc */
-static_assert((RCC_PLL_USB_DIVIDER >= 2) && (RCC_PLL_USB_DIVIDER < 15), "invalid pll usb configuration");
+static_assert(IN_RANGE(RCC_PLL_VCO_DIVIDER, RCC_PLL_VCO_DIVIDER_RANGE), "VCO divider out of range");
+static_assert(IN_RANGE(RCC_PLL_VCO_MULTIPLIER, RCC_PLL_VCO_MULTIPLIER_RANGE), "VCO multiplier out of range");
+static_assert(IN_RANGE(RCC_PLL_USB_DIVIDER, RCC_PLL_USB_DIVIDER_RANGE), "invalid pll usb configuration");
+static_assert(IN_RANGE(RCC_PLL_SYSCLK_DIVIDER, RCC_PLL_SYSCLK_DIVIDER_RANGE), "Pll main divider out of range");
+static_assert((RCC_PLL_SYSCLK_DIVIDER % 2) == 0, "Pll main divider must be even");
 
 {%- set pll_input_freq = pll_clock_source['clock-frequency'] %}
-{%- set pll_vco_output_frequency = pll_input_freq * dts.clocks.pll.vco_multiplier / dts.clocks.pll.vco_divider %}
+#define RCC_PLL_INPUT_FREQUENCY  {{ pll_input_freq|int }}UL
+
+{%- set pll_vco_input_frequency = pll_input_freq / dts.clocks.pll.vco_divider %}
+#define RCC_PLL_VCO_IN_FREQUENCY {{ pll_vco_input_frequency|int }}UL
+static_assert(IN_RANGE(RCC_PLL_VCO_IN_FREQUENCY, RCC_PLL_VCO_INPUT_FREQUENCY_RANGE), "VCO IN frequency invalid, check configuration");
+
+{%- set pll_vco_output_frequency = pll_vco_input_frequency * dts.clocks.pll.vco_multiplier %}
+#define RCC_PLL_VCO_OUT_FREQUENCY {{ pll_vco_output_frequency|int }}UL
+static_assert(IN_RANGE(RCC_PLL_VCO_OUT_FREQUENCY, RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE), "VCO OUT frequency, check configuration");
 
 #define RCC_PLLCLK_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.main_divider)|int }}UL
-/* TODO define range per soc */
-static_assert(RCC_PLLCLK_FREQUENCY <= 160000000UL, "PLL output fequency out of range");
+static_assert(RCC_PLLCLK_FREQUENCY <= RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX, "PLL output fequency out of range");
 
 #define RCC_PLLUSB_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.usb_divider)|int }}UL
-static_assert(RCC_PLLUSB_FREQUENCY <= 48000000UL, "PLL USB output fequency out of range");
+static_assert(RCC_PLLUSB_FREQUENCY <= RCC_PLL_USB_OUTPUT_FREQUENCY_MAX, "PLL USB output fequency out of range");
 {%- endif %} {#- endif dts.clocks.pll.status == "okay" #}
 
 
@@ -72,21 +121,24 @@ static_assert(RCC_PLLUSB_FREQUENCY <= 48000000UL, "PLL USB output fequency out o
 {%- set rcc_clock_source = dts.rcc.clocks %}
 {%- for bus_prescaler in dts.rcc['bus-prescalers'] %}
 {%- set bus_name = dts.rcc['bus-names'][loop.index - 1].upper() %}
-#define RCC_{{ bus_name }}_PRESCALER {{ bus_prescaler|int }}UL
-#define RCC_{{ bus_name }}_CLOCK_FREQUENCY (RCC_SYSTEM_CLOCK_FREQUENCY / RCC_{{ bus_name }}_PRESCALER)
+#define RCC_{{ bus_name }}_PRESCALER_POW2 {{ bus_prescaler|int }}UL
+#define RCC_{{ bus_name }}_CLOCK_FREQUENCY (RCC_SYSTEM_CLOCK_FREQUENCY >> RCC_{{ bus_name }}_PRESCALER_POW2)
 {%- endfor %}
 
-/* TODO gen per soc */
-static_assert(RCC_AHB_CLOCK_FREQUENCY <= 180000000UL, "Invalid RCC AHB clock configuration");
-static_assert(RCC_APB1_CLOCK_FREQUENCY <= 45000000UL, "Invalid RCC APB1 clock configuration");
-static_assert(RCC_APB2_CLOCK_FREQUENCY <= 90000000UL, "Invalid RCC APB2 clock configuration");
+static_assert(IN_RANGE(RCC_AHB_PRESCALER_POW2, RCC_PLL_AHB_PRESCALER_RANGE), "AHB prescaler out of range");
+static_assert(RCC_AHB_PRESCALER_POW2 != 5, "32 is an invalid value for STM32F4xxx AHB prescaler");
+static_assert(IN_RANGE(RCC_APB1_PRESCALER_POW2, RCC_PLL_APB_PRESCALER_RANGE), "APB1 prescaler out of range");
+static_assert(IN_RANGE(RCC_APB2_PRESCALER_POW2, RCC_PLL_APB_PRESCALER_RANGE), "APB2 prescaler out of range");
 
+static_assert(RCC_SYSTEM_CLOCK_FREQUENCY <= RCC_SYSCLOCK_FREQUENCY_MAX, "System clock out of range");
+static_assert(RCC_AHB_CLOCK_FREQUENCY <= RCC_SYSTEM_CLOCK_FREQUENCY, "Invalid RCC AHB clock configuration");
+static_assert(RCC_APB1_CLOCK_FREQUENCY <= RCC_APB1_BUS_FREQUENCY_MAX, "Invalid RCC APB1 clock configuration");
+static_assert(RCC_APB2_CLOCK_FREQUENCY <= RCC_APB2_BUS_FREQUENCY_MAX, "Invalid RCC APB2 clock configuration");
 
 uint64_t rcc_get_core_frequency(void)
 {
     return RCC_SYSTEM_CLOCK_FREQUENCY;
 }
-
 
 __STATIC_INLINE kstatus_t rcc_enable_hsi(void)
 {
@@ -161,6 +213,28 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
 #define RCC_PLLCFGR_Q_MASK (RCC_PLLCFGR_PLLQ0 | RCC_PLLCFGR_PLLQ1 | \
                             RCC_PLLCFGR_PLLQ2 | RCC_PLLCFGR_PLLQ3)
 
+__STATIC_INLINE uint32_t rcc_pll_p_divider(void)
+{
+    /* value cannot be out of range as there is static assert on these */
+    uint32_t value = (RCC_PLL_SYSCLK_DIVIDER >> 1) - 1;
+    return ((value << RCC_PLLCFGR_P_SHIFT) & RCC_PLLCFGR_P_MASK);
+}
+
+__STATIC_INLINE uint32_t rcc_pll_q_divider(void)
+{
+    return  ((RCC_PLL_USB_DIVIDER << RCC_PLLCFGR_Q_SHIFT) & RCC_PLLCFGR_Q_MASK);
+}
+
+__STATIC_INLINE uint32_t rcc_pll_m_divider(void)
+{
+    return ((RCC_PLL_VCO_DIVIDER << RCC_PLLCFGR_M_SHIFT) & RCC_PLLCFGR_M_MASK);
+}
+
+__STATIC_INLINE uint32_t rcc_pll_n_multiplier(void)
+{
+        return ((RCC_PLL_VCO_MULTIPLIER << RCC_PLLCFGR_N_SHIFT) & RCC_PLLCFGR_N_MASK);
+}
+
 __STATIC_INLINE kstatus_t rcc_enable_pll(void)
 {
     uint32_t pllcfgr;
@@ -175,10 +249,10 @@ __STATIC_INLINE kstatus_t rcc_enable_pll(void)
      *  PLL coefficients are split into single bit definition (...)
      */
 
-    pllcfgr = (RCC_PLL_VCO_MULTIPLIER << RCC_PLLCFGR_N_SHIFT) & RCC_PLLCFGR_N_MASK;
-    pllcfgr |= ((RCC_PLL_VCO_DIVIDER << RCC_PLLCFGR_M_SHIFT) & RCC_PLLCFGR_M_MASK);
-    pllcfgr |= ((RCC_PLL_SYSCLK_DIVIDER << RCC_PLLCFGR_P_SHIFT) & RCC_PLLCFGR_P_MASK);
-    pllcfgr |= ((RCC_PLL_USB_DIVIDER << RCC_PLLCFGR_Q_SHIFT) & RCC_PLLCFGR_Q_MASK);
+    pllcfgr = rcc_pll_p_divider()
+            | rcc_pll_m_divider()
+            | rcc_pll_n_multiplier()
+            | rcc_pll_q_divider();
 
     {%- if pll_clock_source == "clk_hse" %}
     /* hse as pll source */
@@ -208,6 +282,35 @@ __STATIC_INLINE kstatus_t rcc_enable_pll(void)
     return status;
 }
 
+__STATIC_INLINE uint32_t rcc_ahb_busdiv(void)
+{
+    uint32_t value;
+    if (RCC_AHB_PRESCALER_POW2 == 0) {
+        value = 0UL;
+    }
+    else if (IN_RANGE(RCC_AHB_PRESCALER_POW2, RANGE(1, 4))) {
+        value = 0x8 | (RCC_AHB_PRESCALER_POW2 - 1);
+    }
+    else if (IN_RANGE(RCC_AHB_PRESCALER_POW2, RANGE(6, 9))) {
+        value = 0x8 | (RCC_AHB_PRESCALER_POW2 - 2);
+    }
+
+    return value;
+}
+
+__STATIC_INLINE uint32_t rcc_apb_busdiv(uint32_t div_pow2)
+{
+    uint32_t value;
+    if (div_pow2 == 0) {
+        value = 0UL;
+    }
+    else {
+        value = 0x4 | (div_pow2 - 1);
+    }
+
+    return value;
+}
+
 __STATIC_INLINE kstatus_t rcc_set_bus_clock(void)
 {
     union {
@@ -216,9 +319,9 @@ __STATIC_INLINE kstatus_t rcc_set_bus_clock(void)
     } reg;
 
     reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    reg.cfgr.hpre = RCC_AHB_PRESCALER;
-    reg.cfgr.ppre1 = RCC_APB1_PRESCALER;
-    reg.cfgr.ppre2 = RCC_APB2_PRESCALER;
+    reg.cfgr.hpre = rcc_ahb_busdiv();
+    reg.cfgr.ppre1 = rcc_apb_busdiv(RCC_APB1_PRESCALER_POW2);
+    reg.cfgr.ppre2 = rcc_apb_busdiv(RCC_APB2_PRESCALER_POW2);
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
 
     return K_STATUS_OKAY;
@@ -588,7 +691,9 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
             break;
         case BUS_AHB1:
         case BUS_AHB2:
+#ifndef CONFIG_ARCH_MCU_STM32F401
         case BUS_AHB3:
+#endif
             div = 1;
             break;
         default:
