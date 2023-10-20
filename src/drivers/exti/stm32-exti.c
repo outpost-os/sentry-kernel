@@ -67,8 +67,8 @@ kstatus_t exti_probe(void)
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
-  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= MAX_EXTI_INTERRUPT <==> \result == K_STATUS_OKAY;
+  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_INTERRUPTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_mask_interrupt(uint8_t itn)
 {
@@ -98,8 +98,8 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
-  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= MAX_EXTI_INTERRUPT <==> \result == K_STATUS_OKAY;
+  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_INTERRUPTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_unmask_interrupt(uint8_t itn)
 {
@@ -129,8 +129,8 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
-  ensures evn > MAX_EXTI_EVENT <==> \result == K_ERROR_INVPARAM;
-  ensures evn <= MAX_EXTI_EVENT <==> \result == K_STATUS_OKAY;
+  ensures evn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
+  ensures evn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_mask_event(uint8_t evn)
 {
@@ -160,8 +160,8 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
-  ensures evn > MAX_EXTI_EVENT <==> \result == K_ERROR_INVPARAM;
-  ensures evn <= MAX_EXTI_EVENT <==> \result == K_STATUS_OKAY;
+  ensures evn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
+  ensures evn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_unmask_event(uint8_t evn)
 {
@@ -191,8 +191,8 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
-  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= MAX_EXTI_EVENT ==>
+  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_INTERRUPTS ==>
       \result == K_STATUS_OKAY || \result == K_ERROR_BADSTATE;
  */
 kstatus_t exti_generate_swinterrupt(uint8_t itn)
@@ -246,8 +246,8 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_PR_REG);
-  ensures itn > MAX_EXTI_INTERRUPT <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= MAX_EXTI_EVENT ==>
+  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_INTERRUPTS ==>
       \result == K_STATUS_OKAY;
  */
 kstatus_t exti_clear_pending(uint8_t itn)
