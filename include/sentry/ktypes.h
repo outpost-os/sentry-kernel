@@ -46,6 +46,10 @@ typedef enum secure_bool {
 #define MBYTE (1024u*1024u)
 #define GBYTE (1024u*1024u*1024u)
 
+#define KILO 1000UL
+#define MEGA (1000UL * KILO)
+#define GIGA (1000UL * MEGA)
+
 #define MSEC_PER_SEC 1000UL
 #define USEC_PER_SEC 1000000UL
 
