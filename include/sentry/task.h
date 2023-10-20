@@ -123,25 +123,18 @@ typedef struct task {
     uint8_t         shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
     uint8_t         num_devs;         /**< number of devices */
     device_t        devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
-#if defined(CONFIG_DMA_SUPPORT)
     uint8_t         num_dmas;         /**< number of DMA streams */
-    dma_t           dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata */
-#else
-    uint8_t         reserved1[CONFIG_MAX_DMA_STREAMS_PER_TASK+1]; /* no DMA support in Kernel */
-#endif
+    uint8_t         dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
+                                        FIXME: define dma_t bitfield or struct */
 
     /**
-     *
+     * domain management. Ignore if HAS_DOMAIN is not set
      */
-#if defined(CONFIG_TASK_DOMAIN)
     uint8_t         domain;           /**< domain identifier. Depending on the configured domain
                                             policy, process ability to communicate with others,
                                             process scheduling policy and process election
                                             pre- and post- phases may be affected.
                                              */
-#else
-    uint8_t         reserved2;         /**< keep the global task struct size for mapping compat */
-#endif
 
     /*
      * Task context information, these fields store dynamic values, such as current
@@ -173,8 +166,8 @@ typedef struct task {
      * is checked using HMAC, based on a private key used at production time and
      * verified by the kernel at startup time
      */
-    uint8_t         task_hmac[256]; /**< task .text+.rodata+.data build time hmac calculation (TBD)*/
-    uint8_t         struct_hmac[128]; /**< current struct build time hmac calculation */
+    uint8_t         task_hmac[32]; /**< task .text+.rodata+.data build time hmac calculation (TBD)*/
+    uint8_t         metadata_hmac[32]; /**< current struct build time hmac calculation */
 } task_t;
 
 void initialize_stack_context(size_t sp, size_t pc);
