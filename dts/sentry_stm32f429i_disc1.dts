@@ -27,7 +27,7 @@
 };
 
 &pll {
-	vco_divider = <2>;
+	vco_divider = <8>;
 	vco_multiplier = <144>;
 	main_divider = <2>;
 	usb_divider = <6>;
