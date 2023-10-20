@@ -1,0 +1,24 @@
+menu "Core functions"
+
+config MAX_TASKS
+	int "Maximum number of userspace tasks"
+	range 1 256
+	default 8
+	help
+	  Maximum number of userspace tasks, from 1 to 256
+
+
+choice
+	bool "Scheduling policy"
+	default SCHED_FIFO
+config SCHED_FIFO
+	bool "FIFO-based policy"
+	help
+	  Schedule task with FIFO scheduling policy. Each task is executed
+	  while not entering a blocking syscall (yield, sleep, etc.). The
+	  task is eligible again each time an input event is received (IPC, signal,
+	  interrupt)
+
+endchoice
+
+endmenu
