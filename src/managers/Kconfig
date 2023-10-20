@@ -1,0 +1,28 @@
+menu "Managers"
+
+menu "Task manager"
+
+config MAX_DEV_PER_TASK
+	int "max devices per task"
+	range 0 8
+	default 4
+	help
+	  Maximum number of declared device per task
+
+config MAX_SHM_PER_TASK
+	int "Maximum mumber of SHM per task"
+	range 0 8
+	default 4
+	help
+	  Maximum number of owned shared memory per task
+
+config MAX_DMA_STREAMS_PER_TASK
+	int "Maximum mumber of DMA streams per task"
+	range 0 8
+	default 4
+	help
+      Maximum number of declared DMA streams per task
+
+endmenu
+
+endmenu

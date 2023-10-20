@@ -2,17 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef __THREAD_H_
-#define __TRHEAD_H_
+#define __THREAD_H_
 /**
  * \file context manipulation, including kernel threads
  */
 #include <inttypes.h>
 #include <stddef.h>
 
-/* type of return mode (return to MSP, return to PSP, or return to interrupt) */
-#define EXC_THREAD_MODE    0xFFFFFFFD
-#define EXC_MSP_MODE       0xFFFFFFF9
-#define EXC_HANDLER_MODE   0xFFFFFFF1
+#include <sentry/arch/asm-cortex-m/core.h>
 
 /* the firmware bare default handler save the overall missing registers (i.e.
  * not saved by the NVIC) on the stack, generating a stack frame with a full
@@ -25,6 +22,9 @@ typedef struct stack_frame {
     /**< backed automatically by NVIC */
     uint32_t r0, r1, r2, r3, r12, prev_lr, pc, xpsr;
 } __attribute__((packed)) stack_frame_t;
+
+static_assert(sizeof(stack_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
+
 
 static inline void __thread_init_stack_context(size_t sp, size_t pc)
 {
@@ -43,7 +43,11 @@ static inline void __thread_init_stack_context(size_t sp, size_t pc)
     frame->r11 = 0x0;
     frame->r12 = 0x0;
     frame->pc = (pc | 0x1); /* thumb2 mode */
-    frame->lr = EXC_THREAD_MODE;
+#if defined(CONFIG_FPU_HARDFP_ABI)
+    frame->lr = EXC_RETURN_THREAD_PSP_FPU;
+#else
+    frame->lr = EXC_RETURN_THREAD_PSP;
+#endif
     return;
 }
 

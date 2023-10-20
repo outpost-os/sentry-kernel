@@ -3,6 +3,7 @@ mainmenu "Sentry kernel"
 rsource 'src/arch/Kconfig'
 rsource 'src/security/Kconfig'
 rsource 'src/core/Kconfig'
+rsource 'src/managers/Kconfig'
 
 menu "Build mode"
 
