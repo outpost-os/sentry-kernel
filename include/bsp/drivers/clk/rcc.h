@@ -26,6 +26,10 @@ typedef enum rcc_opts {
  */
 kstatus_t rcc_probe(void);
 
+#if CONFIG_BUILD_TARGET_DEBUG
+kstatus_t rcc_enable_debug_clockout(void);
+#endif
+
 /**
  * @brief get current core frequency in Hertz
  */

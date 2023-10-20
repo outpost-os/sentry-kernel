@@ -10,6 +10,7 @@
 #include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/clk/pwr.h>
 #include <bsp/drivers/flash/flash.h>
+#include <bsp/drivers/gpio/gpio.h>
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
 #else
@@ -99,6 +100,19 @@ __attribute__((noreturn)) void _entrypoint(void)
 #endif
     systick_init();
     mgr_io_probe();
+
+    /* XXX: TODO */
+    gpio_probe(0);
+    gpio_probe(1);
+    gpio_probe(2);
+    gpio_probe(3);
+    gpio_probe(4);
+    gpio_probe(5);
+    gpio_probe(6);
+
+#if CONFIG_BUILD_TARGET_DEBUG
+    rcc_enable_debug_clockout();
+#endif
     // init ssp
     uint32_t seed;
     rng_probe();
