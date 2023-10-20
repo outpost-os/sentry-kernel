@@ -124,6 +124,17 @@ typedef unsigned long long  time_ms_t;
  */
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
+/**
+ * @brief Helper that checks value range
+ *
+ * @param x scalar value to check
+ * @param m range lower bound (included)
+ * @param M range upper bound (included)
+ *
+ * @return True is `x` is in range [`m`..`M`]
+ */
+#define IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
+
 typedef enum kstatus {
     K_STATUS_OKAY,
     K_ERROR_BUSY,
