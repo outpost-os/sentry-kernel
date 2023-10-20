@@ -27,10 +27,10 @@
 };
 
 &pll {
-	vco_divider = <1>;
-	vco_multiplier = <9>;
-	main_divider = <1>;
-	usb_divider = <3>;
+	vco_divider = <2>;
+	vco_multiplier = <144>;
+	main_divider = <2>;
+	usb_divider = <6>;
 	clocks = <&clk_hsi>;
 	status = "okay";
 };
@@ -43,7 +43,7 @@
 &rcc {
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(144)>;
-	bus-prescalers = <1>, <4>, <2>;
+	bus-prescalers = <0>, <2>, <1>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
 
