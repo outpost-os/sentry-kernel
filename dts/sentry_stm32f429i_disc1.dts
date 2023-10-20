@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2023,Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <st/f4/stm32f429Xi.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
+
+/{
+	chosen {
+		sentry,vtor_section = <&flash0>;
+		sentry,text_section = <&flash0>;
+		sentry,ram_section = <&sram1>;
+	};
+
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&pll {
+	vco_divider = <8>;
+	vco_multiplier = <144>;
+	main_divider = <2>;
+	usb_divider = <6>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&flash {
+	wait-state = <5>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(144)>;
+	bus-prescalers = <0>, <2>, <1>;
+	bus-names = "ahb", "apb1", "apb2";
+	status = "okay";
+
+	mco1 {
+		pinctrl-0 = <&rcc_mco1_pa8>;
+		clockout = <&pll>; /* XXX use reg value from svd */
+		prescaler = <5>;
+		status = "okay";
+	};
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+&gpiof {
+	status = "okay";
+};
+
+&gpiog {
+	status = "okay";
+};
+
+&pinctrl {
+	rcc_mco1_pa8: rcc_mco1_pa8  {
+		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	rcc_mco2_pc9: rcc_mco2_pc9 {
+		pinmux = <&gpioc 9 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};

@@ -21,6 +21,8 @@
 # define MAX_EXTI_GPIO_PORT  'J'
 #elif defined(CONFIG_ARCH_MCU_STM32F419)
 # define MAX_EXTI_GPIO_PORT 'I'
+#elif defined(CONFIG_ARCH_MCU_STM32F401)
+# define MAX_EXTI_GPIO_PORT 'H'
 #else
 # error "unsupported SoC EXTI configuration"
 #endif

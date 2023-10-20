@@ -46,6 +46,10 @@ typedef enum secure_bool {
 #define MBYTE (1024u*1024u)
 #define GBYTE (1024u*1024u*1024u)
 
+#define KILO 1000UL
+#define MEGA (1000UL * KILO)
+#define GIGA (1000UL * MEGA)
+
 #define MSEC_PER_SEC 1000UL
 #define USEC_PER_SEC 1000000UL
 
@@ -119,6 +123,28 @@ typedef unsigned long long  time_ms_t;
  * @param b scalar value (any numeric value)
  */
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
+/**
+ * @brief Helper that checks value range
+ *
+ * @param x scalar value to check
+ * @param m range lower bound (included)
+ * @param M range upper bound (included)
+ *
+ * @return True is `x` is in range [`m`..`M`]
+ */
+#define __IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
+
+/**
+ * @brief Helper that checks value range
+ *
+ * @param x scalar value to check
+ * @param R scalar value range define w/ @def RANGE
+ */
+#define IN_RANGE(x, R) __IN_RANGE(x,R)
+
+#define __RANGE(m,M) (m),(M)
+#define RANGE(m,M) __RANGE(m,M)
 
 typedef enum kstatus {
     K_STATUS_OKAY,
