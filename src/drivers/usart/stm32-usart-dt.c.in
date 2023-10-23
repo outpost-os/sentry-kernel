@@ -6,7 +6,18 @@
 #include "usart_defs.h"
 #include "stm32-usart-dt.h"
 
+
 {% set usart_ports = dts.get_compatible("st,stm32-usart") -%}
+
+{%- set debug_usart = dts.chosen["sentry,debug_stdout"] %}
+{%- if not debug_usart %}
+#error "sentry,debug_stdout not define in device tree, check your configuration"
+{%- elif debug_usart.status != "okay" %}
+#error "sentry,debug_stdout is disabled, check usart status property"
+{%- else %}
+#define DEBUG_USART {{ debug_usart.label.upper() }}_PORT_ID
+{%- endif %}
+
 
 /**
  * \brief .rodata field: list of current platform USART ports
@@ -31,5 +42,5 @@ static const stm32_usartport_desc_t stm32_usartports[] = {
  */
 const stm32_usartport_desc_t * stm32_usartport_get_desc(void)
 {
-    return &stm32_usartports[0];
+    return &stm32_usartports[DEBUG_USART];
 }

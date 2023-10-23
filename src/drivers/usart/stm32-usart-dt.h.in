@@ -14,10 +14,13 @@ typedef enum stm32_usart_id {
     {% for port in usart_ports -%}
     {% if port.status and port.status == "okay" -%}
     /** hardcoded ID, voluntary as kernel must have a single USART port for debug */
-    USART_PORT_ID,
+    {{ port.label.upper() }}_PORT_ID,
     {% endif -%}
     {% endfor %}
+    USART_INVALID_PORT_ID,
 } stm32_usart_id_t;
+
+static_assert(USART_INVALID_PORT_ID > 0, "Not any usart peripherals enabled, check your configuration");
 
 /*@
   logic boolean usartport_is_valid(uint32_t port) =
