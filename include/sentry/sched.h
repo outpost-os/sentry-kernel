@@ -2,10 +2,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
+ * @def no task label definition
+ *
+ * At early bootup, before any task is started (even idle), the scheduler returns
+ * a specially forged task label denoted 'babe'. This label is forbidden to user
+ * tasks and used to detect 'no task exists at all, still in MSP bootup'
+ */
+#define SCHED_NO_TASK_LABEL   0xbabeUL
+
+/**
+ * @def idle task label definition
+ *
+ * When no task of the user task set is schedulable, the idle task is the lonely
+ * task eligible. This special task is a dedicated thread that wfi() and yield()
+ * so that the core can enter SLEEP mode while no interrupt rise and all tasks
+ * are blocked (external event wait, sleep, etc.).
+ * The idle task has a dedicated label denoted 'cafe'. This label is forbidden
+ * to user tasks.
+ */
+#define SCHED_IDLE_TASK_LABEL 0xcafeUL
+
+/**
  * @file generic upper layer API for Sentry schedulers
  */
 
-kstatus_t sched_fifo_probe(void);
+kstatus_t sched_fifo_init(void);
 
 /**
  * @brief Add a task to the scheduler queue

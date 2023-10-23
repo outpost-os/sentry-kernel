@@ -2,6 +2,7 @@
 #include <uapi/handle.h>
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/sched.h>
 
 /**
  * @brief Currentky ready tasks queue
@@ -24,16 +25,36 @@ typedef struct sched_fifo_context {
 static sched_fifo_context_t sched_fifo_ctx;
 
 /**
- * Probbing FIFO scheduler
+ * Initialize FIFO scheduler
  */
-kstatus_t sched_fifo_probe(void)
+kstatus_t sched_fifo_init(void)
 {
-    /* FIFO scheduler context is set to 0 by bss zeroification */
+    taskh_t current = {
+        .rerun = 0,
+        .id = SCHED_NO_TASK_LABEL,
+        .familly = HANDLE_TASKID,
+    };
+    /* at startup, and without task, */
     sched_fifo_ctx.empty = true;
+    sched_fifo_ctx.current = current;
     return K_STATUS_OKAY;
 }
 
-static inline kstatus_t sched_fifo_push_task(taskh_t t)
+/**
+ * @brief enqueue a newly eligible task to the scheduler queue
+ *
+ * This function add a task to the FIFO queue. This function should be called
+ * exclusiverly in handler mode and is **not** reentrant. This should be the nominal
+ * usage of the scheduler in Sentry as scheduler manipulation is done in handler
+ * mode only.
+ *
+ * @param[in] t task handler to enqueue into the FIFO stack
+ *
+ * @return K_STATUS_OKAY when properly pushed. The K_SECURITY_INVSTATE is a
+ *   critical value as this means that there is more tasks than configured
+ *   in the kernel config at build time, which will lead to schedule problem.
+ */
+static inline kstatus_t sched_fifo_enqueue_task(taskh_t t)
 {
     kstatus_t status = K_SECURITY_INVSTATE;
     if (unlikely((sched_fifo_ctx.next_task == sched_fifo_ctx.end_of_queue) &&
@@ -51,12 +72,21 @@ err:
     return status;
 }
 
-static inline taskh_t sched_fifo_pop_task(void)
+/**
+ * @brief dequeue an eligible task from the FIFO scheduler
+ *
+ * get back the next eligible task from the FIFO scheduler. If no task is eligible,
+ * the function return the idle task handle.
+ *
+ * @return a valid task handle, include idle task specific task handle.
+ *
+ */
+static inline taskh_t sched_fifo_dequeue_task(void)
 {
     /* default task is idle */
     taskh_t t = {
         .rerun = 0,
-        .id = 0xcafe, /**< reserved label for idle */
+        .id = SCHED_IDLE_TASK_LABEL,
         .familly = HANDLE_TASKID,
     };
     if (likely(sched_fifo_ctx.empty == false)) {
@@ -73,12 +103,12 @@ static inline taskh_t sched_fifo_pop_task(void)
 
 kstatus_t sched_fifo_schedule(taskh_t t)
 {
-    return sched_fifo_push_task(t);
+    return sched_fifo_enqueue_task(t);
 }
 
 taskh_t sched_fifo_elect(void)
 {
-    return sched_fifo_pop_task();
+    return sched_fifo_dequeue_task();
 }
 
 taskh_t sched_fifo_get_current(void)
