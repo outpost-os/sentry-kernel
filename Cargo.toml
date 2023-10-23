@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "uapi",
     "include/uapi/types",
     ]
 resolver = "2"

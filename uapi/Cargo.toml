@@ -1,0 +1,15 @@
+[package]
+name = "uapi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+systypes = { path = "../include/uapi/types" }
+bitflags = { version = "2.4.0" }
+
+[features]
+default = []
+std = []

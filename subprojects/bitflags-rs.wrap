@@ -1,0 +1,10 @@
+[wrap-file]
+directory = bitflags-2.4.0
+source_url = https://crates.io/api/v1/crates/bitflags/2.4.0/download
+source_filename = bitflags-2.4.0.tar.gz
+source_hash = b4682ae6287fcf752ecaabbfcc7b6f9b72aa33933dc23a554d853aea8eea8635
+# method = cargo
+diff_files = bitflags-rs.meson.patch
+
+[provide]
+dependency_names = bitflags-rs

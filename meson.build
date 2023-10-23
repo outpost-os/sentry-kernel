@@ -113,6 +113,7 @@ sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 subdir('src')
 if kconfig_data.get('CONFIG_BUILD_RUST_MODULES', 0) == 1
 subdir('include/uapi')
+subdir('uapi')
 endif
 
 with_doc_opt = get_option('with_doc')
