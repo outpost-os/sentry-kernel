@@ -648,7 +648,6 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
  */
 /*@
     assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
-    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
     ensures \result == K_STATUS_OKAY;
  */
 kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
@@ -682,7 +681,6 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
  */
 /*@
     assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1ENR_REG) .. (RCC_BASE_ADDR + RCC_APB2ENR_REG));
-    assigns *(uint32_t*)((RCC_BASE_ADDR + RCC_AHB1LPENR_REG) .. (RCC_BASE_ADDR + RCC_APB2LPENR_REG));
     ensures \result == K_STATUS_OKAY;
  */
 kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
