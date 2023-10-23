@@ -134,6 +134,6 @@ taskh_t sched_fifo_get_current(void)
  * the currently selected (and compiled) scheduler source.
  */
 /* default scheduler is FIFO */
-kstatus_t schedule(taskh_t t) __attribute__((alias("sched_fifo_schedule")));
-taskh_t elect(void) __attribute__((alias("sched_fifo_elect")));
+kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_fifo_schedule")));
+taskh_t sched_elect(void) __attribute__((alias("sched_fifo_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_fifo_get_current")));

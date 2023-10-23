@@ -44,7 +44,7 @@ kstatus_t sched_fifo_init(void);
  *  as the scheduler table is configured based on the system max number of tasks
  *  defined at compile time.
  */
-kstatus_t schedule(taskh_t t);
+kstatus_t sched_schedule(taskh_t t);
 
 /**
  * @brief return the next eligible process dientified by its task handle
@@ -55,7 +55,7 @@ kstatus_t schedule(taskh_t t);
  *
  * @return the next eligible task, identified by its handle
  */
-taskh_t elect(void);
+taskh_t sched_elect(void);
 
 /**
  * @brief return the currently being executed task
