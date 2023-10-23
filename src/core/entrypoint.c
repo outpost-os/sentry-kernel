@@ -110,7 +110,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     rcc_enable_debug_clockout();
 #endif
 
-    usart_probe();
     mgr_debug_probe();
     printk("Starting Sentry kernel release %s\n", "v0.1");
     usart_tx("coucou\n",7);

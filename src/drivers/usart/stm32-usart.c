@@ -47,7 +47,6 @@ kstatus_t usart_probe(void)
     return status;
 }
 
-
 /**
  * @brief usart_enable - Enable the USART
  */
@@ -63,7 +62,6 @@ static kstatus_t usart_enable(void)
     iowrite32(usart_base + USART_CR1_REG, reg);
 	return status;
 }
-
 
 /**
  * @brief usart_disable - Disable the USART
@@ -137,10 +135,12 @@ kstatus_t usart_tx(uint8_t *data, size_t data_len)
     stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();
     size_t usart_base = usart_desc->base_addr;
     size_t reg;
+
+    usart_set_baudrate();
     usart_enable();
     /* M bit to 0 for 8 bits word length, nothing to do */
     /* stop bits to 1 by default, nothing to do */
-    usart_set_baudrate();
+
     /* set TE bit (transmission enable) */
     reg = ioread32(usart_base + USART_CR1_REG);
     reg |= USART_CR1_TE;
