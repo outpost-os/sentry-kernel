@@ -30,7 +30,7 @@ test(
     '-metrics',
     '-metrics-eva-cover',meson.global_build_root() / 'src/libsentry.a.p/stm32-rcc.c',
     '-then', framac_wp_opts,
-    '-wp-fct','rcc_probe,rcc_get_core_frequency,rcc_enable_apbx,rcc_disable_apbx,rcc_enable,rcc_disable,rcc_get_bus_clock',
+    '-wp-fct','rcc_probe,rcc_get_core_frequency,rcc_enable,rcc_disable,rcc_get_bus_clock',
     '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
     '-save',join_paths(meson.current_build_dir(), 'sentry-bsp-rcc.wp'),
     '-then',
