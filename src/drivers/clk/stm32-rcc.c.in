@@ -28,7 +28,7 @@
 #define HSI_STARTUP_TIMEOUT	(0x0500UL)
 #define PLL_STARTUP_TIMEOUT	(0x0500UL)
 
-#if defined(SOC_SUBFAMILY_STM32F4)
+#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
 /**
  * @brief stm32f4xx PLL and clocks range
  * @see: RM0368 Section 6 (stm32f401), RM0090 Section 6 (stm32f42xx/f43xx) & 7 (stm32f405/407/415/417)
