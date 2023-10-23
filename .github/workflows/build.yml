@@ -30,7 +30,7 @@ jobs:
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|12.3.Rel1' ]
-            config = [ 'stm32f4_debug' ]
+            config = [ 'stm32f429i_disc1' ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
