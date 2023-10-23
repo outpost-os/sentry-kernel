@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * \file PLL and Clock driver for STM32
- * support:
- * - STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
- * - STM32L4xx PLL & clock driver (see ST RM0351 datasheet)
+ * \file STM32F3xx and F4xx PLL & clock driver (see ST RM0090 datasheet)
  */
 #include <assert.h>
 
@@ -111,20 +108,8 @@ static_assert(IN_RANGE(RCC_PLL_VCO_IN_FREQUENCY, RCC_PLL_VCO_INPUT_FREQUENCY_RAN
 #define RCC_PLL_VCO_OUT_FREQUENCY {{ pll_vco_output_frequency|int }}UL
 static_assert(IN_RANGE(RCC_PLL_VCO_OUT_FREQUENCY, RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE), "VCO OUT frequency, check configuration");
 
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
-
 #define RCC_PLLCLK_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.main_divider)|int }}UL
 static_assert(RCC_PLLCLK_FREQUENCY <= RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX, "PLL output fequency out of range");
-
-#elif defined(CONFIG_SOC_SUBFAMILY_STM32L4)
-
-#define RCC_PLLCLK_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.main_divider)|int }}UL
-/* TODO define range per soc */
-static_assert(RCC_PLLCLK_FREQUENCY <= 80000000UL, "PLL output fequency out of range");
-
-#else
-# error "Unsupported SoC subfamily for this driver!"
-#endif
 
 #define RCC_PLLUSB_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.usb_divider)|int }}UL
 static_assert(RCC_PLLUSB_FREQUENCY <= RCC_PLL_USB_OUTPUT_FREQUENCY_MAX, "PLL USB output fequency out of range");
@@ -202,17 +187,16 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
     return status;
 }
 
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
-#define RCC_PLLCFGR_PLLM_SHIFT 0UL
-#define RCC_PLLCFGR_PLLM_MASK (RCC_PLLCFGR_PLLM0 | \
+#define RCC_PLLCFGR_M_SHIFT 0UL
+#define RCC_PLLCFGR_M_MASK (RCC_PLLCFGR_PLLM0 | \
                             RCC_PLLCFGR_PLLM1 | \
                             RCC_PLLCFGR_PLLM2 | \
                             RCC_PLLCFGR_PLLM3 | \
                             RCC_PLLCFGR_PLLM4 | \
                             RCC_PLLCFGR_PLLM5)
 
-#define RCC_PLLCFGR_PLLN_SHIFT (6UL)
-#define RCC_PLLCFGR_PLLN_MASK (RCC_PLLCFGR_PLLN0 | \
+#define RCC_PLLCFGR_N_SHIFT (6UL)
+#define RCC_PLLCFGR_N_MASK (RCC_PLLCFGR_PLLN0 | \
                             RCC_PLLCFGR_PLLN1 | \
                             RCC_PLLCFGR_PLLN2 | \
                             RCC_PLLCFGR_PLLN3 | \
@@ -222,11 +206,11 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
                             RCC_PLLCFGR_PLLN7 | \
                             RCC_PLLCFGR_PLLN8)
 
-#define RCC_PLLCFGR_PLLP_SHIFT (16UL)
-#define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP0 | RCC_PLLCFGR_PLLP1)
+#define RCC_PLLCFGR_P_SHIFT (16UL)
+#define RCC_PLLCFGR_P_MASK (RCC_PLLCFGR_PLLP0 | RCC_PLLCFGR_PLLP1)
 
-#define RCC_PLLCFGR_PLLQ_SHIFT (24UL)
-#define RCC_PLLCFGR_PLLQ_MASK (RCC_PLLCFGR_PLLQ0 | RCC_PLLCFGR_PLLQ1 | \
+#define RCC_PLLCFGR_Q_SHIFT (24UL)
+#define RCC_PLLCFGR_Q_MASK (RCC_PLLCFGR_PLLQ0 | RCC_PLLCFGR_PLLQ1 | \
                             RCC_PLLCFGR_PLLQ2 | RCC_PLLCFGR_PLLQ3)
 
 __STATIC_INLINE uint32_t rcc_pll_p_divider(void)
@@ -272,19 +256,10 @@ __STATIC_INLINE kstatus_t rcc_enable_pll(void)
 
     {%- if pll_clock_source == "clk_hse" %}
     /* hse as pll source */
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
     pllcfgr |= RCC_PLLCFGR_PLLSRC;
-#elif  defined(CONFIG_SOC_SUBFAMILY_STM32L4)
-    /* hse as input clock */
-    pllcfgr &= ~((0x3UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK);
-#endif
     {%- else %}
     /* hsi as pll source */
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
     pllcfgr &= ~(RCC_PLLCFGR_PLLSRC);
-#elif  defined(CONFIG_SOC_SUBFAMILY_STM32L4)
-    pllcfgr &= ~((0x2UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK);
-#endif
     {%- endif %}
 
     /* write pll configuration */
@@ -361,7 +336,7 @@ __STATIC_INLINE kstatus_t rcc_select_system_clock(void)
     kstatus_t status = K_STATUS_OKAY;
 
     rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
+
     /* previously clear corresponding bits */
     rcc_cfgr &= ~(RCC_CFGR_SW0 | RCC_CFGR_SW1);
 
@@ -374,22 +349,6 @@ __STATIC_INLINE kstatus_t rcc_select_system_clock(void)
     {%- else %}
     #error "clock source configuration error, please check your devicetree file"
     {%- endif %}
-#elif defined(CONFIG_SOC_SUBFAMILY_STM32L4)
-    /* previously clear corresponding bits */
-    rcc_cfgr &= ~(RCC_CFGR_SW_MASK);
-
-    {%- if rcc_clock_source.label == 'clk_msi' %}
-    clocksource = 0UL;
-    {%- elif rcc_clock_source.label == 'clk_hsi' %}
-    clocksource = 0x1UL;
-    {%- elif rcc_clock_source.label == 'clk_hse' %}
-    clocksource = 0x2UL;
-    {%- elif rcc_clock_source.label == 'pll' %}
-    clocksource = 0x3UL;;
-    {%- else %}
-    #error "clock source configuration error, please check your devicetree file"
-    {%- endif %}
-#endif
 
     rcc_cfgr |= clocksource;
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
@@ -513,11 +472,8 @@ kstatus_t rcc_probe(void)
     iowrite32(RCC_BASE_ADDR + RCC_CR_REG, reg);
 
     /* Reset all interrupts */
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
     iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
-#else
-    iowrite32(RCC_BASE_ADDR + RCC_CICR_REG, 0x0UL);
-#endif
+
     status = rcc_init_system_clk();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
@@ -651,13 +607,9 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 kstatus_t rcc_enable_apbx(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
     size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
     reg |= RCC_APB1ENR_PWREN;
     iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
-#else
-    /* TODO: function to remove entirely ? */
-#endif
     return status;
 }
 
@@ -671,13 +623,9 @@ kstatus_t rcc_enable_apbx(void)
 kstatus_t rcc_disable_apbx(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-#if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
     size_t reg = ioread32(RCC_BASE_ADDR + RCC_APB1ENR_REG);
     reg &= ~RCC_APB1ENR_PWREN;
     iowrite32(RCC_BASE_ADDR + RCC_APB1ENR_REG, reg);
-#else
-    /* TODO: function to remove entirely ? */
-#endif
     return status;
 }
 
