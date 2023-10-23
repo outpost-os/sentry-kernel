@@ -4,8 +4,9 @@
 #include <sentry/arch/asm-generic/membarriers.h>
 
 /**
- * Currentky ready tasks queue. Behave like a ring buffer to
- * avoid any memory move.
+ * @brief Currentky ready tasks queue
+ *
+ * Behave like a ring buffer to avoid any memory move.
  * Each time a task is ready (spawned, event received while not ready,
  * sleep time finished, etc.) it is pushed into the task queue, pushing
  * the 'end_of_queue' offset from one.
@@ -13,10 +14,11 @@
  * it is pop'ed and schedule, pushing the 'next_task' from one.
  */
 typedef struct sched_fifo_context {
-    taskh_t     tasks_queue[CONFIG_MAX_TASKS];
-    uint16_t    next_task;
-    uint16_t    end_of_queue;
-    bool        empty;
+    taskh_t     tasks_queue[CONFIG_MAX_TASKS]; /**< list of eligible user task of the task set */
+    uint16_t    next_task;     /**< next task offset in the RB */
+    uint16_t    end_of_queue;  /**< end of the RB */
+    bool        empty;         /**< RB empty flag */
+    taskh_t     current; /* current can be one of tasks_queue user task, or idle */
  } sched_fifo_context_t;
 
 static sched_fifo_context_t sched_fifo_ctx;
@@ -51,14 +53,20 @@ err:
 
 static inline taskh_t sched_fifo_pop_task(void)
 {
-    if (unlikely(sched_fifo_ctx.empty == true)) {
-        /* return idle */
+    /* default task is idle */
+    taskh_t t = {
+        .rerun = 0,
+        .id = 0xcafe, /**< reserved label for idle */
+        .familly = HANDLE_TASKID,
+    };
+    if (likely(sched_fifo_ctx.empty == false)) {
+        t = sched_fifo_ctx.tasks_queue[sched_fifo_ctx.next_task];
+        sched_fifo_ctx.next_task = (sched_fifo_ctx.next_task + 1) % CONFIG_MAX_TASKS;
+        if (sched_fifo_ctx.next_task == sched_fifo_ctx.end_of_queue) {
+            sched_fifo_ctx.empty = true;
+        }
     }
-    taskh_t t = sched_fifo_ctx.tasks_queue[sched_fifo_ctx.next_task];
-    sched_fifo_ctx.next_task = (sched_fifo_ctx.next_task + 1) % CONFIG_MAX_TASKS;
-    if (sched_fifo_ctx.next_task == sched_fifo_ctx.end_of_queue) {
-        sched_fifo_ctx.empty = true;
-    }
+    sched_fifo_ctx.current = t;
     request_data_membarrier();
     return t;
 }
@@ -71,6 +79,11 @@ kstatus_t sched_fifo_schedule(taskh_t t)
 taskh_t sched_fifo_elect(void)
 {
     return sched_fifo_pop_task();
+}
+
+taskh_t sched_fifo_get_current(void)
+{
+    return sched_fifo_ctx.current;
 }
 
 /*
@@ -93,3 +106,4 @@ taskh_t sched_fifo_elect(void)
 /* default scheduler is FIFO */
 kstatus_t schedule(taskh_t t) __attribute__((alias("sched_fifo_schedule")));
 taskh_t elect(void) __attribute__((alias("sched_fifo_elect")));
+taskh_t sched_get_current(void) __attribute__((alias("sched_fifo_get_current")));

@@ -5,6 +5,8 @@
  * @file generic upper layer API for Sentry schedulers
  */
 
+kstatus_t sched_fifo_probe(void);
+
 /**
  * @brief Add a task to the scheduler queue
  *
@@ -33,3 +35,19 @@ kstatus_t schedule(taskh_t t);
  * @return the next eligible task, identified by its handle
  */
 taskh_t elect(void);
+
+/**
+ * @brief return the currently being executed task
+ *
+ * This helper function is used in order to get back the currently
+ * being executed task when having only the stack pointer as reference
+ * (typically in handlers). This allows easier task manipulation and
+ * context saving in the task switching module.
+ * The scheduler do not handle the context switching but only delivers
+ * the policy to get the next task to execute or the currently executed task.
+ *
+ * The idle task taskh_t is { 0, 0xcafe, HANDLE_TASKID}
+ *
+ * @return the next task handle reference to execute. Can be idle task
+ */
+taskh_t sched_get_current(void);
