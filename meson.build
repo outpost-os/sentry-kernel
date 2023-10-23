@@ -1,7 +1,7 @@
 project('sentry-kernel', 'c','cpp',
+    # 'rust',    # TODO: uncomment when meson 1.3.0 is out
     meson_version: '>=1.1.0',
-    version: run_command('dunamai', 'from', 'git', '--style', 'semver', '--dirty', check: true).stdout().strip(),
-    default_options: ['c_std=gnu11', 'cpp_std=gnu++20', 'default_library=static', 'warning_level=2' ],
+    default_options: ['c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021', 'default_library=static', 'warning_level=2' ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
@@ -111,6 +111,9 @@ sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 
 # all sources are there, sentry source set is populated in each subdir
 subdir('src')
+if kconfig_data.get('CONFIG_BUILD_RUST_MODULES', 0) == 1
+subdir('include/uapi')
+endif
 
 with_doc_opt = get_option('with_doc')
 if with_doc_opt
@@ -161,10 +164,14 @@ sentry_elf = executable(
 )
 
 # TODO: Use an install hook instead of dummy target
+needs_wsl = []
+if build_machine.system() == 'windows'
+    needs_wsl = ['wsl']
+endif
 sentry_map = custom_target(
     input: sentry_elf,
     output: sentry_map_file,
-    command: ['touch', '@OUTPUT@'],
+    command: needs_wsl + ['touch', '@OUTPUT@'],
     build_by_default: true,
     install: true,
     install_dir: '',
