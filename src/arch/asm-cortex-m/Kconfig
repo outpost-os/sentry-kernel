@@ -87,6 +87,11 @@ config SOC_SUBFAMILY_STM32F42_3xx
 config SOC_SUBFAMILY_STM32L4
 	bool
 
+config SOC_SUBFAMILY_STM32L47_8x
+	bool
+	help
+	  "STM32L47x/L48x soc sub familly"
+
 config SOC_SUBFAMILY_STM32U5
 	bool
 
@@ -181,7 +186,6 @@ config ARCH_MCU_STM32F401
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
-	select HAS_RNG
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32F4
 
@@ -206,6 +210,7 @@ config ARCH_MCU_STM32L476
 	select HAS_ICACHE
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32L4
+	select SOC_SUBFAMILY_STM32L47_8x
 
 endchoice
 

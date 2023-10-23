@@ -91,7 +91,7 @@ __attribute__((noreturn)) void _entrypoint(void)
  *  Use a Kconfig selector to explicitly enable driver and rgn support
  *  maybe a DTS property for the 'chosen' entropy source.
  */
-#if !defined(CONFIG_ARCH_MCU_STM32F401)
+#if CONFIG_HAS_RNG
     uint32_t seed;
     rng_probe();
     rng_get(&seed);
