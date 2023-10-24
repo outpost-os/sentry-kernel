@@ -50,40 +50,6 @@
  */
 #define SCHED_IDLE_TASK_LABEL 0xcafeUL
 
-
-
-/** Basic signals that are handled at UAPI level. If more
-  complex signal handling is required, IPC with upper layer protocol
-  is needed.
-  These signal can be used in order to avoid any memory copy, only scheduling
-  the peer. The kernel guarantee that the signal is transmitted to the peer, but
-  not that the peer do check for it (it is under the peer implementation responsability
-  to handle a single blocking point with an input event blocking method that wait for,
-  at least, signals).
-  In IoT condition, these signals can be used for multiple usage while they keep the
-  initial POSIX scementic.
-  The standard POSIX USR1 and 2 signals are also defined to allow tasks to communicate
-  through these two signals for custom events
-  The userspace POSIX implementation of signals can be based on the sentry signal support,
-  to avoid IPC-based data transmission for most signal events. INFO: by now, no spawned sighandler
-  is supported, instead, a wait_for_event() call can be made in the main thread. Spawning
-  threads is complex and do consume a lot of memory.
-*/
-typedef enum signal {
-    SIGNAL_ABORT,   /**< Abort signal */
-    SIGNAL_ALARM,   /**< timer (from alarm) */
-    SIGNAL_BUS,     /**< bus error (bad memory access, memory required)*/
-    SIGNAL_CONT,    /**< continue if previously stopped */
-    SIGNAL_ILL,     /**< illegal instruction. Can be also used for upper protocols */
-    SIGNAL_IO,      /**< I/O now ready */
-    SIGNAL_PIPE,    /**< broken pipe */
-    SIGNAL_POLL,    /**< event pollable */
-    SIGNAL_TERM,    /**< termination signal. Can be used to stop an IPC stream for e.g. (remote process termination is not possible) */
-    SIGNAL_TRAP,    /**< trace/bp signal (debug usage )*/
-    SIGNAL_USR1,    /**< 1st user-defined signal */
-    SIGNAL_USR2,    /**< 2nd user-defined signal */
-} signal_t;
-
 typedef enum thread_state {
       THREAD_STATE_NOTSTARTED, /**< thread has not started yet. For not automatically started tasks */
       THREAD_STATE_READY,     /**< thread ready, wait for being scheduled */
@@ -99,6 +65,21 @@ typedef enum thread_state {
       THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
 } thread_state_t;
 
+/*@
+  logic boolean thread_state_is_valid(uint32_t thread_state) =
+    (
+        thread_state == THREAD_STATE_NOTSTARTED ||
+        thread_state == THREAD_STATE_READY ||
+        thread_state == THREAD_STATE_SLEEPING ||
+        thread_state == THREAD_STATE_SLEEPING_DEEP ||
+        thread_state == THREAD_STATE_FAULT ||
+        thread_state == THREAD_STATE_SECURITY ||
+        thread_state == THREAD_STATE_ABORTING ||
+        thread_state == THREAD_STATE_FINISHED ||
+        thread_state == THREAD_STATE_IPC_SEND_BLOCKED ||
+        thread_state == THREAD_STATE_IPC_SIG_RECV_BLOCKED
+    );
+*/
 
 /**
  * This is the main task structure manipulated by the kernel. Each task build (ELF generation)
@@ -183,11 +164,15 @@ kstatus_t task_watchdog(void);
 
 void task_initialize_sp(size_t sp, size_t pc);
 
-stack_frame_t *task_get_sp(taskh_t t);
+kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp);
+
+kstatus_t task_get_state(taskh_t t, thread_state_t *state);
+
+kstatus_t task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
 
 kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp);
 
-const task_meta_t *task_get_metadata(taskh_t t);
+kstatus_t task_set_state(taskh_t t, thread_state_t state);
 
 secure_bool_t task_is_idletask(taskh_t t);
 

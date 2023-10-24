@@ -126,16 +126,37 @@ end:
  *
  * binary search on task_table
  */
-stack_frame_t *task_get_sp(taskh_t t)
+kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp)
 {
-    stack_frame_t *sp = NULL;
+    kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
-    if (unlikely(tsk == NULL)) {
+    if (unlikely(tsk == NULL || sp == NULL)) {
         goto end;
     }
-    sp = tsk->sp;
+    *sp = tsk->sp;
+    status = K_STATUS_OKAY;
 end:
-    return sp;
+    return status;
+}
+
+/**
+ * @fn given a task handler, return the corresponding stack frame pointer
+ *
+ * binary search on task_table
+ */
+kstatus_t task_get_state(taskh_t t, thread_state_t *state)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    stack_frame_t *sp = NULL;
+    task_t * tsk = task_get_from_handle(t);
+    if (unlikely(tsk == NULL || state == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(state); */
+    *state = tsk->state;
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /**
@@ -145,11 +166,27 @@ kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
-    if (unlikely(tsk == NULL)) {
+    if (unlikely(tsk == NULL || newsp == NULL)) {
         goto end;
     }
     /** TODO: adding security sanitation here ? or elsewhere ? */
     tsk->sp = newsp;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/*@
+    requires thread_state_is_valid(state) == \true;
+  */
+kstatus_t task_set_state(taskh_t t, thread_state_t state)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(t);
+    if (unlikely(tsk == NULL)) {
+        goto end;
+    }
+    tsk->state = state;
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -169,17 +206,19 @@ secure_bool_t task_is_idletask(taskh_t t)
  *
  * The lonely writter of
  */
-const task_meta_t *task_get_metadata(taskh_t t)
+kstatus_t task_get_metadata(taskh_t t, const task_meta_t **tsk_meta)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
     task_meta_t const *meta = NULL;
     task_t * tsk = task_get_from_handle(t);
-    if (unlikely(tsk == NULL)) {
+    if (unlikely(tsk == NULL || tsk_meta == NULL)) {
         goto end;
     }
-    meta = tsk->metadata;
+    /*@ assert \valid(tsk_meta); */
+    *tsk_meta = tsk->metadata;
+    status = K_STATUS_OKAY;
 end:
-    return meta;
-
+    return status;
 }
 
 /*
