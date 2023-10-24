@@ -48,6 +48,7 @@ config DTS_FILE
 
 config BUILD_RUST_MODULES
 	bool "Build Rust code"
+	default n
 	help
 		no_std Rust code needs Meson 1.3.0 to be built
 

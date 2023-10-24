@@ -1,5 +1,4 @@
 project('sentry-kernel', 'c','cpp',
-    # 'rust',    # TODO: uncomment when meson 1.3.0 is out
     meson_version: '>=1.1.0',
     default_options: ['c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021', 'default_library=static', 'warning_level=2' ],
     license: 'Apache-2.0',
@@ -112,6 +111,7 @@ sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 # all sources are there, sentry source set is populated in each subdir
 subdir('src')
 if kconfig_data.get('CONFIG_BUILD_RUST_MODULES', 0) == 1
+add_languages('rust', native: false)
 subdir('include/uapi')
 subdir('uapi')
 endif
