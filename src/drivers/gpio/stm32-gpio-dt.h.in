@@ -17,6 +17,8 @@ typedef enum stm32_gpio_id {
     {{ port.label.upper() }}_PORT_ID,
     {% endif -%}
     {% endfor %}
+
+    GPIO_INVALID_PORT_ID
 } stm32_gpio_id_t;
 
 /*@
