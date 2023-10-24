@@ -3,5 +3,7 @@
 
 # main kernel-relative content
 sentry_source_set.add(files(
-  'task.c',
+  'task_init.c',
+  'task_core.c',
+  'task_idle.c',
 ))

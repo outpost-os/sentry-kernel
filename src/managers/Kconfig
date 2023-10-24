@@ -2,6 +2,15 @@ menu "Managers"
 
 menu "Task manager"
 
+config TASK_MAGIC_VALUE
+	hex "task magic value number"
+	default 0xdeadcafe
+	help
+	  Default tasks magic number value to be set for all
+	  tasks. this value is specific to each project so
+	  that when building tasks for a given project, only these
+	  tasks can be added to the kernel bin
+
 config MAX_DEV_PER_TASK
 	int "max devices per task"
 	range 0 8

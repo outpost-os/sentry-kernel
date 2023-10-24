@@ -26,7 +26,7 @@ typedef struct stack_frame {
 static_assert(sizeof(stack_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
 
 
-static inline void __thread_init_stack_context(size_t sp, size_t pc)
+static inline stack_frame_t *__thread_init_stack_context(size_t sp, size_t pc)
 {
     stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
     frame->r0 = 0x0;
@@ -48,7 +48,7 @@ static inline void __thread_init_stack_context(size_t sp, size_t pc)
 #else
     frame->lr = EXC_RETURN_THREAD_PSP;
 #endif
-    return;
+    return frame;
 }
 
 #endif/*__THREAD_H_*/

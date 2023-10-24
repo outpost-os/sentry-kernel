@@ -65,6 +65,14 @@ typedef enum thread_state {
       THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
 } thread_state_t;
 
+typedef enum thread_flags {
+    THREAD_FLAG_AUTOSTART     = 0x0001UL,
+    THREAD_FLAG_RESTARTONEXIT = 0x0002UL,
+    THREAD_FLAG_PANICONEXIT   = 0x0004UL,
+} thread_flags_t;
+
+
+
 /*@
   logic boolean thread_state_is_valid(uint32_t thread_state) =
     (
@@ -99,10 +107,11 @@ typedef struct task_meta {
      */
     uint64_t        magic;         /**< task structure magic number */
     uint32_t        version;       /**< structure version, may vary based on SDK version */
-    taskh_t         handle;            /**< task identifier (see handle.h, starting with rerun=0) */
+    taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
-    uint32_t        permissions;   /**< TBD(storage): task permission mask */
+    uint32_t        capabilities;  /**< TBD(storage): task permission mask */
+    thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
      * Memory mapping information, used for context switching and MPU configuration
@@ -112,7 +121,10 @@ typedef struct task_meta {
     size_t          s_rodata;         /**< start address of .data section */
     size_t          rodata_size;      /**< text section size */
     size_t          s_data;           /**< start address of .data section */
+    size_t          s_vma_data;       /**< start address of .data section in SRAM */
     size_t          data_size;        /**< text section size */
+    size_t          s_bss;            /**< start address of .bss is SRAM */
+    size_t          bss_size;         /**< bss size in SRAM */
     uint16_t        main_offset;      /**< offset of main() in text section */
     size_t          stack_top;        /**< main thread stack top address */
     uint16_t        stack_size;       /**< main thtrad stack size */
@@ -162,7 +174,9 @@ kstatus_t task_watchdog(void);
  * About module specific API
  */
 
-void task_initialize_sp(size_t sp, size_t pc);
+stack_frame_t *task_initialize_sp(size_t sp, size_t pc);
+
+uint16_t task_get_num(void);
 
 kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp);
 
