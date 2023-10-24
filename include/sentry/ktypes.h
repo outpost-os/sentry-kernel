@@ -160,6 +160,7 @@ typedef enum kstatus {
     K_SECURITY_CORRUPTION,
     K_SECURITY_LOCKDOWN,
     K_SECURITY_FIPSCOMPLIANCE,
+    K_SECURITY_INTEGRITY,
 } kstatus_t;
 
 #endif/*KTYPES_H*/

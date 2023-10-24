@@ -13,6 +13,7 @@
 #include <sentry/dma.h>
 #include <sentry/ipc.h>
 #include <sentry/signal.h>
+#include <sentry/ktypes.h>
 
 /**
  * \file sentry kernel generic types
@@ -89,13 +90,13 @@ typedef enum thread_state {
  * so that it can be easily dumped by python tooling, and also pushed into the kernel image
  * in a dedicated task list section where all tasks info are stored.
  */
-typedef struct task {
+typedef struct task_meta {
     /**
      * Task and struct identification part
      */
     uint64_t        magic;         /**< task structure magic number */
     uint32_t        version;       /**< structure version, may vary based on SDK version */
-    taskh_t         id;            /**< task identifier (see handle.h, starting with rerun=0) */
+    taskh_t         handle;            /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
     uint32_t        permissions;   /**< TBD(storage): task permission mask */
@@ -136,31 +137,7 @@ typedef struct task {
                                             pre- and post- phases may be affected.
                                              */
 
-    /*
-     * Task context information, these fields store dynamic values, such as current
-     * task frame, current received ipc or signal events from others, etc.
-     * Only fully sched-relative infos (current quantum) are not stored in the task
-     * structure but directly in the scheduler context, when the scheduler do support
-     * such model (quantum-based).
-     */
 
-    /* about contexts */
-    thread_state_t   state;         /**< current task state */
-    stack_frame_t   *sp;        /**< current process lonely thread stack context */
-    /* about events */
-    ipc_context_t   ipc_events; /**<
-                                Each task only has one IPC context (only blocking IPC supported).
-                                When sending IPC, the thread is preempted and wait for the other
-                                to read for its IPC content (no double user/kernel copy, only
-                                user-to-user blob) ensured by disabled reentrancy in kernel.
-                                The context hold only, for a given task, the info indicating if
-                                there is an IPC received and its effective size.
-                                When impacting the thread state (blocking IPC, the state falg
-                                is used)
-                                */
-    signal_context_t signal_events; /**< incomming signal if received, storing signal type and
-                                        source identifier
-                                    */
     /*
      * Security part: the structure itself and the associated task memory
      * is checked using HMAC, based on a private key used at production time and
@@ -168,8 +145,26 @@ typedef struct task {
      */
     uint8_t         task_hmac[32]; /**< task .text+.rodata+.data build time hmac calculation (TBD)*/
     uint8_t         metadata_hmac[32]; /**< current struct build time hmac calculation */
-} task_t;
+} task_meta_t;
 
-void initialize_stack_context(size_t sp, size_t pc);
+/*
+ * About main module standardly defined functions (init, watchdog....)
+ */
+
+kstatus_t task_init(void);
+
+kstatus_t task_watchdog(void);
+
+/*
+ * About module specific API
+ */
+
+void task_initialize_sp(size_t sp, size_t pc);
+
+stack_frame_t *task_get_sp(taskh_t t);
+
+kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp);
+
+const task_meta_t *task_get_metadata(taskh_t t);
 
 #endif/*TASK_H*/

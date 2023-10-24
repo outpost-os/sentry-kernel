@@ -46,6 +46,8 @@ SECTIONS
     .task_list :
     {
         _task_list = .;
+        *(.task_list.num)
+        . = ALIGN(4);
         *(.task_list)
         . = ALIGN(4);
         /*
