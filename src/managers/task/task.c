@@ -81,8 +81,13 @@ typedef struct task {
  * contains all dynamic content of tasks (current sp, state...)
  * This table is sorted based on the task label (taskh_t id field) for binary search.
  * task metadata table may not.
+ * This table also hold the IDLE task context, which is not a task that has been forged from
+ * the upper metadata info but is a kernel local unprivilegied thread, yet holding a
+ * specific task handle (i.e. with 0xCAFE mabel). Idle task has no metadata as it doesn't
+ * hold any ressource (dev, shm, dma...), any capability, neither heap content or nothing,
+ * but instead just do { while(1) { wfi(); yield(); }}.
  */
-static task_t task_table[CONFIG_MAX_TASKS];
+static task_t task_table[CONFIG_MAX_TASKS+1];
 
 static inline task_t *task_get_from_handle(taskh_t h)
 {
@@ -148,6 +153,15 @@ kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp)
     status = K_STATUS_OKAY;
 end:
     return status;
+}
+
+secure_bool_t task_is_idletask(taskh_t t)
+{
+    secure_bool_t res = SECURE_FALSE;
+    if (t.id == SCHED_IDLE_TASK_LABEL) {
+        res = SECURE_TRUE;
+    }
+    return res;
 }
 
 /**
