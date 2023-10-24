@@ -1,0 +1,15 @@
+--- /dev/null	2023-04-07 10:13:11.878000303 +0300
++++ bitflags-2.4.0/meson.build	2023-04-14 20:49:52.206619014 +0300
+@@ -0,0 +1,12 @@
++project('bitflags-rs', 'rust',
++  version : '2.4.0',
++  meson_version : '>= 1.0.0',
++)
++
++rustc = meson.get_compiler('rust')
++
++bitflags = static_library('bitflags', 'src/lib.rs')
++
++bitflags_dep = declare_dependency(link_with : bitflags)
++meson.override_dependency('bitflags-rs', bitflags_dep)
++
