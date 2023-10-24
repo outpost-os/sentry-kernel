@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 #include <sentry/arch/asm-cortex-m/buses.h>
+#include <bsp/drivers/gpio/pinctrl.h>
 
 {% set usart_ports = dts.get_compatible("st,stm32-usart") -%}
 
@@ -46,6 +47,8 @@ typedef struct stm32_usartport_dec {
     uint32_t base_addr; /**< IP base address */
     bus_id_t bus_id;    /**< Peripheral bus ID */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
+    const gpio_pinctrl_desc_t *const pinctrl_tbl;
+    size_t pinctrl_tbl_size;
 } stm32_usartport_desc_t;
 
 const stm32_usartport_desc_t * stm32_usartport_get_desc(void);

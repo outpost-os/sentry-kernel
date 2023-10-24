@@ -23,19 +23,24 @@
 #include "usart_defs.h"
 #include "stm32-usart-dt.h"
 
+static kstatus_t usart_set_baudrate(void);
+
 kstatus_t usart_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     stm32_usartport_desc_t const * usart_desc = stm32_usartport_get_desc();
-    gpio_probe(1);
-    gpio_set_mode(1, 6, GPIOx_MODE_OUT);
-    gpio_set_pull_mode(1, 6, GPIOx_NOPULL);
-    gpio_set_type(1, 6, GPIOx_TYPE_PPULL);
-    gpio_set_speed(1, 6, GPIOx_SPEED_VERY_HIGH);
-    gpio_set_af(1, 6, GPIOx_AF_7);
-
+    size_t pin;
     size_t usart_base = usart_desc->base_addr;
+
     rcc_enable(usart_desc->bus_id, usart_desc->clk_msk, RCC_NOFLAG);
+
+    for (pin = 0; pin < usart_desc->pinctrl_tbl_size; pin++) {
+        status = gpio_pinctrl_configure(usart_desc->pinctrl_tbl[pin]);
+        if (unlikely(status != K_STATUS_OKAY)) {
+            goto ret;
+        }
+    }
+
     /* standard 8n1 config is set with 0 value, FIXME: what about TIE interrupt ? */
     iowrite32(usart_base + USART_CR1_REG, 0x0UL);
     /* sandard 8n1 config is set with 0 value in CR2 too */
@@ -43,7 +48,7 @@ kstatus_t usart_probe(void)
     /* no smartcard, no IrDA, no DMA, no HW flow ctrl */
     iowrite32(usart_base + USART_CR3_REG, 0x0UL);
 
-    /* usart set & clocked but kept disabled, bus enabled managed by tx function */
+ret:
     return status;
 }
 
@@ -138,6 +143,7 @@ kstatus_t usart_tx(uint8_t *data, size_t data_len)
 
     usart_set_baudrate();
     usart_enable();
+
     /* M bit to 0 for 8 bits word length, nothing to do */
     /* stop bits to 1 by default, nothing to do */
 
