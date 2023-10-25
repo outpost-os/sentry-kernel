@@ -33,7 +33,7 @@
 #define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP)
 
 /* in L4 familly CIR register is denoted CICR (interrupt clear register)*/
-#define RCC_CIC_REG RCC_CICR_REG
+#define RCC_CIR_REG RCC_CICR_REG
 
 kstatus_t rcc_select_system_clock(void);
 

@@ -135,8 +135,7 @@ kstatus_t rcc_enable_debug_clockout(void)
     {%- set mcos = [dts.rcc.mco] %}
     {%- for mco in mcos %}
     {%- if mco is defined and mco.status == "okay" %}
-    {%- set mco_name = mco.name.upper() %}
-    /* Configuring {{ mco_name }} */
+    /* Configuring MCO */
     prescaler = {{ mco.prescaler }};
     rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
 
@@ -153,9 +152,9 @@ kstatus_t rcc_enable_debug_clockout(void)
      * As we use these as clock debugging feature and **not** for clock sharing with other device(s)
      * we do not care about any glitches on mco lines.
      */
-    rcc_cfgr &= ~(RCC_CFGR_{{ mco_name }}_MASK | RCC_CFGR_{{ mco_name }}PRE_MASK);
-    rcc_cfgr |= (prescaler << RCC_CFGR_{{ mco_name }}PRE_SHIFT) & RCC_CFGR_{{ mco_name }}PRE_MASK;
-    rcc_cfgr |= ({{ mco_clk_in[loop.index - 1][mco.clockout.label] }} << RCC_CFGR_{{ mco_name }}_SHIFT) & RCC_CFGR_{{ mco_name }}_MASK;
+    rcc_cfgr &= ~(RCC_CFGR_MCOSEL_MASK | RCC_CFGR_MCOPRE_MASK);
+    rcc_cfgr |= (prescaler << RCC_CFGR_MCOPRE_SHIFT) & RCC_CFGR_MCOPRE_MASK;
+    rcc_cfgr |= ({{ mco_clk_in[loop.index - 1][mco.clockout.label] }} << RCC_CFGR_MCOSEL_SHIFT) & RCC_CFGR_MCOSEL_MASK;
 
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
 
