@@ -44,6 +44,9 @@ config BIG_ENDIAN
 config HAS_DWT
 	bool
 
+config HAS_RNG
+	bool
+
 config HAS_FLASH_DUAL_BANK
 	bool
 
@@ -81,6 +84,14 @@ config SOC_SUBFAMILY_STM32F42_3xx
 	help
 	  "STM32F427/F429/F437/F439 soc sub familly"
 
+config SOC_SUBFAMILY_STM32L4
+	bool
+
+config SOC_SUBFAMILY_STM32L47_8x
+	bool
+	help
+	  "STM32L47x/L48x soc sub familly"
+
 config SOC_SUBFAMILY_STM32U5
 	bool
 
@@ -94,6 +105,7 @@ config ARCH_ARM_CORTEX_NAME
 	default "m4" if ARCH_MCU_STM32F439
 	default "m4" if ARCH_MCU_STM32F429
 	default "m4" if ARCH_MCU_STM32F419
+	default "m4" if ARCH_MCU_STM32L476
 	default "m33" if ARCH_MCU_STM32U5
 
 config ARCH_SOCNAME
@@ -104,6 +116,7 @@ config ARCH_SOCNAME
 	default "STM32F419" if ARCH_MCU_STM32F419
 	default "STM32F429" if ARCH_MCU_STM32F429
 	default "STM32F439" if ARCH_MCU_STM32F439
+	default "STM32L476" if ARCH_MCU_STM32L476
 	default "STM32U5" if ARCH_MCU_STM32U5
 
 # User-accessible selectors
@@ -120,6 +133,7 @@ config ARCH_MCU_STM32U5
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_FPV5
+	select HAS_RNG
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32U5
 
@@ -131,6 +145,7 @@ config ARCH_MCU_STM32F439
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select HAS_RNG
 	select HAS_FLASH_DUAL_BANK
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32F4
@@ -144,6 +159,7 @@ config ARCH_MCU_STM32F429
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select HAS_RNG
 	select HAS_FLASH_DUAL_BANK
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32F4
@@ -157,6 +173,7 @@ config ARCH_MCU_STM32F407
 	select HAS_ICACHE
 	select HAS_FPU
 	select HAS_FPU_VFPV4
+	select HAS_RNG
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32F4
 	select SOC_SUBFAMILY_STM32F4x5_7
@@ -182,6 +199,18 @@ config ARCH_MCU_STM32WB55
 	select HAS_FPU_VFPV4
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32WB
+
+config ARCH_MCU_STM32L476
+	bool "STM32L476"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV7M
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32L4
+	select SOC_SUBFAMILY_STM32L47_8x
 
 endchoice
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+ # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 # private driver headers for current Clock IP. This include PLL control and power headers
@@ -15,9 +15,39 @@ rcc_h = custom_target('gen_rcc',
 )
 sentry_source_set.add(rcc_h.to_list())
 
+if kconfig_data.get('CONFIG_SOC_FAMILY_STM32', 0) == 1
+stm32_rcc_c_template = files('stm32-rcc.c.in')
+stm32_rcc_h_template = files('stm32-rcc.h.in')
+
+stm32_rcc_c = dtsgen.process(stm32_rcc_c_template)
+stm32_rcc_h = dtsgen.process(stm32_rcc_h_template)
+
+sentry_private_gen_source_set.add(stm32_rcc_c)
+sentry_private_gen_header_set.add(stm32_rcc_h)
+endif
+
+# per subfamilly RCC additions
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
 stm32f4_rcc_c_template = files('stm32f4-rcc.c.in')
+stm32f4_rcc_h_template = files('stm32f4-rcc.h.in')
+
 stm32f4_rcc_c = dtsgen.process(stm32f4_rcc_c_template)
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: stm32f4_rcc_c)
+stm32f4_rcc_h = dtsgen.process(stm32f4_rcc_h_template)
+
+sentry_private_gen_source_set.add(stm32f4_rcc_c)
+sentry_private_gen_header_set.add(stm32f4_rcc_h)
+endif
+
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32L4', 0) == 1
+stm32l4_rcc_c_template = files('stm32l4-rcc.c.in')
+stm32l4_rcc_h_template = files('stm32l4-rcc.h.in')
+
+stm32l4_rcc_c = dtsgen.process(stm32l4_rcc_c_template)
+stm32l4_rcc_h = dtsgen.process(stm32l4_rcc_h_template)
+
+sentry_private_gen_source_set.add(stm32l4_rcc_c)
+sentry_private_gen_header_set.add(stm32l4_rcc_h)
+endif
 
 pwr_h = custom_target('gen_pwr',
     input: peripheral_defs_in,
@@ -28,4 +58,4 @@ pwr_h = custom_target('gen_pwr',
 sentry_source_set.add(pwr_h.to_list())
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-pwr.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-pwr.c'))

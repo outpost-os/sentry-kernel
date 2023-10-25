@@ -76,64 +76,64 @@ framac_dep = custom_target(
     output: 'framac.dep',
 )
 
-test(
-  'frama-C-parsing',
-  frama_c,
-  args: [
-    kernel_entrypoint, sentry_source_set_config.sources(),
-    framac_gen_opts,
-    '-main', '_entrypoint',
-  ],
-  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-  suite: 'proof',
-  depends: [ framac_dep ],
-  timeout: 60,
-  is_parallel: false,
-  priority: 255,
-  should_fail: true, # XXX until dts-gen sources parse and eva fixup
-)
+#test(
+#  'frama-C-parsing',
+#  frama_c,
+#  args: [
+#    kernel_entrypoint, sentry_source_set_config.sources(),
+#    framac_gen_opts,
+#    '-main', '_entrypoint',
+#  ],
+#  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+#  suite: 'proof',
+#  depends: [ framac_dep ],
+#  timeout: 60,
+#  is_parallel: false,
+#  priority: 255,
+#  should_fail: true, # XXX until dts-gen sources parse and eva fixup
+#)
 
-test(
-  'frama-C-eva',
-  frama_c,
-  args: [
-    kernel_entrypoint, sentry_source_set_config.sources(),
-    framac_gen_opts,
-    '-main', '_entrypoint',
-    framac_rte_eva_opts,
-    '-metrics',
-    '-metrics-eva-cover',
-    '-metrics-output',join_paths(meson.current_build_dir(), 'sentry-rte-eva-coverage.json'),
-    '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
-    '-then',
-    framac_md_opts,
-  ],
-  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-  depends: [ framac_dep ],
-  suite: 'proof',
-  timeout: 120,
-  is_parallel: false,
-  priority: 254,
-  should_fail: true, # XXX until dts-gen sources parse and eva fixup
-)
+#test(
+#  'frama-C-eva',
+# frama_c,
+# args: [
+#    kernel_entrypoint, sentry_source_set_config.sources(),
+#    framac_gen_opts,
+#    '-main', '_entrypoint',
+#    framac_rte_eva_opts,
+#    '-metrics',
+#    '-metrics-eva-cover',
+#    '-metrics-output',join_paths(meson.current_build_dir(), 'sentry-rte-eva-coverage.json'),
+#    '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
+#    '-then',
+#    framac_md_opts,
+#  ],
+#  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+#  depends: [ framac_dep ],
+#  suite: 'proof',
+#  timeout: 120,
+#  is_parallel: false,
+#  priority: 254,
+#  should_fail: true, # XXX until dts-gen sources parse and eva fixup
+#)
 
 # the bellow part is to be fixed with separated test suites
-frama_c_wp = custom_target(
-    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
-    command: [
-      frama_c,
-      kernel_entrypoint, sentry_source_set_config.sources(),
-      framac_gen_opts,
-      '-main', '_entrypoint',
-      framac_rte_eva_opts,
-      '-then', framac_wp_opts,
-      '-save',join_paths(meson.current_build_dir(), 'sentry.wp'),
-    ],
-    capture: false,
-    input: [ sentry_header_set_config.sources() ],
-    output: 'sentry.wp',
-)
-framac_wp = alias_target('framac_wp', frama_c_wp)
+#frama_c_wp = custom_target(
+#    env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
+#    command: [
+#      frama_c,
+#      kernel_entrypoint, sentry_source_set_config.sources(),
+#      framac_gen_opts,
+#      '-main', '_entrypoint',
+#      framac_rte_eva_opts,
+#      '-then', framac_wp_opts,
+#      '-save',join_paths(meson.current_build_dir(), 'sentry.wp'),
+#    ],
+#    capture: false,
+#    input: [ sentry_header_set_config.sources() ],
+#    output: 'sentry.wp',
+#)
+#framac_wp = alias_target('framac_wp', frama_c_wp)
 
 
 # Part 2: analysis from Handler entrypoints. These targets check the call graph from

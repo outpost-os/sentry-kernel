@@ -45,9 +45,11 @@ core_h = custom_target('gen_core',
 # that, the input jinja template is selected depending on the configured SOC
 # familly or subfamilly
 buses_h_in_set = ssmod.source_set()
-buses_h_in_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-buses.h.in'))
+buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-buses.h.in'))
+buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32l4-buses.h.in'))
 # here, we can add other templates for other ARM SoC famillies if needed
 buses_h_in_set_config = buses_h_in_set.apply(kconfig_data, strict: false)
+
 
 buses_h = custom_target('gen_buses',
     input: buses_h_in_set_config.sources(),

@@ -50,21 +50,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     systick_init();
 #endif
 
-#if 0
-// TODO
-    /*
-     * enable usleep(). Needs to be reexecuted after
-     * core frequency upda to upgrade the usleep cycle per USEC_PER_SEC
-     * calculation
-     */
-    perfo_init();
-
-    clock_init();
-
-
-
-    /* About CM7 clocking. TBD in IMX8MP (dunno companion mode model)*/
-#endif
 
 #if CONFIG_USE_SSP
     /* TODO initialize SSP with random seed */
@@ -106,12 +91,11 @@ __attribute__((noreturn)) void _entrypoint(void)
  *  Use a Kconfig selector to explicitly enable driver and rgn support
  *  maybe a DTS property for the 'chosen' entropy source.
  */
-#if !defined(CONFIG_ARCH_MCU_STM32F401)
+#if CONFIG_HAS_RNG
     uint32_t seed;
     rng_probe();
     rng_get(&seed);
 #endif
-
     do {
         asm volatile("wfi");
     } while (1);

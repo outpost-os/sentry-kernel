@@ -1,0 +1,43 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef RCC_STM32L4_H
+#define RCC_STM32L4_H
+
+#ifndef CONFIG_SOC_SUBFAMILY_STM32L4
+#error "this header should not be included in SoCs others than STM32L4 familly"
+#endif
+
+/**
+ * @brief stm32l47x PLL and clocks range
+ * @see: RM0351 Section 6 (stm32l47x and stm32l49x)
+ */
+#define RCC_PLL_VCO_DIVIDER_RANGE RANGE(1,8)
+#define RCC_PLL_VCO_INPUT_FREQUENCY_RANGE RANGE(4*MEGA, 16*MEGA)
+#define RCC_PLL_USB_DIVIDER_RANGE RANGE(2,8)
+#define RCC_PLL_SYSCLK_DIVIDER_RANGE RANGE(1,8)
+#define RCC_PLL_AHB_PRESCALER_RANGE RANGE(0,9)
+#define RCC_PLL_APB_PRESCALER_RANGE RANGE(0,4)
+#define RCC_PLL_USB_OUTPUT_FREQUENCY_MAX 48*MEGA
+
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L47_8x)
+# define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(8,86)
+# define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(64*MEGA,344*MEGA)
+# define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 80*MEGA
+# define RCC_APB1_BUS_FREQUENCY_MAX 80*MEGA
+# define RCC_APB2_BUS_FREQUENCY_MAX 80*MEGA
+# define RCC_SYSCLOCK_FREQUENCY_MAX 80*MEGA
+#endif
+
+#define RCC_PLLCFGR_PLLP_SHIFT (17UL)
+#define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP)
+
+/* in L4 familly CIR register is denoted CICR (interrupt clear register)*/
+#define RCC_CIR_REG RCC_CICR_REG
+
+kstatus_t rcc_select_system_clock(void);
+
+kstatus_t rcc_enable_pll(void);
+
+
+#endif/*RCC_STM32L4_H*/

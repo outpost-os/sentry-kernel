@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * Copyright 2023 Ledger SAS
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * XXX:
+ *  !!!! Generated header, DO NOT EDIT !!!!
+ */
+
+#ifndef BUSES_H
+#define BUSES_H
+
+#include <dt-bindings/clock/{{ name[:-2].lower() }}_clock.h>
+
+{% set peripheral = (peripherals|selectattr('groupName', 'eq', 'RCC')|first) or (peripherals|selectattr('name', 'eq', NAME)|first) -%}
+
+/**
+ * @brief list of platform bused.
+ * Based on the {{ NAME }} device register naming.
+ * This template works for all STM32F4 SoCs
+ */
+typedef enum bus_identifier {
+    {% for register in peripheral.registers -%}
+    {% if register.name.endswith('LPENR') -%}
+    BUS_{{register.name[0:4]}} = STM32_CLOCK_BUS_{{register.name[0:4]}},
+    {% endif -%}
+    {% endfor -%}
+} bus_id_t;
+
+/*@
+  logic boolean bus_is_valid(uint32_t bus) =
+    (
+        {% for register in peripheral.registers -%}
+        {% if register.name.endswith('LPENR') -%}
+        bus == BUS_{{register.name[0:4]}} ||
+        {% endif -%}
+        {% endfor -%}
+        \false
+    );
+*/
+
+#endif/*!BUSES_H*/

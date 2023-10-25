@@ -31,11 +31,14 @@
 /**
  * @brief list of platform bused.
  * Based on the {{ NAME }} device register naming.
- * This template works for all STM32 SoCs
+ * This template works for all STM32L4 SoCs
  */
 typedef enum bus_identifier {
     {% for register in peripheral.registers -%}
-    {% if register.name.endswith('LPENR') -%}
+    {% if register.name.endswith('RSTR') -%}
+    BUS_{{register.name[0:4]}} = STM32_CLOCK_BUS_{{register.name[0:4]}},
+    {% endif -%}
+    {% if register.name.endswith('RSTR1') -%}
     BUS_{{register.name[0:4]}} = STM32_CLOCK_BUS_{{register.name[0:4]}},
     {% endif -%}
     {% endfor -%}
@@ -45,8 +48,11 @@ typedef enum bus_identifier {
   logic boolean bus_is_valid(uint32_t bus) =
     (
         {% for register in peripheral.registers -%}
-        {% if register.name.endswith('LPENR') -%}
-        bus == BUS_{{register.name[0:4]}} ||
+        {% if register.name.endswith('RSTR') -%}
+        bus == STM32_CLOCK_BUS_{{register.name[0:4]}} ||
+        {% endif -%}
+        {% if register.name.endswith('RSTR1') -%}
+        bus == STM32_CLOCK_BUS_{{register.name[0:4]}} ||
         {% endif -%}
         {% endfor -%}
         \false

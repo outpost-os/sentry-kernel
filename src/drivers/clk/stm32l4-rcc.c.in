@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * \file STM32F4xx specific RCC implementation
+ * \file STM32L4xx specific RCC implementation
  */
 #include <assert.h>
 
@@ -23,7 +23,7 @@
 /* RCC generated header for current platform */
 #include "stm32-gpio-dt.h"
 #include "rcc_defs.h"
-#include "stm32f4-rcc.h"
+#include "stm32l4-rcc.h"
 #include "stm32-rcc.h"
 
 {%- set rcc_clock_source = dts.rcc.clocks %}
@@ -39,14 +39,16 @@ kstatus_t rcc_select_system_clock(void)
     rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
 
     /* previously clear corresponding bits */
-    rcc_cfgr &= ~(RCC_CFGR_SW0 | RCC_CFGR_SW1);
+    rcc_cfgr &= ~(RCC_CFGR_SW_MASK);
 
-    {%- if rcc_clock_source.label == 'clk_hsi' %}
+    {%- if rcc_clock_source.label == 'clk_msi' %}
     clocksource = 0UL;
+    {%- elif rcc_clock_source.label == 'clk_hsi' %}
+    clocksource = 0xb01UL;
     {%- elif rcc_clock_source.label == 'clk_hse' %}
-    clocksource = RCC_CFGR_SW0;
+    clocksource = 0xb10UL;
     {%- elif rcc_clock_source.label == 'pll' %}
-    clocksource = RCC_CFGR_SW1;
+    clocksource = 0xb11UL;
     {%- else %}
     #error "clock source configuration error, please check your devicetree file"
     {%- endif %}
@@ -87,12 +89,16 @@ kstatus_t rcc_enable_pll(void)
             | rcc_pll_n_multiplier()
             | rcc_pll_q_divider();
 
-    {%- if pll_clock_source == "clk_hse" %}
-    /* hse as pll source */
-    pllcfgr |= RCC_PLLCFGR_PLLSRC;
+    pllcfgr &= ~(RCC_PLLCFGR_PLLSRC_MASK);
+    {%- if pll_clock_source == "clk_msi" %}
+    /* msi as pll source */
+    pllcfgr |= (0b01UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
+    {%- elif pll_clock_source == "clk_hsi" %}
+    /* hsi16 as pll source */
+    pllcfgr |= (0b10UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
     {%- else %}
-    /* hsi as pll source */
-    pllcfgr &= ~(RCC_PLLCFGR_PLLSRC);
+    /* hse as pll source */
+    pllcfgr |= (0b11UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
     {%- endif %}
 
     /* write pll configuration */
@@ -115,7 +121,6 @@ kstatus_t rcc_enable_pll(void)
     return status;
 }
 
-
 #if CONFIG_BUILD_TARGET_DEBUG
 kstatus_t rcc_enable_debug_clockout(void)
 {
@@ -124,20 +129,18 @@ kstatus_t rcc_enable_debug_clockout(void)
     uint32_t rcc_cfgr;
 
     {%- set mco_clk_in = [
-        ({"clk_hsi": 0x00, "clk_lse": 0x01, "clk_hse": 0x02, "pll": 0x3}),
-        ({"rcc": 0x00, "pll_i2s": 0x01, "clk_hse": 0x02, "pll": 0x3}),
+        ({"clk_hsi": 0x03, "clk_lse": 0x07, "clk_hse": 0x04, "pll": 0x5}),
     ] %}
 
-    {%- set mcos = [dts.rcc.mco1, dts.rcc.mco2] %}
+    {%- set mcos = [dts.rcc.mco] %}
     {%- for mco in mcos %}
     {%- if mco is defined and mco.status == "okay" %}
-    {%- set mco_name = mco.name.upper() %}
-    /* Configuring {{ mco_name }} */
+    /* Configuring MCO */
     prescaler = {{ mco.prescaler }};
     rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
 
-    if (prescaler > 1) {
-        prescaler += 2;
+    if (prescaler > 0) {
+        prescaler--;
     }
     /*
      * XXX:
@@ -149,9 +152,9 @@ kstatus_t rcc_enable_debug_clockout(void)
      * As we use these as clock debugging feature and **not** for clock sharing with other device(s)
      * we do not care about any glitches on mco lines.
      */
-    rcc_cfgr &= ~(RCC_CFGR_{{ mco_name }}_MASK | RCC_CFGR_{{ mco_name }}PRE_MASK);
-    rcc_cfgr |= (prescaler << RCC_CFGR_{{ mco_name }}PRE_SHIFT) & RCC_CFGR_{{ mco_name }}PRE_MASK;
-    rcc_cfgr |= ({{ mco_clk_in[loop.index - 1][mco.clockout.label] }} << RCC_CFGR_{{ mco_name }}_SHIFT) & RCC_CFGR_{{ mco_name }}_MASK;
+    rcc_cfgr &= ~(RCC_CFGR_MCOSEL_MASK | RCC_CFGR_MCOPRE_MASK);
+    rcc_cfgr |= (prescaler << RCC_CFGR_MCOPRE_SHIFT) & RCC_CFGR_MCOPRE_MASK;
+    rcc_cfgr |= ({{ mco_clk_in[loop.index - 1][mco.clockout.label] }} << RCC_CFGR_MCOSEL_SHIFT) & RCC_CFGR_MCOSEL_MASK;
 
     iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
 

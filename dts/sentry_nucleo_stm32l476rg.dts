@@ -6,22 +6,17 @@
 
 /dts-v1/;
 
-#include <st/f4/stm32f401.dtsi>
+#include <st/l4/stm32l476Xg.dtsi>
 #include <dt-bindings/pinctrl/stm32-pinctrl.h>
 
 /{
 	chosen {
 		sentry,vtor_section = <&flash0>;
 		sentry,text_section = <&flash0>;
-		sentry,ram_section = <&sram1>;
-		sentry,debug_stdout = <&usart2>;
+		sentry,ram_section = <&sram0>;
+		sentry,debug_stdout = <&usart1>;
 	};
 
-};
-
-&sram1 {
-	compatible = "mmio-sram";
-	reg = <0x20000000 DT_SIZE_K(96)>;
 };
 
 &flash0 {
@@ -37,38 +32,38 @@
 };
 
 &pll {
-	vco_divider = <10>;
-	vco_multiplier = <225>;
-	main_divider = <6>;
-	usb_divider = <8>;
+	vco_divider = <2>;
+	vco_multiplier = <8>;
+	main_divider = <2>;
+	usb_divider = <3>;
 	clocks = <&clk_hsi>;
 	status = "okay";
 };
 
 &flash {
-	wait-state = <2>; /* According to voltage supply and sysclock */
+	wait-state = <3>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&exti {
+	interrupts = <40>;
+	events = <40>;
 	status = "okay";
 };
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(60)>;
-	bus-prescalers = <0>, <1>, <0>;
+	clock-frequency = <DT_FREQ_M(48)>;
+	bus-prescalers = <1>, <2>, <2>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
 
-	mco1 {
-		pinctrl-0 = <&rcc_mco1_pa8>;
+	mco {
+		pinctrl-0 = <&rcc_mco_pa8>;
 		clockout = <&pll>; /* XXX use reg value from svd */
-		prescaler = <5>;
+		prescaler = <4>;
 		status = "okay";
 	};
-};
-
-&exti {
-	interrupts = <22>;
-	events = <22>;
-	status = "okay";
 };
 
 &gpioa {
@@ -99,35 +94,28 @@
 	status = "okay";
 };
 
-&usart2 {
+&usart1 {
     status = "okay";
-	pinctrl-0 = <&usart2_tx_pa2>, <&usart2_rx_pa3>;
+	pinctrl-0 = <&usart1_tx_pc1>, <&usart1_rx_pc0>;
 };
 
 &pinctrl {
-	usart2_tx_pa2: usart2_tx_pa2  {
-		pinmux = <&gpioa 2 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+	usart1_tx_pc1: usart1_tx_pc1  {
+		pinmux = <&gpioc 1 STM32_DT_PIN_MODE_ALTFUNC(7)>;
 		pincfg = <STM32_OTYPER_PUSH_PULL \
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;
 	};
 
-	usart2_rx_pa3: usart2_tx_pa3  {
-		pinmux = <&gpioa 3 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+	usart1_rx_pc0: usart1_rx_pc0  {
+		pinmux = <&gpioc 0 STM32_DT_PIN_MODE_ALTFUNC(7)>;
 		pincfg = <STM32_OTYPER_PUSH_PULL \
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;
 	};
 
-	rcc_mco1_pa8: rcc_mco1_pa8  {
+	rcc_mco_pa8: rcc_mco_pa8  {
 		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
-		pincfg = <STM32_OTYPER_PUSH_PULL \
-				  STM32_OSPEEDR_VERY_HIGH_SPEED \
-				  STM32_PUPDR_NO_PULL>;
-	};
-
-	rcc_mco2_pc9: rcc_mco2_pc9 {
-		pinmux = <&gpioc 9 STM32_DT_PIN_MODE_ALTFUNC(0)>;
 		pincfg = <STM32_OTYPER_PUSH_PULL \
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;

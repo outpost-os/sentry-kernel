@@ -11,6 +11,7 @@
 #include <sentry/arch/asm-cortex-m/layout.h>
 #include <bsp/drivers/exti/exti.h>
 #include <sentry/ktypes.h>
+#include "stm32-exti-dt.h"
 
 
 class ExtiDevice : public testing::Test {
@@ -80,7 +81,7 @@ TEST_F(ExtiDevice, TestUnmaskInterrupt)
         uint8_t Val = distrib(gen);
         kstatus_t res;
         res = exti_unmask_interrupt(Val);
-        if (Val <= 22) {
+        if (Val <= EXTI_NUM_INTERRUPTS) {
             EXPECT_EQ(res, K_STATUS_OKAY);
         } else {
             EXPECT_EQ(res, K_ERROR_INVPARAM);
@@ -90,7 +91,7 @@ TEST_F(ExtiDevice, TestUnmaskInterrupt)
         uint8_t Val = distrib(gen);
         kstatus_t res;
         res = exti_mask_interrupt(Val);
-        if (Val <= 22) {
+        if (Val <= EXTI_NUM_INTERRUPTS) {
             EXPECT_EQ(res, K_STATUS_OKAY);
         } else {
             EXPECT_EQ(res, K_ERROR_INVPARAM);
