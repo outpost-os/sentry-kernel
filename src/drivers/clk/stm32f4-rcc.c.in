@@ -681,7 +681,14 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
     size_t reg;
     uint32_t pre;
     uint32_t ahb_div;
-    uint32_t div;
+    /*
+     * XXX:
+     * Div is initialized in order to shut down a gcc `maybe-uninitialized` warning.
+     * This is a false positive as framaC check this (see contract annotation) but
+     * it make sense to initialize it to its minimal value anyways.
+     * Thus the case for AHBx busses is empty.
+     */
+    uint32_t div = 1UL;
 
     if (unlikely(busclk == NULL)) {
         goto err;
@@ -711,7 +718,6 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
 #ifndef CONFIG_ARCH_MCU_STM32F401
         case BUS_AHB3:
 #endif
-            div = 1;
             break;
         default:
             /* smoke testing: unreachable code */

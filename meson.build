@@ -1,6 +1,10 @@
 project('sentry-kernel', 'c','cpp',
     meson_version: '>=1.1.0',
-    default_options: ['c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021', 'default_library=static', 'warning_level=2' ],
+    default_options: [
+        'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
+        'warning_level=3', 'optimization=s',
+        'default_library=static', 'b_pie=false', 'b_staticpic=false'
+    ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
