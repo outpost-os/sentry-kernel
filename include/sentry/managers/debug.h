@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef DEBUG_MANAGER_H
 #define DEBUG_MANAGER_H
 
@@ -20,7 +23,7 @@ static inline kstatus_t printk(const char* fmt __attribute__((unused)), ...) {
 kstatus_t printk(const char* fmt, ...);
 #endif
 
-kstatus_t mgr_debug_probe(void);
+kstatus_t mgr_debug_init(void);
 
 #ifdef __cplusplus
 }

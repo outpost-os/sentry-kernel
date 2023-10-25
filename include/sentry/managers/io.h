@@ -11,7 +11,7 @@
 #include <sentry/ktypes.h>
 #include <uapi/handle.h>
 
-kstatus_t mgr_io_probe(void);
+kstatus_t mgr_io_init(void);
 
 kstatus_t mgr_io_set(ioh_t ioh);
 
