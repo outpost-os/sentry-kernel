@@ -58,10 +58,10 @@
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
 
-	mco1 {
-		pinctrl-0 = <&rcc_mco1_pa8>;
+	mco {
+		pinctrl-0 = <&rcc_mco_pa8>;
 		clockout = <&pll>; /* XXX use reg value from svd */
-		prescaler = <5>;
+		prescaler = <4>;
 		status = "okay";
 	};
 };
@@ -114,7 +114,7 @@
 				  STM32_PUPDR_NO_PULL>;
 	};
 
-	rcc_mco1_pa8: rcc_mco1_pa8  {
+	rcc_mco_pa8: rcc_mco_pa8  {
 		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
 		pincfg = <STM32_OTYPER_PUSH_PULL \
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
