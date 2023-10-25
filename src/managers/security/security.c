@@ -10,7 +10,7 @@
 kstatus_t mgr_security_init(void)
 {
     kstatus_t status;
-    printk("initialize security manager...\n");
+    pr_info("initialize security manager...");
     status = mgr_security_entropy_init();
     return status;
 }

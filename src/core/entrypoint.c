@@ -41,12 +41,12 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_io_init();
     mgr_debug_init();
 
-    printk("Starting Sentry kernel release %s\n", "v0.1");
-    printk("booting on SoC %s\n", CONFIG_ARCH_SOCNAME);
-    printk("configured dts file: %s\n", CONFIG_DTS_FILE);
+    pr_info("Starting Sentry kernel release %s", "v0.1");
+    pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);
+    pr_info("configured dts file: %s", CONFIG_DTS_FILE);
     /* end of basic platform initialization acknowledged */
     platform_init();
-    printk("Platform initialization done, continuing with upper layers\n");
+    pr_info("Platform initialization done, continuing with upper layers");
     mgr_security_init();
 
 #if 0 /* FIXME */

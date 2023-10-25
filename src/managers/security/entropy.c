@@ -26,7 +26,7 @@ kstatus_t mgr_security_entropy_init(void)
 {
     kstatus_t status;
 #if !defined(CONFIG_HAS_RNG)
-    printk("HW RNG not supported, initializing SW entropy backend.\n");
+    pr_warn("HW RNG not supported, initializing SW entropy backend.");
     /* Here we use PGC32 has this is the lonely function we have to generate random
      sequence in SW mode. To be replaced by another pseudo-random (or higher security
      level) random source */
@@ -38,16 +38,16 @@ kstatus_t mgr_security_entropy_init(void)
     seed = pcg32();
     status = K_STATUS_OKAY;
 #else
-    printk("HW RNG supported, initializing HW entropy backend... ");
+    pr_info("HW RNG supported, initializing HW entropy backend...");
     status = rng_probe();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto end;
     }
     status = rng_get(&seed);
     if (unlikely(status != K_STATUS_OKAY)) {
-        printk("failed!\n");
+        pr_err("failed ro initialize RNG! status=%u", status);
     } else {
-        printk("done.\n");
+        pr_info("RNG init done.");
     }
 end:
 #endif
