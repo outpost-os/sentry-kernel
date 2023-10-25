@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Sentry managers list
+subdir('security')
 subdir('task')
 subdir('io')
 subdir('debug')

@@ -15,7 +15,7 @@
 #include <sentry/managers/debug.h>
 #include <sentry/managers/clock.h>
 #include <sentry/managers/interrupt.h>
-#include <bsp/drivers/rng/rng.h>
+#include <sentry/managers/security.h>
 #include <sentry/thread.h>
 
 
@@ -42,9 +42,12 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_debug_init();
 
     printk("Starting Sentry kernel release %s\n", "v0.1");
+    printk("booting on SoC %s\n", CONFIG_ARCH_SOCNAME);
+    printk("configured dts file: %s\n", CONFIG_DTS_FILE);
     /* end of basic platform initialization acknowledged */
     platform_init();
     printk("Platform initialization done, continuing with upper layers\n");
+    mgr_security_init();
 
 #if 0 /* FIXME */
     systick_init();
@@ -81,21 +84,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_io_probe();
 #endif
 
-
-
-
-    // init ssp
-
-/*
- * XXX: TODO
- *  Use a Kconfig selector to explicitly enable driver and rgn support
- *  maybe a DTS property for the 'chosen' entropy source.
- */
-#if CONFIG_HAS_RNG
-    uint32_t seed;
-    rng_probe();
-    rng_get(&seed);
-#endif
     do {
         asm volatile("wfi");
     } while (1);
