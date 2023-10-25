@@ -23,6 +23,98 @@
 /* RCC generated header for current platform */
 #include "stm32-gpio-dt.h"
 #include "rcc_defs.h"
+#include "stm32f4-rcc.h"
+#include "stm32-rcc.h"
+
+{%- set rcc_clock_source = dts.rcc.clocks %}
+
+kstatus_t rcc_select_system_clock(void)
+{
+    uint32_t rcc_cfgr;
+    uint32_t clocksource;
+    uint32_t clocksource_status;
+    uint32_t count = 0UL;
+    kstatus_t status = K_STATUS_OKAY;
+
+    rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+
+    /* previously clear corresponding bits */
+    rcc_cfgr &= ~(RCC_CFGR_SW0 | RCC_CFGR_SW1);
+
+    {%- if rcc_clock_source.label == 'clk_hsi' %}
+    clocksource = 0UL;
+    {%- elif rcc_clock_source.label == 'clk_hse' %}
+    clocksource = RCC_CFGR_SW0;
+    {%- elif rcc_clock_source.label == 'pll' %}
+    clocksource = RCC_CFGR_SW1;
+    {%- else %}
+    #error "clock source configuration error, please check your devicetree file"
+    {%- endif %}
+
+    rcc_cfgr |= clocksource;
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
+
+    /* clocksource status is shifted by 2 on the same register */
+    clocksource = clocksource << 2UL;
+    do {
+        clocksource_status = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG) & clocksource;
+        count++;
+    } while ((clocksource_status != clocksource) && (count < PLL_STARTUP_TIMEOUT)); /* XXX: same timeout as PLL ?! */
+
+    if (clocksource_status != clocksource) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
+kstatus_t rcc_enable_pll(void)
+{
+    uint32_t pllcfgr;
+    uint32_t pll_ready;
+    uint32_t rcc_cr;
+    uint32_t count = 0UL;
+    kstatus_t status = K_STATUS_OKAY;
+
+    /*
+     * XXX:
+     *  SVD generation is not our friend here !
+     *  PLL coefficients are split into single bit definition (...)
+     */
+
+    pllcfgr = rcc_pll_p_divider()
+            | rcc_pll_m_divider()
+            | rcc_pll_n_multiplier()
+            | rcc_pll_q_divider();
+
+    {%- if pll_clock_source == "clk_hse" %}
+    /* hse as pll source */
+    pllcfgr |= RCC_PLLCFGR_PLLSRC;
+    {%- else %}
+    /* hsi as pll source */
+    pllcfgr &= ~(RCC_PLLCFGR_PLLSRC);
+    {%- endif %}
+
+    /* write pll configuration */
+    iowrite32(RCC_BASE_ADDR + RCC_PLLCFGR_REG, pllcfgr);
+
+    /* then, enable pll */
+    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    rcc_cr |= RCC_CR_PLLON;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
+    /* Wait till the main PLL is ready */
+    do {
+        pll_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_PLLRDY;
+        count++;
+    } while ((pll_ready == 0) && (count < PLL_STARTUP_TIMEOUT));
+
+    if (pll_ready == 0) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
+}
+
 
 #if CONFIG_BUILD_TARGET_DEBUG
 kstatus_t rcc_enable_debug_clockout(void)
