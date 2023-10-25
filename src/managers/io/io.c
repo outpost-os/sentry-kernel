@@ -28,7 +28,7 @@
  * Kconfig already has auto-selected the various drviers needed for I/O. All
  * I/O drivers probing and manipulation is done through this manager's API.
  */
-kstatus_t mgr_io_probe(void)
+kstatus_t mgr_io_init(void)
 {
     kstatus_t status = K_STATUS_OKAY;
 
@@ -41,6 +41,15 @@ kstatus_t mgr_io_probe(void)
         goto err;
     };
 #endif
+    /** XXX: hardcoded, to be set based on dts */
+    gpio_probe(0);
+    gpio_probe(1);
+    gpio_probe(2);
+    gpio_probe(3);
+    gpio_probe(4);
+    gpio_probe(5);
+    gpio_probe(6);
+
 err:
     return status;
 }

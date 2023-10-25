@@ -4,14 +4,8 @@
 /* kernel includes */
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/arch/asm-generic/membarriers.h>
-#include <sentry/arch/asm-generic/interrupt.h>
-#include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/mm.h>
-#include <bsp/drivers/clk/rcc.h>
-#include <bsp/drivers/clk/pwr.h>
-#include <bsp/drivers/flash/flash.h>
 #include <bsp/drivers/gpio/gpio.h>
-#include <bsp/drivers/usart/usart.h>
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
 #else
@@ -19,6 +13,8 @@
 #endif
 #include <sentry/managers/io.h>
 #include <sentry/managers/debug.h>
+#include <sentry/managers/clock.h>
+#include <sentry/managers/interrupt.h>
 #include <bsp/drivers/rng/rng.h>
 #include <sentry/thread.h>
 
@@ -36,17 +32,20 @@ __attribute__((optimize("-fno-stack-protector")))
 #endif
 __attribute__((noreturn)) void _entrypoint(void)
 {
-    interrupt_disable();
-    interrupt_init();
-    mgr_io_probe();
-    /* this two: to be replaced by a power manager */
-    pwr_probe();
-    flash_probe();
-    rcc_probe();
+    /* early init phase */
+    mgr_interrupt_early_init();
 
-    interrupt_init();
+    /* init phase */
+    mgr_clock_init();
+    mgr_interrupt_init();
+    mgr_io_init();
+    mgr_debug_init();
 
+    printk("Starting Sentry kernel release %s\n", "v0.1");
+    /* end of basic platform initialization acknowledged */
     platform_init();
+    printk("Platform initialization done, continuing with upper layers\n");
+
 #if 0 /* FIXME */
     systick_init();
 #endif
@@ -97,22 +96,8 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_io_probe();
 #endif
 
-    /* XXX: TODO */
-    gpio_probe(0);
-    gpio_probe(1);
-    gpio_probe(2);
-    gpio_probe(3);
-    gpio_probe(4);
-    gpio_probe(5);
-    gpio_probe(6);
 
-#if CONFIG_BUILD_TARGET_DEBUG
-    rcc_enable_debug_clockout();
-#endif
 
-    mgr_debug_probe();
-    printk("Starting Sentry kernel release %s\n", "v0.1");
-    usart_tx("coucou\n",7);
 
     // init ssp
 

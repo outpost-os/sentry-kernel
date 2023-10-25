@@ -5,3 +5,5 @@
 subdir('task')
 subdir('io')
 subdir('debug')
+subdir('clock')
+subdir('interrupt')
