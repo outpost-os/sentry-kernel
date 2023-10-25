@@ -271,7 +271,7 @@ typedef struct {
  * by the format string itself, and return 0 if the format string has been
  * correctly parsed, or 1 if the format string parsing failed.
  */
-static kstatus_t print_handle_format_string(const char *fmt, va_list args,
+static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                                           uint8_t * consumed,
                                           uint32_t * out_str_len)
 {
@@ -353,7 +353,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_DECIMAL;
-                    int     val = va_arg(args, int);
+                    int     val = va_arg(*args, int);
                     uint8_t len = dbgbuffer_get_number_len(val, 10);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -389,11 +389,11 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         fs_prop.consumed++;
                     }
                     if (fs_prop.numeric_mode == FS_NUM_LONG) {
-                        lval = va_arg(args, long);
+                        lval = va_arg(*args, long);
 
                         len = dbgbuffer_get_number_len(lval, 10);
                     } else {
-                        llval = va_arg(args, long long);
+                        llval = va_arg(*args, long long);
 
                         len = dbgbuffer_get_number_len(llval, 10);
                     }
@@ -434,11 +434,11 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         fs_prop.consumed++;
                     }
                     if (fs_prop.numeric_mode == FS_NUM_SHORT) {
-                        s_val = (short) va_arg(args, int);
+                        s_val = (short) va_arg(*args, int);
 
                         len = dbgbuffer_get_number_len(s_val, 10);
                     } else {
-                        uc_val = (unsigned char) va_arg(args, int);
+                        uc_val = (unsigned char) va_arg(*args, int);
 
                         len = dbgbuffer_get_number_len(uc_val, 10);
                     }
@@ -469,7 +469,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(args, uint32_t);
+                    uint32_t val = va_arg(*args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 10);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -495,7 +495,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                     if (fs_prop.started == false) {
                         goto err;
                     }
-                    unsigned long val = va_arg(args, unsigned long);
+                    unsigned long val = va_arg(*args, unsigned long);
                     uint8_t len = dbgbuffer_get_number_len(val, 16);
 
                     dbgbuffer_write_string("0x", 2);
@@ -519,7 +519,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(args, uint32_t);
+                    uint32_t val = va_arg(*args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 16);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -545,7 +545,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                         goto err;
                     }
                     fs_prop.numeric_mode = FS_NUM_UNSIGNED;
-                    uint32_t val = va_arg(args, uint32_t);
+                    uint32_t val = va_arg(*args, uint32_t);
                     uint8_t len = dbgbuffer_get_number_len(val, 8);
 
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
@@ -575,7 +575,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         goto err;
                     }
-                    char   *str = va_arg(args, char *);
+                    char   *str = va_arg(*args, char *);
                     if (str == NULL) {
                         dbgbuffer_write_string("(null)", 6);
                         fs_prop.strlen += 6;
@@ -599,7 +599,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list args,
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         goto err;
                     }
-                    unsigned char val = (unsigned char) va_arg(args, int);
+                    unsigned char val = (unsigned char) va_arg(*args, int);
 
                     /* now we can print the number in argument */
                     dbgbuffer_write_char(val);
@@ -636,7 +636,7 @@ end:
    requires \valid_read(fmt);
    requires \valid(sizew);
 */
-static kstatus_t print_with_len(const char *fmt, va_list args, size_t *sizew)
+static kstatus_t print_with_len(const char *fmt, va_list *args, size_t *sizew)
 {
     kstatus_t status;
     int     i = 0;
@@ -685,7 +685,7 @@ __attribute__ ((format (printf, 1, 2))) kstatus_t printk(const char *fmt, ...)
      * before execute the current printf command
      */
     va_start(args, fmt);
-    status = print_with_len(fmt, args, &len);
+    status = print_with_len(fmt, &args, &len);
     va_end(args);
     if (unlikely(status != K_STATUS_OKAY)) {
         dbgbuffer_flush();
