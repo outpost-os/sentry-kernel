@@ -75,9 +75,9 @@ static_assert(sizeof(taskh_t) == sizeof(uint32_t), "invalid taskh_t opaque size"
 #define HANDLE_TASK_RERUN_MASK  0x00001fffUL
 
 typedef struct __attribute__((packed))  io_handle {
-    unsigned int ioport   : 4; /* 0=A, 1=B...*/
-    unsigned int iopin    : 4; /* 0=0, 1=1, ... */
-    unsigned int reserved : 5;
+    unsigned int ioport   : 6; /* 0=A, 1=B...*/
+    unsigned int iopin    : 6; /* 0=0, 1=1, ... */
+    unsigned int reserved : 1;
     /* this part is fixed */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int familly  : 3;
