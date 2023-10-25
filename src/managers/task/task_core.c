@@ -7,7 +7,7 @@
 
 #include <inttypes.h>
 #include <sentry/thread.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
 #include "task_init.h"
 #include "task_core.h"
 
@@ -22,7 +22,8 @@
  * This allows binary search in the task list (see @ref task_table) for
  * logarithmic search time
  */
-static uint16_t numtask __attribute__((used, section(".task_list.num"))) = 0;
+uint32_t numtask __attribute__((used, section(".task_list.num")));
+
 
 /**
  * @def table of tasks, polulated at boot time during metadata analysis
@@ -52,7 +53,7 @@ task_t *task_get_table(void)
 /**
  * @brief return the number of declared tasks (idle excluded)
  */
-uint16_t task_get_num(void)
+uint32_t mgr_task_get_num(void)
 {
     return numtask;
 }
@@ -69,13 +70,13 @@ static inline task_t *task_get_from_handle(taskh_t h)
     union u_handle h_arg;
     h_arg.h = h;
     while (left < right) {
-        uint16_t current = (left + right) / 2;
+        uint16_t current = (left + right) >> 1;
         union u_handle h_cur;
         h_cur.h = task_table[current].metadata->handle;
         if ((h_cur.val & HANDLE_ID_MASK) > (h_arg.val & HANDLE_ID_MASK))
         {
             right = current - 1;
-        } else if ((h_cur.val & HANDLE_ID_MASK) > (h_arg.val & HANDLE_ID_MASK)) {
+        } else if ((h_cur.val & HANDLE_ID_MASK) < (h_arg.val & HANDLE_ID_MASK)) {
             left = current + 1;
         } else {
             /* label do match, is the taskh valid for current label (rerun check) */
@@ -94,7 +95,7 @@ end:
  *
  * binary search on task_table
  */
-kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp)
+kstatus_t mgr_task_get_sp(taskh_t t, stack_frame_t **sp)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
@@ -112,7 +113,7 @@ end:
  *
  * binary search on task_table
  */
-kstatus_t task_get_state(taskh_t t, thread_state_t *state)
+kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     stack_frame_t *sp = NULL;
@@ -130,7 +131,7 @@ end:
 /**
  * @fn given a task handler, set the corresponding stack frame pointer
  */
-kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp)
+kstatus_t mgr_task_set_sp(taskh_t t, stack_frame_t *newsp)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
@@ -147,7 +148,7 @@ end:
 /*@
     requires thread_state_is_valid(state) == \true;
   */
-kstatus_t task_set_state(taskh_t t, thread_state_t state)
+kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
@@ -160,7 +161,7 @@ end:
     return status;
 }
 
-secure_bool_t task_is_idletask(taskh_t t)
+secure_bool_t mgr_task_is_idletask(taskh_t t)
 {
     secure_bool_t res = SECURE_FALSE;
     if (t.id == SCHED_IDLE_TASK_LABEL) {
@@ -172,7 +173,7 @@ secure_bool_t task_is_idletask(taskh_t t)
 /**
  * @fn return metadata for a given handler (const)
  */
-kstatus_t task_get_metadata(taskh_t t, const task_meta_t **tsk_meta)
+kstatus_t mgr_task_get_metadata(taskh_t t, const task_meta_t **tsk_meta)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_meta_t const *meta = NULL;
@@ -190,7 +191,7 @@ end:
 /*
  * Forge a stack context
  */
-stack_frame_t *task_initialize_sp(size_t sp, size_t pc)
+stack_frame_t *mgr_task_initialize_sp(size_t sp, size_t pc)
 {
     stack_frame_t *frame = __thread_init_stack_context(sp, pc);
     return frame;

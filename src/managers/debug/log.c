@@ -8,63 +8,6 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 
-#ifndef TEST_MODE
-/* string related functions, for debug usage only */
-static size_t sentry_strlen(const char *s)
-{
-    size_t result = 0;
-
-    if (s == NULL) {
-        /** TODO: panic to be called */
-        goto err;
-    }
-
-    while (s[result] != '\0') {
-        result++;
-    }
-err:
-    return result;
-}
-
-/**
- * @brief Set n first bytes of a given memory area with a given byte value
- *
- * INFO: The C standard says that null argument(s) to string
- * functions produce undefined behavior.
- *
- * This is a global warning for the POSIX and C99/C99 libstring:
- * check your arguments before using it!
- *
- * Conforming to:
- * POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
- */
-static void   *sentry_memset(void *s, int c, unsigned int n)
-{
-    /* sanitation. This part can produce, as defined in the above
-     * standard, an 'undefined behavior'. As a consequence, in all
-     * string function, invalid input will produce, for integer
-     * return, returning 42, for string return, returning NULL */
-    if (unlikely(!s)) {
-        goto err;
-    }
-
-    /* memseting s with c */
-    char   *bytes = s;
-
-    while (n) {
-        *bytes = c;
-        bytes++;
-        n--;
-    }
-err:
-    return s;
-}
-
-/* if not in the test suite case, aliasing to POSIX symbols */
-size_t strlen(const char *s) __attribute__((alias("sentry_strlen")));
-void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));
-#endif/*!TEST_MODE*/
-
 /***********************************************
  * local utility functions
  **********************************************/

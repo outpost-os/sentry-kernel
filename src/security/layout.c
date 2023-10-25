@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <sentry/ktypes.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
 
 /**
  * \file Memory-related security checks

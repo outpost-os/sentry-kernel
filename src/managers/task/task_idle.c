@@ -7,7 +7,7 @@
  */
 #include <inttypes.h>
 #include <sentry/thread.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
 #include "task_core.h"
 #include "task_init.h"
 #include "task_idle.h"

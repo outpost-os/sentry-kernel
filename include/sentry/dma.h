@@ -4,7 +4,7 @@
 #ifndef DMA_H
 #define DMA_H
 
-struct dma {
+typedef struct dma {
     uint32_t tbd;
 } dma_t;
 

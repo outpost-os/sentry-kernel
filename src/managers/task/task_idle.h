@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 #include <sentry/thread.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
 
 task_meta_t *task_idle_get_meta(void);
 

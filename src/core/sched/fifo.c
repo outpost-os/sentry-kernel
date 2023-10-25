@@ -2,7 +2,9 @@
 #include <uapi/handle.h>
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+
 
 /**
  * @brief Currentky ready tasks queue
@@ -34,6 +36,7 @@ kstatus_t sched_fifo_init(void)
         .id = SCHED_NO_TASK_LABEL,
         .familly = HANDLE_TASKID,
     };
+    pr_info("initialize scheduler");
     /* at startup, and without task, */
     sched_fifo_ctx.empty = true;
     sched_fifo_ctx.current = current;
@@ -59,10 +62,12 @@ static inline kstatus_t sched_fifo_enqueue_task(taskh_t t)
     kstatus_t status = K_SECURITY_INVSTATE;
     if (unlikely((sched_fifo_ctx.next_task == sched_fifo_ctx.end_of_queue) &&
         sched_fifo_ctx.empty == false)) {
+        pr_emerg("schedule queue badly dimentioned! unable to schedule %08x!!!", t);
         /* should never happen if CONFIG_MAX_TASKS is valid */
         /*@ assert \false; */
         goto err;
     }
+    pr_debug("schedule task handle %08x", t);
     sched_fifo_ctx.tasks_queue[sched_fifo_ctx.end_of_queue] = t;
     sched_fifo_ctx.end_of_queue = (sched_fifo_ctx.end_of_queue + 1) % CONFIG_MAX_TASKS;
     sched_fifo_ctx.empty = false;
@@ -137,3 +142,4 @@ taskh_t sched_fifo_get_current(void)
 kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_fifo_schedule")));
 taskh_t sched_elect(void) __attribute__((alias("sched_fifo_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_fifo_get_current")));
+kstatus_t sched_init(void) __attribute__((alias("sched_fifo_init")));
