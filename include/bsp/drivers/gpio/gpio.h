@@ -8,7 +8,9 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+#include <stdbool.h>
 #include <stdint.h>
+
 #include <sentry/ktypes.h>
 /**
  * \file Generic, portable, API for GPIO drivers. Should be kept the same for

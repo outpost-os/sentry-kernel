@@ -11,12 +11,14 @@
 #include <bsp/drivers/clk/pwr.h>
 #include <bsp/drivers/flash/flash.h>
 #include <bsp/drivers/gpio/gpio.h>
+#include <bsp/drivers/usart/usart.h>
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
 #else
 #error "unsupported platform"
 #endif
 #include <sentry/managers/io.h>
+#include <sentry/managers/debug.h>
 #include <bsp/drivers/rng/rng.h>
 #include <sentry/thread.h>
 
@@ -35,6 +37,9 @@ __attribute__((optimize("-fno-stack-protector")))
 __attribute__((noreturn)) void _entrypoint(void)
 {
     interrupt_disable();
+    interrupt_init();
+    mgr_io_probe();
+    /* this two: to be replaced by a power manager */
     pwr_probe();
     flash_probe();
     rcc_probe();
@@ -65,22 +70,6 @@ __attribute__((noreturn)) void _entrypoint(void)
 #if CONFIG_USE_SSP
     /* TODO initialize SSP with random seed */
 #endif
-
-#if 0
-// TODO
-#if defined(CONFIG_USE_ICACHE) && (CONFIG_USE_ICACHE == 1)
-    if (icache_is_enabled()) {
-       icache_disable();
-    }
-#endif
-
-#if defined(CONFIG_USE_DCACHE) && (CONFIG_USE_DCACHE == 1)
-    if (dcache_is_enabled()) {
-       dcache_disable();
-    }
-#endif
-#endif
-
     /* initialize memory backend controler (e.g. MPU )*/
 #if 0 /* FIXME */
     mm_initialize();
@@ -120,6 +109,11 @@ __attribute__((noreturn)) void _entrypoint(void)
 #if CONFIG_BUILD_TARGET_DEBUG
     rcc_enable_debug_clockout();
 #endif
+
+    mgr_debug_probe();
+    printk("Starting Sentry kernel release %s\n", "v0.1");
+    usart_tx("coucou\n",7);
+
     // init ssp
 
 /*
@@ -134,7 +128,7 @@ __attribute__((noreturn)) void _entrypoint(void)
 #endif
 
     do {
-
+        asm volatile("wfi");
     } while (1);
     __builtin_unreachable();
     /* This part of the function is never reached */

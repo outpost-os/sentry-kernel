@@ -12,6 +12,9 @@
 /* .bss informations generated in ldscript */
 extern uint32_t _sbss;
 extern uint32_t _ebss;
+extern uint32_t _sidata;
+extern uint32_t _sdata;
+extern uint32_t _edata;
 
 extern __irq_handler_t __vtor_table[];
 
@@ -26,6 +29,8 @@ extern  __attribute__((weak)) void Default_SubHandler(){}
  */
 __attribute__((noreturn, used)) void Reset_Handler(void)
 {
+    uint32_t *src;
+    uint32_t *p;
     __disable_irq();
 
     /*
@@ -56,8 +61,16 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
 #endif
 
     /* clear bss */
-    for (uint32_t *p = &_sbss; p < &_ebss; p++) {
+    for (p = &_sbss; p < &_ebss; p++) {
         *p = 0UL;
+    }
+
+    /* data relocatation */
+    /* XXX:
+     *  /!\ We may relocate only data.rel.ro section /!\
+     */
+    for (src = &_sidata, p = &_sdata; p < &_edata; p++) {
+        *p = *src++;
     }
 
     /* branch to sentry kernel entry point */

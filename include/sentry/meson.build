@@ -20,4 +20,5 @@ sentry_header_set.add(files(
 # managers headers
 sentry_header_set.add(files(
   'managers/io.h',
+  'managers/debug.h',
 ))

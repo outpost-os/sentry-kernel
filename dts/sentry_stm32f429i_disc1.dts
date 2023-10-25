@@ -14,6 +14,7 @@
 		sentry,vtor_section = <&flash0>;
 		sentry,text_section = <&flash0>;
 		sentry,ram_section = <&sram1>;
+		sentry,debug_stdout = <&usart1>;
 	};
 
 };
@@ -97,4 +98,23 @@
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;
 	};
+
+	usart1_tx_pb6: usart1_tx_pb6  {
+		pinmux = <&gpiob 6 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	usart1_rx_pb7: usart1_tx_pb7  {
+		pinmux = <&gpiob 7 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};
+
+&usart1 {
+    status = "okay";
+	pinctrl-0 = <&usart1_tx_pb6>, <&usart1_rx_pb7>;
 };

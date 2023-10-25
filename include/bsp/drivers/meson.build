@@ -5,6 +5,7 @@
 sentry_header_set.add(files(
     'flash/flash.h',
     'gpio/gpio.h',
+    'gpio/pinctrl.h',
     'rng/rng.h',
     'clk/rcc.h',
     'clk/pwr.h',

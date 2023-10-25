@@ -45,7 +45,6 @@ config DTS_FILE
 	help
 	  DTS file to use for projet configuration
 
-
 config BUILD_RUST_MODULES
 	bool "Build Rust code"
 	default n

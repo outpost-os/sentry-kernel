@@ -4,3 +4,4 @@
 # Sentry managers list
 subdir('task')
 subdir('io')
+subdir('debug')
