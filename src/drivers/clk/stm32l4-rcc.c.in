@@ -1,0 +1,80 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/**
+ * \file STM32L4xx specific RCC implementation
+ */
+#include <assert.h>
+
+#include <sentry/arch/asm-cortex-m/soc.h>
+#include <sentry/arch/asm-cortex-m/layout.h>
+#include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/arch/asm-cortex-m/buses.h>
+#include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/io.h>
+#include <sentry/bits.h>
+#include <sentry/ktypes.h>
+
+#include <bsp/drivers/gpio/gpio.h>
+
+/* local includes, only manipulated by the driver itself */
+#include <bsp/drivers/clk/rcc.h>
+
+/* RCC generated header for current platform */
+#include "stm32-gpio-dt.h"
+#include "rcc_defs.h"
+
+#if CONFIG_BUILD_TARGET_DEBUG
+kstatus_t rcc_enable_debug_clockout(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t prescaler;
+    uint32_t rcc_cfgr;
+
+    {%- set mco_clk_in = [
+        ({"clk_hsi": 0x03, "clk_lse": 0x07, "clk_hse": 0x04, "pll": 0x5}),
+    ] %}
+
+    {%- set mcos = [dts.rcc.mco] %}
+    {%- for mco in mcos %}
+    {%- if mco is defined and mco.status == "okay" %}
+    {%- set mco_name = mco.name.upper() %}
+    /* Configuring {{ mco_name }} */
+    prescaler = {{ mco.prescaler }};
+    rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+
+    if (prescaler > 0) {
+        prescaler--;
+    }
+    /*
+     * XXX:
+     *  Documentation said:
+     *    Set and cleared by software to configure the prescaler of the MCO1/2. Modification of this
+     *    prescaler may generate glitches on MCO1/2. It is highly recommended to change this
+     *    prescaler only after reset before enabling the external oscillators and the PLLs.
+     *
+     * As we use these as clock debugging feature and **not** for clock sharing with other device(s)
+     * we do not care about any glitches on mco lines.
+     */
+    rcc_cfgr &= ~(RCC_CFGR_{{ mco_name }}_MASK | RCC_CFGR_{{ mco_name }}PRE_MASK);
+    rcc_cfgr |= (prescaler << RCC_CFGR_{{ mco_name }}PRE_SHIFT) & RCC_CFGR_{{ mco_name }}PRE_MASK;
+    rcc_cfgr |= ({{ mco_clk_in[loop.index - 1][mco.clockout.label] }} << RCC_CFGR_{{ mco_name }}_SHIFT) & RCC_CFGR_{{ mco_name }}_MASK;
+
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, rcc_cfgr);
+
+    {%- set pinctrl = mco["pinctrl-0"] %}
+    {%- set port, pin, mode, altfunc = pinctrl.pinmux %}
+    {%- set type, speed, pull_mode = pinctrl.pincfg %}
+
+    gpio_set_mode({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ mode }});
+    gpio_set_type({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ type }});
+    gpio_set_speed({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ speed }});
+    gpio_set_pull_mode({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ pull_mode }});
+    gpio_set_af({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ altfunc }});
+
+    {%- endif%}
+    {%- endfor %}
+
+    return status;
+}
+#endif

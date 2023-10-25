@@ -20,6 +20,19 @@ stm32_rcc_c = dtsgen.process(stm32_rcc_c_template)
 
 sentry_private_gen_source_set.add(stm32_rcc_c)
 
+# per subfamilly RCC additions
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
+stm32f4_rcc_c_template = files('stm32f4-rcc.c.in')
+stm32f4_rcc_c = dtsgen.process(stm32f4_rcc_c_template)
+sentry_private_gen_source_set.add(stm32f4_rcc_c)
+endif
+
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32L4', 0) == 1
+stm32l4_rcc_c_template = files('stm32l4-rcc.c.in')
+stm32l4_rcc_c = dtsgen.process(stm32fl4_rcc_c_template)
+sentry_private_gen_source_set.add(stm32l4_rcc_c)
+endif
+
 pwr_h = custom_target('gen_pwr',
     input: peripheral_defs_in,
     output: '@0@_defs.h'.format('pwr'),
