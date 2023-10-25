@@ -4,84 +4,51 @@
 #ifndef TASK_H
 #define TASK_H
 
+#include <assert.h>
+#include <inttypes.h>
+#include <stddef.h>
+
+#include <uapi/handle.h>
 #include <sentry/device.h>
 #include <sentry/dma.h>
 #include <sentry/ipc.h>
 #include <sentry/signal.h>
-
-#include <assert.h>
-#include <inttypes.h>
-#include <stddef.h>
+#include <sentry/ktypes.h>
 
 /**
  * \file sentry kernel generic types
  */
 
-#ifndef CONFIG_MAX_DEV_PER_TASK
-#define CONFIG_MAX_DEV_PER_TASK 8U
-#endif
-
-#ifndef CONFIG_MAX_SHM_PER_TASK
-#define CONFIG_MAX_SHM_PER_TASK 8U
+#if defined(__arm__) || defined(__FRAMAC__)
+#include <sentry/arch/asm-cortex-m/thread.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/thread.h>
+#elif defined(__i386__)
+#include <sentry/arch/asm-i386/thread.h>
+#else
+#error "unsupported architecture!"
 #endif
 
 /**
- * To be fixed... not ordonned. Basic placement of stack-based register saving
- * (NVIC auto-saving + complement by runtime or kernel)
+ * @def no task label definition
+ *
+ * At early bootup, before any task is started (even idle), the scheduler returns
+ * a specially forged task label denoted 'babe'. This label is forbidden to user
+ * tasks and used to detect 'no task exists at all, still in MSP bootup'
  */
-typedef struct task_frame {
-    uint32_t    r4;
-    uint32_t    r5;
-    uint32_t    r6;
-    uint32_t    r7;
-    uint32_t    r8;
-    uint32_t    r9;
-    uint32_t    r10;
-    uint32_t    r11;
-    uint32_t    exc_return;
-    uint32_t    r3;
-    uint32_t    r2;
-    uint32_t    r1;
-    uint32_t    r0;
-    uint32_t    r12;
-    uint32_t    lr;
-    uint32_t    pc;
-    uint32_t    psr;
-} task_frame_t;
+#define SCHED_NO_TASK_LABEL   0xbabeUL
 
-static_assert(sizeof(task_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
-
-/** Basic signals that are handled at UAPI level. If more
-  complex signal handling is required, IPC with upper layer protocol
-  is needed.
-  These signal can be used in order to avoid any memory copy, only scheduling
-  the peer. The kernel guarantee that the signal is transmitted to the peer, but
-  not that the peer do check for it (it is under the peer implementation responsability
-  to handle a single blocking point with an input event blocking method that wait for,
-  at least, signals).
-  In IoT condition, these signals can be used for multiple usage while they keep the
-  initial POSIX scementic.
-  The standard POSIX USR1 and 2 signals are also defined to allow tasks to communicate
-  through these two signals for custom events
-  The userspace POSIX implementation of signals can be based on the sentry signal support,
-  to avoid IPC-based data transmission for most signal events. INFO: by now, no spawned sighandler
-  is supported, instead, a wait_for_event() call can be made in the main thread. Spawning
-  threads is complex and do consume a lot of memory.
-*/
-typedef enum signal {
-    SIGNAL_ABORT,   /**< Abort signal */
-    SIGNAL_ALARM,   /**< timer (from alarm) */
-    SIGNAL_BUS,     /**< bus error (bad memory access, memory required)*/
-    SIGNAL_CONT,    /**< continue if previously stopped */
-    SIGNAL_ILL,     /**< illegal instruction. Can be also used for upper protocols */
-    SIGNAL_IO,      /**< I/O now ready */
-    SIGNAL_PIPE,    /**< broken pipe */
-    SIGNAL_POLL,    /**< event pollable */
-    SIGNAL_TERM,    /**< termination signal. Can be used to stop an IPC stream for e.g. (remote process termination is not possible) */
-    SIGNAL_TRAP,    /**< trace/bp signal (debug usage )*/
-    SIGNAL_USR1,    /**< 1st user-defined signal */
-    SIGNAL_USR2,    /**< 2nd user-defined signal */
-} signal_t;
+/**
+ * @def idle task label definition
+ *
+ * When no task of the user task set is schedulable, the idle task is the lonely
+ * task eligible. This special task is a dedicated thread that wfi() and yield()
+ * so that the core can enter SLEEP mode while no interrupt rise and all tasks
+ * are blocked (external event wait, sleep, etc.).
+ * The idle task has a dedicated label denoted 'cafe'. This label is forbidden
+ * to user tasks.
+ */
+#define SCHED_IDLE_TASK_LABEL 0xcafeUL
 
 typedef enum thread_state {
       THREAD_STATE_NOTSTARTED, /**< thread has not started yet. For not automatically started tasks */
@@ -90,70 +57,137 @@ typedef enum thread_state {
       THREAD_STATE_SLEEPING_DEEP, /**< deep sleep, IRQ deactivated for the given sleep time */
       THREAD_STATE_FAULT,     /**< userspace fault event, not schedulable */
       THREAD_STATE_SECURITY,  /**< security event risen, not schedulable */
+      THREAD_STATE_ABORTING,  /**< on fault, handling abort-equivalent libc garbage collect. if the task
+                                 implement a sigabrt() handler, the garbage collector execute the user-defined
+                                 function before leaving */
       THREAD_STATE_FINISHED,  /**< thread terminated, returned from thread entrypoint */
       THREAD_STATE_IPC_SEND_BLOCKED, /**< emitted an IPC, wait for receiver to process */
       THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
 } thread_state_t;
 
+typedef enum thread_flags {
+    THREAD_FLAG_AUTOSTART     = 0x0001UL,
+    THREAD_FLAG_RESTARTONEXIT = 0x0002UL,
+    THREAD_FLAG_PANICONEXIT   = 0x0004UL,
+} thread_flags_t;
 
-typedef struct task {
+
+
+/*@
+  logic boolean thread_state_is_valid(uint32_t thread_state) =
+    (
+        thread_state == THREAD_STATE_NOTSTARTED ||
+        thread_state == THREAD_STATE_READY ||
+        thread_state == THREAD_STATE_SLEEPING ||
+        thread_state == THREAD_STATE_SLEEPING_DEEP ||
+        thread_state == THREAD_STATE_FAULT ||
+        thread_state == THREAD_STATE_SECURITY ||
+        thread_state == THREAD_STATE_ABORTING ||
+        thread_state == THREAD_STATE_FINISHED ||
+        thread_state == THREAD_STATE_IPC_SEND_BLOCKED ||
+        thread_state == THREAD_STATE_IPC_SIG_RECV_BLOCKED
+    );
+*/
+
+/**
+ * This is the main task structure manipulated by the kernel. Each task build (ELF generation)
+ * produce a blob that contain such binary format.
+ * The structure is generated using as input:
+ * - the ELF metadatas
+ * - the task informations (permissions, configuration, dts information, etc.)
+ * - the task label (16 bits unique identifier, like, for e.g. 0xbabe or 0x1051)
+ *
+ * when generated, the task structure is stored as a standalone file in the build system
+ * so that it can be easily dumped by python tooling, and also pushed into the kernel image
+ * in a dedicated task list section where all tasks info are stored.
+ */
+typedef struct task_meta {
+    /**
+     * Task and struct identification part
+     */
+    uint64_t        magic;         /**< task structure magic number */
+    uint32_t        version;       /**< structure version, may vary based on SDK version */
+    taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
+    uint8_t         priority;      /**< task priority */
+    uint8_t         quantum;       /**< task configured quantum */
+    uint32_t        capabilities;  /**< TBD(storage): task permission mask */
+    thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
+
+    /**
+     * Memory mapping information, used for context switching and MPU configuration
+     */
     size_t          s_text;           /**< start address of .text section */
     size_t          text_size;        /**< text section size */
     size_t          s_rodata;         /**< start address of .data section */
     size_t          rodata_size;      /**< text section size */
     size_t          s_data;           /**< start address of .data section */
+    size_t          s_vma_data;       /**< start address of .data section in SRAM */
     size_t          data_size;        /**< text section size */
+    size_t          s_bss;            /**< start address of .bss is SRAM */
+    size_t          bss_size;         /**< bss size in SRAM */
     uint16_t        main_offset;      /**< offset of main() in text section */
     size_t          stack_top;        /**< main thread stack top address */
     uint16_t        stack_size;       /**< main thtrad stack size */
 
-    size_t          isr_stack_top;    /**< ISR handler stack top address (used at spawn time)*/
-    uint16_t        isr_stack_size;   /**< ISR handler stack size (should be small)*/
-
     size_t          heap_base;        /**< process heap base. Always set */
     uint16_t        heap_size;        /**< process heap size. Can be 0 (no heap)*/
 
+    /**
+     * Task ressources, that may also requires memory mapping, and associated perms
+     */
     uint8_t         num_shm;          /**< number of shared memories */
-    uint8_t           shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
+    uint8_t         shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
     uint8_t         num_devs;         /**< number of devices */
     device_t        devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
-#if CONFIG_DMA_SUPPORT
     uint8_t         num_dmas;         /**< number of DMA streams */
-    dma_t           dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata */
-#endif
+    uint8_t         dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
+                                        FIXME: define dma_t bitfield or struct */
 
-#if CONFIG_DOMAIN
+    /**
+     * domain management. Ignore if HAS_DOMAIN is not set
+     */
     uint8_t         domain;           /**< domain identifier. Depending on the configured domain
                                             policy, process ability to communicate with others,
                                             process scheduling policy and process election
                                             pre- and post- phases may be affected.
                                              */
-#endif
 
-    /* about state, priority and quantum consumtion */
-    thread_state_t  state;         /**< current task state */
-    uint8_t         priority;      /**< task priority */
-    uint8_t         base_quantum;  /**< task configured quantum */
-    uint8_t         current_quantum;   /**< task current quantum value */
 
-    /* about contexts */
-    task_frame_t    ctx;  /**< current process lonely thread stack context */
-    /* about events */
-    ipc_context_t   ipc_events; /**<
-                                Each task only has one IPC context (only blocking IPC supported).
-                                When sending IPC, the thread is deschedule and wait for the other
-                                to read for its IPC content (no double user/kernel copy, only
-                                user-to-user blob) ensured by disabled reentrancy in kernel.
-                                The context hold only, for a given task, the info indicating if
-                                there is an IPC received and its effective size.
-                                When impacting the thread state (blocking IPC, the state falg
-                                is used)
-                                */
-    signal_context_t signal_events; /**< incomming signal if received, storing signal type and
-                                        source identifier
-                                        */
-} task_t;
+    /*
+     * Security part: the structure itself and the associated task memory
+     * is checked using HMAC, based on a private key used at production time and
+     * verified by the kernel at startup time
+     */
+    uint8_t         task_hmac[32]; /**< task .text+.rodata+.data build time hmac calculation (TBD)*/
+    uint8_t         metadata_hmac[32]; /**< current struct build time hmac calculation */
+} task_meta_t;
 
-void initialize_stack_context(size_t sp, size_t pc);
+/*
+ * About main module standardly defined functions (init, watchdog....)
+ */
+
+kstatus_t task_init(void);
+
+kstatus_t task_watchdog(void);
+
+/*
+ * About module specific API
+ */
+
+stack_frame_t *task_initialize_sp(size_t sp, size_t pc);
+
+uint16_t task_get_num(void);
+
+kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp);
+
+kstatus_t task_get_state(taskh_t t, thread_state_t *state);
+
+kstatus_t task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
+
+kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp);
+
+kstatus_t task_set_state(taskh_t t, thread_state_t state);
+
+secure_bool_t task_is_idletask(taskh_t t);
 
 #endif/*TASK_H*/

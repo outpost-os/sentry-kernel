@@ -44,10 +44,18 @@ typedef enum handle_type {
   HANDLE_CLK    = 7,
 } handle_type_t;
 
+
+#define HANDLE_ID_SHIFT         13UL
+#define HANDLE_ID_MASK          0x7fff8000UL
+
+#define HANDLE_FAMILLY_SHIFT    29UL
+#define HANDLE_FAMILLY_MASK     0xe0000000UL
+
+
 /* handle_specific field definition. This field depend on the handle_familly */
 
 
-typedef struct device_handle {
+typedef struct __attribute__((packed)) device_handle {
     unsigned int dev_cap  : 8; /* device required dev-capabilities (mask) */
     unsigned int reserved : 5;
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
@@ -55,17 +63,21 @@ typedef struct device_handle {
 } devh_t;
 static_assert(sizeof(devh_t) == sizeof(uint32_t), "invalid devh_t opaque size");
 
-typedef struct task_handle {
+typedef struct __attribute__((packed)) task_handle {
     unsigned int rerun    : 13; /* current spawn id (start with 1) */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int familly  : 3;
 } taskh_t;
 static_assert(sizeof(taskh_t) == sizeof(uint32_t), "invalid taskh_t opaque size");
 
+
+#define HANDLE_TASK_RERUN_SHIFT 0UL
+#define HANDLE_TASK_RERUN_MASK  0x00001fffUL
+
 typedef struct __attribute__((packed))  io_handle {
-    unsigned int ioport   : 4; /* 0=A, 1=B...*/
-    unsigned int iopin    : 4; /* 0=0, 1=1, ... */
-    unsigned int reserved : 5;
+    unsigned int ioport   : 6; /* 0=A, 1=B...*/
+    unsigned int iopin    : 6; /* 0=0, 1=1, ... */
+    unsigned int reserved : 1;
     /* this part is fixed */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int familly  : 3;
@@ -88,6 +100,21 @@ typedef struct clk_handle {
     unsigned int familly  : 3;
 } clkh_t;
 static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
+
+/**
+ * In order to support handle manipulation as raw uint32 (masking, shifting....)
+ * a union is defined so that bitfields can ba manipulated with processor
+ * optimized mask/shift
+ * MUST be used only in local-function part to content framaC.
+ */
+union u_handle {
+    uint32_t val;
+    taskh_t  taskh;
+    devh_t   devh;
+    ioh_t    ioh;
+    irqh_t   irqh;
+    clkh_t   clkh;
+};
 
 #if 0
 /*
