@@ -10,6 +10,7 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+#include <sentry/arch/asm-generic/membarriers.h>
 
 #include "task_core.h"
 #include "task_init.h"
@@ -221,7 +222,7 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    memcpy((void*)meta->s_vma_data, (void*)meta->s_data, meta->data_size);
+    memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
     memset((void*)meta->s_bss, 0x0, meta->bss_size);
     pr_info("[task handle %08x] task memory map forged", meta->handle);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
@@ -253,7 +254,7 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta)
             ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
             goto end;
         }
-        pr_info("[task handle %08x] task added to scheduler", meta->handle);
+        pr_info("[task handle {%04x|%04x|%03x}] idle task forged", meta->handle.rerun, meta->handle.id, meta->handle.familly);
     }
     if (ctx.numtask == mgr_task_get_num()) {
         ctx.state = TASK_MANAGER_STATE_FINALIZE;
@@ -264,10 +265,7 @@ end:
     return status;
 }
 
-/**
- * ldscript provided
- */
-extern size_t _idlestack;
+
 /**
  * @brief finalize the task table construct
  *
@@ -286,18 +284,13 @@ static inline kstatus_t task_init_finalize(void)
     }
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
-    meta->handle.rerun = 0;
-    meta->handle.id = SCHED_IDLE_TASK_LABEL;
-    meta->handle.familly = HANDLE_TASKID;
-    meta->magic = CONFIG_TASK_MAGIC_VALUE;
-    meta->flags = (THREAD_FLAG_AUTOSTART|THREAD_FLAG_PANICONEXIT);
-    meta->stack_top = (size_t)&_idlestack; /* ldscript defined */
-    meta->stack_size = 256; /* should be highly enough */
     /* should we though forge a HMAC for idle metadata here ? */
     task_table[ctx.numtask].metadata = meta;
-    memset((void*)task_table[ctx.numtask].metadata, 0x0, sizeof(task_meta_t));
-    pr_info("[task handle %08x] idle task forged", meta->handle);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(meta->stack_top, (size_t)idle);
+
+    pr_info("[task handle {%04x|%04x|%03x}] idle task forged", (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
     ctx.numtask++;
+    request_data_membarrier();
     /* finishing with sorting task_table based on task label value */
     task_basic_sort(task_table);
     pr_info("task list ordered based on label");
@@ -329,12 +322,19 @@ kstatus_t mgr_task_init(void)
     ctx.numtask = 0; /* at the end, before adding idle task, must be equal
                         to buildsys set number of tasks */
     ctx.status = K_STATUS_OKAY;
-    pr_info("starting task initialization");
+    pr_info("init idletask metadata");
+    task_idle_init();
+    pr_info("starting task initialization, max allowed tasks: %u", CONFIG_MAX_TASKS);
     /* first zeroify the task table (JTAG reflush case) */
     task_t * task_table = task_get_table();
     memset(task_table, 0x0, (CONFIG_MAX_TASKS+1)*sizeof(task_t));
 
-    ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+
+    if (mgr_task_get_num() == 0) {
+        ctx.state = TASK_MANAGER_STATE_FINALIZE;
+    } else {
+        ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+    }
     /* for all tasks, discover, analyse, and init */
     for (uint16_t cell = 0; cell < mgr_task_get_num(); ++cell) {
         pr_info("starting task blob %u/%u checks", cell, mgr_task_get_num());
@@ -365,6 +365,8 @@ kstatus_t mgr_task_init(void)
     }
     /* finalize, adding idle task */
     task_init_finalize();
+
+    task_dump_table();
 end:
     return ctx.status;
 }

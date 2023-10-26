@@ -38,4 +38,6 @@ typedef struct task {
 
 task_t *task_get_table(void);
 
+void task_dump_table(void);
+
 #endif/*!TASK_INIT_H*/

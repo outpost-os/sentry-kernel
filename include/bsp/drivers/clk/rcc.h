@@ -33,7 +33,7 @@ kstatus_t rcc_enable_debug_clockout(void);
 /**
  * @brief get current core frequency in Hertz
  */
-uint64_t rcc_get_core_frequency(void);
+uint32_t rcc_get_core_frequency(void);
 
 kstatus_t rcc_enable_apbx(void);
 

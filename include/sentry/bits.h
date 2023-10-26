@@ -8,6 +8,11 @@
 #ifndef BITS_H
 #define BITS_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
 #include <inttypes.h>
 #include <assert.h>
 
@@ -73,5 +78,10 @@
  * @param m register field mask
  */
 #define BITFIELD_GET(x, m) (((x) & (uint32_t)(m)) >> __BITSHIFT_FROM_MASK(m))
+
+#if defined(__cplusplus)
+}
+#endif
+
 
 #endif/*BITS_H*/

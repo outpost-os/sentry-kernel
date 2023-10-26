@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/debug.h>
 #include "task_init.h"
 #include "task_core.h"
 
@@ -22,7 +23,7 @@
  * This allows binary search in the task list (see @ref task_table) for
  * logarithmic search time
  */
-uint32_t numtask __attribute__((used, section(".task_list.num")));
+const uint32_t numtask __attribute__((used, section(".task_list.num")));
 
 
 /**
@@ -48,6 +49,41 @@ static task_t task_table[CONFIG_MAX_TASKS+1];
 task_t *task_get_table(void)
 {
     return &task_table[0];
+}
+
+void task_dump_table(void)
+{
+#if defined(CONFIG_BUILD_TARGET_DEBUG)
+    /* dump all tasks including idle */
+    for (uint8_t i = 0; task_table[i].metadata != NULL && i <= mgr_task_get_num(); ++i) {
+        task_t *t = &task_table[i];
+        uint32_t label = t->metadata->handle.id;
+        pr_debug("=== Task labeled '%02x' metainformations:", label);
+        pr_debug("[%02x] --- scheduling and permissions", label);
+        pr_debug("[%02x] task priority:\t\t\t%u", label, t->metadata->priority);
+#if defined(CONFIG_SCHED_RRMQ_QUANTUM)
+        pr_debug("[%02x] task quantum:\t\t\t%u", label, t->metadata->quantum);
+#endif
+        pr_debug("[%02x] task capabilities:\t\t\t%08x", label, t->metadata->capabilities);
+        pr_debug("[%02x] --- mapping", label);
+        pr_debug("[%02x] task stack top:\t\t\t%p", label, t->metadata->stack_top);
+        pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
+        pr_debug("[%02x] task heap base:\t\t\t%p", label, t->metadata->heap_base);
+        pr_debug("[%02x] task heap size:\t\t\t%u", label, t->metadata->heap_size);
+
+        pr_debug("[%02x] task text section start:\t\t%p", label, t->metadata->s_text);
+        pr_debug("[%02x] task text section size:\t\t%u", label, t->metadata->text_size);
+        pr_debug("[%02x] task rodata section start:\t\t%p", label, t->metadata->s_rodata);
+        pr_debug("[%02x] task rodatda section size:\t\t%u", label, t->metadata->rodata_size);
+        pr_debug("[%02x] task data section start (flash):\t%p", label, t->metadata->si_data);
+        pr_debug("[%02x] task data section start (RAM):\t%p", label, t->metadata->s_data);
+        pr_debug("[%02x] task data section size:\t\t%u", label, t->metadata->data_size);
+        pr_debug("[%02x] task bss section start:\t\t%p", label, t->metadata->s_bss);
+        pr_debug("[%02x] task bss section size:\t\t%u", label, t->metadata->bss_size);
+        pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->main_offset);
+
+    }
+#endif
 }
 
 /**

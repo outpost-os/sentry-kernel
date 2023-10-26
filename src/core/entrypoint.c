@@ -42,7 +42,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_interrupt_init();
     mgr_io_init();
     mgr_debug_init();
-
     pr_info("Starting Sentry kernel release %s", "v0.1");
     pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);
     pr_info("configured dts file: %s", CONFIG_DTS_FILE);

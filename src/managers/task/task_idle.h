@@ -8,6 +8,10 @@
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 
+void task_idle_init(void);
+
+void __attribute__((noreturn)) idle(void);
+
 task_meta_t *task_idle_get_meta(void);
 
 #endif/*!TASK_IDLE_H*/

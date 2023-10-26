@@ -122,8 +122,8 @@ typedef struct task_meta {
     size_t          text_size;        /**< text section size */
     size_t          s_rodata;         /**< start address of .data section */
     size_t          rodata_size;      /**< text section size */
-    size_t          s_data;           /**< start address of .data section */
-    size_t          s_vma_data;       /**< start address of .data section in SRAM */
+    size_t          si_data;           /**< start address of .data section */
+    size_t          s_data;           /**< start address of .data section in SRAM */
     size_t          data_size;        /**< text section size */
     size_t          s_bss;            /**< start address of .bss is SRAM */
     size_t          bss_size;         /**< bss size in SRAM */
