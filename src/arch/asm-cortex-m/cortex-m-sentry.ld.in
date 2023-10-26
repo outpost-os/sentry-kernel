@@ -197,9 +197,4 @@ SECTIONS
         . = ALIGN(4);
     } > {{ ram_section }}
 
-    /* Remove information from the standard libraries */
-    /DISCARD/ :
-    {
-        libgcc.a ( * )
-    }
 }

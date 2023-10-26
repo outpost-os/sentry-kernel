@@ -161,7 +161,7 @@ sentry_elf = executable(
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
     c_args: [ target_arch_args, global_build_args ],
-    link_args: [ sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
+    link_args: [ '-lgcc', sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
     link_depends: [ sentry_ldscript ],
     install: true,
