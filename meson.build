@@ -45,6 +45,8 @@ global_build_args = [
     '-fno-builtin',
     '-nostdlib',
     '-fno-common',
+    '-fdata-sections',
+    '-ffunction-sections',
     '-Wno-pedantic', # FIXME: to analyze bits.h (not pedantic compatible)
     '-Wno-unused-function', # FIXME: while in early dev
     '-Wno-unused-variable', # FIXME: while in early dev
