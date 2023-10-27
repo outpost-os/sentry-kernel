@@ -138,7 +138,10 @@ mod tests {
 
     #[test]
     fn basic_sleep() {
-        assert_eq!(sys_sleep(SleepDuration::D1ms, SleepMode::Shallow), Status::Ok);
+        assert_eq!(
+            sys_sleep(SleepDuration::D1ms, SleepMode::Shallow),
+            Status::Ok
+        );
     }
 
     #[test]
