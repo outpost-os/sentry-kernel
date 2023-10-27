@@ -25,7 +25,7 @@ pub enum Syscall {
 /// serves as the basis for the syscall dispatcher in the crate
 /// `gate`.
 impl TryFrom<u32> for Syscall {
-    type Error = ();
+    type Error = DispatchError;
     fn try_from(v: u32) -> Result<Syscall, Self::Error> {
         match v {
             0 => Ok(Syscall::Exit),
@@ -39,10 +39,16 @@ impl TryFrom<u32> for Syscall {
             8 => Ok(Syscall::SendIPC),
             9 => Ok(Syscall::SendSignal),
             10 => Ok(Syscall::WaitForEvent),
-            _ => Err(()),
+            _ => Err(DispatchError::IllegalValue),
         }
     }
 }
+
+/// Possible errors when converting from a u32 to a syscall number
+pub enum DispatchError {
+    IllegalValue,
+}
+
 /// Sentry syscall return values
 #[repr(C)]
 #[derive(Debug, PartialEq)]

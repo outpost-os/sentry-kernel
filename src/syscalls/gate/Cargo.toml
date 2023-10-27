@@ -1,0 +1,12 @@
+[package]
+name = "sysgate"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "lib.rs"
+test = false
+doc = true
+
+[dependencies]
+systypes = { path = "../../../include/uapi/types" }
