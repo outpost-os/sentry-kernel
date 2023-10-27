@@ -1,0 +1,49 @@
+name: Sentry UAPI build
+
+on:
+  push:
+  pull_request:
+    branches:
+    - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# using /home/build as home, as buildbot is using user build. Cache is still in /cache
+# This allows the usage of automated ssh key installation step
+
+jobs:
+  buildncheck:
+    defaults:
+      run:
+        shell: bash
+    runs-on: self-hosted
+    container:
+      image: rust:latest
+    steps:
+      - name: Setup nightly toolchain
+        shell: bash
+        run: |
+          rustup default nightly
+      - name: Add rustup cross-toolchain
+        shell: bash
+        run: |
+          rustup target add thumbv7m-none-eabi
+      - name: Add clippy, rustfmt
+        shell: bash
+        run: |
+          rustup component add rustfmt clippy
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Run cargo format
+        run: |
+          cargo fmt --all -- --check
+      - name: Lint with clippy
+        run: |
+          cargo clippy --target thumbv7m-none-eabi
+      - name: Run cargo check
+        run: |
+          cargo check --target thumbv7m-none-eabi
