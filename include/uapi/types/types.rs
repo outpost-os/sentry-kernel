@@ -195,3 +195,43 @@ pub enum Signal {
 }
 
 pub type ProcessID = u32;
+
+#[repr(C)]
+pub enum SleepDuration {
+    D1ms,
+    D2ms,
+    D5ms,
+    D10ms,
+    D20ms,
+    D50ms,
+    ArbitraryMs(u32),
+}
+
+impl From<SleepDuration> for u32 {
+    fn from(duration: SleepDuration) -> u32 {
+        match duration {
+            SleepDuration::D1ms => 1,
+            SleepDuration::D2ms => 2,
+            SleepDuration::D5ms => 5,
+            SleepDuration::D10ms => 10,
+            SleepDuration::D20ms => 20,
+            SleepDuration::D50ms => 50,
+            SleepDuration::ArbitraryMs(v) => v,
+        }
+    }
+}
+
+#[repr(C)]
+pub enum SleepMode {
+    Shallow,
+    Deep,
+}
+
+impl From<SleepMode> for u32 {
+    fn from(mode: SleepMode) -> u32 {
+        match mode {
+            SleepMode::Shallow => 0,
+            SleepMode::Deep => 1,
+        }
+    }
+}

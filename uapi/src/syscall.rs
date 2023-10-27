@@ -1,8 +1,6 @@
+#[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
 use systypes::*;
-
-#[cfg(target_arch = "x86_64")]
-use crate::arch::x86_64::fake_syscall;
 
 /// Exiting the process.
 ///
@@ -38,8 +36,8 @@ pub extern "C" fn sys_yield() -> Status {
 ///
 /// POSIX upper layer(s): sleep(3), usleep(3)
 #[no_mangle]
-pub extern "C" fn sys_sleep() -> Status {
-    syscall!(Syscall::Sleep).into()
+pub extern "C" fn sys_sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
+    syscall!(Syscall::Sleep, u32::from(duration_ms), u32::from(mode)).into()
 }
 
 /// Start another task, if capability added and other process allowed to be started by us
@@ -139,8 +137,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic() {
-        let a = unsafe { sys_sleep() };
-        assert_eq!(a, Status::Ok);
+    fn basic_sleep() {
+        assert_eq!(sys_sleep(SleepDuration::D1ms, SleepMode::Shallow), Status::Ok);
+    }
+
+    #[test]
+    fn basic_start() {
+        assert_eq!(sys_start(ProcessLabel::Label0), Status::Ok);
     }
 }
