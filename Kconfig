@@ -41,6 +41,11 @@ config BUILD_TARGET_RELEASE
 	select SECU_LOOP_DBLE_IDX
 endchoice
 
+config WITH_JTAG_CONNECTED
+	bool "Built for target with JTAG connected, active auto-breakpoints"
+	default n
+	depends on BUILD_TARGET_DEBUG
+
 config DTS_FILE
 	string "dts"
 	help

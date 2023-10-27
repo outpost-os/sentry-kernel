@@ -24,6 +24,80 @@ extern __irq_handler_t __vtor_table[];
  */
 extern  __attribute__((noreturn)) void _entrypoint();
 
+static __attribute__((noreturn)) void do_panic(void)
+{
+    /* XXX: here, a security policy should be considered. The do_panic() shoud call security manager
+      primitive (potential cleanups) and other things to define */
+    do {
+        asm volatile("nop");
+    } while (1);
+}
+
+static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
+{
+#if defined(CONFIG_BUILD_TARGET_DEBUG)
+    #if 0
+    /* XXX: To be implemented, helper associated to kernel map */
+    mgr_debug_dump_stack(frame);
+    #endif
+#if defined(CONFIG_WITH_JTAG_CONNECTED)
+    /* explicit breakpoint in jtag mode (JTAG connected)*/
+    asm volatile("bkpt");
+#endif
+#endif
+    do_panic();
+}
+
+
+#define __GET_IPSR(intr) ({ \
+    asm volatile ("mrs r1, ipsr\n\t" \
+                  "mov %0, r1\n\t" \
+                  : "=r" (intr) :: "r1" ); })
+
+
+/**
+ * @brief dispatcher and generic handler manager
+ *
+ * may not return the same frame pointer as received (through r0),
+ * depending on the IRQ.
+ *
+ */
+stack_frame_t *Default_SubHandler(stack_frame_t *frame)
+{
+    int it;
+    /* get back interrupt name */
+    __GET_IPSR(it);
+    it &= IPSR_ISR_Msk;
+
+    /*
+     * As the vector received is unified for both core exception (negatives)
+     * and NVIC interrupts (starting with 0), we need to decrement the vtor
+     * value of 16 to realign.
+     * This is required as the IRQ canonical name used by the NVIC start
+     * at 0 for the first peripheral interrupt, which is, in term of
+     * VTOR, the 16th one.
+     */
+    it-= 16;
+
+    /* distatching here */
+    switch (it) {
+        case HARDFAULT_IRQ:
+            /* calling hardfault handler */
+            hardfault_handler(frame);
+            break;
+        case SYSTICK_IRQ:
+            /* periodic, every each millisecond execution */
+            frame = systick_handler(frame);
+            break;
+        default:
+            /* defaulting to nothing... */
+            break;
+    }
+
+    return frame;
+}
+
+
 /**
  * @brief Reset handler, executed at POR time
  */
@@ -131,50 +205,4 @@ __attribute__((naked)) __attribute__((used)) void Default_Handler(void)
         "bl Default_SubHandler"
     );
     restore_context();
-}
-
-#define __GET_IPSR(intr) ({ \
-    asm volatile ("mrs r1, ipsr\n\t" \
-                  "mov %0, r1\n\t" \
-                  : "=r" (intr) :: "r1" ); })
-
-/**
- * @brief dispatcher and generic handler manager
- *
- * may not return the same frame pointer as received (through r0),
- * depending on the IRQ.
- *
- */
-stack_frame_t *Default_SubHandler(stack_frame_t *frame)
-{
-    int it;
-    /* get back interrupt name */
-    __GET_IPSR(it);
-    it &= IPSR_ISR_Msk;
-
-    /*
-     * As the vector received is unified for both core exception (negatives)
-     * and NVIC interrupts (starting with 0), we need to decrement the vtor
-     * value of 16 to realign.
-     * This is required as the IRQ canonical name used by the NVIC start
-     * at 0 for the first peripheral interrupt, which is, in term of
-     * VTOR, the 16th one.
-     */
-    it-= 16;
-
-    /* distatching here */
-    switch (it) {
-        case HARDFAULT_IRQ:
-            /* calling hardfault handler */
-            break;
-        case SYSTICK_IRQ:
-            /* periodic, every each millisecond execution */
-            frame = systick_handler(frame);
-            break;
-        default:
-            /* defaulting to nothing... */
-            break;
-    }
-
-    return frame;
 }
