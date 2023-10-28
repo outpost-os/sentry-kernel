@@ -3,16 +3,22 @@
 .. highlight:: c
 
 Welcome to Sentry documentation!
-=================================
+********************************
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   concepts/index.rst
+   build_system/index.rst
+   sw_architecture/index.rst
    api/index.rst
-   syscalls.rst
 
-.. contents::
+
+.. image:: _static/figures/outpost.png
+   :width: 30%
+   :alt: Outpost logo
+   :align: center
 
 This is the Sentry kernel architecture and API documentation.
 The Sentry kernel is a high security level micro-kernel implementation

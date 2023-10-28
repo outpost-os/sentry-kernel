@@ -7,8 +7,20 @@ doxygen = find_program('doxygen')
 py3 = pymod.find_installation('python3', modules: ['exhale','sphinx_rtd_theme'])
 
 api_rst = files(
-    'sphinx/syscalls.rst',
+    'sphinx/build_system/targets.rst',
+    'sphinx/build_system/svd.rst',
+    'sphinx/build_system/index.rst',
+    'sphinx/build_system/dts.rst',
+    'sphinx/concepts/archi_req.rst',
+    'sphinx/concepts/security.rst',
+    'sphinx/concepts/index.rst',
+    'sphinx/concepts/initial.rst',
     'sphinx/index.rst',
+    'sphinx/deps.rst',
+    'sphinx/sw_architecture/asp.rst',
+    'sphinx/sw_architecture/bsp.rst',
+    'sphinx/sw_architecture/syscalls.rst',
+    'sphinx/sw_architecture/index.rst',
 )
 api = custom_target('sphinx-doc',
     input: api_rst,
