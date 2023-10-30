@@ -5,6 +5,7 @@
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
+#include <sentry/arch/asm-cortex-m/handler.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -24,15 +25,6 @@ extern __irq_handler_t __vtor_table[];
  */
 extern  __attribute__((noreturn)) void _entrypoint();
 
-static __attribute__((noreturn)) void do_panic(void)
-{
-    /* XXX: here, a security policy should be considered. The do_panic() shoud call security manager
-      primitive (potential cleanups) and other things to define */
-    do {
-        asm volatile("nop");
-    } while (1);
-}
-
 static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
 {
 #if defined(CONFIG_BUILD_TARGET_DEBUG)
@@ -45,7 +37,7 @@ static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
     asm volatile("bkpt");
 #endif
 #endif
-    do_panic();
+    __do_panic();
 }
 
 
