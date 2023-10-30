@@ -577,11 +577,8 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
 
                 /* none of the above. Unsupported format */
             default:
-                {
-                    /* should not happend, unable to parse format string */
-                    goto err;
-                    break;
-                }
+                /* should not happend, unable to parse format string */
+                goto err;
 
         }
         fs_prop.consumed++;
