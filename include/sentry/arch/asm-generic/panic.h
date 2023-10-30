@@ -18,7 +18,7 @@
 #error "unsupported architecture!"
 #endif
 
-static inline voiid __attribute__((noreturn)) panic(void) {
+static inline void __attribute__((noreturn)) panic(void) {
 #if defined(__arm__) || defined(__FRAMAC__)
     /* calling arch-specific panic handler */
     __do_panic();
