@@ -6,6 +6,7 @@
  */
 
 #include <inttypes.h>
+#include <assert.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
@@ -91,6 +92,7 @@ void task_dump_table(void)
  */
 uint32_t mgr_task_get_num(void)
 {
+    assert(numtask <= CONFIG_MAX_TASKS);
     return numtask;
 }
 

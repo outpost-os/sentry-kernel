@@ -62,7 +62,7 @@ static inline kstatus_t sched_fifo_enqueue_task(taskh_t t)
     kstatus_t status = K_SECURITY_INVSTATE;
     if (unlikely((sched_fifo_ctx.next_task == sched_fifo_ctx.end_of_queue) &&
         sched_fifo_ctx.empty == false)) {
-        pr_emerg("schedule queue badly dimentioned! unable to schedule %08x!!!", t);
+        pr_emerg("schedule queue badly dimensioned! unable to schedule %08x!!!", t);
         /* should never happen if CONFIG_MAX_TASKS is valid */
         /*@ assert \false; */
         goto err;
