@@ -5,6 +5,7 @@
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
+#include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
 
 /**
@@ -32,10 +33,6 @@ static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
     /* XXX: To be implemented, helper associated to kernel map */
     mgr_debug_dump_stack(frame);
     #endif
-#if defined(CONFIG_WITH_JTAG_CONNECTED)
-    /* explicit breakpoint in jtag mode (JTAG connected)*/
-    asm volatile("bkpt");
-#endif
 #endif
     __do_panic();
 }
