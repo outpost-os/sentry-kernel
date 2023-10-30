@@ -16,6 +16,8 @@
 #include <sentry/managers/clock.h>
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/security.h>
+#include <sentry/managers/task.h>
+#include <sentry/sched.h>
 #include <sentry/thread.h>
 
 
@@ -40,7 +42,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_interrupt_init();
     mgr_io_init();
     mgr_debug_init();
-
     pr_info("Starting Sentry kernel release %s", "v0.1");
     pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);
     pr_info("configured dts file: %s", CONFIG_DTS_FILE);
@@ -48,6 +49,8 @@ __attribute__((noreturn)) void _entrypoint(void)
     platform_init();
     pr_info("Platform initialization done, continuing with upper layers");
     mgr_security_init();
+    sched_init();
+    mgr_task_init();
 
 #if 0 /* FIXME */
     systick_init();

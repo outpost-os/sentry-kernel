@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
 
 /**
  * @file generic upper layer API for Sentry schedulers
  */
 
-kstatus_t sched_fifo_init(void);
+kstatus_t sched_init(void);
 
 /**
  * @brief Add a task to the scheduler queue

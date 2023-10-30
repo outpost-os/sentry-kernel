@@ -13,7 +13,6 @@ sentry_header_set.add(files(
   'ktypes.h',
   'mm.h',
   'signal.h',
-  'task.h',
   'thread.h',
 ))
 

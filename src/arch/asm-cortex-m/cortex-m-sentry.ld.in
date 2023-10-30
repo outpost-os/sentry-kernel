@@ -45,9 +45,10 @@ SECTIONS
 
     .task_list :
     {
-        _task_list = .;
+        _task_num = .;
         *(.task_list.num)
         . = ALIGN(4);
+        _task_list = .;
         *(.task_list)
         . = ALIGN(4);
         /*
@@ -66,6 +67,11 @@ SECTIONS
         *startup*(.text.Reset_Handler)
         *(.text)
         *(.text*)
+        . = ALIGN(4);
+        _sidle = .;
+        *(.idle*)
+        _eidle = .;
+        . = ALIGN(4);
         *(.rodata)         	/* .rodata sections (constants, strings, etc.) */
         *(.rodata*)         	/* .rodata sections (constants, strings, etc.) */
         *(.glue_7)         	/* glue arm to thumb code */
@@ -189,6 +195,8 @@ SECTIONS
         . = ALIGN(4);
         PROVIDE ( end = . );
         PROVIDE ( _end = . );
+        . = . + 2048;
+        _msp_bootupstack = .;
         . = . + 2048;
         _idlestack = .;
         _estack = .;

@@ -8,63 +8,6 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 
-#ifndef TEST_MODE
-/* string related functions, for debug usage only */
-static size_t sentry_strlen(const char *s)
-{
-    size_t result = 0;
-
-    if (s == NULL) {
-        /** TODO: panic to be called */
-        goto err;
-    }
-
-    while (s[result] != '\0') {
-        result++;
-    }
-err:
-    return result;
-}
-
-/**
- * @brief Set n first bytes of a given memory area with a given byte value
- *
- * INFO: The C standard says that null argument(s) to string
- * functions produce undefined behavior.
- *
- * This is a global warning for the POSIX and C99/C99 libstring:
- * check your arguments before using it!
- *
- * Conforming to:
- * POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
- */
-static void   *sentry_memset(void *s, int c, unsigned int n)
-{
-    /* sanitation. This part can produce, as defined in the above
-     * standard, an 'undefined behavior'. As a consequence, in all
-     * string function, invalid input will produce, for integer
-     * return, returning 42, for string return, returning NULL */
-    if (unlikely(!s)) {
-        goto err;
-    }
-
-    /* memseting s with c */
-    char   *bytes = s;
-
-    while (n) {
-        *bytes = c;
-        bytes++;
-        n--;
-    }
-err:
-    return s;
-}
-
-/* if not in the test suite case, aliasing to POSIX symbols */
-size_t strlen(const char *s) __attribute__((alias("sentry_strlen")));
-void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));
-#endif/*!TEST_MODE*/
-
 /***********************************************
  * local utility functions
  **********************************************/
@@ -167,35 +110,54 @@ static inline void dbgbuffer_write_string(char *str, uint32_t len)
     return;
 }
 
+
+static uint8_t number[64];
 /*
  * Write a number in the ring buffer.
  * This function is a helper function above dbgbuffer_write_char().
  */
-static inline void dbgbuffer_write_number(uint64_t value, uint8_t base)
+static inline void dbgbuffer_write_u64(uint64_t value, const uint32_t base)
 {
     /* we define a local storage to hold the digits list
      * in any possible base up to base 2 (64 bits) */
-    uint8_t number[64] = { 0 };
-    int     index = 0;
+
+    uint8_t     index = 0;
+    if (unlikely((base != 10) && (base != 8) && (base != 16))) {
+        goto end;
+    }
 
     for (; (value / base) != 0; value /= base) {
         number[index++] = value % base;
+        if (unlikely(index >= 64)) {
+            goto end;
+        }
     }
-    /* finishing with most significant unit */
-    number[index++] = value % base;
 
-    /* Due to the last 'index++', index is targetting the first free cell.
-     * We make it points the last *used* cell instead */
-    index--;
+    /* finishing with most significant unit */
+    number[index] = value % base;
 
     /* now we can print out, starting with the most significant unit */
-    for (; index >= 0; index--) {
+    for (; ; index--) {
         dbgbuffer_write_digit(number[index]);
+        if (index == 0) {
+            goto end;
+        }
     }
+end:
+    return;
 }
 
+static inline void dbgbuffer_write_u32(uint32_t value, const uint32_t base)
+{
+    dbgbuffer_write_u64((uint64_t)value, base);
+}
 
-static inline void dbgbuffer_flush(void)
+static inline void dbgbuffer_write_u16(uint16_t value, const uint32_t base)
+{
+    dbgbuffer_write_u64((uint64_t)value, base);
+}
+
+void dbgbuffer_flush(void)
 {
     memset(&dbgbuf.buf[0], 0x0, BUF_MAX);
     dbgbuf.offset = 0;
@@ -356,6 +318,11 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                     int     val = va_arg(*args, int);
                     uint8_t len = dbgbuffer_get_number_len(val, 10);
 
+                    if (val < 0 ) {
+                        dbgbuffer_write_char('-');
+                        val = -val;
+                        fs_prop.strlen++;
+                    }
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         /* we have to pad with 0 the number to reach
                          * the desired size */
@@ -365,7 +332,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         }
                     }
                     /* now we can print the number in argument */
-                    dbgbuffer_write_number(val, 10);
+                    dbgbuffer_write_u32((uint32_t)val, 10);
                     fs_prop.strlen += len;
                     /* => end of format string */
                     goto end;
@@ -407,9 +374,9 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                     }
                     /* now we can print the number in argument */
                     if (fs_prop.numeric_mode == FS_NUM_LONG) {
-                        dbgbuffer_write_number(lval, 10);
+                        dbgbuffer_write_u32(lval, 10);
                     } else {
-                        dbgbuffer_write_number(llval, 10);
+                        dbgbuffer_write_u64(llval, 10);
                     }
                     fs_prop.strlen += len;
                     /* => end of format string */
@@ -452,9 +419,9 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                     }
                     /* now we can print the number in argument */
                     if (fs_prop.numeric_mode == FS_NUM_SHORT) {
-                        dbgbuffer_write_number(s_val, 10);
+                        dbgbuffer_write_u16((uint16_t)s_val, 10);
                     } else {
-                        dbgbuffer_write_number(uc_val, 10);
+                        dbgbuffer_write_u16((uint16_t)uc_val, 10);
                     }
                     fs_prop.strlen += len;
                     /* => end of format string */
@@ -481,7 +448,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         }
                     }
                     /* now we can print the number in argument */
-                    dbgbuffer_write_number(val, 10);
+                    dbgbuffer_write_u32(val, 10);
                     fs_prop.strlen += len;
                     /* => end of format string */
                     goto end;
@@ -504,7 +471,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         fs_prop.strlen++;
                     }
                     /* now we can print the number in argument */
-                    dbgbuffer_write_number(val, 16);
+                    dbgbuffer_write_u64(val, 16);
                     fs_prop.strlen += len;
                     /* => end of format string */
                     goto end;
@@ -531,7 +498,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         }
                     }
                     /* now we can print the number in argument */
-                    dbgbuffer_write_number(val, 16);
+                    dbgbuffer_write_u32(val, 16);
                     fs_prop.strlen += len;
                     /* => end of format string */
                     goto end;
@@ -557,7 +524,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         }
                     }
                     /* now we can print the number in argument */
-                    dbgbuffer_write_number(val, 8);
+                    dbgbuffer_write_u32(val, 8);
                     fs_prop.strlen += len;
 
                     /* => end of format string */
@@ -621,7 +588,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
     } while (fmt[fs_prop.consumed]);
 end:
     status = K_STATUS_OKAY;
- err:
+err:
     *out_str_len += fs_prop.strlen;
     *consumed = fs_prop.consumed + 1;   /* consumed is starting with 0 */
     return status;
@@ -677,6 +644,7 @@ __attribute__ ((format (printf, 1, 2))) kstatus_t printk(const char *fmt, ...)
     va_list args;
     size_t  len;
 
+
     if (unlikely(fmt == NULL)) {
         goto err;
     }
@@ -693,7 +661,7 @@ __attribute__ ((format (printf, 1, 2))) kstatus_t printk(const char *fmt, ...)
     }
     /* display to debug output */
     dbgbuffer_display();
-    dbgbuffer_flush();
 err:
+    dbgbuffer_flush();
     return status;
 }

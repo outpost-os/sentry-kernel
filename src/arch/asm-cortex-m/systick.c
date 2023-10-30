@@ -130,8 +130,8 @@ void wait(unsigned long long ms)
 
 static void systick_calibrate(void)
 {
-    uint64_t freq = rcc_get_core_frequency();
-    uint64_t reload =  freq / CONFIG_SYSTICK_HZ;
+    uint32_t freq = rcc_get_core_frequency();
+    uint32_t reload =  freq / CONFIG_SYSTICK_HZ;
 
     iowrite32(SCB_SYSTICK_CSR, 0);
     iowrite32(SCB_SYSTICK_CVR, 0);

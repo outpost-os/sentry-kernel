@@ -5,7 +5,10 @@ test_io = executable(
     'test_io',
     sources: files('test_io.cpp'),
     include_directories: kernel_inc,
-    cpp_args: '-DTEST_MODE=1',
+    cpp_args: [
+        '-DTEST_MODE=1',
+        '-Wno-pedantic',
+    ],
     c_args: '-DTEST_MODE=1',
     dependencies: [gtest_main ],
     link_language: 'cpp',

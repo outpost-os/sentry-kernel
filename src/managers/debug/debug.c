@@ -5,6 +5,7 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 #include <bsp/drivers/clk/rcc.h>
+#include "log.h"
 
 /**
  * @brief probe the debug backend
@@ -22,6 +23,7 @@ kstatus_t mgr_debug_init(void)
 #if CONFIG_BUILD_TARGET_DEBUG
     rcc_enable_debug_clockout();
 #endif
+    dbgbuffer_flush();
 end:
     return status;
 }

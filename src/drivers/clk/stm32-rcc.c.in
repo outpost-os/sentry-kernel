@@ -92,7 +92,7 @@ static_assert(RCC_AHB_CLOCK_FREQUENCY <= RCC_SYSTEM_CLOCK_FREQUENCY, "Invalid RC
 static_assert(RCC_APB1_CLOCK_FREQUENCY <= RCC_APB1_BUS_FREQUENCY_MAX, "Invalid RCC APB1 clock configuration");
 static_assert(RCC_APB2_CLOCK_FREQUENCY <= RCC_APB2_BUS_FREQUENCY_MAX, "Invalid RCC APB2 clock configuration");
 
-uint64_t rcc_get_core_frequency(void)
+uint32_t rcc_get_core_frequency(void)
 {
     return RCC_SYSTEM_CLOCK_FREQUENCY;
 }

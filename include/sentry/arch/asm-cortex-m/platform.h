@@ -45,4 +45,5 @@ static inline void __platform_clear_flags(void) {
 
 void __platform_init(void);
 
+
 #endif/*!__PLATFORM_H_*/

@@ -6,6 +6,8 @@
 
 #include <inttypes.h>
 #include <sentry/thread.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
+
+/* no privately exported function by now */
 
 #endif/*!TASK_INIT_H*/

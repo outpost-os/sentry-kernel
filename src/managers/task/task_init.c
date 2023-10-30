@@ -7,8 +7,11 @@
 #include <string.h>
 #include <inttypes.h>
 #include <sentry/thread.h>
-#include <sentry/task.h>
+#include <sentry/managers/task.h>
+#include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+#include <sentry/arch/asm-generic/membarriers.h>
+
 #include "task_core.h"
 #include "task_init.h"
 #include "task_idle.h"
@@ -49,9 +52,10 @@ static inline void task_basic_sort(task_t *table)
 {
     uint16_t i, j;
     secure_bool_t swapped;
-    for (i = 0; i < task_get_num()+1; i++) {
+    for (i = 0; i < mgr_task_get_num()+1; i++) {
         swapped = SECURE_FALSE;
-        for (j = 0; j < task_get_num() - i; j++) {
+        for (j = 0; j < mgr_task_get_num() - i; j++) {
+            /** INFO: task table is configured to CONFIG_MAX_TASKS+1 to handle idle, j+1 always valid */
             if (table[j].metadata->handle.id > table[j+1].metadata->handle.id) {
                 task_swap(&table[j], &table[j + 1]);
                 swapped = SECURE_TRUE;
@@ -103,13 +107,16 @@ static inline kstatus_t task_init_discover_sanitation(task_meta_t const * const 
     kstatus_t status = K_SECURITY_INTEGRITY;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_DISCOVER_SANITATION)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
     if (unlikely(meta->magic != CONFIG_TASK_MAGIC_VALUE)) {
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
+        pr_err("invalid magic value found %llu", meta->magic);
         goto end;
     }
+    pr_info("[task handle %08x] sanitation ok", meta->handle);
     /* TODO version handling */
     ctx.state = TASK_MANAGER_STATE_CHECK_META_INTEGRITY;
     status = K_STATUS_OKAY;
@@ -129,11 +136,13 @@ static inline kstatus_t task_init_check_meta_integrity(task_meta_t const * const
     kstatus_t status = K_SECURITY_INTEGRITY;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_CHECK_META_INTEGRITY)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
     /* FIXME: call the hmac service in order to validate metadata integrity,
        and return the result */
+    pr_info("[task handle %08x] metadata integrity ok", meta->handle);
     ctx.state = TASK_MANAGER_STATE_CHECK_TSK_INTEGRITY;
     status = K_STATUS_OKAY;
 end:
@@ -152,11 +161,13 @@ static inline kstatus_t task_init_check_tsk_integrity(task_meta_t const * const 
     kstatus_t status = K_SECURITY_INTEGRITY;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_CHECK_TSK_INTEGRITY)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
     /* FIXME: call the hmac service in order to validate metadata integrity,
        and return the result */
+    pr_info("[task handle %08x] task code+data integrity ok", meta->handle);
     ctx.state = TASK_MANAGER_STATE_INIT_LOCALINFO;
     status = K_STATUS_OKAY;
 end:
@@ -178,17 +189,18 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
 
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_INIT_LOCALINFO)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    /* no complex placement here, only push to end, sort at end of automaton */
     if (unlikely(cell == CONFIG_MAX_TASKS+1)) {
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
     /* forge local info, push back current and next afterward */
     task_table[cell].metadata = meta;
-    task_table[cell].sp = task_initialize_sp(meta->stack_top, (meta->s_text + meta->main_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(meta->stack_top, (meta->s_text + meta->main_offset));
+    pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;
     status = K_STATUS_OKAY;
@@ -207,11 +219,13 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
 {
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_TSK_MAP)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    memcpy((void*)meta->s_vma_data, (void*)meta->s_data, meta->data_size);
+    memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
     memset((void*)meta->s_bss, 0x0, meta->bss_size);
+    pr_info("[task handle %08x] task memory map forged", meta->handle);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
 end:
     return K_STATUS_OKAY;
@@ -231,17 +245,19 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta)
     kstatus_t status = K_STATUS_OKAY;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_TSK_SCHEDULE)) {
+        pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
     if (meta->flags & THREAD_FLAG_AUTOSTART) {
         status = sched_schedule(meta->handle);
+        if (unlikely(status != K_STATUS_OKAY)) {
+            ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
+            goto end;
+        }
+        pr_info("[task handle {%04x|%04x|%03x}] idle task forged", meta->handle.rerun, meta->handle.id, meta->handle.familly);
     }
-    if (unlikely(status != K_STATUS_OKAY)) {
-        ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
-        goto end;
-    }
-    if (ctx.numtask == task_get_num()) {
+    if (ctx.numtask == mgr_task_get_num()) {
         ctx.state = TASK_MANAGER_STATE_FINALIZE;
     } else {
         ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
@@ -250,10 +266,7 @@ end:
     return status;
 }
 
-/**
- * ldscript provided
- */
-extern size_t _idlestack;
+
 /**
  * @brief finalize the task table construct
  *
@@ -266,25 +279,23 @@ static inline kstatus_t task_init_finalize(void)
 
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
+        pr_err("invalid state!");
         ctx.status = K_SECURITY_INTEGRITY;
         goto end;
     }
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
-    meta->handle.rerun = 0;
-    meta->handle.id = SCHED_IDLE_TASK_LABEL;
-    meta->handle.familly = HANDLE_TASKID;
-    meta->magic = CONFIG_TASK_MAGIC_VALUE;
-    meta->flags = (THREAD_FLAG_AUTOSTART|THREAD_FLAG_PANICONEXIT);
-    meta->stack_top = (size_t)&_idlestack; /* ldscript defined */
-    meta->stack_size = 256; /* should be highly enough */
     /* should we though forge a HMAC for idle metadata here ? */
     task_table[ctx.numtask].metadata = meta;
-    memset((void*)task_table[ctx.numtask].metadata, 0x0, sizeof(task_meta_t));
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(meta->stack_top, (size_t)idle);
 
+    pr_info("[task handle {%04x|%04x|%03x}] idle task forged", (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
     ctx.numtask++;
+    request_data_membarrier();
     /* finishing with sorting task_table based on task label value */
     task_basic_sort(task_table);
+    pr_info("task list ordered based on label");
+    pr_info("found a total of %u tasks, including idle", ctx.numtask);
     ctx.status = K_STATUS_OKAY;
     ctx.state = TASK_MANAGER_STATE_READY;
 end:
@@ -306,19 +317,28 @@ end:
  * @return K_STATUS_OKAY if all tasks found are clear (I+A), or K_SECURITY_INTEGRITY
  *  if any HMAC calculation fails
  */
-kstatus_t task_init(void)
+kstatus_t mgr_task_init(void)
 {
     ctx.state = TASK_MANAGER_STATE_BOOT;
     ctx.numtask = 0; /* at the end, before adding idle task, must be equal
                         to buildsys set number of tasks */
     ctx.status = K_STATUS_OKAY;
+    pr_info("init idletask metadata");
+    task_idle_init();
+    pr_info("starting task initialization, max allowed tasks: %u", CONFIG_MAX_TASKS);
     /* first zeroify the task table (JTAG reflush case) */
     task_t * task_table = task_get_table();
     memset(task_table, 0x0, (CONFIG_MAX_TASKS+1)*sizeof(task_t));
 
-    ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+
+    if (mgr_task_get_num() == 0) {
+        ctx.state = TASK_MANAGER_STATE_FINALIZE;
+    } else {
+        ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+    }
     /* for all tasks, discover, analyse, and init */
-    for (uint16_t cell = 0; cell < task_get_num(); ++cell) {
+    for (uint16_t cell = 0; cell < mgr_task_get_num(); ++cell) {
+        pr_info("starting task blob %u/%u checks", cell, mgr_task_get_num());
         ctx.status = task_init_discover_sanitation(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto end;
@@ -346,6 +366,8 @@ kstatus_t task_init(void)
     }
     /* finalize, adding idle task */
     task_init_finalize();
+
+    task_dump_table();
 end:
     return ctx.status;
 }
@@ -357,7 +379,7 @@ end:
  * This function recalculate the metadata integrity (and can recalculate the
  * task .text+rodata potentially)
  */
-kstatus_t task_watchdog(void)
+kstatus_t mgr_task_watchdog(void)
 {
     return K_STATUS_OKAY;
 }

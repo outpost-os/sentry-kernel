@@ -1,8 +1,10 @@
-// SPDX-FileCopyrightText: 2023 Ledger SAS
-// SPDX-License-Identifier: Apache-2.0
+#ifndef TASK_MANAGER_H
+#define TASK_MANAGER_H
 
-#ifndef TASK_H
-#define TASK_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #include <assert.h>
 #include <inttypes.h>
@@ -120,8 +122,8 @@ typedef struct task_meta {
     size_t          text_size;        /**< text section size */
     size_t          s_rodata;         /**< start address of .data section */
     size_t          rodata_size;      /**< text section size */
-    size_t          s_data;           /**< start address of .data section */
-    size_t          s_vma_data;       /**< start address of .data section in SRAM */
+    size_t          si_data;           /**< start address of .data section */
+    size_t          s_data;           /**< start address of .data section in SRAM */
     size_t          data_size;        /**< text section size */
     size_t          s_bss;            /**< start address of .bss is SRAM */
     size_t          bss_size;         /**< bss size in SRAM */
@@ -166,28 +168,32 @@ typedef struct task_meta {
  * About main module standardly defined functions (init, watchdog....)
  */
 
-kstatus_t task_init(void);
+kstatus_t mgr_task_init(void);
 
-kstatus_t task_watchdog(void);
+kstatus_t mgr_task_watchdog(void);
 
 /*
  * About module specific API
  */
 
-stack_frame_t *task_initialize_sp(size_t sp, size_t pc);
+stack_frame_t *mgr_task_initialize_sp(size_t sp, size_t pc);
 
-uint16_t task_get_num(void);
+uint32_t mgr_task_get_num(void);
 
-kstatus_t task_get_sp(taskh_t t, stack_frame_t **sp);
+kstatus_t mgr_task_get_sp(taskh_t t, stack_frame_t **sp);
 
-kstatus_t task_get_state(taskh_t t, thread_state_t *state);
+kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state);
 
-kstatus_t task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
+kstatus_t mgr_task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
 
-kstatus_t task_set_sp(taskh_t t, stack_frame_t *newsp);
+kstatus_t mgr_task_set_sp(taskh_t t, stack_frame_t *newsp);
 
-kstatus_t task_set_state(taskh_t t, thread_state_t state);
+kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state);
 
-secure_bool_t task_is_idletask(taskh_t t);
+secure_bool_t mgr_task_is_idletask(taskh_t t);
 
-#endif/*TASK_H*/
+#ifdef __cplusplus
+}
+#endif
+
+#endif/*!SECURITY_MANAGER_H*/

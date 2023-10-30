@@ -4,6 +4,7 @@
 #ifndef TASK_CORE_H
 #define TASK_CORE_H
 
+#include <sentry/managers/task.h>
 
 typedef struct task {
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
@@ -36,5 +37,7 @@ typedef struct task {
  */
 
 task_t *task_get_table(void);
+
+void task_dump_table(void);
 
 #endif/*!TASK_INIT_H*/

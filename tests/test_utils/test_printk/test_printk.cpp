@@ -50,6 +50,17 @@ TEST_F(PrintkTest, TestPercent) {
     printk("%%");
 }
 
+TEST_F(PrintkTest, TestBasicUnsigned) {
+    uint32_t mytarget = 42;
+    std::ostringstream patternstream;
+    patternstream << mytarget;
+    std::string pattern;
+    pattern.assign(patternstream.str());
+    EXPECT_CALL(*printkMock, on_tx(pattern));
+    printk("%u", mytarget);
+}
+
+
 TEST_F(PrintkTest, TestNullString) {
     std::string pattern("(null)");
     EXPECT_CALL(*printkMock, on_tx(pattern));
