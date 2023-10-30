@@ -1,8 +1,29 @@
 Initial conception model
 ------------------------
 
+Micro-kernel design
+^^^^^^^^^^^^^^^^^^^
+
+Sentry (and more generaly Outpost) is based on a micro-kernel model. Such a
+model consider that the less the supervisor code handle, the best the overall
+architecture is enforced. To achieve that, this requires some specific considerations:
+
+   * some devices (short-listed number) must still be under the control of the kernel,
+     because their configuration is required at very early boot time or because their
+     access is particulary security critical
+   * all other devices are under the responsability of userspace tasks, meaning that
+     they will directly manage them as if they were a part of the kernel, but yet
+     fully partitioned and executed in user mode
+
+The userspace device manipulation concept is fully described in a :ref:`dedicated chapter <userspace_devices>`:.
+
+
+
 About general tasking model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The scheduling concept
+""""""""""""""""""""""
 
 Sentry is a preemptive kernel that execute partitioned userspace tasks.
 Each task hold a single thread, built to use a single blocking point on which it
@@ -32,8 +53,51 @@ If no task at all is eligible (all tasks are waiting for an external event), idl
 automatically executed, and make the processor entering sleep mode, waiting for any
 project-configured external event of interrupt to awake.
 
+Task terminology
+""""""""""""""""
+
+A task (terminology homogeneous with the notion of *task sets* in real-time) sytems,
+is a user application that is responsible for executing a given project-related function.
+To this task are associated unique properties:
+
+   * a unique label, that identify the task on the system
+   * a capability set (see next chapter)
+   * when using quantum-based RRMQ scheduler, a `{ priority, quantum }` tuple, that
+     define the system local priority and amount of quantum per shceduling period
+   * a dedicated memory mapping, defining the way the task is mapped on the system
+     (:ref:`dedicated chapter <mapping_tasks>`) about task memory mapping
+
+Some other properties are dynamics:
+
+   * rerun number: the current spawning increment of the task. This value is incremented
+     each time the task is respawned since the system bootup.
+   * consumed quantum: when using a quantum-based scheduler, the residual current disponible
+     quantum for the current schedule period.
+   * current frame pointer.
+   * current task handle: forged from the task label and current rerun number, identify
+     uniquely the current task job on the system. More informations about handles can be
+     found in a :ref:`dedicated chapter <handles>`.
+
+A task execute a single job, which is implemented as a processor thread. Depending on
+the way the developper consider its task, the job can typically be:
+
+   * a one-time, infinite, preemptible job, typically listening on external events (behave as a service...)
+   * a sporadic job, that has a fixed duration, but can be spawned by another task when needed (watchdogs, ephemeral function...)
+   * a one-shot job, executed once per bootup, whatever the trigger is (garbage collector, etc.....)
+
+Based on the previous, the following terminology is defined:
+
+   1. A **task** is an autonomous userspace application with a dedicated set of capabilities, memory mapped and scheduling properties
+      that implement a functional service. A task is associated to a *label*.
+   2. A **job** is a single instanciation of the task unique thread. the task can execute consecutively, periodicaly or sporadicaly
+      its job, depending on the global system configuration. A job is associated to a *task handle*.
+   3. A **label** is a 16 bit length identifier defined by the task developer, unique to the task in a project.
+   4. A **task handle** is a 32 bit length identifier (see :ref:`handles <handles>`) that identify the current task job, if it exists.
+
 Tasks properties
 ^^^^^^^^^^^^^^^^
+
+This chapter describes all properties that are task-wide, common to all potentially consecutive task jobs.
 
 Capabilities
 """"""""""""
@@ -54,7 +118,7 @@ Here is the global Sentry capability model:
    :alt: Outpost capabilities
    :align: center
 
-The capability hierarchy is ressource-oriented, with family definition that should
+The capabilities hierarchy is ressource-oriented, with family definition that should
 be easy to understand:
 
    * *Devices* for all hardware devices related ressources
@@ -78,11 +142,11 @@ spawn mode and the respawn mode.
      bootup, or to be started only through another task request.
    * Task respawn mode: When a task finishes, it can specify multiple cases:
 
-      * restart: restart on termination. The task is respawn, restarting with a
+      * **restart**: restart on termination. The task is respawn, restarting with a
         fully fresh context
-      * panic: the task should had never terminated. This is an abnormal behavior.
+      * **panic**: the task should had never terminated. This is an abnormal behavior.
         The system must panic on this event
-      * nothing: the task has just terminated, nothing special to do
+      * **none**: the task has just terminated, nothing special to do
 
 Action on termination
 """""""""""""""""""""
@@ -90,13 +154,13 @@ Action on termination
 A task has different termination cases:
 
    * normal termination, using `sys_exit()` syscall or `_exit` POSIX API
-   * anormal termination, due to any fault
+   * abnormal termination, due to any fault
 
 The kernel handle both exit cases differently:
 
    * In case of normal termination, the kernel check the task flags as defined in the
      previous chapter.
-   * In case of fault, the kernel call the runtime sysabort handler. This handler
+   * In case of abnormal termination (fault, etc.), the kernel call the runtime sysabort handler. This handler
      is a runtime implementation. If the application developer has defined and
      declared a custom handler for this case, the runtime sysabort handler will
      call the task custom handler **after** its own execution. When the sysabort
@@ -104,8 +168,8 @@ The kernel handle both exit cases differently:
      If another fault rise while executing the abort handler, the system panic for
      security.
 
-Tasks entrypoint
-^^^^^^^^^^^^^^^^
+job entrypoint
+^^^^^^^^^^^^^^
 
 In C mode The task thread entrypoint is the usual `int main(void)` function, as defined
 in the ISO C definition. In full Rust, the main function is the usual `fn main()` function.
@@ -129,3 +193,20 @@ This allows to write userspace threads as simple as:
         } while (1);
         return 0;
    }
+
+or in Rust:
+
+.. code-block:: Rust
+
+   fn main() {
+        println!("Hello world!");
+        loop {
+            /* my task loop... */
+        }
+   }
+
+
+Mapping tasks
+^^^^^^^^^^^^^
+
+.. _mapping_tasks:

@@ -12,8 +12,6 @@ Welcome to Sentry documentation!
    concepts/index.rst
    build_system/index.rst
    sw_architecture/index.rst
-   api/index.rst
-
 
 .. image:: _static/figures/outpost.png
    :width: 30%

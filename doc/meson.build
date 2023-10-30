@@ -6,30 +6,58 @@ sphinx = find_program('sphinx-build')
 doxygen = find_program('doxygen')
 py3 = pymod.find_installation('python3', modules: ['exhale','sphinx_rtd_theme'])
 
-api_rst = files(
-    'sphinx/build_system/targets.rst',
-    'sphinx/build_system/svd.rst',
-    'sphinx/build_system/index.rst',
-    'sphinx/build_system/dts.rst',
-    'sphinx/concepts/archi_req.rst',
-    'sphinx/concepts/security.rst',
-    'sphinx/concepts/index.rst',
-    'sphinx/concepts/initial.rst',
-    'sphinx/index.rst',
-    'sphinx/deps.rst',
-    'sphinx/sw_architecture/asp.rst',
-    'sphinx/sw_architecture/bsp.rst',
-    'sphinx/sw_architecture/syscalls.rst',
-    'sphinx/sw_architecture/index.rst',
+concepts_rst = files(
+    'concepts/_static/figures/capabilities.png',
+    'concepts/_static/figures/outpost.ico',
+    'concepts/_static/figures/outpost.png',
+    'concepts/build_system/targets.rst',
+    'concepts/build_system/svd.rst',
+    'concepts/build_system/index.rst',
+    'concepts/build_system/dts.rst',
+    'concepts/conf.py',
+    'concepts/concepts/archi_req.rst',
+    'concepts/concepts/security.rst',
+    'concepts/concepts/index.rst',
+    'concepts/concepts/initial.rst',
+    'concepts/index.rst',
+    'concepts/sw_architecture/asp.rst',
+    'concepts/sw_architecture/bsp.rst',
+    'concepts/sw_architecture/syscalls.rst',
+    'concepts/sw_architecture/index.rst',
 )
-api = custom_target('sphinx-doc',
-    input: api_rst,
-    depend_files: [files('sphinx/conf.py')],
-    output: 'full',
+concepts = custom_target('doc-concepts',
+    input: concepts_rst,
+    depend_files: [files('concepts/conf.py')],
+    output: 'concepts',
     command: [sphinx, '-b', 'html', '-q', '-d',
         'build/doctrees',
         '-Dversion=' + meson.project_version(),
-        meson.current_source_dir() / 'sphinx',
-        'doc/full',
+        join_paths(meson.current_source_dir(), 'concepts'),
+        'doc/concepts',
     ])
-doc = alias_target('doc', api)
+doc_concepts = alias_target('doc-concepts', concepts)
+
+internals_rst = files(
+    'internals/_static/figures/outpost.ico',
+    'internals/_static/figures/outpost.png',
+    'internals/conf.py',
+    'internals/Doxyfile',
+    'internals/index.rst',
+)
+internals = custom_target('doc-internals',
+    input: internals_rst,
+    depend_files: [files('internals/conf.py')],
+    output: 'internals',
+    command: [sphinx, '-b', 'html', '-q', '-d',
+        'build/doctrees',
+        '-Dversion=' + meson.project_version(),
+        join_paths(meson.current_source_dir(), 'internals'),
+        'doc/internals',
+    ])
+doc_internals = alias_target('doc-internals', internals)
+
+doc = alias_target(
+    'doc',
+    concepts,
+    internals,
+)

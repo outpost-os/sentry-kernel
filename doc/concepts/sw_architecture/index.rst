@@ -7,4 +7,5 @@ Sentry software architecture
 
    asp.rst
    bsp.rst
+   user_devices.rst
    syscalls.rst

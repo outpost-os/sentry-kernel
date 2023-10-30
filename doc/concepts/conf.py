@@ -2,23 +2,9 @@
 #
 
 extensions = [
-    'breathe',
-    'exhale',
     'sphinx_rtd_theme',
 ]
 
-breathe_projects = {"Sentry": "../doxygen/xml"}
-breathe_default_project = "Sentry"
-
-exhale_args = {
-    "containmentFolder": "./api",
-    "rootFileName": "index.rst",
-    "rootFileTitle": "Sentry detailed documentation",
-    "doxygenStripFromPath": ".",
-    "createTreeView": True,
-    "exhaleExecutesDoxygen": True,
-    "exhaleUseDoxyfile": True,
-}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
