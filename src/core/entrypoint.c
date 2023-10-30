@@ -52,9 +52,9 @@ __attribute__((noreturn)) void _entrypoint(void)
     sched_init();
     mgr_task_init();
 
-#if 0 /* FIXME */
+    /* FIXME to be abstraced by manager */
     systick_init();
-#endif
+    interrupt_enable();
 
 
 #if CONFIG_USE_SSP
