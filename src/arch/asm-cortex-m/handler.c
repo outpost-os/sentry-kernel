@@ -73,6 +73,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
         case HARDFAULT_IRQ:
             /* calling hardfault handler */
             hardfault_handler(frame);
+            /*@ assert \false; */
             break;
         case SYSTICK_IRQ:
             /* periodic, every each millisecond execution */
