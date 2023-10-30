@@ -4,6 +4,13 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
+/**
+ * @brief Arch-specific implementation of the panic() function
+ *
+ * This function be called anywhere, anytime, and is resonsible for execute the
+ * panic triggered functions (TBD)
+ * Do **not** return.
+ */
 static inline __attribute__((noreturn)) void __do_panic(void) {
     /* XXX: here, a security policy should be considered. The do_panic() should call security manager
       primitive (potential cleanups) and other things to define */

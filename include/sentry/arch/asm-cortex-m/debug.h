@@ -7,6 +7,14 @@
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/ktypes.h>
 
+/**
+  @brief detect if a debugger is connected to the board
+
+  using the standard ARM debug register, check if the core freeze flag is
+  enabled, meaning that a JTAG probe is connected to the board.
+
+  @return SECURE_TRUE if the probe is detected using this method, or SECURE_FALSE
+  */
 static inline secure_bool_t __dbg_debugger_is_connected(void) {
     secure_bool_t   res = SECURE_FALSE;
     CoreDebug_Type* debug = CoreDebug;
