@@ -17,4 +17,5 @@ test_io = executable(
 
 test('io',
      test_io,
+     env: nomalloc,
      suite: 'ut-utils')

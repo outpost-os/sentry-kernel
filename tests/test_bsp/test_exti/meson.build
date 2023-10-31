@@ -28,4 +28,5 @@ test_bsp_exti = executable(
 
 test('exti',
      test_bsp_exti,
+     env: nomalloc,
      suite: 'ut-bsp')

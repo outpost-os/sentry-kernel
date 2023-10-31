@@ -23,4 +23,5 @@ test_printk = executable(
 
 test('printk',
      test_printk,
+     env: nomalloc,
      suite: 'ut-utils')
