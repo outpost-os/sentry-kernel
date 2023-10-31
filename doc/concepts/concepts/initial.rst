@@ -17,7 +17,71 @@ architecture is enforced. To achieve that, this requires some specific considera
 
 The userspace device manipulation concept is fully described in a :ref:`dedicated chapter <userspace_devices>`:.
 
+Application developer model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+In small embedded systems, nearly all services are related to a given hardware
+backend (graphical stack, cryptographic service, I/O stack, etc.).
+
+Although, value-added functions should be decorelated from hardware-related function,
+while the last is able to deliver an interface to such a hardware through an abstracted
+API.
+This model allows two things:
+
+   * The Value Added developer do not always need to be expert in hardware related functions
+     to implement the effective VA.
+
+   * Harware-related micro-services are fully reusable functions that can be reusables
+     and shared between projects. Theses services can be integrated based on two modes:
+
+      * **library model**: the hardware driver delivers a portable, easy to understand upper API
+        that the application developer can directly use as a library in its application. This is,
+        typically, the Rust `trait` design model.
+
+      * **micro-service model**: the hardware driver is integrated into a dedicated task that
+        delivers a portable and easy to use API to other application through inter-process
+        communication, potentially allowing multiple higher level services to communicate
+        with it. Partitioning between backend and VA function is increased by the kernel, but
+        full chain execution latency is increased.
+
+Sentry design is made so that both models are natively supported, so that the user VA
+developers team can, if needed, design a task hierarchy model with full separation between
+backend developers and business function developers.
+
+Moreover, Sentry and its UAPI are designed to support, for business functions:
+
+   * the Rust libcore and libstd environment for Rust developers
+   * POSIX compliance for C developers (in a separated userspace POSIX PSE51-2001 support library)
+
+This is a voluntary model for two reasons:
+
+   * *easier functional testing*: The business function developer is able to test and execute its function on any
+     host that support Rust libstd or POSIX API without requiring embedded target build nor emulation, without
+     any modification of the source code.
+
+   * *easy mocking*: Any backend driver implementation should be able to fully mock the hardware,
+     yet respecting the upper API, when testing the business logic (typically, a graphical stack
+     backend should be able, on Linux/x86_64, to delivery a full SDL-backed
+     support so that any upper business logic graphical rendering is executed with
+     the very same result on the build host)
+
+For a given application, only race conditions and performances analysis require testing
+on the real target, while interfaces are properly defined and tested.
+
+With this metodology achieved, the business logic developer do not require:
+
+   * Sentry-specific API expertise (Rust or POSIX API usage instead)
+   * embedded system low-level expertise (platform bootup, memory map, device drivers design...)
+
+In the same way, the business logic developer can:
+
+   * use API he knows (POSIX or Rust standard APIs)
+   * natively tests and execute business logic application out of the embedded system
+   * natively debug business logic functional implementation (native gdb, easy IDE integration)
+
+The residual constraint is the analisys of the overall system performances,
+that define how multiple tasks can interact with optimal performances and scheduling. The following
+chapter describes the Sentry tasking model, in order to respond to this part.
 
 About general tasking model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
