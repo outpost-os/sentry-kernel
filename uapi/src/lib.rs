@@ -7,8 +7,6 @@ mod arch;
 pub mod syscall;
 pub mod uapi;
 
-#[cfg(test)]
-mod mocks;
 
 #[cfg(not(feature = "std"))]
 mod panic;

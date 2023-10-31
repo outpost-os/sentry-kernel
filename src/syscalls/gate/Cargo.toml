@@ -10,3 +10,6 @@ doc = true
 
 [dependencies]
 systypes = { path = "../../../include/uapi/types" }
+
+[features]
+mock = []
