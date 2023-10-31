@@ -14,4 +14,5 @@ test_bits = executable(
 
 test('bits',
      test_bits,
+     env: nomalloc,
      suite: 'ut-utils')

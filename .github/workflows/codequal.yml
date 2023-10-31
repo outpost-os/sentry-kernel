@@ -63,11 +63,11 @@ jobs:
         with:
           actions: '["prefetch", "setup"]'
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          options: '-Doptimization=0 -Dkconfig:config=configs/stm32f429i_disc1_defconfig'
+          options: '-Doptimization=0 -Db_coverage=true -Dwith_tests=true -Dkconfig:config=configs/stm32f429i_disc1_defconfig'
       - name: Sonar Scanner
         uses: embedded-devops/action-codequal@main
         with:
           host: ${{ secrets.SONAR_HOST }}
           token: ${{ secrets.SONAR_TOKEN }}
           project: sentry-kernel
-          build_cmd: 'ninja -C builddir'
+          build_cmd: 'ninja -C builddir all && ninja -C builddir test && ninja -C builddir sonar'
