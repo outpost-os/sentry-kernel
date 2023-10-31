@@ -2,7 +2,7 @@
 #include <sentry/ktypes.h>
 
 /* string related functions, for debug usage only */
-static size_t sentry_strlen(const char *s)
+static size_t sentry_strnlen(const char *s, size_t maxlen)
 {
     size_t result = 0;
 
@@ -11,7 +11,7 @@ static size_t sentry_strlen(const char *s)
         goto err;
     }
 
-    while (s[result] != '\0') {
+    while ((s[result] != '\0') && result < maxlen) {
         result++;
     }
 err:
@@ -101,7 +101,7 @@ err:
 
 #ifndef TEST_MODE
 /* if not in the test suite case, aliasing to POSIX symbols, standard string.h header can be added */
-size_t strlen(const char *s) __attribute__((alias("sentry_strlen")));
+size_t strnlen(const char *s, size_t maxlen) __attribute__((alias("sentry_strnlen")));
 void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));
 void* memcpy(void * restrict d, const void * restrict s, size_t) __attribute__((alias("sentry_memcpy")));
 #endif/*!TEST_MODE*/
