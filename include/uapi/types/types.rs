@@ -25,7 +25,7 @@ pub enum Syscall {
 /// serves as the basis for the syscall dispatcher in the crate
 /// `gate`.
 impl TryFrom<u32> for Syscall {
-    type Error = ();
+    type Error = DispatchError;
     fn try_from(v: u32) -> Result<Syscall, Self::Error> {
         match v {
             0 => Ok(Syscall::Exit),
@@ -39,10 +39,16 @@ impl TryFrom<u32> for Syscall {
             8 => Ok(Syscall::SendIPC),
             9 => Ok(Syscall::SendSignal),
             10 => Ok(Syscall::WaitForEvent),
-            _ => Err(()),
+            _ => Err(DispatchError::IllegalValue),
         }
     }
 }
+
+/// Possible errors when converting from a u32 to a syscall number
+pub enum DispatchError {
+    IllegalValue,
+}
+
 /// Sentry syscall return values
 #[repr(C)]
 #[derive(Debug, PartialEq)]
@@ -189,3 +195,43 @@ pub enum Signal {
 }
 
 pub type ProcessID = u32;
+
+#[repr(C)]
+pub enum SleepDuration {
+    D1ms,
+    D2ms,
+    D5ms,
+    D10ms,
+    D20ms,
+    D50ms,
+    ArbitraryMs(u32),
+}
+
+impl From<SleepDuration> for u32 {
+    fn from(duration: SleepDuration) -> u32 {
+        match duration {
+            SleepDuration::D1ms => 1,
+            SleepDuration::D2ms => 2,
+            SleepDuration::D5ms => 5,
+            SleepDuration::D10ms => 10,
+            SleepDuration::D20ms => 20,
+            SleepDuration::D50ms => 50,
+            SleepDuration::ArbitraryMs(v) => v,
+        }
+    }
+}
+
+#[repr(C)]
+pub enum SleepMode {
+    Shallow,
+    Deep,
+}
+
+impl From<SleepMode> for u32 {
+    fn from(mode: SleepMode) -> u32 {
+        match mode {
+            SleepMode::Shallow => 0,
+            SleepMode::Deep => 1,
+        }
+    }
+}
