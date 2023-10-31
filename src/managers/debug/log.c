@@ -35,7 +35,7 @@
  */
 
 // FIXME: must be Kconfig based
-#define BUF_MAX 512
+#define BUF_MAX 256
 
 /*
  * .bss based, init to 0
@@ -547,9 +547,11 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         dbgbuffer_write_string("(null)", 6);
                         fs_prop.strlen += 6;
                     } else {
-                        /* now we can print the number in argument */
-                        dbgbuffer_write_string(str, strlen(str));
-                        fs_prop.strlen += strlen(str);
+                        /* now we can print the number in argument. The strnlen is
+                           more a best practice than a real protection as whatever the size is,
+                           the buffer never write more than its own size */
+                        dbgbuffer_write_string(str, strnlen(str, BUF_MAX));
+                        fs_prop.strlen += strnlen(str, BUF_MAX);
                     }
                     /* => end of format string */
                     goto end;
