@@ -7,12 +7,15 @@
  * \file thread context manipulation entrypoint, multiplatform
  */
 
-#ifdef CONFIG_ARCH_ARM_CORTEX_M
+#if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/thread.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/apic.h>
+#elif defined(__i386__)
+// no include
 #else
 #error "unsupported architecture!"
 #endif
-
 /**
  * kernel thread type definition
  */

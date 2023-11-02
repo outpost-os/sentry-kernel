@@ -14,6 +14,7 @@
 #include "task_init.h"
 #include "task_core.h"
 
+#ifndef TEST_MODE
 /**
  * The effective number of task is, in our case, forged by the build system
  *
@@ -26,6 +27,15 @@
  * logarithmic search time
  */
 const uint32_t numtask __attribute__((used, section(".task_list.num")));
+#else
+/*
+ * in unit test mode, the numtask var is a UT-delivered value. This value
+ * is forge in each test to test various cases (valid, invalid, border cases...)
+ */
+uint32_t ut_get_numtask(void);
+#define numtask ut_get_numtask()
+
+#endif
 
 
 /**
@@ -157,7 +167,6 @@ end:
 kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    stack_frame_t *sp = NULL;
     task_t * tsk = task_get_from_handle(t);
     if (unlikely(tsk == NULL || state == NULL)) {
         goto end;
@@ -217,7 +226,6 @@ secure_bool_t mgr_task_is_idletask(taskh_t t)
 kstatus_t mgr_task_get_metadata(taskh_t t, const task_meta_t **tsk_meta)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    task_meta_t const *meta = NULL;
     task_t * tsk = task_get_from_handle(t);
     if (unlikely(tsk == NULL || tsk_meta == NULL)) {
         goto end;

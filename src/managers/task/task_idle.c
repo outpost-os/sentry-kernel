@@ -23,7 +23,9 @@ extern size_t _eidle;
 void __attribute__((noreturn,section(".idle"))) idle(void)
 {
     do {
+#ifndef TEST_MODE
         asm volatile("wfi");
+#endif
         /* FIXME: yield to add here */
     } while (1);
 }
