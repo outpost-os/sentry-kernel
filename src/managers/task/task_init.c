@@ -222,8 +222,12 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
-    memset((void*)meta->s_bss, 0x0, meta->bss_size);
+    if (likely(meta->data_size)) {
+        memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
+    }
+    if (likely(meta->bss_size)) {
+        memset((void*)meta->s_bss, 0x0, meta->bss_size);
+    }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
 end:
