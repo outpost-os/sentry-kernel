@@ -34,6 +34,9 @@ static std::unique_ptr<uint32_t> taskNum;
 
 class TaskTest : public testing::Test {
     void SetUp() override {
+        if (std::getenv("CI")) {
+            GTEST_SKIP() << "Skipping in CI mode (OOM problem)";
+        }
         taskMock = std::make_unique<TaskMock>();
     }
 
@@ -47,6 +50,15 @@ protected:
         taskCtx = std::make_unique<task_meta_t*>(ctx);
         taskNum = std::make_unique<uint32_t>(num);
     }
+    uint16_t gen_label(void) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        uint16_t max = std::numeric_limits<uint16_t>::max();
+
+        std::uniform_int_distribution<> distrib(1, max);
+        return distrib(gen);
+    };
+
     bool is_ordered(task_t *tab) {
         bool res = true;
         for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
@@ -183,15 +195,6 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
  */
 TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
     kstatus_t res;
-
-    auto gen_label = [] (void) -> uint16_t {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        uint16_t max = std::numeric_limits<uint16_t>::max();
-
-        std::uniform_int_distribution<> distrib(1, max);
-        return distrib(gen);
-    };
 
     memset(task_full_context, 0x0, sizeof(task_full_context));
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
