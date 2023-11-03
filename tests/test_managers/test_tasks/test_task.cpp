@@ -167,7 +167,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)_idlestack;
+        task_full_context[i].stack_top = (size_t)&_idlestack;
         task_full_context[i].stack_size = 256;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
@@ -199,7 +199,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)_idlestack;
+        task_full_context[i].stack_top = (size_t)&_idlestack;
         task_full_context[i].stack_size = 256;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
