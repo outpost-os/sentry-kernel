@@ -120,7 +120,7 @@ extern "C" {
      * overloading printk() with standard printf
      */
     kstatus_t printk(const char *fmt __attribute__((unused)), ...) {
-#if 1
+#if 0
         /* do this to reenable logging, if needed */
         va_list args;
         va_start(args, fmt);
