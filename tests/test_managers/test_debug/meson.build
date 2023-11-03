@@ -15,6 +15,7 @@ test_printk = executable(
     c_args: [
         '-DTEST_MODE=1',
         '-DCONFIG_BUILD_TARGET_DEBUG=1',
+        '-include', '@0@'.format(kconfig_h),
     ],
     dependencies: [gtest_main ],
     link_language: 'cpp',
@@ -24,4 +25,4 @@ test_printk = executable(
 test('printk',
      test_printk,
      env: nomalloc,
-     suite: 'ut-utils')
+     suite: 'ut-managers')

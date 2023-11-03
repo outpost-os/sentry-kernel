@@ -51,23 +51,17 @@ static inline void task_swap(task_t *t1, task_t *t2)
 static inline void task_basic_sort(task_t *table)
 {
     uint16_t i, j;
-    secure_bool_t swapped;
     for (i = 0; i < mgr_task_get_num()+1; i++) {
-        swapped = SECURE_FALSE;
         for (j = 0; j < mgr_task_get_num() - i; j++) {
             /** INFO: task table is configured to CONFIG_MAX_TASKS+1 to handle idle, j+1 always valid */
             if (table[j].metadata->handle.id > table[j+1].metadata->handle.id) {
                 task_swap(&table[j], &table[j + 1]);
-                swapped = SECURE_TRUE;
             }
-        }
-        /* If no two elements were swapped, beaking */
-        if (swapped == SECURE_TRUE) {
-            break;
         }
     }
 }
 
+#ifndef TEST_MODE
 /**
  * @def the task table store all the tasks metadata, forged by the build system
  *
@@ -94,6 +88,11 @@ static inline void task_basic_sort(task_t *table)
  * Although, once copied, the table would store the very same content.
  */
 static const task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
+#else
+/* UT provided */
+const task_meta_t *ut_get_task_meta_table(void);
+#define __task_meta_table ut_get_task_meta_table()
+#endif
 
 /**
  * @brief discover_sanitation state handling
@@ -223,8 +222,12 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
-    memset((void*)meta->s_bss, 0x0, meta->bss_size);
+    if (likely(meta->data_size)) {
+        memcpy((void*)meta->s_data, (void*)meta->si_data, meta->data_size);
+    }
+    if (likely(meta->bss_size)) {
+        memset((void*)meta->s_bss, 0x0, meta->bss_size);
+    }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
 end:
@@ -240,7 +243,8 @@ end:
  * that was the tast task. Move to TASK_MANAGER_STATE_ERROR_SECURITY in case of
  * error.
  */
-static inline kstatus_t task_init_schedule(task_meta_t const * const meta)
+static inline kstatus_t task_init_schedule(task_meta_t const * const meta,
+                                           task_mgr_state_t last_loop_state)
 {
     kstatus_t status = K_STATUS_OKAY;
     /* entering state check */
@@ -255,13 +259,10 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta)
             ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
             goto end;
         }
-        pr_info("[task handle {%04x|%04x|%03x}] idle task forged", meta->handle.rerun, meta->handle.id, meta->handle.familly);
+        pr_info("[task handle {%04x|%04x|%03x}] task forged", meta->handle.rerun, meta->handle.id, meta->handle.familly);
     }
-    if (ctx.numtask == mgr_task_get_num()) {
-        ctx.state = TASK_MANAGER_STATE_FINALIZE;
-    } else {
-        ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
-    }
+    ctx.numtask++;
+    ctx.state = last_loop_state;
 end:
     return status;
 }
@@ -291,7 +292,11 @@ static inline kstatus_t task_init_finalize(void)
 
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged", (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
     ctx.numtask++;
-    request_data_membarrier();
+    ctx.status = sched_schedule(meta->handle);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
+        ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
+        goto end;
+    }
     /* finishing with sorting task_table based on task label value */
     task_basic_sort(task_table);
     pr_info("task list ordered based on label");
@@ -336,9 +341,15 @@ kstatus_t mgr_task_init(void)
     } else {
         ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
     }
+    task_mgr_state_t last_loop_state;
     /* for all tasks, discover, analyse, and init */
     for (uint16_t cell = 0; cell < mgr_task_get_num(); ++cell) {
-        pr_info("starting task blob %u/%u checks", cell, mgr_task_get_num());
+        if (cell+1U == mgr_task_get_num()) {
+            last_loop_state = TASK_MANAGER_STATE_FINALIZE;
+        } else {
+            last_loop_state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+        }
+        pr_info("starting task blob %u/%u checks", cell+1, mgr_task_get_num());
         ctx.status = task_init_discover_sanitation(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto end;
@@ -359,7 +370,7 @@ kstatus_t mgr_task_init(void)
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto end;
         }
-        ctx.status = task_init_schedule(&__task_meta_table[cell]);
+        ctx.status = task_init_schedule(&__task_meta_table[cell], last_loop_state);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto end;
         }

@@ -51,7 +51,6 @@ typedef enum handle_type {
 #define HANDLE_FAMILLY_SHIFT    29UL
 #define HANDLE_FAMILLY_MASK     0xe0000000UL
 
-
 /* handle_specific field definition. This field depend on the handle_familly */
 
 

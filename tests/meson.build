@@ -13,6 +13,7 @@ gtest_main = dependency('gmock_main', version: '>=1.13.0',
 
 subdir('test_utils')
 subdir('test_bsp')
+subdir('test_managers')
 
 if get_option('b_coverage')
 # INFO: when building libsentry with cross-toolchain and test with native one,

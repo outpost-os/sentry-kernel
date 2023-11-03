@@ -67,6 +67,10 @@ typedef enum thread_state {
       THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
 } thread_state_t;
 
+/**
+ * TODO: to be moved to dedicated header
+ * for a given task job, specify the spwaning mode
+ */
 typedef enum thread_flags {
     THREAD_FLAG_AUTOSTART     = 0x0001UL,
     THREAD_FLAG_RESTARTONEXIT = 0x0002UL,
