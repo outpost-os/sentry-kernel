@@ -3,6 +3,8 @@
 
 #include <random>
 #include <iostream>
+#include <stdarg.h>
+#include <stdio.h>
 #include <sentry/ktypes.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -69,11 +71,19 @@ protected:
 extern "C" {
 
     /* sample stack area used to let task manager forge a stack */
-    uint32_t stack[256];
+    uint64_t _idlestack[64];
+    /* we emulate _idletask ld label, although, this label
+       is manipulated using its address as stack top, meaning that
+       we need some space **bellow** as if the label was properly
+       positioned in memory to let the task manager manipulating the
+       memory. This is done with some _otherstack spacing just
+       after, so that &_idlestack usage in sp configuration will store
+       content in _shadowstack */
+    uint64_t _shadowstack[64];
 
     /* sample idle function and associated infos */
     extern void __attribute__((noreturn)) idle(void);
-    size_t _idlestack  = (size_t)&stack;
+
     size_t _sidle = (size_t)idle;
     size_t _eidle = (size_t)idle + 4;
 
@@ -105,6 +115,21 @@ extern "C" {
         /* only idle is scheduled */
         return K_STATUS_OKAY;
     }
+
+    /*
+     * overloading printk() with standard printf
+     */
+    kstatus_t printk(const char *fmt __attribute__((unused)), ...) {
+#if 1
+        /* do this to reenable logging, if needed */
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+#endif
+        return K_STATUS_OKAY;
+    }
+
 }
 
 
@@ -142,7 +167,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)&stack;
+        task_full_context[i].stack_top = (size_t)_idlestack;
         task_full_context[i].stack_size = 256;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
@@ -174,7 +199,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)&stack;
+        task_full_context[i].stack_top = (size_t)_idlestack;
         task_full_context[i].stack_size = 256;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
