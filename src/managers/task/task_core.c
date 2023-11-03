@@ -51,7 +51,11 @@ uint32_t ut_get_numtask(void);
  * but instead just do { while(1) { wfi(); yield(); }}.
  * INFO: zeroified as in .bss.
  */
-static task_t task_table[CONFIG_MAX_TASKS+1];
+#ifndef TEST_MODE
+/* in test mode, we get back the table for analysis */
+static
+#endif
+task_t task_table[CONFIG_MAX_TASKS+1];
 
 /**
  * @brief return the local task table address

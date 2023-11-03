@@ -51,19 +51,12 @@ static inline void task_swap(task_t *t1, task_t *t2)
 static inline void task_basic_sort(task_t *table)
 {
     uint16_t i, j;
-    secure_bool_t swapped;
     for (i = 0; i < mgr_task_get_num()+1; i++) {
-        swapped = SECURE_FALSE;
         for (j = 0; j < mgr_task_get_num() - i; j++) {
             /** INFO: task table is configured to CONFIG_MAX_TASKS+1 to handle idle, j+1 always valid */
             if (table[j].metadata->handle.id > table[j+1].metadata->handle.id) {
                 task_swap(&table[j], &table[j + 1]);
-                swapped = SECURE_TRUE;
             }
-        }
-        /* If no two elements were swapped, beaking */
-        if (swapped == SECURE_TRUE) {
-            break;
         }
     }
 }
