@@ -39,6 +39,7 @@ SECTIONS
     /* The startup code goes first into FLASH */
     .isr_vector :
     {
+        _svtor = .;
         KEEP(*(.isr_vector)) /* Startup code */
         . = ALIGN(4);
     } > {{ vtor_section }}

@@ -16,6 +16,8 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/ktypes.h>
 
 /** MPU Access Permission no access */
 #define MPU_REGION_PERM_NONE ARM_MPU_AP_NONE
@@ -122,16 +124,16 @@
 /**
  * Load memory regions description table in MPU
  */
-__STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *region_descs,
+__STATIC_FORCEINLINE kstatus_t mpu_load_configuration(const struct mpu_region_desc *region_descs,
                             size_t count)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
     uint32_t rbar;
     uint32_t rasr;
     const struct mpu_region_desc *desc = NULL;
 
     if (region_descs == NULL) {
-        /* assert */
-        return;
+        goto end;
     }
 
     for (size_t i = 0UL; i < count; i++) {
@@ -146,6 +148,9 @@ __STATIC_FORCEINLINE void mpu_load_configuration(const struct mpu_region_desc *r
         ARM_MPU_SetRegion(rbar, rasr);
 #endif
     }
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 #endif /* __ARCH_ARM_PMSA_V7_H */
