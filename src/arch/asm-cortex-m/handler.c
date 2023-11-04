@@ -37,7 +37,6 @@ static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
     __do_panic();
 }
 
-
 #define __GET_IPSR(intr) ({ \
     asm volatile ("mrs r1, ipsr\n\t" \
                   "mov %0, r1\n\t" \
@@ -74,6 +73,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             /* calling hardfault handler */
             hardfault_handler(frame);
             /*@ assert \false; */
+            break;
+        case MEMMANAGE_IRQ:
+            frame = memfault_handler(frame);
             break;
         case SYSTICK_IRQ:
             /* periodic, every each millisecond execution */

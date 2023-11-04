@@ -16,7 +16,7 @@
 typedef enum mm_region {
     MM_REGION_KERNEL_TXT,
     MM_REGION_KERNEL_DATA,
-    MM_REGION_KERNEL_DEVICES,
+    MM_REGION_KERNEL_DEVICE,
     MM_REGION_TASK_SVC_EXCHANGE,
     MM_REGION_TASK_TXT,
     MM_REGION_TASK_DATA,
@@ -24,9 +24,11 @@ typedef enum mm_region {
     MM_REGION_TASK_SHM,
 } mm_region_t;
 
-kstatus_t mgr_mm_map(mm_region_t regid, uint32_t handle);
+stack_frame_t *memfault_handler(stack_frame_t *frame);
 
-kstatus_t mgr_mm_unmap(mm_region_t regid, uint32_t handle);
+kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
+
+kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
 kstatus_t mgr_mm_init(void);
 
