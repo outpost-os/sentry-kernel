@@ -7,6 +7,7 @@
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
+#include <sentry/managers/memory.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -36,7 +37,6 @@ static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
 #endif
     __do_panic();
 }
-
 
 #define __GET_IPSR(intr) ({ \
     asm volatile ("mrs r1, ipsr\n\t" \
@@ -74,6 +74,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             /* calling hardfault handler */
             hardfault_handler(frame);
             /*@ assert \false; */
+            break;
+        case MEMMANAGE_IRQ:
+            frame = memfault_handler(frame);
             break;
         case SYSTICK_IRQ:
             /* periodic, every each millisecond execution */

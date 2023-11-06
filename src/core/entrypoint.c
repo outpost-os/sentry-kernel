@@ -17,6 +17,7 @@
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/security.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/memory.h>
 #include <sentry/sched.h>
 #include <sentry/thread.h>
 
@@ -40,6 +41,7 @@ __attribute__((noreturn)) void _entrypoint(void)
     /* init phase */
     mgr_clock_init();
     mgr_interrupt_init();
+    mgr_mm_init();
     mgr_io_init();
     mgr_debug_init();
     pr_info("Starting Sentry kernel release %s", "v0.1");

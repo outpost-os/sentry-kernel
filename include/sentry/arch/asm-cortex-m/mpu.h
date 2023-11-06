@@ -20,18 +20,20 @@ struct mpu_region_desc {
     bool     noexec;        /**< No-exec bit */
 };
 
-#if defined(CONFIG_ARCH_ARM_CORTEX_M) && (CONFIG_ARCH_ARM_CORTEX_M == 1) && \
-    defined(CONFIG_HAS_MPU) && (CONFIG_HAS_MPU == 1)
+#if defined(CONFIG_ARCH_ARM_CORTEX_M) && \
+    defined(CONFIG_HAS_MPU) && \
+    defined(CONFIG_HAS_MPU_PMSA_V7)
 
-#include <arch/asm-cortex-m/mpu_pmsa_v7.h>
+#include <sentry/arch/asm-cortex-m/mpu_pmsa_v7.h>
 
-#if 0
-// FIXME header to create
-#elif
+#elif defined(CONFIG_ARCH_ARM_CORTEX_M) && \
+      defined(CONFIG_HAS_MPU) && \
+      defined(CONFIG_HAS_MPU_PMSA_V8)
 
-#include <arch/asm-cortex-m/mpu_pmsa_v8.h>
-#endif
-
+/** FIXME: header to write, this will fail at compile time */
+#include <sentry/arch/asm-cortex-m/mpu_pmsa_v8.h>
+#else
+# error "Unknown MPU type!"
 #endif
 
 #endif/*__ARCH_MPU_H*/
