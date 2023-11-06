@@ -4,6 +4,7 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
+#include <sentry/managers/task.h>
 /**
  * This enumerate defines the contigous memory regions that
  * can be (un)mapped by the memory manager.
@@ -17,6 +18,9 @@ typedef enum mm_region {
     MM_REGION_KERNEL_TXT,
     MM_REGION_KERNEL_DATA,
     MM_REGION_KERNEL_DEVICE,
+#if defined(__arm__)
+    MM_REGION_KERNEL_SYSARM,
+#endif
     MM_REGION_TASK_SVC_EXCHANGE,
     MM_REGION_TASK_TXT,
     MM_REGION_TASK_DATA,

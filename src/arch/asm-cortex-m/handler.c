@@ -7,6 +7,7 @@
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
+#include <sentry/managers/memory.h>
 
 /**
  * @file ARM Cortex-M generic handlers

@@ -130,6 +130,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_devices(void)
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
+    const task_meta_t *meta;
     switch (reg_handle) {
         case MM_REGION_KERNEL_TXT:
             if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
@@ -151,17 +152,59 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 goto end;
             }
             /* map a given kernel device, using its base addr + size */
-            /* TODO: this*/
+            /* TODO: this requires to check that devh exists and is a kernel property -> needs device nmanager */
             break;
+#if defined(__arm__)
+        case MM_REGION_KERNEL_SYSARM:
+            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
+                /* only kernel itself can map kernel content */
+                goto end;
+            }
+            status = mgr_mm_map_kernel_armm_scs();
+            break;
+#endif
         case MM_REGION_TASK_SVC_EXCHANGE:
+            /* FIXME: define if this is a real need, instead of through a mm_resize(TASK_DATA) instead */
             break;
         case MM_REGION_TASK_TXT:
+            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
+                /* invalid task handle */
+                goto end;
+            }
+            struct mpu_region_desc user_txt_config = {
+                .id = 4,
+                .addr = (uint32_t)meta->s_text,
+                .size = MPU_REGION_SIZE_32KB,   /* FIXME: here we need to calculate for once maybe (in task ?) the size
+                                                 of task text in MPU region enumerate. TBD best way (private in task_t ? other ?)*/
+                .access_perm = MPU_REGION_PERM_RO,
+                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+                .mask = 0x0,
+                .noexec = false,
+            };
+            status = mpu_load_configuration(&user_txt_config, 1);
             break;
         case MM_REGION_TASK_DATA:
+            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
+                /* invalid task handle */
+                goto end;
+            }
+            struct mpu_region_desc user_data_config = {
+                .id = 5,
+                .addr = (uint32_t)meta->s_data, /* To define: where start the task RAM ? .data ? other ? */
+                .size = MPU_REGION_SIZE_32KB,   /* FIXME: here we need to calculate for once maybe (in task ?) the size
+                                                 of task data in MPU region enumerate. TBD best way (private in task_t ? other ?)*/
+                .access_perm = MPU_REGION_PERM_FULL,
+                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+                .mask = 0x0,
+                .noexec = true,
+            };
+            status = mpu_load_configuration(&user_data_config, 1);
             break;
         case MM_REGION_TASK_DEVICE:
+            /** TODO: needs dev manager */
             break;
         case MM_REGION_TASK_SHM:
+            /** TODO: define SHM handling (in this manager) */
             break;
         default:
             goto end;
@@ -177,18 +220,103 @@ end:
 kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
+    switch (reg_handle) {
+        case MM_REGION_KERNEL_TXT:
+            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
+                /* only kernel itself can unmap kernel content */
+                goto end;
+            }
+            mpu_clear_region(0);
+            status = K_STATUS_OKAY;
+            break;
+        case MM_REGION_KERNEL_DATA:
+            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
+                /* only kernel itself can unmap kernel content */
+                goto end;
+            }
+            mpu_clear_region(1);
+            status = K_STATUS_OKAY;
+            break;
+        case MM_REGION_KERNEL_DEVICE:
+            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
+                /* only kernel itself can unmap kernel content */
+                goto end;
+            }
+            mpu_clear_region(2);
+            status = K_STATUS_OKAY;
+            break;
+#if defined(__arm__)
+        case MM_REGION_KERNEL_SYSARM:
+            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
+                /* only kernel itself can unmap kernel content */
+                goto end;
+            }
+            mpu_clear_region(3);
+            status = K_STATUS_OKAY;
+            break;
+#endif
+        case MM_REGION_TASK_TXT:
+            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
+                /* only kernel itself can a task txt */
+                goto end;
+            }
+            mpu_clear_region(4);
+            status = K_STATUS_OKAY;
+            break;
+        case MM_REGION_TASK_SVC_EXCHANGE:
+            if (unlikely(unlikely(handle_convert_to_u32(requester) == 0x0UL))) {
+                /* only kernel itself can a task svc_exchange */
+                goto end;
+            }
+            mpu_clear_region(5);
+            status = K_STATUS_OKAY;
+            break;
+        case MM_REGION_TASK_DATA:
+            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
+                /* only kernel itself can a task data */
+                goto end;
+            }
+            mpu_clear_region(5);
+            status = K_STATUS_OKAY;
+            break;
+        case MM_REGION_TASK_DEVICE:
+            /** TODO: needs dev manager. requester can be a user task */
+            break;
+        case MM_REGION_TASK_SHM:
+            /** TODO: define SHM handling (in this manager). requester can be a user task */
+            break;
+        default:
+            goto end;
+    }
+end:
     return status;
 }
 
 /*
  * @brief initialize MPU and configure kernel layout
  *
- * kernel layout is the following:
+ * layout is the following:
  *
- * [MPU REG 0] [ kernel TXT section                ] [R-X]
- * [MPU REG 1] [ kernel DATA section               ] [RW-]
- * [MPU REG 2] [ kernel current device, if needed  ] |RW-] SO
- * [MPU REG 3] [ ARM SCS region                    ] [RW-] SO, only on __arm__
+ * In kernel mode (syscalls):
+ *                                                     S     U
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---]
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---]
+ * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
+ * [MPU REG 3] [ ARM SCS region                    ] [RW-] [---] SO, only on __arm__
+ * [MPU REG 4] [                                   ] [---] [---]
+ * [MPU REG 5] [ task Data SVD-exchange region     ] [RW-] [RW-]
+ *
+ * In User mode:
+ *
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---] // syscall gate
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---] // syscall gate
+ * [MPU REG 2] [ task ressources bank 2, if needed ] |---] [---]
+ * [MPU REG 3] [ task ressources bank 2, if needed ] [---] [---]
+ * [MPU REG 4] [ task TXT section                  ] [R-X] [R-X]
+ * [MPU REG 5] [ task Data section                 ] [RW-] [RW-]
+ * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
+ *
  *
  * info: reg 2 to be removed & replaced with dynamic, per device map/unmap mechanism
  * through -dt struct generation (each device -dt.c generated code implement devxxx_map() and
