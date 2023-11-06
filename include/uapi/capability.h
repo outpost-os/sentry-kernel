@@ -23,7 +23,7 @@ typedef enum sentry_capability {
     CAP_SYS_UPGRADE      = 0x0100UL,/**< access to upgrade-related objects, including local storage, crypo-related API, and reset request, etc. */
     CAP_SYS_POWER        = 0X0200UL, /**< access to power-management interface (moving to and from sleep mode for e.g.) */
     CAP_SYS_PROCSTART    = 0X0400UL, /**< can start another process */
-    CAP_MEM_SHM_OWN      = 0x8000UL, /**< can own a shared memory */
+    CAP_MEM_SHM_OWN      = 0x0800UL, /**< can own a shared memory */
     CAP_MEM_SHM_USE      = 0x1000UL, /**< can use another task's owned shared memory, while other has allowed it in SHM's perms */
     CAP_MEM_SHM_TRANSFER = 0x1000UL, /**< can transfer another task's owned shared memory usage while other has allowed it, but without accessing it */
     CAP_TIM_HP_CHRONO    = 0x4000UL, /**< access to accurate time measurements objects from kernel */
