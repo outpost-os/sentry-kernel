@@ -114,31 +114,44 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_devices(void)
 /**
  * @brief map a region of type reg_type, identified by reg_handle, on taskh request
  *
+ * If mapping a kernel anon region (txt, data):
+ *  - reg_handle is ignored and MUST be 0
+ *  - requester is ignored and MUST be 0
+ * If mapping a kernel ressource (device):
+ *  - reg_handle is a valid kernel devh_t
+ *  - requester is ignored nd MUST be 0
+ * If mapping a userspace anon region (txt, data):
+ *  - reg_handle is ignored and MUST be 0
+ *  - requester is the taskh_t requiring the mapping
+ * If mapping a userspace ressource (device, shm):
+ * - reg_handle is a ressource identifier (devh_t, shmh_t)
+ * - requester is the taskh_t requiring the mapping
  */
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     switch (reg_handle) {
         case MM_REGION_KERNEL_TXT:
-            if (unlikely(requester.id == 0x0)) {
+            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
                 /* only kernel itself can map kernel content */
                 goto end;
             }
             status = mgr_mm_map_kernel_txt();
             break;
         case MM_REGION_KERNEL_DATA:
-            if (unlikely(requester.id == 0x0)) {
+            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
                 /* only kernel itself can map kernel content */
                 goto end;
             }
             status = mgr_mm_map_kernel_data();
             break;
         case MM_REGION_KERNEL_DEVICE:
-            if (unlikely(requester.id == 0x0)) {
+            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
                 /* only kernel itself can map kernel content */
                 goto end;
             }
             /* map a given kernel device, using its base addr + size */
+            /* TODO: this*/
             break;
         case MM_REGION_TASK_SVC_EXCHANGE:
             break;
@@ -172,10 +185,10 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
  *
  * kernel layout is the following:
  *
- * [MPU REG 0] [ kernel TXT section  ] [R-X]
- * [MPU REG 1] [ kernel DATA section ] [RW-]
- * [MPU REG 2] [ kernel SoC devices  ] |RW-] SO
- * [MPU REG 3] [ ARM SCS region      ] [RW-] SO, only on __arm__
+ * [MPU REG 0] [ kernel TXT section                ] [R-X]
+ * [MPU REG 1] [ kernel DATA section               ] [RW-]
+ * [MPU REG 2] [ kernel current device, if needed  ] |RW-] SO
+ * [MPU REG 3] [ ARM SCS region                    ] [RW-] SO, only on __arm__
  *
  * info: reg 2 to be removed & replaced with dynamic, per device map/unmap mechanism
  * through -dt struct generation (each device -dt.c generated code implement devxxx_map() and
