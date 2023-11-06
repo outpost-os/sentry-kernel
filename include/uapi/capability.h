@@ -51,5 +51,4 @@ typedef enum sentry_capability {
 #define HAS_TIM_HP_CHRONO_CAPABILITY(l)    ((l) & CAP_TIM_HP_CHRONO)
 #define HAS_CRY_KRNG_CAPABILITY(l)         ((l) & CAP_CRY_KRNG)
 
-
 #endif/*!UAPI_CAPABILITY_H*/

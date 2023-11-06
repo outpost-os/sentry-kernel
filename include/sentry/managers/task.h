@@ -12,7 +12,7 @@ extern "C" {
 
 #include <uapi/handle.h>
 #include <uapi/capability.h>
-#include <sentry/device.h>
+#include <sentry/managers/device.h>
 #include <sentry/dma.h>
 #include <sentry/ipc.h>
 #include <sentry/signal.h>
