@@ -145,6 +145,17 @@ end:
     return tsk;
 }
 
+secure_bool_t mgr_task_handle_exists(taskh_t h)
+{
+    secure_bool_t res = SECURE_FALSE;
+    if (unlikely(task_get_from_handle(h) == NULL)) {
+        goto end;
+    }
+    res = SECURE_TRUE;
+end:
+    return res;
+}
+
 /**
  * @fn given a task handler, return the corresponding stack frame pointer
  *

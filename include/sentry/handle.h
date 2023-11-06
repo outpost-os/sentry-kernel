@@ -33,5 +33,14 @@
     h.familly == HANDLE_INT;
  */
 
+/*
+ * Once type is converted from raw register u32 value to typed handle value,
+ * generic API is defined that allow optimized backend selection
+ */
+#define handle_exists(T) _Generic((T),  \
+              taskh_t: mgr_task_handle_exists,  \
+        ) (T)
+#endif
+
 
 #endif/*!SENTRY_HANDLE_H*/
