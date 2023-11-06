@@ -11,6 +11,7 @@ extern "C" {
 #include <stddef.h>
 
 #include <uapi/handle.h>
+#include <uapi/capability.h>
 #include <sentry/device.h>
 #include <sentry/dma.h>
 #include <sentry/ipc.h>
@@ -116,7 +117,7 @@ typedef struct task_meta {
     taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
-    uint32_t        capabilities;  /**< TBD(storage): task permission mask */
+    uint16_t       capabilities;   /**< task capabilities mask */
     thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
