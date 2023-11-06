@@ -197,6 +197,8 @@ kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state);
 
 secure_bool_t mgr_task_is_idletask(taskh_t t);
 
+secure_bool_t mgr_task_handle_exists(taskh_t t);
+
 #ifdef __cplusplus
 }
 #endif

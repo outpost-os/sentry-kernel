@@ -60,6 +60,7 @@ typedef struct __attribute__((packed)) device_handle {
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int familly  : 3;
 } devh_t;
+
 static_assert(sizeof(devh_t) == sizeof(uint32_t), "invalid devh_t opaque size");
 
 typedef struct __attribute__((packed)) task_handle {
@@ -101,33 +102,48 @@ typedef struct clk_handle {
 static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
 
 /**
- * In order to support handle manipulation as raw uint32 (masking, shifting....)
- * a union is defined so that bitfields can ba manipulated with processor
- * optimized mask/shift
- * MUST be used only in local-function part to content framaC.
+ * utility tooling for u32<->handles translation, using generic.
+ * Please use the Genric api, not the specialized macros
  */
-union u_handle {
-    uint32_t val;
-    taskh_t  taskh;
-    devh_t   devh;
-    ioh_t    ioh;
-    irqh_t   irqh;
-    clkh_t   clkh;
-};
+static inline uint32_t handle_convert_irqh_to_u32(irqh_t h) {
+    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
+               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               (h.irqn & 0xffUL));
+}
 
-#if 0
-/*
- * Once type is converted from raw register u32 value to typed handle value,
- * generic API is defined that allow optimized backend selection
- */
-#define check_handle_exists(T) _Generic((T),  \
-              irqh_t: irqmgr_handle_exists,   \
-              clkh_t: clkmgr_handle_exists,   \
-              ioh_t:  iomgr_handle_exists,    \
-              taskh_t:taskmgr_handle_exists,  \
-              devh_t: devmgr_handle_exists    \
+static inline uint32_t handle_convert_clkh_to_u32(clkh_t h) {
+    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
+               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               ((h.clk_id << 4UL) & 0x1f0UL) |
+               (h.bus_id & 0xfUL));
+}
+
+static inline uint32_t handle_convert_ioh_to_u32(ioh_t h) {
+    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
+               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               ((h.iopin << 6UL) & 0xfc0UL) |
+               (h.ioport & 0x3fUL));
+}
+
+static inline uint32_t handle_convert_taskh_to_u32(taskh_t h) {
+    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
+               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               (h.rerun & 0x1fffUL));
+}
+
+static inline uint32_t handle_convert_devh_to_u32(devh_t h) {
+    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
+               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               (h.dev_cap & 0xffUL));
+}
+
+#define handle_convert_to_u32(T) _Generic((T),  \
+              irqh_t:  handle_convert_irqh_to_u32,   \
+              clkh_t:  handle_convert_clkh_to_u32,   \
+              ioh_t:   handle_convert_ioh_to_u32,    \
+              taskh_t: handle_convert_taskh_to_u32,  \
+              devh_t:  handle_convert_devh_to_u32    \
         ) (T)
-#endif
 
 
 #endif/*HANDLE_H*/
