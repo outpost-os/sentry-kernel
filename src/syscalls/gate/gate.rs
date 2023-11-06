@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use systypes::{DispatchError, Status, Syscall};
 
 extern "C" {
@@ -16,7 +14,7 @@ extern "C" {
     fn wait_for_event(event_type_mask: u8, resoucer_handle: u32, timeout: u32) -> u32;
 }
 
-pub fn syscall_dispatch(syscall_number: u32, args: &[u32]) -> Result<Status, DispatchError> {
+pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, DispatchError> {
     let status = match Syscall::try_from(syscall_number)? {
         Syscall::Exit => unsafe { exit(args[0] as i32) },
         Syscall::GetProcessHandle => unsafe { get_process_handle(args[0]) },
