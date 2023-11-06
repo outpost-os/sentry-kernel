@@ -22,6 +22,13 @@ extern uint32_t _edata;
 
 extern __irq_handler_t __vtor_table[];
 
+/**
+ * Used subhandlers if the Rust submodule was built
+*/
+#ifdef CONFIG_BUILD_RUST_MODULES
+extern stack_frame_t *svc_handler_rs(stack_frame_t *frame);
+#endif
+
 /*
  * Replaced by real sentry _entrypoint at link time
  */
@@ -36,6 +43,15 @@ static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
     #endif
 #endif
     __do_panic();
+}
+
+static stack_frame_t *svc_handler(stack_frame_t *frame)
+{
+#ifdef CONFIG_BUILD_RUST_MODULES
+    return svc_handler_rs(frame);
+#else
+    return frame;
+#endif
 }
 
 #define __GET_IPSR(intr) ({ \
@@ -77,6 +93,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             break;
         case MEMMANAGE_IRQ:
             frame = memfault_handler(frame);
+            break;
+        case SVC_IRQ:
+            frame = svc_handler(frame);
             break;
         case SYSTICK_IRQ:
             /* periodic, every each millisecond execution */

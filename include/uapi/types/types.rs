@@ -24,9 +24,9 @@ pub enum Syscall {
 /// Implementing fallible conversion from `u32` to `Syscall`
 /// serves as the basis for the syscall dispatcher in the crate
 /// `gate`.
-impl TryFrom<u32> for Syscall {
+impl TryFrom<u8> for Syscall {
     type Error = DispatchError;
-    fn try_from(v: u32) -> Result<Syscall, Self::Error> {
+    fn try_from(v: u8) -> Result<Syscall, Self::Error> {
         match v {
             0 => Ok(Syscall::Exit),
             1 => Ok(Syscall::GetProcessHandle),
