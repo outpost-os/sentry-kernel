@@ -41,7 +41,7 @@ __attribute__((noreturn)) void _entrypoint(void)
     /* init phase */
     mgr_clock_init();
     mgr_interrupt_init();
-    mgr_mm_init();
+
     mgr_io_init();
     mgr_debug_init();
     pr_info("Starting Sentry kernel release %s", "v0.1");
@@ -51,13 +51,17 @@ __attribute__((noreturn)) void _entrypoint(void)
     platform_init();
     pr_info("Platform initialization done, continuing with upper layers");
     mgr_security_init();
+
     sched_init();
-    mgr_task_init();
+    mgr_task_init();    /* list of tasks parsed (depend on sched_init) */
+    mgr_device_init();  /* device list and task link forged (depend on task_init) */
+    mgr_mm_init();      /* memory protection active */
 
-    /* FIXME to be abstraced by manager */
+    /* FIXME: to be added to a platform manager */
     systick_init();
+    /* memory protection active now. Any device access (including kernel ones)
+       requires to voluntary map/unmap them */
     interrupt_enable();
-
 
 #if CONFIG_USE_SSP
     /* TODO initialize SSP with random seed */
