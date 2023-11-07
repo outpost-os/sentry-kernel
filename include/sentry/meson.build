@@ -6,7 +6,6 @@ subdir('arch')
 # list of statically defined headers: generic kernel headers
 sentry_header_set.add(files(
   'bits.h',
-  'device.h',
   'dma.h',
   'io.h',
   'ipc.h',
@@ -20,4 +19,5 @@ sentry_header_set.add(files(
 sentry_header_set.add(files(
   'managers/io.h',
   'managers/debug.h',
+  'managers/device.h',
 ))

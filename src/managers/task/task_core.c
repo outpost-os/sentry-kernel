@@ -7,6 +7,7 @@
 
 #include <inttypes.h>
 #include <assert.h>
+#include <string.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
@@ -116,26 +117,22 @@ uint32_t mgr_task_get_num(void)
 static inline task_t *task_get_from_handle(taskh_t h)
 {
     uint16_t left = 0;
-    union u_handle {
-        uint32_t val;
-        taskh_t h;
-    };
-    uint16_t right = CONFIG_MAX_TASKS -1;
+    /* there is numtask + 1 (idle) tasks */
+    uint16_t right = numtask+1;
     task_t *tsk = NULL;
-    union u_handle h_arg;
-    h_arg.h = h;
     while (left < right) {
         uint16_t current = (left + right) >> 1;
-        union u_handle h_cur;
-        h_cur.h = task_table[current].metadata->handle;
-        if ((h_cur.val & HANDLE_ID_MASK) > (h_arg.val & HANDLE_ID_MASK))
+        if ((handle_convert_to_u32(task_table[current].metadata->handle) & HANDLE_ID_MASK) >
+            (handle_convert_to_u32(h) & HANDLE_ID_MASK))
         {
             right = current - 1;
-        } else if ((h_cur.val & HANDLE_ID_MASK) < (h_arg.val & HANDLE_ID_MASK)) {
+        } else if ((handle_convert_to_u32(task_table[current].metadata->handle) & HANDLE_ID_MASK) <
+                   (handle_convert_to_u32(h) & HANDLE_ID_MASK)) {
             left = current + 1;
         } else {
             /* label do match, is the taskh valid for current label (rerun check) */
-            if (h_cur.val == h_arg.val) {
+            if (handle_convert_to_u32(task_table[current].metadata->handle) ==
+                handle_convert_to_u32(h)) {
                 tsk = &task_table[current];
             }
             goto end;
@@ -259,4 +256,40 @@ stack_frame_t *mgr_task_initialize_sp(size_t sp, size_t pc)
 {
     stack_frame_t *frame = __thread_init_stack_context(sp, pc);
     return frame;
+}
+
+/**
+ * @brief return the task handler owner of the device handler d
+ *
+ * @param d: the device handler to search
+ * @param t: the task handler reference to update
+ *
+ * @return:
+ *  K_STATUS_OKAY if the device is found in any of the tasks
+ *  K_SECURITY_CORRUPTION if task_table is corrupted
+ *  K_ERROR_NOENT if devh is not found
+ */
+kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    /* for all tasks... */
+    for (uint8_t i = 0; i < numtask+1; ++i) {
+        if (unlikely(task_table[i].metadata == NULL)) {
+            /* should not happen if init done (and thus numtask valid) */
+            status = K_SECURITY_CORRUPTION;
+            goto end;
+        }
+        /* for all devices of a task... */
+        for (uint8_t dev = 0; dev < task_table[i].metadata->num_devs; ++i) {
+            if (handle_convert_to_u32(task_table[i].metadata->devices[dev]) ==
+                handle_convert_to_u32(d)) {
+                    /* task metadata hold the same dev handle as requested */
+                    memcpy(t, &task_table[i].metadata->handle, sizeof(taskh_t));
+                    status = K_STATUS_OKAY;
+                    goto end;
+                }
+        }
+    }
+end:
+    return status;
 }

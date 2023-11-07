@@ -55,8 +55,8 @@ typedef enum handle_type {
 
 
 typedef struct __attribute__((packed)) device_handle {
-    unsigned int dev_cap  : 8; /* device required dev-capabilities (mask) */
-    unsigned int reserved : 5;
+    unsigned int dev_cap  : 12; /* device required dev-capabilities (mask) */
+    unsigned int reserved : 1;
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int familly  : 3;
 } devh_t;
@@ -134,7 +134,7 @@ static inline uint32_t handle_convert_taskh_to_u32(taskh_t h) {
 static inline uint32_t handle_convert_devh_to_u32(devh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
                ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
-               (h.dev_cap & 0xffUL));
+               (h.dev_cap & 0xfffUL));
 }
 
 #define handle_convert_to_u32(T) _Generic((T),  \

@@ -1,0 +1,172 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * XXX:
+ *  !!!! Generated header, DO NOT EDIT !!!!
+ */
+
+#ifndef MGR_DEVICE_DEVLIST_H
+#define MGR_DEVICE_DEVLIST_H
+
+/*
+ * XXX:
+ *  !!! Do not include this header in multiple compilation units, as it
+ *    contain a huge const structure that should not be duplicated in memory !!!
+ */
+
+#include <sentry/ktypes.h>
+#include <uapi/handle.h>
+#include <uapi/device.h>
+#include <uapi/capability.h>
+#include <sentry/managers/device.h>
+
+{% set ns = namespace() -%}
+{% set ns.total_devices=0 -%}
+static const device_t devices[] = {
+    {#
+        For all mappable devices (i.e. having a declared memory region)
+    -#}
+    {% for device in dts.get_mappable() -%}
+    {# defining defaults: kernel owned and of type rcc (no capa) -#}
+    {% set ns.device_type = 'rcc' -%}
+    {% set ns.kernel_owned = 'SECURE_TRUE' -%}
+    {#
+        only declared devices are generated for size optimization.
+        This is based on the project dts file, any other is ignored and
+        considered as a security violation (whitelist model)
+    -#}
+    {% if device.status and device.status == 'okay' -%}
+    {% set ns.total_devices = ns.total_devices + 1 -%}
+    {% if device.owner and device.owner == 'user' -%}
+    {% set ns.kernel_owned = 'SECURE_FALSE' -%}
+    {% endif -%}
+    {#
+        generating the device capability. This is based on the
+        standard 'compatible' field of the device.
+        This field must hold at least one '.*-(usart|gpio|spi|otgfs|...)'
+        field that define its nature, and thus the associated capability.
+        If the field is not found, the device capa is not set, and
+        kept kernel owned (not manipulable in userspace). Although, clean
+        dtsi files should always have this field set.
+    -#}
+    {#
+        Sometimes, compatible is a list of strings, sometime not
+        Normalize it as a list, in all cases
+    -#}
+    {% if device.compatible is not string -%}
+        {% set compat = device.compatible -%}
+    {% else -%}
+        {% set compat = [ device.compatible|join('') ] -%}
+    {% endif -%}
+    {#
+      Let's find the -<device_type> suffix in the compatible field, and
+      extract the device_type value
+    -#}
+    {% for compat_string in compat -%}
+    {% set compat_sublist = compat_string.split('-') -%}
+    {% if compat_sublist|length > 2 -%}
+        {% set ns.device_type = "%s-%s"|format(compat_sublist[1],compat_sublist[2]) -%}
+    {% elif compat_sublist|length > 1 -%}
+        {% set ns.device_type = compat_sublist[1] -%}
+    {% endif -%}
+    {% endfor -%}
+    {#
+        foreach device type, associate the corresponding capability
+        so that it will be set in the capability field
+    -#}
+    {% if ns.device_type == 'gpio' -%}
+    {% set capa = 'CAP_DEV_IO' -%}
+    {% elif ns.device_type == 'uart' or
+            ns.device_type == 'lpuart' or
+            ns.device_type == 'usart' or
+            ns.device_type == 'ethernet' or
+            ns.device_type == 'i2c' or
+            ns.device_type == 'i2s' or
+            ns.device_type == 'otgfs' or
+            ns.device_type == 'otghs' or
+            ns.device_type == 'ospi' or
+            ns.device_type == 'qspi' or
+            ns.device_type == 'spi' or
+            ns.device_type == 'bxcan' or
+            ns.device_type == 'fdcan' or
+            ns.device_type == 'mipi-dsi'
+    -%}
+    {% set capa = 'CAP_DEV_BUSES' -%}
+    {% elif ns.device_type == 'dma' or
+            ns.device_type == 'bdma' or
+            ns.device_type == 'dmamux'
+    -%}
+    {% set capa = 'CAP_DEV_DMA' -%}
+    {% elif ns.device_type == 'adc' or
+            ns.device_type == 'dac' or
+            ns.device_type == 'pwm'
+    -%}
+    {% set capa = 'CAP_DEV_ANALOG' -%}
+    {% elif ns.device_type == 'timers' or
+            ns.device_type == 'timer' or
+            ns.device_type == 'lptim' or
+            ns.device_type == 'rtc' or
+            ns.device_type == 'watchdog'
+    -%}
+    {% set capa = 'CAP_DEV_TIMER' -%}
+    {% elif ns.device_type == 'flash' or
+            ns.device_type == 'fmc' or
+            ns.device_type == 'sdmmc'
+    -%}
+    {% set capa = 'CAP_DEV_STORAGE' -%}
+    {% elif ns.device_type == 'aes' or
+            ns.device_type == 'cryp' or
+            ns.device_type == 'rng'
+    -%}
+    {% set capa = 'CAP_DEV_CRYPTO' -%}
+    {% elif ns.device_type == 'ucpd' -%}
+    {% set capa = 'CAP_DEV_POWER' -%}
+    {% else -%}
+    {#
+      fallbacking on capa==0 which is invalid for user devices (only some
+      kernel devices such as nvic do not have capability at all).
+    -#}
+    {% set capa = '0' -%}
+    {% endif -%}
+    {
+        /* device {{ device.label }} declaration */
+        .devinfo = {
+            .handle = {
+                .dev_cap = 0x0UL,
+                .reserved = 0x0UL,
+                .id = {{ "0x%xUL"|format(loop.index) }},
+                .familly = HANDLE_DEVICE,
+            },
+            .baseaddr = {{ "0x%08x"|format(device.reg[0]) }},
+            .size = {{ "0x%08x"|format(device.reg[1]) }},
+            .num_interrupt = 0, // FIXME: handle IT in DTS
+            .its = {
+                {% for ios in [ 1,2,3,4,5,6,7,8] -%}
+                { .it_controler = 0UL, .it_num = 0UL, .it_handler = NULL },
+                {% endfor -%}
+            },
+            .num_ios = 0, // FIXME: parse DTS device pinmux cfg
+            .ios = {
+                {% for ios in [ 1,2,3,4,5,6,7,8] -%}
+                { .port = 0UL, .pin = 0UL, .config = 0UL },
+                {% endfor -%}
+            },
+        },
+        .capability = {{ "%s"|format(capa) }},
+        {% if device.clocks and not device.label == "rcc" -%}
+        {% set _, bus_id, clk_msk = device.clocks -%}
+        .clk_id = {{ "%#08xUL"|format(clk_msk) }},
+        .bus_id = {{ bus_id }},
+        {% else -%}
+        .clk_id = 0x0UL,
+        .bus_id = 0x0UL,
+        {% endif -%}
+        .kernel_owned = {{ ns.kernel_owned }},
+    },
+    {% endif -%}
+    {% endfor %}
+};
+#define DEVICE_LIST_SIZE {{ "%uUL"|format(ns.total_devices) }}
+
+#endif/*!MGR_DEVICE_DEVLIST_H*/
