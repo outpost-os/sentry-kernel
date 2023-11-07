@@ -30,7 +30,7 @@ static const device_t devices[] = {
     {% for device in dts.get_mappable() -%}
     {# defining defaults: kernel owned and of type rcc (no capa) -#}
     {% set ns.device_type = 'rcc' -%}
-    {% set ns.kernel_owned = 'SECURE_FALSE' -%}
+    {% set ns.kernel_owned = 'SECURE_TRUE' -%}
     {#
         only declared devices are generated for size optimization.
         This is based on the project dts file, any other is ignored and
@@ -38,8 +38,8 @@ static const device_t devices[] = {
     -#}
     {% if device.status and device.status == 'okay' -%}
     {% set ns.total_devices = ns.total_devices + 1 -%}
-    {% if device.owner and device.owner == 'kernel' -%}
-    {% set ns.kernel_owned = 'SECURE_TRUE' -%}
+    {% if device.owner and device.owner == 'user' -%}
+    {% set ns.kernel_owned = 'SECURE_FALSE' -%}
     {% endif -%}
     {#
         generating the device capability. This is based on the
@@ -123,6 +123,10 @@ static const device_t devices[] = {
     {% elif ns.device_type == 'ucpd' -%}
     {% set capa = 'CAP_DEV_POWER' -%}
     {% else -%}
+    {#
+      fallbacking on capa==0 which is invalid for user devices (only some
+      kernel devices such as nvic do not have capability at all).
+    -#}
     {% set capa = '0' -%}
     {% endif -%}
     {

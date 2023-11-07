@@ -85,13 +85,37 @@ secure_bool_t mgr_device_exists(devh_t d)
     return res;
 }
 
-kstatus_t mgr_device_get_info(devh_t, const devinfo_t **devinfo)
+kstatus_t mgr_device_get_info(devh_t d, const devinfo_t **devinfo)
 {
-    kstatus_t status = K_STATUS_OKAY;
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(devinfo == NULL)) {
+        goto end;
+    }
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
+            handle_convert_to_u32(d)) {
+                *devinfo = &devices_state[i].device->devinfo;
+                status = K_STATUS_OKAY;
+                goto end;
+        }
+    }
+    status = K_ERROR_NOENT;
+end:
     return status;
 }
 
-secure_bool_t mgr_device_is_kernel(devh_t)
+secure_bool_t mgr_device_is_kernel(devh_t d)
 {
-    return SECURE_TRUE;
+    secure_bool_t res = SECURE_TRUE;
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
+            handle_convert_to_u32(d)) {
+                if (devices_state[i].device->kernel_owned == SECURE_FALSE) {
+                    res = SECURE_FALSE;
+                }
+                goto end;
+        }
+    }
+end:
+    return res;
 }
