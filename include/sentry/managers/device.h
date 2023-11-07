@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef SENTRY_MANAGERS_DEVICE_H
+#define SENTRY_MANAGERS_DEVICE_H
 
 #include <inttypes.h>
 #include <uapi/device.h>
@@ -27,4 +27,4 @@ kstatus_t mgr_device_get_info(devh_t, const devinfo_t **devinfo);
 
 
 
-#endif/*DEVICE_H*/
+#endif/*SENTRY_MANAGERS_DEVICE_H*/

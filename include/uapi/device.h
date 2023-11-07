@@ -21,9 +21,9 @@ typedef struct it_info {
 } it_info_t;
 
 typedef struct io_info {
-    uint8_t      port; /**< GPIO port identifier, declared in DTS */
-    uint8_t      pin;  /**< GPIO pin identifier, declared in DTS */
-    uint32_t     config; /* GPIO pin configuration (dt-binding based bitfield, declared in DTS) */
+    uint8_t      port;   /**< GPIO port identifier, declared in DTS */
+    uint8_t      pin;    /**< GPIO pin identifier, declared in DTS */
+    uint32_t     config; /**< GPIO pin configuration (dt-binding based bitfield, declared in DTS) */
 } io_info_t;
 
 
@@ -37,13 +37,14 @@ typedef struct devinfo {
     bool   mappable;        /**< mappable device. Direct-IO (LED...) are not */
     size_t baseaddr;        /**< for mappable devices, base address */
     size_t size;            /**< for mappable devices, mapped size */
-    uint8_t num_interrupt;  /**<
-        number of device's interrupt. Can be EXTI (button) or NVIC interrupts
-        (SoC device)
-                            */
-    it_info_t its[8];
-    uint8_t num_ios;
-    io_info_t ios[8];
+    /**<
+     *  number of device's interrupt.
+     *  Can be EXTI (button) or NVIC interrupts (SoC device)
+     */
+    uint8_t num_interrupt;
+    it_info_t its[8];       /**< device interrupt list */
+    uint8_t num_ios;        /**< number of device I/O (pinmux) */
+    io_info_t ios[8];       /**< device I/O list */
 } devinfo_t;
 
 
