@@ -145,7 +145,7 @@ typedef struct task_meta {
     uint8_t         num_shm;          /**< number of shared memories */
     uint8_t         shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
     uint8_t         num_devs;         /**< number of devices */
-    device_t        devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
+    devh_t          devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
     uint8_t         num_dmas;         /**< number of DMA streams */
     uint8_t         dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
                                         FIXME: define dma_t bitfield or struct */
@@ -198,6 +198,8 @@ kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state);
 secure_bool_t mgr_task_is_idletask(taskh_t t);
 
 secure_bool_t mgr_task_handle_exists(taskh_t t);
+
+kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t);
 
 #ifdef __cplusplus
 }
