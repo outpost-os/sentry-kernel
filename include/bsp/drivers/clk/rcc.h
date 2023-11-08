@@ -35,10 +35,6 @@ kstatus_t rcc_enable_debug_clockout(void);
  */
 uint32_t rcc_get_core_frequency(void);
 
-kstatus_t rcc_enable_apbx(void);
-
-kstatus_t rcc_disable_apbx(void);
-
 kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
 
 kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);

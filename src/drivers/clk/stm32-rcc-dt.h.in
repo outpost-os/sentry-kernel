@@ -1,0 +1,16 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_RCC_DT_GENERATED_H
+#define __STM32_RCC_DT_GENERATED_H
+
+#include <sentry/ktypes.h>
+
+typedef struct stm32_rcc_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP size */
+} stm32_rcc_desc_t;
+
+const stm32_rcc_desc_t * stm32_rcc_get_desc(void);
+
+#endif /* __STM32_RCC_DT_GENERATED_H */

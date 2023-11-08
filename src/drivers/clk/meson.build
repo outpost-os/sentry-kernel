@@ -19,11 +19,17 @@ if kconfig_data.get('CONFIG_SOC_FAMILY_STM32', 0) == 1
 stm32_rcc_c_template = files('stm32-rcc.c.in')
 stm32_rcc_h_template = files('stm32-rcc.h.in')
 
+stm32_rcc_dt_c_template = files('stm32-rcc-dt.c.in')
+stm32_rcc_dt_h_template = files('stm32-rcc-dt.h.in')
+
 stm32_rcc_c = dtsgen.process(stm32_rcc_c_template)
 stm32_rcc_h = dtsgen.process(stm32_rcc_h_template)
 
-sentry_private_gen_source_set.add(stm32_rcc_c)
-sentry_private_gen_header_set.add(stm32_rcc_h)
+stm32_rcc_dt_c = dtsgen.process(stm32_rcc_dt_c_template)
+stm32_rcc_dt_h = dtsgen.process(stm32_rcc_dt_h_template)
+
+sentry_private_gen_source_set.add(stm32_rcc_c, stm32_rcc_dt_c)
+sentry_private_gen_header_set.add(stm32_rcc_h, stm32_rcc_dt_h)
 endif
 
 # per subfamilly RCC additions
