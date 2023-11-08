@@ -43,6 +43,7 @@ typedef enum stm32_gpio_id {
  */
 typedef struct stm32_gpioport_dec {
     uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP size */
     bus_id_t bus_id;    /**< Peripheral bus ID */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
 } stm32_gpioport_desc_t;

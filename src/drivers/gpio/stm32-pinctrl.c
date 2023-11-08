@@ -24,7 +24,9 @@ kstatus_t gpio_pinctrl_configure(gpio_pinctrl_desc_t pinctrl_desc)
         status = K_ERROR_INVPARAM;
         goto ret;
     }
-
+    /* TODO: this will generates a lot of map/unmap. Maybe using head functions
+     * for mapping or a flag to avoid useless consecutive map/unmap here
+     */
     gpio_set_af(pinctrl_desc.port_id, pinctrl_desc.pin, pinctrl_desc.altfunc);
     gpio_set_type(pinctrl_desc.port_id, pinctrl_desc.pin, pinctrl_desc.type);
     gpio_set_speed(pinctrl_desc.port_id, pinctrl_desc.pin, pinctrl_desc.speed);
