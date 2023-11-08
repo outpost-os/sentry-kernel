@@ -106,6 +106,28 @@
 /** MPU Region Size 4 GBytes */
 #define MPU_REGION_SIZE_4GB ARM_MPU_REGION_SIZE_4GB
 
+#define IS_POWEROFTWO(s) ((s != 0) && ((s & (s - 1)) == 0))
+
+#define ROUNDUP_TO_POWEROFTWO(s) (1 << (32 - __builtin_clz (s - 1)))
+
+static inline uint8_t mpu_convert_size_to_region(uint32_t size) {
+    if (unlikely(size < 32)) {
+        size = 32; /* rounding to minimum MPU size supported */
+    }
+    /* TODO overflow check here */
+    if (unlikely(!IS_POWEROFTWO(size))) {
+        size = ROUNDUP_TO_POWEROFTWO(size);
+    }
+    /* get back the number of preceding 0 before '1' (shift calculation) */
+    uint8_t shift = __builtin_ffsl(size) - 1;
+    /*
+     * MPU region size is correlated to the shift value, starting with 32B=0x4.
+     * 32 is encoded with 0b100000 (shift == 5). We only have to return shift - 1
+     * to get the correct result
+     */
+    return shift -1;
+}
+
 /**
  * Enable PMSAv7 MPU
  */
