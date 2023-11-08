@@ -17,7 +17,7 @@ subdir('gpio')
 
 # TODO w/ kconfig driver selector
 # no rng IP for stm32f401
-if kconfig_data.get('CONFIG_ARCH_MCU_STM32F401', 0) == 0
+if kconfig_data.get('CONFIG_HAS_RNG', 0) == 1
 subdir('rng')
 endif
 
