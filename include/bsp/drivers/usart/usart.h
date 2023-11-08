@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <sentry/ktypes.h>
+#include <sentry/managers/memory.h>
 
 kstatus_t usart_probe(void);
 
