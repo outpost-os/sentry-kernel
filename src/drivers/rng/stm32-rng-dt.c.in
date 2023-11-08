@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include "gpio_defs.h"
+#include "stm32-rng-dt.h"
+
+{% set ip = dts.get_compatible("st,stm32-rng") -%}
+
+/**
+ * \brief .rodata field: list of current platform GPIO ports
+ */
+static const stm32_rng_desc_t stm32_rng = {
+    {% if ip[0].status and ip[0].status == "okay" -%}
+    {% set _, bus_id, clk_msk = ip[0].clocks -%}
+    /* {{ ip.label }} configuration */
+    .base_addr = {{ "%#08xUL"|format(ip[0].reg[0]) }},
+    .size = {{ "%#08xUL"|format(ip[0].reg[1]) }},
+    .bus_id = {{ bus_id }},
+    .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+    {% endif -%}
+};
+
+/**
+ * @warning this is a private function, port id must be valid and checked by caller
+ */
+const stm32_rng_desc_t * stm32_rng_get_desc(void)
+{
+    /*@ assert gpioport_is_valid(id); */
+    return &stm32_rng;
+}

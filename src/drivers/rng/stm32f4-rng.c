@@ -14,8 +14,10 @@
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 #include <sentry/crypto/crc32.h>
-#include "../clk/rcc_defs.h"
+#include <sentry/managers/memory.h>
+#include <bsp/drivers/clk/rcc.h>
 #include "rng_defs.h"
+#include "stm32-rng-dt.h"
 
 
 #define MAX_RNG_TRIES   16U
@@ -24,6 +26,16 @@
 static bool rng_enabled;
 static bool not_first_rng;
 static uint32_t last_rng_crc;
+
+static inline kstatus_t rng_map(void)
+{
+    stm32_rng_desc_t const * desc = stm32_rng_get_desc();
+    return mgr_mm_map_kdev(desc->base_addr, desc->size);
+}
+/* for simplicity sake, but unmaping a kernel device is generic */
+static inline kstatus_t rng_unmap(void) {
+    return mgr_mm_unmap_kdev();
+}
 
 /**
  * @brief Initialize RNG
@@ -44,15 +56,19 @@ kstatus_t rng_probe(void)
     kstatus_t status = K_STATUS_OKAY;
     size_t reg = 0;
     int ready_timeout = 0;
+    stm32_rng_desc_t const * rng_desc = stm32_rng_get_desc();
     /* BSS is zeroified at boot, should be false at startup */
     if (unlikely(rng_enabled)) {
         status = K_ERROR_BADSTATE;
         goto err;
     }
     rng_enabled = false;
-    /* FIXME: enable clock through clk API */
-    iowrite(RNG_BASE_ADDR + RCC_AHB2ENR_REG, RCC_AHB2ENR_RNGEN);
-
+    if (unlikely((status = rcc_enable(rng_desc->bus_id, rng_desc->clk_msk, RCC_NOFLAG)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (unlikely((status = rng_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     /* Enable random number generation */
     reg |= RNG_CR_RNGEN;
     iowrite(RNG_BASE_ADDR + RNG_CR_REG, reg);
@@ -85,6 +101,7 @@ kstatus_t rng_probe(void)
     last_rng_crc = 0;
     not_first_rng = 0;
     rng_enabled = true;
+    rng_unmap();
 err:
     return status;
 }
@@ -182,6 +199,9 @@ kstatus_t rng_get(uint32_t * random)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = rng_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     /*@ assert \valid(random); */
     /*@
       @ loop assigns status, max_rng_count;
@@ -194,6 +214,7 @@ kstatus_t rng_get(uint32_t * random)
             goto err;
         }
     } while (status != K_STATUS_OKAY);
+    rng_unmap();
 err:
     return status;
 }
