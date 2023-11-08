@@ -12,6 +12,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
+#include <sentry/managers/memory.h>
 #include "exti_defs.h"
 #include "stm32-exti-dt.h"
 
@@ -25,6 +26,16 @@
 #define EXTI_SWIER_REG EXTI_SWIER1_REG
 #define EXTI_PR_REG EXTI_PR1_REG
 #endif
+
+static inline kstatus_t exti_map(void)
+{
+    stm32_exti_desc_t const * desc = stm32_exti_get_desc();
+    return mgr_mm_map_kdev(desc->base_addr, desc->size);
+}
+/* for simplicity sake, but unmaping a kernel device is generic */
+static inline kstatus_t exti_unmap(void) {
+    return mgr_mm_unmap_kdev();
+}
 
 /**
  * @brief probe for EXTI controller
@@ -41,6 +52,9 @@
 kstatus_t exti_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (unlikely(ioread32(EXTI_BASE_ADDR + EXTI_PR_REG))) {
         /** FIXME: there is some pending interrupts here, action to define */
         /** INFO: the register read had cleared the pending interrupts */
@@ -59,6 +73,8 @@ kstatus_t exti_probe(void)
     iowrite32(EXTI_BASE_ADDR + EXTI_FTSR2_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_SWIER2_REG, 0x0UL);
 #endif
+    exti_unmap();
+err:
     return status;
 }
 
@@ -77,6 +93,9 @@ kstatus_t exti_mask_interrupt(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (itn < 32) {
         size_t reg = ioread32(EXTI_BASE_ADDR + EXTI_IMR_REG);
         reg &= ~(1UL << itn);
@@ -89,6 +108,7 @@ kstatus_t exti_mask_interrupt(uint8_t itn)
         iowrite32(EXTI_BASE_ADDR + EXTI_IMR2_REG, reg);
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }
@@ -108,6 +128,9 @@ kstatus_t exti_unmask_interrupt(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (itn < 32) {
         size_t reg = ioread32(EXTI_BASE_ADDR + EXTI_IMR_REG);
         reg |= (1UL << itn);
@@ -120,6 +143,7 @@ kstatus_t exti_unmask_interrupt(uint8_t itn)
         iowrite32(EXTI_BASE_ADDR + EXTI_IMR2_REG, reg);
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }
@@ -139,6 +163,9 @@ kstatus_t exti_mask_event(uint8_t evn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (evn < 32) {
         size_t reg = ioread32(EXTI_BASE_ADDR + EXTI_EMR_REG);
         reg &= ~(1UL << evn);
@@ -151,6 +178,7 @@ kstatus_t exti_mask_event(uint8_t evn)
         iowrite32(EXTI_BASE_ADDR + EXTI_EMR2_REG, reg);
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }
@@ -170,6 +198,9 @@ kstatus_t exti_unmask_event(uint8_t evn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (evn < 32) {
         size_t reg = ioread32(EXTI_BASE_ADDR + EXTI_EMR_REG);
         reg |= (1UL << evn);
@@ -182,6 +213,7 @@ kstatus_t exti_unmask_event(uint8_t evn)
         iowrite32(EXTI_BASE_ADDR + EXTI_EMR2_REG, reg);
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }
@@ -201,6 +233,9 @@ kstatus_t exti_generate_swinterrupt(uint8_t itn)
     size_t reg;
     if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
         status = K_ERROR_INVPARAM;
+        goto err;
+    }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
         goto err;
     }
     if (itn < 32) {
@@ -237,6 +272,7 @@ kstatus_t exti_generate_swinterrupt(uint8_t itn)
         iowrite32(EXTI_BASE_ADDR + EXTI_EMR2_REG, reg);
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }
@@ -257,6 +293,9 @@ kstatus_t exti_clear_pending(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+        goto err;
+    }
     if (itn < 32) {
         /* clear pending (rc_w1) */
         iowrite32(EXTI_BASE_ADDR + EXTI_PR_REG, (0x1UL << itn));
@@ -266,6 +305,7 @@ kstatus_t exti_clear_pending(uint8_t itn)
         iowrite32(EXTI_BASE_ADDR + EXTI_PR2_REG, (0x1UL << (itn % 32)));
     }
 #endif
+    exti_unmap();
 err:
     return status;
 }

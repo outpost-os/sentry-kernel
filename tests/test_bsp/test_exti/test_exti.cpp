@@ -63,6 +63,18 @@ private:
     void* map;
 };
 
+extern "C" {
+    kstatus_t mgr_mm_map_kdev(uint32_t addr __attribute__((unused)),
+                              size_t size __attribute__((unused)))
+    {
+        return K_STATUS_OKAY;
+    }
+
+    kstatus_t mgr_mm_unmap_kdev(void) {
+        return K_STATUS_OKAY;
+    }
+}
+
 TEST_F(ExtiDevice, TestProbe)
 {
     ASSERT_EQ(exti_probe(), K_STATUS_OKAY);

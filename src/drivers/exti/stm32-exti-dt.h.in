@@ -18,4 +18,11 @@
 #define EXTI_NUM_EVENTS {{ num_ev|int }}UL
 {%- endif %}
 
+typedef struct stm32_exti_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP size */
+} stm32_exti_desc_t;
+
+const stm32_exti_desc_t * stm32_exti_get_desc(void);
+
 #endif /* __STM32_EXTI_DT_GENERATED_H */
