@@ -146,7 +146,7 @@ err:
   requires \valid_read(data + (0 .. data_len-1));
   requires data_len > 0;
 */
-kstatus_t usart_tx(uint8_t *data, size_t data_len)
+kstatus_t usart_tx(const uint8_t *data, size_t data_len)
 {
     kstatus_t status = K_STATUS_OKAY;
     stm32_usartport_desc_t const *usart_desc = stm32_usartport_get_desc();

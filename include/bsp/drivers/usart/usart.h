@@ -9,7 +9,7 @@
 
 kstatus_t usart_probe(void);
 
-kstatus_t usart_tx(uint8_t *data, size_t data_len);
+kstatus_t usart_tx(const uint8_t *data, size_t data_len);
 
 
 #endif/*!USART_H*/
