@@ -45,6 +45,7 @@ static_assert(USART_INVALID_PORT_ID > 0, "Not any usart peripherals enabled, che
  */
 typedef struct stm32_usartport_dec {
     uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP base address */
     bus_id_t bus_id;    /**< Peripheral bus ID */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
     const gpio_pinctrl_desc_t *const pinctrl_tbl;
