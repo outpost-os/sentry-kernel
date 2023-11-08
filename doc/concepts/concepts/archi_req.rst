@@ -45,6 +45,11 @@ In Sentry, the following ressource handles exist:
      handles in IPC communication will naturally generate errors in case of peer respawn as the job
      identifier as changed.
 
+   * **shmh_t: task**: Identify Shared memory. A shared memory is a memory region declared at built time that
+     has a `taskh_t` owner. A SHM can be shared with another `taskh_t` or given without access, allowing
+     a task A to give a task B a shared memory transfer access, so that B can pass the mapping access to C later.
+     Shared memories are under the control of the memory manager (see below).
+
    * **dmah_t: DMA stream**: A DMA stream is a DMA configuration associating a source, a destination,
      a copy model (circular, etc.), and all related DMA-specific configuration except the stream assignation
      to a DMA controller. Most of DMA streams can be assigned to multiple DMA channels and their assignation
@@ -120,6 +125,11 @@ There are multiple managers in Sentry:
      argument. It is responsible for probbing and (re)configuring the underlaying I/O controller,
      setting the I/O pins and ports accordingly and authenticating the `ioh_t` handle and owner.
 
+   * **interrupt manager**: This manager is responsible for interrupts (except core interrupts).
+     This manager is using `inth_t` as typical argument and is responsible for manipulating the
+     corresponding interrupt line (being an internal or external line, in interaction with the
+     I/O manager in this later case).
+
    * **debug manager**: This manager is built in debug mode only. This manager activate the debug
      features of Sentry, including functions such as serial console, kernel logs and userspace logs.
 
@@ -134,3 +144,9 @@ There are multiple managers in Sentry:
      instead abstracted API, so that clocks identifiers is never even known from the userspace. Any
      device bus and clock identifier is a full kernel-side information associated to `devh_t` in the
      device manager.
+
+
+.. image:: _static/figures/managers.png
+   :width: 80%
+   :alt: Sentry managers hierarchy in syscall usage
+   :align: center

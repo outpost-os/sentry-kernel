@@ -1,0 +1,12 @@
+flowchart TD
+    A(Syscalls) -->|ioh_t| B(I/O Manager)
+    A -->|devh_t| C(Device Manager)
+    A -->|dmah_t| D(DMA Manager)
+    A -->|shmh_t| E(Memory Manager)
+    A -->|inth_t| F(Interrupt Manager)
+
+    F -->|itn| G(NVIC driver)
+    F -->|exti| H(EXTI driver)
+    E -->|mpu region| I(MPU driver)
+    D -->|stream| J(DMA Driver)
+    B -->|ioconf| K(GPIO driver)
