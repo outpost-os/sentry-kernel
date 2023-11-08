@@ -1,3 +1,4 @@
+use super::*;
 use systypes::{DispatchError, Status, Syscall};
 
 extern "C" {
@@ -27,6 +28,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, Disp
         Syscall::SendIPC => unsafe { send_ipc(args[0], args[1] as u8) },
         Syscall::SendSignal => unsafe { send_signal(args[0], args[1]) },
         Syscall::WaitForEvent => unsafe { wait_for_event(args[0] as u8, args[1], args[2]) },
+        Syscall::ManageCPUSleep => return manage_cpu_sleep(args[0]),
     };
     Ok(status.into())
 }

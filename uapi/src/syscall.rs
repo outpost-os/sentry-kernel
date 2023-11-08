@@ -132,6 +132,20 @@ pub extern "C" fn sys_wait_for_event(
     .into()
 }
 
+/// Configure the CPU's sleep behaviour.
+///
+/// The `mode` parameters toggles between the two traditional wake-up
+/// modes for ARM CPUs:
+/// - wait for interrupt (`wfi`)
+/// - wait for event (`wfe`)
+///
+/// it also accepts two other mode values that enable or prevent the
+/// CPU from sleeping.
+#[no_mangle]
+pub extern "C" fn sys_manage_cpu_sleep(mode: CPUSleep) -> Status {
+    syscall!(Syscall::ManageCPUSleep, u32::from(mode)).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

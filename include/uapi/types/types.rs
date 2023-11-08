@@ -19,6 +19,7 @@ pub enum Syscall {
     SendIPC,
     SendSignal,
     WaitForEvent,
+    ManageCPUSleep,
 }
 
 /// Implementing fallible conversion from `u32` to `Syscall`
@@ -39,6 +40,7 @@ impl TryFrom<u8> for Syscall {
             8 => Ok(Syscall::SendIPC),
             9 => Ok(Syscall::SendSignal),
             10 => Ok(Syscall::WaitForEvent),
+            11 => Ok(Syscall::ManageCPUSleep),
             _ => Err(DispatchError::IllegalValue),
         }
     }
@@ -47,6 +49,7 @@ impl TryFrom<u8> for Syscall {
 /// Possible errors when converting from a u32 to a syscall number
 pub enum DispatchError {
     IllegalValue,
+    InsufficientCapabilities,
 }
 
 /// Sentry syscall return values
@@ -232,6 +235,38 @@ impl From<SleepMode> for u32 {
         match mode {
             SleepMode::Shallow => 0,
             SleepMode::Deep => 1,
+        }
+    }
+}
+
+#[repr(C)]
+pub enum CPUSleep {
+    WaitForInterrupt,
+    WaitForEvent,
+    ForbidSleep,
+    AllowSleep,
+}
+
+impl From<CPUSleep> for u32 {
+    fn from(mode: CPUSleep) -> u32 {
+        match mode {
+            CPUSleep::WaitForInterrupt => 0,
+            CPUSleep::WaitForEvent => 1,
+            CPUSleep::ForbidSleep => 2,
+            CPUSleep::AllowSleep => 3,
+        }
+    }
+}
+
+impl TryFrom<u32> for CPUSleep {
+    type Error = DispatchError;
+    fn try_from(mode: u32) -> Result<CPUSleep, Self::Error> {
+        match mode {
+            0 => Ok(CPUSleep::WaitForInterrupt),
+            1 => Ok(CPUSleep::WaitForEvent),
+            2 => Ok(CPUSleep::ForbidSleep),
+            3 => Ok(CPUSleep::AllowSleep),
+            _ => Err(DispatchError::IllegalValue),
         }
     }
 }

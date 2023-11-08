@@ -1,3 +1,5 @@
+use systypes::{DispatchError, Status};
+
 #[no_mangle]
 extern "C" fn exit(_status: i32) -> u32 {
     0
@@ -51,4 +53,9 @@ extern "C" fn send_signal(_resource_type: u32, _signal_type: u32) -> u32 {
 #[no_mangle]
 extern "C" fn wait_for_event(_event_type_mask: u8, _resoucer_handle: u32, _timeout: u32) -> u32 {
     0
+}
+
+#[no_mangle]
+pub fn manage_cpu_sleep(_mode: u32) -> Result<Status, DispatchError> {
+    Ok(Status::Ok)
 }

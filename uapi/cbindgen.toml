@@ -38,8 +38,8 @@ bitflags = false
 
 [parse]
 parse_deps = true
-# include = []
-exclude = []
+include = ["systypes"]
+# exclude = []
 clean = false
 extra_bindings = []
 

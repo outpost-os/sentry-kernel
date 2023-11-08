@@ -1,4 +1,5 @@
 use crate::gate::syscall_dispatch;
+use core::arch::asm;
 
 #[repr(C)]
 pub struct StackFrame {
@@ -32,6 +33,18 @@ pub unsafe fn svc_handler_rs(stack_frame: *const StackFrame) -> *mut StackFrame 
     ];
     let _ = syscall_dispatch(syscall_num, &args);
     stack_frame as *mut StackFrame
+}
+
+pub fn __wfe() {
+    unsafe {
+        asm!("wfe");
+    }
+}
+
+pub fn __wfi() {
+    unsafe {
+        asm!("wfi");
+    }
 }
 
 // /// SVC interrupt handler for ARMv7 cores
