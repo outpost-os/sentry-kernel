@@ -146,7 +146,7 @@ There are multiple managers in Sentry:
      device manager.
 
 
-.. image:: _static/figures/managers.png
+.. image:: ../_static/figures/managers.png
    :width: 80%
    :alt: Sentry managers hierarchy in syscall usage
    :align: center

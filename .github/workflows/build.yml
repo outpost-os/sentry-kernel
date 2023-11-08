@@ -244,7 +244,7 @@ jobs:
           esac
           HTML_BUILD_DIR=builddir/doc/concepts
           ARTIFACT_ARCHIVE_HTML_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/html/
-          ARTIFACT_ARCHIVE_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/html/
+          ARTIFACT_ARCHIVE_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/
           if test $push_to_nexus -eq 1; then
             tar -C builddir/doc -czvf sentry-concepts-$subdir.tar.gz concepts
             file=sentry-concepts-$subdir.tar.gz
