@@ -13,7 +13,7 @@
  */
 static const stm32_syscfg_desc_t stm32_syscfg = {
     {% if syscfg[0].status and syscfg[0].status == "okay" -%}
-    /* {{ syscfg.label }} configuration */
+    /* {{ syscfg[0].label }} configuration */
     .base_addr = {{ "%#08xUL"|format(syscfg[0].reg[0]) }},
     .size = {{ "%#08xUL"|format(syscfg[0].reg[1]) }},
     {% endif -%}

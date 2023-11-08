@@ -9,7 +9,7 @@
 #include <sentry/arch/asm-cortex-m/buses.h>
 
 /**
- * \brief STM32 gpioport IP descriptor
+ * \brief STM32 SYSCFG IP descriptor
  *
  * Descriptor is feed from device tree file
  *

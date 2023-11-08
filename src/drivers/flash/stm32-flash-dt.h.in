@@ -9,11 +9,11 @@
 #include <sentry/arch/asm-cortex-m/buses.h>
 
 /**
- * \brief STM32 RNG IP descriptor
+ * \brief STM32 FMC IP descriptor
  *
  * Descriptor is feed from device tree file
  *
- * \note Only node w/ compatible="st,stm32-rng" and status="okay" properties
+ * \note Only node w/ compatible="st,stm32-flash-controller" and status="okay" properties
  *       will be parsed
  */
 typedef struct stm32_fmc_desc {

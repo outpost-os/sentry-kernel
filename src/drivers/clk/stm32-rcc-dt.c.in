@@ -6,7 +6,7 @@
 
 {% set ip = dts.get_compatible("st,stm32-rcc") -%}
 /**
- * \brief {{ ip.label }} configuration
+ * \brief {{ ip[0].label }} configuration
  */
 static const stm32_rcc_desc_t stm32_rcc[] = {
     {

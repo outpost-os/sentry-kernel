@@ -9,7 +9,7 @@
 {% set ip = dts.get_compatible("st,stm32-rng") -%}
 
 /**
- * \brief .rodata field: list of current platform GPIO ports
+ * \brief .rodata field: list of current platform RNG IP
  */
 static const stm32_rng_desc_t stm32_rng = {
     {% if ip[0].status and ip[0].status == "okay" -%}

@@ -281,11 +281,9 @@ kstatus_t rcc_probe(void)
 {
     kstatus_t status;
     size_t reg;
-#if 0
     if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
         goto err;
     }
-#endif
     /* Reset the RCC clock configuration to the default reset state */
     /* Set HSION bit */
     reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
@@ -315,9 +313,7 @@ kstatus_t rcc_probe(void)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
-#if 0
     rcc_unmap();
-#endif
 err:
     return status;
 }
