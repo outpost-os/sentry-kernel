@@ -11,6 +11,7 @@ extern "C" {
  * @file Sentry Debug manager
  */
 #include <stdarg.h>
+#include <stddef.h>
 #include <sentry/ktypes.h>
 
 /**
@@ -31,6 +32,10 @@ extern "C" {
 #ifndef CONFIG_BUILD_TARGET_DEBUG
 /* in non-debug mode, no debug */
 
+static inline kstatus_t debug_rawlog(const uint8_t *logbuf __attribute__((unused)), size_t len __attribute__((unused))) {
+	return K_STATUS_OKAY;
+}
+
 static inline kstatus_t printk(const char* fmt __attribute__((unused)), ...) {
     return K_STATUS_OKAY;
 }
@@ -44,6 +49,11 @@ static inline kstatus_t printk(const char* fmt __attribute__((unused)), ...) {
 #define pr_debug(fmt, ...)
 
 #else
+/*
+ * user log output, no parsing, direct debug output transission
+ */
+kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len);
+
 /* kernel printk() behave like printf() and thus do not add carriage return
  * at end of lines by itself. Although, it is highly recommanded not to
  * directly use printk() but instead use brelow pr_xxx upper layer API,

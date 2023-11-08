@@ -27,3 +27,16 @@ kstatus_t mgr_debug_init(void)
 end:
     return status;
 }
+
+/**
+ * @brief raw log export, abstracting the selected output log device
+ *
+ * typically used for sys_log() syscall as no parsing is made in kernelspace
+ *
+ * @param[in] logbuf: input log buffer
+ * @param[in] len: log buffer len
+ */
+kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
+{
+	return usart_tx(logbuf, len);
+}
