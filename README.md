@@ -41,10 +41,10 @@ holds the complete kernel configuration, and that is used at build time to selec
 
 #### Using defconfigs
 
-defconfig files are stored in configs/ directory and can be used directly. In that case, the kconfig:config option can be used at setup time:
+defconfig files are stored in configs/ directory and can be used directly. In that case, the `config` option can be used at setup time:
 
 ```console
-meson setup -Dkconfig:config=configs/stm32f4_debug_defconfig [...]
+meson setup -Dconfig=configs/stm32f4_debug_defconfig [...]
 ```
 
 #### Setting custom configurations
@@ -52,6 +52,13 @@ meson setup -Dkconfig:config=configs/stm32f4_debug_defconfig [...]
 Generating the configuration is made using the standard Linux Kconfig UI. This interface can be called by ninja by targetting the kconfig module's menuconfig target:
 ```console
 ninja -C builddir kconfig@@menuconfig
+```
+
+Or by calling `menuconfig` directly. This, one need to have kconfig venv set correctly (`srctree` and `subprojects`).
+This can be done by using Meson [`devenv`](https://mesonbuild.com/Commands.html#devenv)
+```console
+meson devenv -C builddir
+menuconfig
 ```
 
 # How to build
