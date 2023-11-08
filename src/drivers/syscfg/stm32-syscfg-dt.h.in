@@ -1,0 +1,26 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_SYSCFG_DT_GENERATED_H
+#define __STM32_SYSCFG_DT_GENERATED_H
+
+#include <stddef.h>
+
+#include <sentry/arch/asm-cortex-m/buses.h>
+
+/**
+ * \brief STM32 gpioport IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-syscfg" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_syscfg_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP size */
+} stm32_syscfg_desc_t;
+
+const stm32_syscfg_desc_t * stm32_syscfg_get_desc(void);
+
+#endif /* __STM32_SYSCFG_DT_GENERATED_H */
