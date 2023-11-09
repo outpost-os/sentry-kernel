@@ -8,3 +8,4 @@ Sentry Concepts
    initial.rst
    archi_req.rst
    security.rst
+   uapi.rst

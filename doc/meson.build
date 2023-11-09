@@ -19,6 +19,7 @@ concepts_rst = files(
     'concepts/concepts/security.rst',
     'concepts/concepts/index.rst',
     'concepts/concepts/initial.rst',
+    'concepts/concepts/uapi.rst',
     'concepts/index.rst',
     'concepts/sw_architecture/asp.rst',
     'concepts/sw_architecture/bsp.rst',
