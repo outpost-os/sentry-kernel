@@ -82,6 +82,9 @@ a basic manager.
 Micro-kernel design for portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Global hierarchy
+""""""""""""""""
+
 The Sentry kernel is designed and architectured in order to be fully portable.
 Its architecture is build under three main components famillies:
 
@@ -150,3 +153,156 @@ There are multiple managers in Sentry:
    :width: 80%
    :alt: Sentry managers hierarchy in syscall usage
    :align: center
+
+
+
+SVD and Device-trees
+""""""""""""""""""""
+
+SVD (System View Description) is initially a ARM specifictation (CMSIS-SVD) influenced by IP-XACT designed
+in order to define the programmer's view of a device. Now also used in the RISC-V ecosystem, SVD files
+are XML-based definition of the overall devices, registers, interrupts, and any other hardware components that
+are accessible for a given target (mostly system on chips).
+
+A typical SVD definition extract is the following:
+
+.. code-block:: xml
+  :linenos:
+
+  <peripheral>
+    <name>RCC</name>
+    <description>Reset and clock control</description>
+    <baseAddress>0x40023800</baseAddress>
+    <addressBlock>
+      <offset>0x0</offset>
+      <size>0x400</size>
+      <usage>registers</usage>
+    </addressBlock>
+    <registers>
+      <register>
+        <register>
+        <name>AHB3ENR</name>
+        <displayName>AHB3ENR</displayName>
+        <description>AHB3 peripheral clock enable
+        register</description>
+        <addressOffset>0x38</addressOffset>
+        <size>0x20</size>
+        <access>read-write</access>
+        <resetValue>0x00000000</resetValue>
+        <fields>
+          <field>
+            <name>FMCEN</name>
+            <description>Flexible memory controller module clock
+            enable</description>
+            <bitOffset>0</bitOffset>
+            <bitWidth>1</bitWidth>
+          </field>
+        </fields>
+      </register>
+      <!-- continuing.... -->
+
+In embedded systems, manufacturers delivers SVD files. While big SoCs (such as IMX.8 for e.g.) may have some
+errors (mosty bad mapping) in their SVD files, MCUs SVD files are clean, and ST is a good student in term of
+SVD delivery for its own SoCs. A lot of manufacturers deliver their SVD, and the SVD dictionary is hosted in
+`github <https://github.com/cmsis-svd/cmsis-svd>`_.
+
+
+Device-tree is a formal definition of a hardware initially defined as a part of the Open Firmware
+definition proposed by IEEE in IEEE 1275-1994. While Open-Firmware IEEE definition was withdrawn in 2005,
+device-tree model is though largely adopted, for various usage such as UEFI, various BIOS implementations,
+U-Boot, Linux kernel, Grub, Zephyr, Coreboot and so on. They defines informations such as the list
+of existing devices in a SoC, their interrupt assignation, clock(s) assignation, possible associated
+I/O configuration for (devices interacting with SoC I/O), and various SoC and board-specific informations
+that can be used by the software in order to properly configure the underlying hardware.
+
+A typical device tree definition is the following:
+
+.. code-block:: dts
+  :linenos:
+
+  usart1: serial@40011000 {
+    compatible = "st,stm32-usart", "st,stm32-uart";
+    reg = <0x40011000 0x400>;
+    clocks = <&rcc STM32_CLOCK_BUS_APB2 0x00000010>;
+    resets = <&rctl STM32_RESET(APB2, 4U)>;
+    interrupts = <37 0>;
+    status = "disabled";
+  };
+
+Sentry kernel is using both SVD and device trees in order to optimize its portability and maintainability.
+Most of projects use runtime-based dtb (device tree blob) binary objects parser in order to support drivers
+configuration. Although, in small embedded systems, such behavior is not a good methodology as it consume too
+much memory.
+Projects such as `Zephyr <https://www.zephyrproject.org/>`_ already use device trees at build time only, generating
+source code instead of importing device tree blob directly.
+This remove the ability to dynamically upgrade the device tree configuration, when using device trees
+for project-related configurations that may vary (Android model), but this is, in small embedded systems,
+not a problem. Instead, source files describing the current board configuration is generated and included
+in the source set, in which all project-relative informations are stored, so that device driver's implementation
+can stay SoC and board generic.
+With such a model, given an IP that exist in multiple SoCs and with various configuration depending on the way
+the SoC is integrated to multiple board releases, only the device tree changes, keeping the Senty kernel sources
+unmodified.
+
+
+
+In Sentry kernel SVD and DTS files are used for the following:
+
+* **kernel drivers (DTS usage)**: Sentry kernel drivers uses device trees in order to be informed of various platform relative
+  informations such as:
+   * device base address on current SoC
+   * device size (needed for device memory mapping)
+   * device needed clocks information
+   * device pinmuxing (I/O configuration on current board)
+   * device assigned interrupts
+   * potential SoC-specific values (number of clocks for RCC, number of EXTI for EXTI driver, etc.)
+   * potential project specific selection (which USART is selected for debug on current board release?)
+
+  All these informations are generated and stored in a descriptor associated to a descriptor accessor, so that the driver
+  can access all these fields as if it is an external configuration.
+
+.. image:: ../_static/figures/dts_in_drivers.png
+   :width: 90%
+   :alt: DTS usage in Sentry kernel drivers
+   :align: center
+
+* **kernel drivers (SVD usage)**: All drivers need that the corresponding device definition, including registers list,
+  registers fields, registers offset information (relative to device base address defined in the device tree),
+  register access rights, etc. Most of the volume of a device driver hold such declaration and is error prone.
+  Instead of *writing* such content, it is generated directly from the SVD file, so that the driver can directly use it
+  without requiring any hardware IP content definition at driver implementation time from the developer.
+  Moreover, in case the IP has some variations (fields that slightly move in a given register, having their mask and
+  shift varying between SoCs), these variations are transparent to the driver developer while the field name stays
+  the same.
+
+.. image:: ../_static/figures/svd_in_drivers.png
+   :width: 90%
+   :alt: DTS usage in Sentry kernel drivers
+   :align: center
+
+* **IRQ list (SVD usage)**: The list of platform supported IRQ is generated using the SVD file where they are all
+  listed with their identifier. Each SoC as a dedicated IRQ list that varies depending on the way the manufacturer
+  has connected all devices integrated in the SoC. To ensure that the canonical name and the effective identifier
+  of all IRQs is properly defined, it is built upon the SVD file definition.
+
+* **Vector table (SVD usage)**: The vector table is used by the core in order to know which peace of code is executed
+  at startup and for each hardware interrupt and core exception (memory fault, usage fault, etc.). This table address,
+  (defaulting to `0x0` on ARM) can also be upgraded (typically when moving from a boot-loader to a kernel).
+  Like the IRQ list, this table content varies depending on the SoC devices list. Moreover, some interrupts may
+  be under the kernel control (e.g. DMA controller's one) while others need to be pushed back to userspace. To generate a
+  clean interrupt table with a well knowledge of the corresponding interrupt and with a correct size, the table is forged
+  based on the SVD file informations.
+
+* **Device manager dev table (DTS usage)**: The list of project-configured devices is forged from the project dts file.
+  This file, which is unique for the overall project, is the aggregation of all userspace drivers and the kernel device tree
+  fragments, in which each one declare the device(s) it owns. Based on this unique input, we can define the following:
+
+     * which device is currently used in the project
+     * for all used devices, what is its chosen configuration (pinmux, clock, etc.)
+     * for all devices, who is the owner (kernel, when the device was a part of the kernel fragment) or user task
+     * for all devices, what is the associated required capability. Capability is based on device *familly*, and as such,
+       the dts `compatible` field is used to determine the familly and thus the capability required
+
+  With such a materials, a static const table, that hold only active devices for the project, is generated in the device manager
+  so that it can lookup various information each time a request is made. The `devh_t` handle is also forged in a predicable
+  way so that it is added in this very same table, for lookup resolution.
