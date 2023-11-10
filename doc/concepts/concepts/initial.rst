@@ -11,7 +11,7 @@ architecture is enforced. To achieve that, this requires some specific considera
    * some devices (short-listed number) must still be under the control of the kernel,
      because their configuration is required at very early boot time or because their
      access is particulary security critical
-   * all other devices are under the responsability of userspace tasks, meaning that
+   * all other devices are under the responsibility of userspace tasks, meaning that
      they will directly manage them as if they were a part of the kernel, but yet
      fully partitioned and executed in user mode
 
@@ -306,7 +306,7 @@ Mapping tasks
 
 .. _mapping_tasks:
 
-Task mapping calculation is **not** under the Sentry kernel responsability. It
+Task mapping calculation is **not** under the Sentry kernel responsibility. It
 is considered that the task mapping calculation is made during project build, by
 the project build system, typically using each task two-pass build in order to
 calculate and position each task in memory, considering as input the memory layout
@@ -323,7 +323,7 @@ later on by the project build system, as defined in the following:
    :align: center
 
 
-To do this, the Sentry kernel consider that it exist, in the overall project layout, a dedicated
+To do this, the Sentry kernel considers that it exist, in the overall project layout, a dedicated
 section denoted `task_list`.
 This section is defined as the following:
 
@@ -333,7 +333,7 @@ This section is defined as the following:
    uint32_t    task_number;
    task_meta_t task_list[CONFIG_MAX_TASKS];
 
-This section is out of the kernel build system responsability and out of the kernel generated
+This section is out of the kernel build system responsibility and out of the kernel generated
 binary. It is, typically, positioned at the top of the kernel TXT zone so that a single memory
 region is used in order to map both kernel code and this region, by the project global layout
 configuration.

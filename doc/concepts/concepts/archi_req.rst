@@ -1,13 +1,11 @@
 Architectural model
 -------------------
 
-Micro-kernel responsability
+Micro-kernel responsibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sentry kernel is a micro-kernel, meaning that it is responsible for few things on
-the platform.
-
-The micro-kernel is responsible for:
+the platform. The micro-kernel is responsible for:
 
    * Initialize the platform
    * ensure task partitioning
@@ -48,14 +46,14 @@ In Sentry, the following ressource handles exist:
      identifier as changed.
 
    * **shmh_t: task**: Identify Shared memory. A shared memory is a memory region declared at built time that
-     has a `taskh_t` owner. A SHM can be shared with another `taskh_t` or given without access, allowing
-     a task A to give a task B a shared memory transfer access, so that B can pass the mapping access to C later.
-     Shared memories are under the control of the memory manager (see below).
+     has a `taskh_t` owner. A SHM can be shared with another `taskh_t` and have dedicted associated permissions
+     set only the SHM owner can define.
+     In terms of mapping, SHM are under the control of the memory manager (see below).
 
    * **dmah_t: DMA stream**: A DMA stream is a DMA configuration associating a source, a destination,
      a copy model (circular, etc.), and all related DMA-specific configuration except the stream assignation
      to a DMA controller. Most of DMA streams can be assigned to multiple DMA channels and their assignation
-     varies depending on the controller usage. Assignation is under kernel responsability, but streams
+     varies depending on the controller usage. Assignation is under kernel responsibility, but streams
      are userspace needs. Again, streams are build-time declared and shared with the kernel so
      that the kernel can validate the handle integrity and ownership at runtime easily.
 
@@ -75,11 +73,28 @@ supervisor mode.
 In the very same way, any kernel data that need to be emitted to the userspace task
 is delivered through a kernel write access in this very same section.
 
-The main advantage of this model is that the kernel do not need anymore a write access
+.. note::
+
+  `svc_exchange` region size is a project build time specified value, so that the amount
+  of content a userspace task can transmit to the kernel through this region (and the opposite
+  direction) can vary, depending on the project needs.
+
+The main advantage of using a fixed echange zone is that the kernel do not need anymore a write access
 to the task data section. Considering that, the very first action of the kernel interrupt
 handler is to unmap the task, keeping only its `svc_exchange` zone mapped.
 In such mode, the kernel is no more a powerful god but what it should always be:
 a basic manager.
+Moreover, user task, never, at any time, uses pointers when communicating with the kernel.
+
+`svc_exchange` based usersace/kernelspace communication for non-scalar data implies somme constraints:
+
+   * Any data written in the `svc_exchange` by the application may be overriden by the kernel syscall
+     when returning from the syscall. As a consequence, the region content is ephemeral
+
+   * Any kernel-transmitted data other than the syscall return type, even scalar ones, are transmitted
+     through the `svc_exchange` area, meaning that there is no pointer arguments in syscalls used in order
+     to get back kernel results
+
 
 Micro-kernel design for portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
