@@ -9,9 +9,9 @@ if meson.is_cross_build()
 endif
 
 managers_bindings = rust.bindgen(
-    input : ['../../include/sentry/sched.h'],
+    input : ['managers_meta.h'],
     output : 'managers_bindings.rs',
-    include_directories : include_directories('../../include', '../../include/sentry/arch/asm-cortex-m'),
+    include_directories : include_directories('../../../include', '../../../include/sentry/arch/asm-cortex-m'),
     args : ['--use-core',
             '--raw-line', '#![no_std]',
             '--raw-line', '#![allow(nonstandard_style)]',

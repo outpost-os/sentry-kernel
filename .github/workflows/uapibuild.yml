@@ -49,7 +49,7 @@ jobs:
           cargo fmt --all -- --check
       - name: Lint with clippy
         run: |
-          cargo clippy --target thumbv7m-none-eabi
+          cargo clippy --target thumbv7m-none-eabi -- -Dwarnings
       - name: Run cargo check
         run: |
           cargo check --target thumbv7m-none-eabi

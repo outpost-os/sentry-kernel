@@ -20,6 +20,9 @@ pub enum Syscall {
     SendSignal,
     WaitForEvent,
     ManageCPUSleep,
+
+    #[cfg(debug_assertions)]
+    Log,
 }
 
 /// Implementing fallible conversion from `u32` to `Syscall`
@@ -41,6 +44,10 @@ impl TryFrom<u8> for Syscall {
             9 => Ok(Syscall::SendSignal),
             10 => Ok(Syscall::WaitForEvent),
             11 => Ok(Syscall::ManageCPUSleep),
+
+            #[cfg(debug_assertions)]
+            12 => Ok(Syscall::Log),
+
             _ => Err(DispatchError::IllegalValue),
         }
     }

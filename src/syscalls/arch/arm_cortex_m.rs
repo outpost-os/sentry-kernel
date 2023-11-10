@@ -23,6 +23,11 @@ pub struct StackFrame {
 }
 
 #[no_mangle]
+/// # Safety
+/// This function is always unsafe because it has to dereference
+/// raw pointers coming from C/ASM. Caller should make sure the
+/// input stack_frame is valid according to the StackFrame struct
+/// above
 pub unsafe fn svc_handler_rs(stack_frame: *const StackFrame) -> *mut StackFrame {
     let syscall_num = *((*stack_frame).pc as *const u8).offset(-2);
     let args = [

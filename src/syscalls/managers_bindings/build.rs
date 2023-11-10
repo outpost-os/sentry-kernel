@@ -5,12 +5,13 @@ use std::process::Command;
 fn main() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let mut bindings = bindgen::Builder::default()
-        .header("../../../include/sentry/sched.h")
+        .header("managers_meta.h")
         .clang_args(["-I../../../include", "-I../../../include/sentry"])
         .clang_args([
             "-DCONFIG_MAX_SHM_PER_TASK=1",
             "-DCONFIG_MAX_DEV_PER_TASK=1",
             "-DCONFIG_MAX_DMA_STREAMS_PER_TASK=1",
+            "-DCONFIG_BUILD_TARGET_DEBUG=1",
         ])
         .use_core();
 
