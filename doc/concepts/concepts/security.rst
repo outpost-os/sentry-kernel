@@ -1,5 +1,8 @@
+Security in Sentry
+------------------
+
 Security requirements
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 Multiple security considerations have been taken into account at design time.
 These considerations are the consequence of a security study with respect for
@@ -66,3 +69,51 @@ The consideration are the following:
          * **release**: all debug are deactivated, all enforcement are activated and can't be deactivated
            even through the configuration GUI. This include overall bootup integrity checks (task HMACs),
            MPU hardening and various periodic security watchdogs
+
+About stack mashing protecion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stack mashing protection is a basic protection mechanism that include in each stack frame
+a guardian that is forged at runtime during function preamble and checked at function postambule.
+
+This guardian is denoted Canary and is manipulated by compiler's primitives that are embedded
+in the software runtime, called during each stack frame creation and leave.
+This primitives are activated with the usual `stack-protector`, `stack-protector-strong`, flags,
+and need to be seeded at runtime for each thread in order to generate per-stack entropy, so that
+each thread has its own canary sequence.
+
+
+In order to seed each task thread, Sentry kernel, in association with the userspace `_start`
+entrypoint implementation, deliver a per-job seed.
+The seed is pushed, at job startup, to the bottom of the stack, and the `_start` function can
+access it in order to seed the stack smashing protection of the userspace job.
+When seeded, the initial seed value can be zeroified.
+
+In order to avoid ABI dependency between the Sentry kernel and the userspace runtime (that
+implement the entrypoint), the following API is typically defined with the bellowing:
+
+.. code-block:: c
+  :linenos:
+
+  #define JOB_SEED_VALUE (...)
+  static inline void zerpify_job_seed(void) {
+    /* ... */
+  }
+
+.. code-block:: rust
+  :linenos:
+
+  #[inline(always)]
+  fn get_seed_address()->u32 {
+  let mut seed : u32 = 0;
+    unsafe {
+      /// get back seed effective seed address
+    }
+    seed
+  }
+  #[inline(always)]
+  fn zeroify_seed();
+
+
+About memory accesses
+^^^^^^^^^^^^^^^^^^^^^

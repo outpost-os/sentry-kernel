@@ -5,7 +5,7 @@ Micro-kernel design
 ^^^^^^^^^^^^^^^^^^^
 
 Sentry (and more generaly Outpost) is based on a micro-kernel model. Such a
-model consider that the less the supervisor code handle, the best the overall
+model considers that the less the supervisor code handles, the better the overall
 architecture is enforced. To achieve that, this requires some specific considerations:
 
    * some devices (short-listed number) must still be under the control of the kernel,
@@ -15,7 +15,7 @@ architecture is enforced. To achieve that, this requires some specific considera
      they will directly manage them as if they were a part of the kernel, but yet
      fully partitioned and executed in user mode
 
-The userspace device manipulation concept is fully described in a :ref:`dedicated chapter <userspace_devices>`:.
+The userspace device manipulation concept is fully described in a :ref:`dedicated chapter <userspace_devices>`.
 
 Application developer model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -23,15 +23,15 @@ Application developer model
 In small embedded systems, nearly all services are related to a given hardware
 backend (graphical stack, cryptographic service, I/O stack, etc.).
 
-Although, value-added functions should be decorelated from hardware-related function,
-while the last is able to deliver an interface to such a hardware through an abstracted
+Although, value-added functions should be decorelated from hardware-related functions,
+while the latter is able to deliver an interface to such a hardware through an abstracted
 API.
 This model allows two things:
 
-   * The Value Added developer do not always need to be expert in hardware related functions
+   * The Value Added developer does not always need to be expert in hardware related functions
      to implement the effective VA.
 
-   * Harware-related micro-services are fully reusable functions that can be reusables
+   * Hardware-related micro-services are fully reusable functions that can be reusables
      and shared between projects. Theses services can be integrated based on two modes:
 
       * **library model**: the hardware driver delivers a portable, easy to understand upper API
@@ -68,7 +68,7 @@ This is a voluntary model for two reasons:
 For a given application, only race conditions and performances analysis require testing
 on the real target, while interfaces are properly defined and tested.
 
-With this metodology achieved, the business logic developer do not require:
+With this metodology achieved, the business logic developer does not require:
 
    * Sentry-specific API expertise (Rust or POSIX API usage instead)
    * embedded system low-level expertise (platform bootup, memory map, device drivers design...)
@@ -76,7 +76,7 @@ With this metodology achieved, the business logic developer do not require:
 In the same way, the business logic developer can:
 
    * use API he knows (POSIX or Rust standard APIs)
-   * natively tests and execute business logic application out of the embedded system
+   * natively test and execute business logic application out of the embedded system
    * natively debug business logic functional implementation (native gdb, easy IDE integration)
 
 The residual constraint is the analisys of the overall system performances,
@@ -89,57 +89,57 @@ About general tasking model
 The scheduling concept
 """"""""""""""""""""""
 
-Sentry is a preemptive kernel that execute partitioned userspace tasks.
-Each task hold a single thread, built to use a single blocking point on which it
+Sentry is a preemptive kernel that executes partitioned userspace tasks.
+Each task holds a single thread, built to use a single blocking point on which it
 listens to various events:
 
    * hardware interrupts
    * inter-process communication
    * signals
 
-The Sentry kernel has different schedulers, but the main production scheduler is
-a Round-Robin multiqueue shheduler with quantum management.
-Such a scheduler supports multiple queues (RRMQ) based on each task priority, and
-manipulate each thread predefined quantum when the thread is spawn, defining the
+The Sentry kernel may support different schedulers, but the target production scheduler is
+a Round-Robin multiqueue shheduler with quantum (RRMQ) management.
+Such a scheduler supports multiple queues based on each task priority, and
+manipulate each job predefined quantum when the job is spawn, defining the
 duration of its CPU usage while elected.
-A thread quantum is reset at various moments:
+A job quantum is reset when:
 
-   * when the thread voluntary `yield()`
-   * When the thread has consumed all its quantum and is removed from the eligible thread list
-   * when the thread sleeps (TBD?)
+   * the job voluntary `yield()`
+   * the job has consumed all its quantum and is removed from the eligible job list
+   * the job sleeps (TBD?)
 
-When a thread is removed from the eligible threads list, it is moved to the list
-of 'finished' thread and must wait for all other threads that still have some quantum to
-finish before being eligible again. this is done by a simple table swap between eligible
-and terminated threads when no more tasks is eligible but idle.
+When a job is removed from the eligible jobs list, it is moved to the list
+of 'finished' jobs and must wait for all other jobs that still have some quantum to
+finish before being eligible again. This is done by a simple table swap between eligible
+and terminated jobs when no more jobs is eligible but idle.
 
-If no task at all is eligible (all tasks are waiting for an external event), idle task is
+If no job at all is eligible (all jobs are waiting for an external event), idle job is
 automatically executed, and make the processor entering sleep mode, waiting for any
 project-configured external event of interrupt to awake.
 
 Task terminology
 """"""""""""""""
 
-A task (terminology homogeneous with the notion of *task sets* in real-time) sytems,
+A task (terminology homogeneous with the notion of *task sets* in real-time sytems),
 is a user application that is responsible for executing a given project-related function.
 To this task are associated unique properties:
 
    * a unique label, that identify the task on the system
    * a capability set (see next chapter)
    * when using quantum-based RRMQ scheduler, a `{ priority, quantum }` tuple, that
-     define the system local priority and amount of quantum per shceduling period
+     define the system local priority and amount of quantum per scheduling period
    * a dedicated memory mapping, defining the way the task is mapped on the system
      (:ref:`dedicated chapter <mapping_tasks>`) about task memory mapping
 
 Some other properties are dynamics:
 
    * rerun number: the current spawning increment of the task. This value is incremented
-     each time the task is respawned since the system bootup.
+     each time the task spawn a new job since the system bootup.
    * consumed quantum: when using a quantum-based scheduler, the residual current disponible
      quantum for the current schedule period.
    * current frame pointer.
    * current task handle: forged from the task label and current rerun number, identify
-     uniquely the current task job on the system. More informations about handles can be
+     uniquely the current job on the system. More informations about handles can be
      found in a :ref:`dedicated chapter <handles>`.
 
 A task execute a single job, which is implemented as a processor thread. Depending on
@@ -153,7 +153,7 @@ Based on the previous, the following terminology is defined:
 
    1. A **task** is an autonomous userspace application with a dedicated set of capabilities, memory mapped and scheduling properties
       that implement a functional service. A task is associated to a *label*.
-   2. A **job** is a single instanciation of the task unique thread. the task can execute consecutively, periodicaly or sporadicaly
+   2. A **job** is a single instanciation of the task unique thread. The task can execute consecutively, periodicaly or sporadicaly
       its job, depending on the global system configuration. A job is associated to a *task handle*.
    3. A **label** is a 16 bit length identifier defined by the task developer, unique to the task in a project.
    4. A **task handle** is a 32 bit length identifier (see :ref:`handles <handles>`) that identify the current task job, if it exists.
@@ -166,15 +166,21 @@ This chapter describes all properties that are task-wide, common to all potentia
 Capabilities
 """"""""""""
 
-Accessing ressources is not based on permissions but instead on capabilities.
-All ressources accesses a task would do in embedded system are accesses to
-specific ressources (devices, system functions, etc.). All these ressources can
-be considered as objects, to which access from tasks (subjects) is controlled by
-the target object specific key the subject must possess. This is the initial
-definition of the Bell-Lapadula RBAC model.
+Accessing resources is not based on permissions but instead on capabilities.
+All resources a task accesses in embedded system would be a short list of objects.
+These objects are devices, system functions, interrupts, shared memories, another task.
 
-In Sentry, an *easy to inderstand* capabitility based model is implemented that
-behave in such a way.
+All these resources can be considered as objects to which access control is associated to
+a key. for example, acessing a crypto device would require a *crypto-device-key*, while
+acessing an interrupt line would require the corresponding *interrupt-line-key*.
+
+As a consequence, all resources require a specific key possession from the requester.
+This is the initial principle of the Bell-Lapadula RBAC model.
+
+In Sentry, an *easy to understand* capabitility based model is implemented that
+behave in such a way. All resources (devices, shared memory, interrupts, dma streams)
+are associated to a key denoted capability, that is required to access the resource.
+
 Here is the global Sentry capability model:
 
 .. image:: ../_static/figures/capabilities.png
@@ -182,18 +188,18 @@ Here is the global Sentry capability model:
    :alt: Outpost capabilities
    :align: center
 
-The capabilities hierarchy is ressource-oriented, with family definition that should
+The capabilities hierarchy is resource-oriented, with family definition that should
 be easy to understand:
 
-   * *Devices* for all hardware devices related ressources
+   * *Devices* for all hardware devices related resources
    * *System* for all operating system related functions
    * *Memory* for all cold and hot storage accesses, including shared memories
-   * *Cryptography*, for all operating-system based cryptographic ressources, such as
+   * *Cryptography*, for all operating-system based cryptographic resources, such as
      entropy source(s)
 
-Capabilities has been defined based on the security impact on the associated
-ressource access. When developing an application, the user should easily know
-what ressource is required by its own application using this hierarchy.
+The capabilities have been defined based on the security impact on the associated
+resource access. When developing an application, the user should easily know
+what resource is required by its own application using this hierarchy.
 
 Spawning mode
 """""""""""""
@@ -220,7 +226,7 @@ A task has different termination cases:
    * normal termination, using `sys_exit()` syscall or `_exit` POSIX API
    * abnormal termination, due to any fault
 
-The kernel handle both exit cases differently:
+The kernel handles both exit cases differently:
 
    * In case of normal termination, the kernel check the task flags as defined in the
      previous chapter.
@@ -235,17 +241,17 @@ The kernel handle both exit cases differently:
 job entrypoint
 ^^^^^^^^^^^^^^
 
-In C mode The task thread entrypoint is the usual `int main(void)` function, as defined
+In C mode The task job entrypoint is the usual `int main(void)` function, as defined
 in the ISO C definition. In full Rust, the main function is the usual `fn main()` function.
 
-There are no specific runtime manual initialization to define in the userspace task,
+There is no specific runtime manual initialization to define in the userspace task,
 as the Outpost OS and Sentry kernel do not directly call the `main` function but instead
 use the standard `_start` symbol of the userspace runtime that is responsible for the
-userspace task initialization. This avoid any supplementary, potentially buggy,
-requirements on the user application developer. This function, to start with, initiate
-the stack smashing protection of the userspace thread.
+userspace task initialization. This avoids any supplementary, potentially buggy,
+requirements on the user application developer. This function, to start with, initiates
+the stack smashing protection of the userspace job.
 
-This allows to write userspace threads as simple as:
+This allows to write userspace jobs as simple as:
 
 .. code-block:: C
 
@@ -269,6 +275,31 @@ or in Rust:
         }
    }
 
+It is also possible to define a reactive job, when being started by another task. In that
+later case, the job is no more an infinite loop, but instead somehting like:
+
+.. code-block:: Rust
+
+   fn main() {
+        mut action_result : u32;
+        println!("Spanwed on demand");
+        action_result = do_action();
+        println!("Return action result to caller");
+        emit_action_result_to_caller();
+        /// leaving with action result as return code
+        action_result
+   }
+
+.. note::
+   Using this very same mechanism, it is also possible to easily support task with
+   periodic jobs. Such a job, like the above, do not host an infinite loop but instead
+   periodically execute a fresh context. The kernel then arm a period timer each time
+   the job finishes in order to respawn it.
+
+   Such a job can be started at boot time, or by another task, while the periodic
+   restart is a job termination policy. This is interesting when a feature that
+   requires periodic action is dynamically activated on the system (for e.g. through
+   a received request).
 
 Mapping tasks
 ^^^^^^^^^^^^^
@@ -318,7 +349,7 @@ Each task metadata is a task descriptor that contains all required information a
 given task. This metadata contains:
 
    * a 64bits magic number, to enable fast invalid or empty entry detection
-   * a version, that correspond to the ABPI version of the task structure. This avoid potential
+   * a version, that correspond to the ABPI version of the task structure. This avoids potential
      incompativility between the Sentry kernel release and the binary blob generated by the build
      system
    * a task handle (`taskh_t`) that uniquely identify the task

@@ -22,6 +22,8 @@ and so on.
 Micro-kernel design: handles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _handles:
+
 Sentry API is build in order to use as much as possible the build system, reducing
 runtime complexity.
 Based on this concept, all the Operating System objects have a formally specified identifier
