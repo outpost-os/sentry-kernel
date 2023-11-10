@@ -4,7 +4,16 @@
 pymod = import('python')
 sphinx = find_program('sphinx-build')
 doxygen = find_program('doxygen')
-py3 = pymod.find_installation('python3', modules: ['exhale','sphinx_rtd_theme'])
+py3 = pymod.find_installation(
+    'python3',
+    modules: [
+        'exhale',
+        'sphinx_rtd_theme',
+        'weasyprint',
+        'sphinx',
+        'sphinx_simplepdf',
+    ]
+    )
 
 concepts_rst = files(
     'concepts/_static/figures/capabilities.png',
@@ -37,6 +46,18 @@ concepts = custom_target('doc-concepts',
         'doc/concepts',
     ])
 doc_concepts = alias_target('doc-concepts', concepts)
+
+concepts_pdf = custom_target('doc-concepts-pdf',
+    input: concepts_rst,
+    depend_files: [files('concepts/conf.py')],
+    output: 'concepts_pdf',
+    command: [sphinx, '-b', 'simplepdf', '-q',
+        '-d', 'build/doctrees',
+        '-Dversion=' + meson.project_version(),
+        join_paths(meson.current_source_dir(), 'concepts'),
+        'doc/concepts_pdf',
+    ])
+doc_concepts_pdf = alias_target('doc-concepts-pdf', concepts_pdf)
 
 internals_rst = files(
     'internals/_static/figures/outpost.ico',

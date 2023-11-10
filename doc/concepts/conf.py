@@ -3,8 +3,21 @@
 
 extensions = [
     'sphinx_rtd_theme',
+    'sphinx_simplepdf',
 ]
 
+simplepdf_vars = {
+    'primary': '#6299C4',
+    'primary-opaque': '#6299C4',
+    'secondary': '#6299C4',
+    'cover': '#ffffff',
+    'white': '#ffffff',
+    'links': '#6299C4',
+    'cover-bg': 'url(figures/outpost_fp.png) no-repeat center',
+    'cover-overlay': 'rgba(62, 99, 196, 0.5)',
+    'top-left-content': 'counter(page)',
+    'bottom-center-content': '"Outpost documentation suite: Sentry kernel concepts"',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
