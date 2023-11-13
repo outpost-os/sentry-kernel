@@ -60,6 +60,8 @@ In Sentry, the following ressource handles exist:
 Other userspace/kernelspace communication concepts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _svc_exchange:
+
 In Sentry, the kernel API is built in order to reduce as much as possible the
 need for data transfer. Sentry is a kernel in which there is never a single pointer
 transmitted between kernelspace and userspace.
@@ -73,11 +75,14 @@ supervisor mode.
 In the very same way, any kernel data that need to be emitted to the userspace task
 is delivered through a kernel write access in this very same section.
 
-.. note::
+A typical use of such an area is the following:
 
-  `svc_exchange` region size is a project build time specified value, so that the amount
-  of content a userspace task can transmit to the kernel through this region (and the opposite
-  direction) can vary, depending on the project needs.
+.. figure:: ../_static/figures/svc_exchange.png
+  :width: 60%
+  :alt: Exchange sequence when emitting logs
+  :align: center
+
+  Exchange sequence when emitting logs
 
 The main advantage of using a fixed echange zone is that the kernel do not need anymore a write access
 to the task data section. Considering that, the very first action of the kernel interrupt
@@ -95,6 +100,10 @@ Moreover, user task, never, at any time, uses pointers when communicating with t
      through the `svc_exchange` area, meaning that there is no pointer arguments in syscalls used in order
      to get back kernel results
 
+.. note::
+   `svc_exchange` region size is a project build time specified value, so that the amount
+   of content a userspace task can transmit to the kernel through this region (and the opposite
+   direction) can vary, depending on the project needs.
 
 Micro-kernel design for portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -261,12 +270,11 @@ With such a model, given an IP that exist in multiple SoCs and with various conf
 the SoC is integrated to multiple board releases, only the device tree changes, keeping the Senty kernel sources
 unmodified.
 
-
-
 In Sentry kernel SVD and DTS files are used for the following:
 
 * **kernel drivers (DTS usage)**: Sentry kernel drivers uses device trees in order to be informed of various platform relative
   informations such as:
+
    * device base address on current SoC
    * device size (needed for device memory mapping)
    * device needed clocks information

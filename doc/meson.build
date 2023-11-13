@@ -17,8 +17,16 @@ py3 = pymod.find_installation(
 weasyprint = find_program('weasyprint', required: true)
 
 concepts_rst = files(
+    'concepts/_static/figures/svc_exchange.png',
+    'concepts/_static/figures/sentry_kernel.png',
+    'concepts/_static/figures/dts_in_drivers.png',
+    'concepts/_static/figures/system_sw_layout.png',
+    'concepts/_static/figures/svd_in_drivers.png',
+    'concepts/_static/figures/managers.png',
+    'concepts/_static/figures/managers.mermaid',
     'concepts/_static/figures/capabilities.png',
     'concepts/_static/figures/outpost.ico',
+    'concepts/_static/figures/outpost_fp.png',
     'concepts/_static/figures/outpost.png',
     'concepts/build_system/targets.rst',
     'concepts/build_system/svd.rst',
@@ -31,7 +39,6 @@ concepts_rst = files(
     'concepts/concepts/initial.rst',
     'concepts/concepts/uapi.rst',
     'concepts/index.rst',
-    'concepts/sw_architecture/asp.rst',
     'concepts/sw_architecture/bsp.rst',
     'concepts/sw_architecture/syscalls.rst',
     'concepts/sw_architecture/index.rst',

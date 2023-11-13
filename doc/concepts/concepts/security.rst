@@ -27,6 +27,7 @@ The consideration are the following:
       * IPC communication channel allowance between tasks
 
    2. Exchanges between tasks are controlled, as such, the following restrictions exists:
+
       * no broadcast IPC emission
       * no broadcast signal emission
       * a device (as declared in the device tree) is strictly dedicated to a given task (including pinmuxes for LEDs for e.g.)
@@ -36,18 +37,20 @@ The consideration are the following:
    3. Exchange between tasks and Sentry kernel
 
       * No pointer is ever transmitted between userspace tasks and Sentry kernel. Instead tasks are
-        using :ref:`handles <handles>` and a dedicated small memory region denoted `svc_block` for
+        using :ref:`handles <handles>` and a dedicated small memory region denoted `svc_exchange` for
         non-scalar data transmission and syscall data return (see
-        :ref:`userspace / kernelspace data transmission <_copyfromtouser>` chapter).
+        :ref:`userspace / kernelspace data transmission concepts <svc_exchange>` chapter).
 
    4. memory mapping is fully restricted
+
       * except SHM, task memory mapping are strictly separated (check at build time)
       * Sentry kernel is a monitor, not god: it do not have access to task memory map, excepting
-        the task `svc_block`. Only handler entrypoint manipulate the task stack for saving/restoring
+        the task `svc_exchange`. Only handler entrypoint manipulate the task stack for saving/restoring
         the task context, just before demapping the task region
       * All mapped regions respect the `W^X` principle
 
    5. security events consideration
+
       * Security related events are considered in Sentry, through the usage of the `sigabort`
         post-mortem service. Any abnormal event that generate an invalid task termination
         generate a call to this runtime post-mortem service in the task context with a fresh
@@ -62,6 +65,7 @@ The consideration are the following:
         hardware registers states, etc.) Any fail lead to a security `panic()`.
 
    6. bootup and modes
+
       * Sentry build natively supports two modes: `debug` and `release`
          * **debug**: debug manager is compiled and linked, adding usart and other debug features.
            Some debug-related feature that may reduce security can be activated. The build system
@@ -70,10 +74,10 @@ The consideration are the following:
            even through the configuration GUI. This include overall bootup integrity checks (task HMACs),
            MPU hardening and various periodic security watchdogs
 
-About stack mashing protecion
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+About stack smashing protection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Stack mashing protection is a basic protection mechanism that include in each stack frame
+Stack smashing protection is a basic protection mechanism that include in each stack frame
 a guardian that is forged at runtime during function preamble and checked at function postambule.
 
 This guardian is denoted Canary and is manipulated by compiler's primitives that are embedded
@@ -114,6 +118,12 @@ implement the entrypoint), the following API is typically defined with the bello
   #[inline(always)]
   fn zeroify_seed();
 
+.. note::
+  The usage of `_start` symbol in the application runtime allows to properly forge
+  application environment at job boot time, and properly support application termination
+  at job end time without requiring any single line of code from the application developer
 
-About memory accesses
-^^^^^^^^^^^^^^^^^^^^^
+.. warning::
+  The `_start` implementation, while being a part of the overall runtime, is not
+  under Sentry responsability, but instead hosted in the userspace runtime, typically
+  libShield for POSIX or Rust Sentry HAL
