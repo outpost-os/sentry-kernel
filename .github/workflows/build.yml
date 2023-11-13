@@ -249,7 +249,8 @@ jobs:
             tar -C builddir/doc -czvf sentry-concepts-$subdir.tar.gz concepts
             file=sentry-concepts-$subdir.tar.gz
             pdf=builddir/doc/concepts_pdf/sentry.pdf
-            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${pdf} "${ARTIFACT_ARCHIVE_URL}/${pdf}"
+            cp $pdf sentry-concepts-${subdir}.pdf
+            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file sentry-concepts-${subdir}.pdf "${ARTIFACT_ARCHIVE_URL}/sentry-concepts-${subdir}.pdf"
             curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${file} "${ARTIFACT_ARCHIVE_URL}/${file}"
             cd ${HTML_BUILD_DIR}
             for file in $(find . -type f); do
