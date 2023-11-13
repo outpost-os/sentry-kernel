@@ -176,7 +176,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
+    runs-on: orange-classic
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:

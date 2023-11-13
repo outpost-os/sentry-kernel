@@ -16,7 +16,7 @@ simplepdf_vars = {
     'cover-bg': 'url(figures/outpost_fp.png) no-repeat center',
     'cover-overlay': 'rgba(62, 99, 196, 0.5)',
     'top-left-content': 'counter(page)',
-    'bottom-center-content': '"Outpost documentation suite: Sentry kernel concepts"',
+    'bottom-center-content': 'Outpost documentation suite: Sentry kernel concepts',
 }
 
 # Add any paths that contain templates here, relative to this directory.

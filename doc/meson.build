@@ -9,11 +9,12 @@ py3 = pymod.find_installation(
     modules: [
         'exhale',
         'sphinx_rtd_theme',
-        'weasyprint',
-        'sphinx',
         'sphinx_simplepdf',
     ]
     )
+
+# used by sphinx_simplepdf
+weasyprint = find_program('weasyprint', required: true)
 
 concepts_rst = files(
     'concepts/_static/figures/capabilities.png',
