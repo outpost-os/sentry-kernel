@@ -50,7 +50,7 @@ kstatus_t gpio_probe(uint8_t gpio_port_id)
     /* TODO: handle low power configuration in dts (w/a a dedicatd property) */
     rcc_enable(port->bus_id, port->clk_msk, RCC_NOFLAG);
 
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     /**
@@ -102,7 +102,7 @@ kstatus_t gpio_set_mode(uint8_t gpio_port_id, uint8_t pin, gpio_mode_t mode)
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t reg = ioread32(port_base_addr + GPIO_MODER_REG);
@@ -130,7 +130,7 @@ kstatus_t gpio_set_type(uint8_t gpio_port_id, uint8_t pin, gpio_type_t type)
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t reg = ioread32(port_base_addr + GPIO_OTYPER_REG);
@@ -158,7 +158,7 @@ kstatus_t gpio_set_af(uint8_t gpio_port_id, uint8_t pin, gpio_af_t af)
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
     size_t afreg;
     size_t reg;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
 
@@ -192,7 +192,7 @@ kstatus_t gpio_set_speed(uint8_t gpio_port_id, uint8_t pin, gpio_speed_t speed)
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t reg = ioread32(port_base_addr + GPIO_OSPEEDR_REG);
@@ -220,7 +220,7 @@ kstatus_t gpio_set_pull_mode(uint8_t gpio_port_id, uint8_t pin, gpio_pullupd_t p
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t reg = ioread32(port_base_addr + GPIO_PUPDR_REG);
@@ -255,7 +255,7 @@ kstatus_t gpio_get(uint8_t gpio_port_id, uint8_t pin, bool *val)
        */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t reg = ioread32(port_base_addr + GPIO_IDR_REG);
@@ -285,7 +285,7 @@ kstatus_t gpio_set(uint8_t gpio_port_id, uint8_t pin)
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     iowrite32(port_base_addr + GPIO_BSRR_REG, (0x1ul << (pin)));
@@ -314,7 +314,7 @@ kstatus_t gpio_reset(uint8_t gpio_port_id, uint8_t pin)
      */
 #endif
     size_t port_base_addr = stm32_gpioport_get_desc(gpio_port_id)->base_addr;
-    if (unlikely((status = gpio_map(gpio_port_id)) == K_STATUS_OKAY)) {
+    if (unlikely((status = gpio_map(gpio_port_id)) != K_STATUS_OKAY)) {
         goto err;
     }
     iowrite32(port_base_addr + GPIO_BSRR_REG, (0x1ul << (pin+16)));

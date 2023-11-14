@@ -37,7 +37,7 @@ kstatus_t flash_probe(void)
     uint32_t count = 0UL;
     kstatus_t status = K_STATUS_OKAY;
 
-    if (unlikely((status = flash_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = flash_map()) != K_STATUS_OKAY)) {
         goto err;
     }
 

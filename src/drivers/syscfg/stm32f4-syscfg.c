@@ -63,7 +63,7 @@ static inline kstatus_t syscfg_unmap(void) {
 kstatus_t syscfg_switch_bank(void)
 {
     kstatus_t status;
-    if (unlikely((status = syscfg_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
         goto ret;
     }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
@@ -79,7 +79,7 @@ ret:
 kstatus_t syscfg_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely((status = syscfg_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
         goto ret;
     }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
@@ -110,7 +110,7 @@ kstatus_t syscfg_set_exti(uint8_t gpio_pin_id,  uint8_t gpio_port_id)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = syscfg_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     size_t exticr = (SYSCFG_BASE_ADDR + SYSCFG_EXTICR1_REG);

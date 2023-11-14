@@ -66,7 +66,7 @@ kstatus_t rng_probe(void)
     if (unlikely((status = rcc_enable(rng_desc->bus_id, rng_desc->clk_msk, RCC_NOFLAG)) != K_STATUS_OKAY)) {
         goto err;
     }
-    if (unlikely((status = rng_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = rng_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     /* Enable random number generation */
@@ -199,7 +199,7 @@ kstatus_t rng_get(uint32_t * random)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = rng_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = rng_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     /*@ assert \valid(random); */

@@ -52,7 +52,7 @@ static inline kstatus_t exti_unmap(void) {
 kstatus_t exti_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (unlikely(ioread32(EXTI_BASE_ADDR + EXTI_PR_REG))) {
@@ -93,7 +93,7 @@ kstatus_t exti_mask_interrupt(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (itn < 32) {
@@ -128,7 +128,7 @@ kstatus_t exti_unmask_interrupt(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (itn < 32) {
@@ -163,7 +163,7 @@ kstatus_t exti_mask_event(uint8_t evn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (evn < 32) {
@@ -198,7 +198,7 @@ kstatus_t exti_unmask_event(uint8_t evn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (evn < 32) {
@@ -235,7 +235,7 @@ kstatus_t exti_generate_swinterrupt(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (itn < 32) {
@@ -293,7 +293,7 @@ kstatus_t exti_clear_pending(uint8_t itn)
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    if (unlikely((status = exti_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
     if (itn < 32) {

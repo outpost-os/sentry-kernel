@@ -64,7 +64,7 @@ kstatus_t usart_probe(void)
         }
     }
     /* map usart before manipulating it */
-    if (unlikely((status = usart_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = usart_map()) != K_STATUS_OKAY)) {
         goto ret;
     }
     /* standard 8n1 config is set with 0 value, FIXME: what about TIE interrupt ? */
@@ -170,7 +170,7 @@ kstatus_t usart_tx(const uint8_t *data, size_t data_len)
     size_t usart_base = usart_desc->base_addr;
     size_t reg;
 
-    if (unlikely((status = usart_map()) == K_STATUS_OKAY)) {
+    if (unlikely((status = usart_map()) != K_STATUS_OKAY)) {
         goto end;
     }
     usart_set_baudrate();
