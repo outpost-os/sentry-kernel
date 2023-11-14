@@ -175,12 +175,12 @@ There are multiple managers in Sentry:
      device manager.
 
 
-.. image:: ../_static/figures/managers.png
+.. figure:: ../_static/figures/managers.png
    :width: 80%
    :alt: Sentry managers hierarchy in syscall usage
    :align: center
 
-
+   Managers and their interactions
 
 SVD and Device-trees
 """"""""""""""""""""
@@ -286,10 +286,12 @@ In Sentry kernel SVD and DTS files are used for the following:
   All these informations are generated and stored in a descriptor associated to a descriptor accessor, so that the driver
   can access all these fields as if it is an external configuration.
 
-.. image:: ../_static/figures/dts_in_drivers.png
+.. figure:: ../_static/figures/dts_in_drivers.png
    :width: 90%
    :alt: DTS usage in Sentry kernel drivers
    :align: center
+
+   Usage of DTS file in Sentry kernel driver
 
 * **kernel drivers (SVD usage)**: All drivers need that the corresponding device definition, including registers list,
   registers fields, registers offset information (relative to device base address defined in the device tree),
@@ -300,10 +302,12 @@ In Sentry kernel SVD and DTS files are used for the following:
   shift varying between SoCs), these variations are transparent to the driver developer while the field name stays
   the same.
 
-.. image:: ../_static/figures/svd_in_drivers.png
+.. figure:: ../_static/figures/svd_in_drivers.png
    :width: 90%
-   :alt: DTS usage in Sentry kernel drivers
+   :alt: SVD usage in Sentry kernel drivers
    :align: center
+
+   Usage of SVD file in Sentry kernel drivers
 
 * **IRQ list (SVD usage)**: The list of platform supported IRQ is generated using the SVD file where they are all
   listed with their identifier. Each SoC as a dedicated IRQ list that varies depending on the way the manufacturer

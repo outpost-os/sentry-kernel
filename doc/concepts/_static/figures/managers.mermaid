@@ -1,13 +1,21 @@
 flowchart TD
-    A(Syscalls) -->|ioh_t| B(I/O Manager)
-    A -->|devh_t| C(Device Manager)
-    A -->|dmah_t| D(DMA Manager)
-    A -->|shmh_t| E(Memory Manager)
-    A -->|inth_t| F(Interrupt Manager)
-    A -->|taskh_t| G(Tasks Manager)
+    A(fa:fa-dungeon Syscalls) -->|ioh_t| B(fa:fa-chess-queen I/O Manager):::manager
+    A -->|devh_t| C(fa:fa-chess-queen Device Manager):::manager
+    A -->|dmah_t| D(fa:fa-chess-queen DMA Manager):::manager
+    A -->|shmh_t| E(fa:fa-chess-queen Memory Manager):::manager
+    A -->|inth_t| F(fa:fa-chess-queen Interrupt Manager):::manager
+    A -->|emit_log| G(fa:fa-chess-queen Debug Manager):::manager
+    C .->|clock_xxx| H(fa:fa-chess-queen Clock manager):::manager
+    A -->|taskh_t| I(fa:fa-chess-queen Task manager):::manager
 
-    F -->|itn| H(NVIC driver)
-    F -->|exti| I(EXTI driver)
-    E -->|mpu region| J(MPU driver)
-    D -->|stream| K(DMA Driver)
-    B -->|ioconf| L(GPIO driver)
+    F -..->|itn| M(fa:fa-microchip NVIC driver):::bsp
+    F -..->|exti| N(fa:fa-microchip EXTI driver):::bsp
+    E -..->|mpu region| O(fa:fa-microchip MPU driver):::bsp
+    D -..->|stream| P(fa:fa-microchip DMA Driver):::bsp
+    B -..->|ioconf| Q(fa:fa-microchip GPIO driver):::bsp
+    G -..->|usart_tx| R(fa:fa-microchip USART driver):::bsp
+    H -.->|rcc_enable| S(fa:fa-microchip RCC driver):::bsp
+    I .->|schedule| T(fa:fa-clock Scheduler)
+
+    classDef bsp fill:#a00,color:#fff
+    classDef manager fill:#060,color:#fff

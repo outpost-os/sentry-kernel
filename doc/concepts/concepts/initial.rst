@@ -183,10 +183,12 @@ are associated to a key denoted capability, that is required to access the resou
 
 Here is the global Sentry capability model:
 
-.. image:: ../_static/figures/capabilities.png
+.. figure:: ../_static/figures/capabilities.png
    :width: 80%
    :alt: Outpost capabilities
    :align: center
+
+   Capabilities heararchy in Sentry
 
 The capabilities hierarchy is resource-oriented, with family definition that should
 be easy to understand:
@@ -317,11 +319,12 @@ allows to keep separated the task build environment from the kernel build enviro
 The link between all tasks, the kernel, and the resulting generated firmware is made
 later on by the project build system, as defined in the following:
 
-.. image:: ../_static/figures/system_sw_layout.png
+.. figure:: ../_static/figures/system_sw_layout.png
    :width: 80%
    :alt: Sentry managers hierarchy in syscall usage
    :align: center
 
+   Typical software layout
 
 To do this, the Sentry kernel considers that it exist, in the overall project layout, a dedicated
 section denoted `task_list`.
