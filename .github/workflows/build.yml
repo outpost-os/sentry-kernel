@@ -25,7 +25,7 @@ jobs:
           import os
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/fedora:398df56', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
-            toolchain = [ 'gcc|12.3.Rel1', 'gcc|11.2-2022.02', 'gcc|10.3-2021.07' ]
+            toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1' ]
             config = [ 'stm32f429i_disc1' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
