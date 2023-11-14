@@ -24,8 +24,8 @@ jobs:
         run: |
           import os
           if "${{ github.event_name }}" == "pull_request":
-            operating_system = [ 'mesonbuild/fedora:latest', 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest', 'mesonbuild/opensuse:latest' ]
-            toolchain = [ 'gcc|12.3.Rel1', 'gcc|11.2-2022.02', 'gcc|10.3-2021.07' ]
+            operating_system = [ 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
+            toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1' ]
             config = [ 'stm32f429i_disc1' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
@@ -98,8 +98,9 @@ jobs:
           fetch-tags: true
       - name: deploy local deps
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
-      - name: install pkg
+      - name: install dtc pkg
         uses: embedded-devops/action-install-pkg@v1.0
         with:
           package: 'dtc,device-tree-compiler'
