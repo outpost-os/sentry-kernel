@@ -170,3 +170,90 @@ jobs:
         run: |
           cat builddir/meson-logs/meson-log.txt
           cat builddir/meson-logs/testlog.txt
+
+  doc:
+    needs: [ build ]
+    defaults:
+      run:
+        shell: bash
+    runs-on: self-hosted
+    container:
+      image: 'mesonbuild/ubuntu-rolling'
+    steps:
+      - name: Setup git
+        uses: embedded-devops/action-setup-git@main
+        with:
+          ssh_key: ${{ secrets.GHE_SSH_KEY }}
+          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+      - name: Setup Meson
+        uses: embedded-devops/action-setup-meson@main
+        with:
+          token: ${{ secrets.GHE_CI_TOKEN }}
+          crossfiles_git: 'outpost/meson-cross-files'
+          crossfiles_ref: 'main'
+      - name: Set pypi credentials
+        uses: embedded-devops/action-pypi@main
+        with:
+          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
+          pypi_server_need_authentication: true
+          pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
+          pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: deploy local deps
+        run: |
+          pip install -r requirements.txt
+      - name: install dtc pkg
+        uses: embedded-devops/action-install-pkg@v1.0
+        with:
+          package: 'dtc,device-tree-compiler'
+      - name: install curl pkg
+        uses: embedded-devops/action-install-pkg@v1.0
+        with:
+          package: 'curl'
+      - name: Meson Doc
+        uses: embedded-devops/action-meson@main
+        with:
+          actions: '["prefetch", "setup"]'
+          options: '-Dkconfig:config=configs/stm32f429i_disc1_defconfig -Dwith_doc=true'
+      - name: Meson postcheck
+        if: failure()
+        run: |
+          cat builddir/meson-logs/meson-log.txt
+          cat builddir/meson-logs/testlog.txt
+      - name: Deploy documentation
+        run: |
+          ninja -C builddir doc-concepts doc-concepts-pdf
+          case "${{ github.event_name }}" in
+                "push")
+                    current_version=${{ github.ref_name }}
+                    if test "$current_version" = "main"; then
+                      push_to_nexus=1
+                      subdir="staging"
+                    else
+                      push_to_nexus=0
+                    fi
+                    ;;
+                "pull_request")
+                    current_version=pr-$(echo $GITHUB_REF| cut -d '/' -f 3)
+                    push_to_nexus=1
+                    subdir="staging"
+                    ;;
+          esac
+          HTML_BUILD_DIR=builddir/doc/concepts
+          ARTIFACT_ARCHIVE_HTML_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/html/
+          ARTIFACT_ARCHIVE_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/
+          if test $push_to_nexus -eq 1; then
+            tar -C builddir/doc -czvf sentry-concepts-$subdir.tar.gz concepts
+            file=sentry-concepts-$subdir.tar.gz
+            pdf=builddir/doc/concepts_pdf/sentry.pdf
+            cp $pdf sentry-concepts-${subdir}.pdf
+            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file sentry-concepts-${subdir}.pdf "${ARTIFACT_ARCHIVE_URL}/sentry-concepts-${subdir}.pdf"
+            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${file} "${ARTIFACT_ARCHIVE_URL}/${file}"
+            cd ${HTML_BUILD_DIR}
+            for file in $(find . -type f); do
+              curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${file} "${ARTIFACT_ARCHIVE_HTML_URL}/${file}"
+            done
+          fi

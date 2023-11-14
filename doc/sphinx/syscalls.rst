@@ -1,4 +1,0 @@
-Syscall API model
------------------
-
-TBD

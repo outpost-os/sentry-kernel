@@ -2,22 +2,21 @@
 #
 
 extensions = [
-    'breathe',
-    'exhale',
     'sphinx_rtd_theme',
+    'sphinx_simplepdf',
 ]
 
-breathe_projects = {"Sentry": "../doxygen/xml"}
-breathe_default_project = "Sentry"
-
-exhale_args = {
-    "containmentFolder": "./api",
-    "rootFileName": "index.rst",
-    "rootFileTitle": "Sentry detailed documentation",
-    "doxygenStripFromPath": ".",
-    "createTreeView": True,
-    "exhaleExecutesDoxygen": True,
-    "exhaleUseDoxyfile": True,
+simplepdf_vars = {
+    'primary': '#6299C4',
+    'primary-opaque': '#6299C4',
+    'secondary': '#6299C4',
+    'cover': '#ffffff',
+    'white': '#ffffff',
+    'links': '#6299C4',
+    'cover-bg': 'url(figures/outpost_fp.png) no-repeat center',
+    'cover-overlay': 'rgba(62, 99, 196, 0.5)',
+    'top-left-content': 'counter(page)',
+    'bottom-center-content': 'Outpost documentation suite: Sentry kernel concepts',
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -63,7 +62,7 @@ todo_include_todos = True
 
 html_theme = 'sphinx_rtd_theme'
 
-html_logo = ''
+html_logo = '_static/figures/sentry_kernel.png'
 
 html_static_path = ['_static']
 
