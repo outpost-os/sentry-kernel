@@ -64,14 +64,14 @@ kstatus_t syscfg_switch_bank(void)
 {
     kstatus_t status;
     if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
-        goto ret;
+        goto err;
     }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
     /* flipping FB_MODE bit */
     reg ^= SYSCFG_MEMRM_FB_MODE;
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, reg);
     syscfg_unmap();
-ret:
+err:
     return status;
 }
 #endif
@@ -80,7 +80,7 @@ kstatus_t syscfg_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
-        goto ret;
+        goto err;
     }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
 #ifdef CONFIG_HAS_FLASH_DUAL_BANK
@@ -95,7 +95,7 @@ kstatus_t syscfg_probe(void)
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR4_REG, 0UL);
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_CMPCR_REG, 0UL);
     syscfg_unmap();
-ret:
+err:
     return status;
 }
 

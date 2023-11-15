@@ -130,7 +130,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
                 /* only kernel itself can map kernel content */
-                goto end;
+                goto err;
             }
             status = mgr_mm_map_kernel_armm_scs();
             break;
@@ -141,7 +141,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_TASK_TXT:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
-                goto end;
+                goto err;
             }
             struct mpu_region_desc user_txt_config = {
                 .id = 4,
@@ -157,7 +157,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_TASK_DATA:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
-                goto end;
+                goto err;
             }
             struct mpu_region_desc user_data_config = {
                 .id = 5,
@@ -177,9 +177,9 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
             /** TODO: define SHM handling (in this manager) */
             break;
         default:
-            goto end;
+            goto err;
     }
-end:
+err:
     return status;
 }
 
@@ -195,7 +195,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can unmap kernel content */
-                goto end;
+                goto err;
             }
             mpu_clear_region(3);
             status = K_STATUS_OKAY;
@@ -204,7 +204,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_TXT:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can a task txt */
-                goto end;
+                goto err;
             }
             mpu_clear_region(4);
             status = K_STATUS_OKAY;
@@ -212,7 +212,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_SVC_EXCHANGE:
             if (unlikely(unlikely(handle_convert_to_u32(requester) == 0x0UL))) {
                 /* only kernel itself can a task svc_exchange */
-                goto end;
+                goto err;
             }
             mpu_clear_region(5);
             status = K_STATUS_OKAY;
@@ -220,7 +220,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_DATA:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can a task data */
-                goto end;
+                goto err;
             }
             mpu_clear_region(5);
             status = K_STATUS_OKAY;
@@ -232,9 +232,9 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
             /** TODO: define SHM handling (in this manager). requester can be a user task */
             break;
         default:
-            goto end;
+            goto err;
     }
-end:
+err:
     return status;
 }
 
@@ -278,21 +278,21 @@ kstatus_t mgr_mm_init(void)
     mpu_disable();
     status = mgr_mm_map_kernel_txt();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
     status = mgr_mm_map_kernel_data();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
 #if defined(__arm__)
     status = mgr_mm_map_kernel_armm_scs();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
 #endif
     mpu_enable();
     mm_configured = SECURE_TRUE;
-end:
+err:
 #endif
     return status;
 }

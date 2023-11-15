@@ -60,12 +60,12 @@ kstatus_t usart_probe(void)
     for (pin = 0; pin < usart_desc->pinctrl_tbl_size; pin++) {
         status = gpio_pinctrl_configure(usart_desc->pinctrl_tbl[pin]);
         if (unlikely(status != K_STATUS_OKAY)) {
-            goto ret;
+            goto err;
         }
     }
     /* map usart before manipulating it */
     if (unlikely((status = usart_map()) != K_STATUS_OKAY)) {
-        goto ret;
+        goto err;
     }
     /* standard 8n1 config is set with 0 value, FIXME: what about TIE interrupt ? */
     iowrite32(usart_base + USART_CR1_REG, 0x0UL);
@@ -76,7 +76,7 @@ kstatus_t usart_probe(void)
 
     usart_unmap();
 
-ret:
+err:
     return status;
 }
 
@@ -171,7 +171,7 @@ kstatus_t usart_tx(const uint8_t *data, size_t data_len)
     size_t reg;
 
     if (unlikely((status = usart_map()) != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
     usart_set_baudrate();
     usart_enable();
@@ -200,6 +200,6 @@ kstatus_t usart_tx(const uint8_t *data, size_t data_len)
 
     usart_disable();
     status = usart_unmap();
-end:
+err:
     return status;
 }
