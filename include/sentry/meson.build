@@ -10,7 +10,6 @@ sentry_header_set.add(files(
   'io.h',
   'ipc.h',
   'ktypes.h',
-  'mm.h',
   'signal.h',
   'thread.h',
 ))
