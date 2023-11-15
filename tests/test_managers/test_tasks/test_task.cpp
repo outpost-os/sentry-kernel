@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/memory.h>
 #include <uapi/handle.h>
 /* needed to get back private struct task_t for anaysis */
 #include "../../../src/managers/task/task_core.h"
@@ -83,15 +84,8 @@ protected:
 extern "C" {
 
     /* sample stack area used to let task manager forge a stack */
-    uint64_t _idlestack[64];
-    /* we emulate _idletask ld label, although, this label
-       is manipulated using its address as stack top, meaning that
-       we need some space **bellow** as if the label was properly
-       positioned in memory to let the task manager manipulating the
-       memory. This is done with some _otherstack spacing just
-       after, so that &_idlestack usage in sp configuration will store
-       content in _shadowstack */
-    uint64_t _shadowstack[64];
+    uint8_t task_data_section[1024];
+    size_t _idle_svcexchange;
 
     /* sample idle function and associated infos */
     extern void __attribute__((noreturn)) idle(void);
@@ -179,8 +173,12 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)&_idlestack;
+        task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];
         task_full_context[i].stack_size = 256;
+        task_full_context[i].data_size = 0;
+        task_full_context[i].bss_size = 0;
+        task_full_context[i].heap_size = 0;
+        task_full_context[i].rodata_size = 0;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
     EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS+1);
@@ -202,8 +200,12 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].handle.familly = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
-        task_full_context[i].stack_top = (size_t)&_idlestack;
+        task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];
         task_full_context[i].stack_size = 256;
+        task_full_context[i].data_size = 0;
+        task_full_context[i].bss_size = 0;
+        task_full_context[i].heap_size = 0;
+        task_full_context[i].rodata_size = 0;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
     EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS+1);

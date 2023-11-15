@@ -167,11 +167,11 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 goto err;
             }
             pr_debug("mapping task %08x data section, from %p size %p",
-               handle_convert_to_u32(requester), meta->s_data, meta->data_size);
+               handle_convert_to_u32(requester), meta->s_svcexchange, mgr_task_get_data_region_size(meta));
             struct mpu_region_desc user_data_config = {
                 .id = 5,
-                .addr = (uint32_t)meta->s_data, /* To define: where start the task RAM ? .data ? other ? */
-                .size = mpu_convert_size_to_region(meta->data_size),   /* FIXME data_size is a concat of all datas sections */
+                .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
+                .size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
                 .access_perm = MPU_REGION_PERM_FULL,
                 .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
                 .mask = 0x0,

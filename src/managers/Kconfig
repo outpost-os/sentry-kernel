@@ -2,6 +2,13 @@ menu "Managers"
 
 menu "Task manager"
 
+config SVC_EXCHANGE_AREA_LEN
+	int "Size of the SVC_Exhcange area"
+	range 64 1024
+	default 128
+	help
+	  length (in bytes) of the user/kernel exchange area
+
 config TASK_MAGIC_VALUE
 	hex "task magic value number"
 	default 0xdeadcafe

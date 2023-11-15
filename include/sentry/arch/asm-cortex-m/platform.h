@@ -16,6 +16,11 @@
 #define THREAD_MODE_USER    0xab2f5332UL
 #define THREAD_MODE_KERNEL  0x5371a247UL
 
+/**
+ * @def alignment size of sections. 4bytes on ARM32
+ */
+#define SECTION_ALIGNMENT_LEN 0x4UL
+
 
 static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entrypoint, stack_frame_t *stack_pointer, uint32_t flag) {
   /*

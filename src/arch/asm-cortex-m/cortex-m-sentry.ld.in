@@ -199,9 +199,9 @@ SECTIONS
         . = . + 2048;
         _msp_bootupstack = .;
         . = . + 2048;
-        _idlestack = .;
+        _idle_svcexchange = .;
         _estack = .;
-        . = . + 4096;
+        . = . + 512;
         _m7fw_init_psp_stack = .;
         . = ALIGN(4);
     } > {{ ram_section }}
