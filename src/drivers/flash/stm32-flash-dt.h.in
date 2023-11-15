@@ -1,0 +1,27 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_RNG_DT_GENERATED_H
+#define __STM32_RNG_DT_GENERATED_H
+
+#include <stddef.h>
+
+#include <sentry/arch/asm-cortex-m/buses.h>
+
+/**
+ * \brief STM32 FMC IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-flash-controller" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_fmc_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP size */
+    uint32_t wait_state;/**< IP wait state */
+} stm32_fmc_desc_t;
+
+const stm32_fmc_desc_t * stm32_fmc_get_desc(uint8_t flash_controller_id);
+
+#endif /* __STM32_RNG_DT_GENERATED_H */

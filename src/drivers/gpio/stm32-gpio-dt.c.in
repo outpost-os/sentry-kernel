@@ -18,6 +18,7 @@ static const stm32_gpioport_desc_t stm32_gpioports[] = {
     /* {{ port.label }} port configuration */
     {
         .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
+        .size = {{ "%#08xUL"|format(port.reg[1]) }},
         .bus_id = {{ bus_id }},
         .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
     },

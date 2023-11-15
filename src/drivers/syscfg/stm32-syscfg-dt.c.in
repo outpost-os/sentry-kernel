@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include "gpio_defs.h"
+#include "stm32-syscfg-dt.h"
+
+{% set syscfg = dts.get_compatible("syscon") -%}
+
+/**
+ * \brief .rodata field: list of current platform GPIO ports
+ */
+static const stm32_syscfg_desc_t stm32_syscfg = {
+    {% if syscfg[0].status and syscfg[0].status == "okay" -%}
+    /* {{ syscfg[0].label }} configuration */
+    .base_addr = {{ "%#08xUL"|format(syscfg[0].reg[0]) }},
+    .size = {{ "%#08xUL"|format(syscfg[0].reg[1]) }},
+    {% endif -%}
+};
+
+/**
+ * @warning this is a private function, port id must be valid and checked by caller
+ */
+const stm32_syscfg_desc_t * stm32_syscfg_get_desc(void)
+{
+    /*@ assert gpioport_is_valid(id); */
+    return &stm32_syscfg;
+}

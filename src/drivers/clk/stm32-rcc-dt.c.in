@@ -1,0 +1,24 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+#include "stm32-rcc-dt.h"
+
+{% set ip = dts.get_compatible("st,stm32-rcc") -%}
+/**
+ * \brief {{ ip[0].label }} configuration
+ */
+static const stm32_rcc_desc_t stm32_rcc[] = {
+    {
+    {% if ip[0].status and ip[0].status == "okay" -%}
+    .base_addr = {{ "%#08xUL"|format(ip[0].reg[0]) }},
+    .size = {{ "%#08xUL"|format(ip[0].reg[1]) }},
+    {% endif -%}
+    },
+    {} /* sentinel */
+};
+
+const stm32_rcc_desc_t * stm32_rcc_get_desc(void)
+{
+    return &stm32_rcc[0];
+}

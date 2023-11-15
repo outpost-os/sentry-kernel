@@ -133,3 +133,7 @@
 				  STM32_PUPDR_NO_PULL>;
 	};
 };
+
+&syscfg {
+	status = "okay";
+};

@@ -16,10 +16,12 @@ exti_h = custom_target('gen_gpio',
 
 
 stm32_exti_dts_template_h = files(['stm32-exti-dt.h.in'])
+stm32_exti_dts_template_c = files(['stm32-exti-dt.c.in'])
 stm32_exti_dtsgen_h = dtsgen.process(stm32_exti_dts_template_h)
+stm32_exti_dtsgen_c = dtsgen.process(stm32_exti_dts_template_c)
 
 # driver source selection
 
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_exti_dtsgen_h ])
+sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_exti_dtsgen_h, stm32_exti_dtsgen_c ])
 sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-exti.c'))
 sentry_private_gen_header_set.add([ exti_h ])

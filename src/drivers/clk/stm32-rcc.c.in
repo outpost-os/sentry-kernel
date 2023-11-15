@@ -14,6 +14,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
+#include <sentry/managers/memory.h>
 
 #include <bsp/drivers/gpio/gpio.h>
 
@@ -21,7 +22,7 @@
 #include <bsp/drivers/clk/rcc.h>
 
 /* RCC generated header for current platform */
-#include "stm32-gpio-dt.h"
+#include "stm32-rcc-dt.h"
 #include "rcc_defs.h"
 
 #if defined(CONFIG_SOC_SUBFAMILY_STM32F4)
@@ -91,6 +92,16 @@ static_assert(RCC_SYSTEM_CLOCK_FREQUENCY <= RCC_SYSCLOCK_FREQUENCY_MAX, "System 
 static_assert(RCC_AHB_CLOCK_FREQUENCY <= RCC_SYSTEM_CLOCK_FREQUENCY, "Invalid RCC AHB clock configuration");
 static_assert(RCC_APB1_CLOCK_FREQUENCY <= RCC_APB1_BUS_FREQUENCY_MAX, "Invalid RCC APB1 clock configuration");
 static_assert(RCC_APB2_CLOCK_FREQUENCY <= RCC_APB2_BUS_FREQUENCY_MAX, "Invalid RCC APB2 clock configuration");
+
+kstatus_t rcc_map(void)
+{
+    stm32_rcc_desc_t const * desc = stm32_rcc_get_desc();
+    return mgr_mm_map_kdev(desc->base_addr, desc->size);
+}
+/* for simplicity sake, but unmaping a kernel device is generic */
+kstatus_t rcc_unmap(void) {
+    return mgr_mm_unmap_kdev();
+}
 
 uint32_t rcc_get_core_frequency(void)
 {
@@ -270,7 +281,9 @@ kstatus_t rcc_probe(void)
 {
     kstatus_t status;
     size_t reg;
-
+    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     /* Reset the RCC clock configuration to the default reset state */
     /* Set HSION bit */
     reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
@@ -300,8 +313,7 @@ kstatus_t rcc_probe(void)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
-
-    status = K_STATUS_OKAY;
+    rcc_unmap();
 err:
     return status;
 }
@@ -349,6 +361,9 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
+    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     /*@ assert bus_is_valid(busid); */
     size_t reg_base = rcc_get_register(busid, flags);
 
@@ -357,7 +372,8 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
     iowrite32(reg_base, reg);
     // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
     arch_data_sync_barrier();
-
+    rcc_unmap();
+err:
     return status;
 }
 
@@ -382,13 +398,17 @@ kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
+    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     /*@ assert bus_is_valid(busid); */
     size_t reg_base = rcc_get_register(busid, flags);
 
     reg = ioread32(reg_base);
     reg &= ~clk_msk;
     iowrite32(reg_base, reg);
-
+    rcc_unmap();
+err:
     return status;
 }
 
@@ -412,6 +432,7 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
     size_t reg;
     uint32_t pre;
     uint32_t ahb_div;
+
     /*
      * XXX:
      * Div is initialized in order to shut down a gcc `maybe-uninitialized` warning.
@@ -424,7 +445,9 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
     if (unlikely(busclk == NULL)) {
         goto err;
     }
-
+    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     /*
      * bus clock -->
      *  - AHB_CLK = SYS_CLK / HPRE
@@ -458,8 +481,7 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
     }
     /* return current bus clock */
     *busclk = ((RCC_SYSTEM_CLOCK_FREQUENCY / ahb_div) / div);
-    status = K_STATUS_OKAY;
-
+    status = rcc_unmap();
 err:
     return status;
 }

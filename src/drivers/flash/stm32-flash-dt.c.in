@@ -1,0 +1,33 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include "gpio_defs.h"
+#include "stm32-flash-dt.h"
+
+{% set fmcs = dts.get_compatible("st,stm32-flash-controller") -%}
+/**
+ * \brief .rodata field: list of current platform GPIO ports
+ */
+static const stm32_fmc_desc_t stm32_fmc[] = {
+    {% for fmc in fmcs -%}
+    {% if fmc.status and fmc.status == "okay" -%}
+    {
+        /* {{ fmc.label }} configuration */
+        .base_addr = {{ "%#08xUL"|format(fmc.reg[0]) }},
+        .size = {{ "%#08xUL"|format(fmc.reg[1]) }},
+        .wait_state = {{ fmc["wait-state"] }},
+    },
+    {% endif -%}
+    {% endfor -%}
+    {} /* sentinel */
+};
+
+/**
+ * @warning this is a private function, fmc id must be valid and checked by caller
+ */
+const stm32_fmc_desc_t * stm32_fmc_get_desc(uint8_t flash_controller_id)
+{
+    return &stm32_fmc[flash_controller_id];
+}

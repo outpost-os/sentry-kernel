@@ -25,6 +25,9 @@
   #include <stdatomic.h>
 #endif /* __cplusplus */
 
+#include <stddef.h>
+#include <stdint.h>
+
 typedef enum secure_bool {
     SECURE_TRUE   = 0x5aa33FFu,
     SECURE_FALSE  = 0xa55FF33u

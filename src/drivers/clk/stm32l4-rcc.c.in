@@ -66,7 +66,6 @@ kstatus_t rcc_select_system_clock(void)
     if (clocksource_status != clocksource) {
         status = K_ERROR_NOTREADY;
     }
-
     return status;
 }
 
@@ -83,7 +82,6 @@ kstatus_t rcc_enable_pll(void)
      *  SVD generation is not our friend here !
      *  PLL coefficients are split into single bit definition (...)
      */
-
     pllcfgr = rcc_pll_p_divider()
             | rcc_pll_m_divider()
             | rcc_pll_n_multiplier()
@@ -117,7 +115,6 @@ kstatus_t rcc_enable_pll(void)
     if (pll_ready == 0) {
         status = K_ERROR_NOTREADY;
     }
-
     return status;
 }
 
@@ -135,6 +132,9 @@ kstatus_t rcc_enable_debug_clockout(void)
     {%- set mcos = [dts.rcc.mco] %}
     {%- for mco in mcos %}
     {%- if mco is defined and mco.status == "okay" %}
+    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     /* Configuring MCO */
     prescaler = {{ mco.prescaler }};
     rcc_cfgr = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
@@ -161,6 +161,7 @@ kstatus_t rcc_enable_debug_clockout(void)
     {%- set pinctrl = mco["pinctrl-0"] %}
     {%- set port, pin, mode, altfunc = pinctrl.pinmux %}
     {%- set type, speed, pull_mode = pinctrl.pincfg %}
+    rcc_unmap();
 
     gpio_set_mode({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ mode }});
     gpio_set_type({{ port.label.upper() }}_PORT_ID, {{ pin }}, {{ type }});
@@ -170,7 +171,7 @@ kstatus_t rcc_enable_debug_clockout(void)
 
     {%- endif%}
     {%- endfor %}
-
+err:
     return status;
 }
 #endif

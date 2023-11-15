@@ -15,9 +15,6 @@
  *      of them
  */
 typedef enum mm_region {
-    MM_REGION_KERNEL_TXT,
-    MM_REGION_KERNEL_DATA,
-    MM_REGION_KERNEL_DEVICE,
 #if defined(__arm__)
     MM_REGION_KERNEL_SYSARM,
 #endif
@@ -32,11 +29,16 @@ stack_frame_t *memfault_handler(stack_frame_t *frame);
 
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
-kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
+kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
 kstatus_t mgr_mm_init(void);
 
 kstatus_t mgr_mm_watchdog(void);
+
+/* BSP related, not for syscalls */
+kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
+
+kstatus_t mgr_mm_unmap_kdev(void);
 
 
 #endif/*!MEMORY_MANAGER_H*/

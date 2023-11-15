@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+#include "stm32-exti-dt.h"
+
+{% set ip = dts.get_compatible("st,stm32-exti") -%}
+/**
+ * \brief {{ ip[0].label }} configuration
+ */
+static const stm32_exti_desc_t stm32_exti = {
+    {% if ip[0].status and ip[0].status == "okay" -%}
+    .base_addr = {{ "%#08xUL"|format(ip[0].reg[0]) }},
+    .size = {{ "%#08xUL"|format(ip[0].reg[1]) }},
+    {% endif -%}
+};
+
+const stm32_exti_desc_t * stm32_exti_get_desc(void)
+{
+    return &stm32_exti;
+}

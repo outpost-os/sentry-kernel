@@ -11,11 +11,13 @@
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/layout.h>
 #include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/managers/memory.h>
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 #include <sentry/crypto/crc32.h>
 #include "syscfg_defs.h"
+#include "stm32-syscfg-dt.h"
 
 #if defined(CONFIG_ARCH_MCU_STM32F439) || defined(CONFIG_ARCH_MCU_STM32F429)
 # define MAX_EXTI_GPIO_PORT  'J'
@@ -44,22 +46,42 @@
  *   EXTI_TARGET_PJ = 0b1001,
  */
 
+static inline kstatus_t syscfg_map(void)
+{
+    stm32_syscfg_desc_t const * desc = stm32_syscfg_get_desc();
+    return mgr_mm_map_kdev(desc->base_addr, desc->size);
+}
+/* for simplicity sake, but unmaping a kernel device is generic */
+static inline kstatus_t syscfg_unmap(void) {
+    return mgr_mm_unmap_kdev();
+}
+
 #ifdef CONFIG_HAS_FLASH_DUAL_BANK
 /**
  * @brief flip the current flash bank that is mapped at address 0x0
  */
-void syscfg_switch_bank(void)
+kstatus_t syscfg_switch_bank(void)
 {
+    kstatus_t status;
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
     /* flipping FB_MODE bit */
     reg ^= SYSCFG_MEMRM_FB_MODE;
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG, reg);
+    syscfg_unmap();
+err:
+    return status;
 }
 #endif
 
 kstatus_t syscfg_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     uint32_t reg = ioread32(SYSCFG_BASE_ADDR + SYSCFG_MEMRM_REG);
 #ifdef CONFIG_HAS_FLASH_DUAL_BANK
     /* preserve currently selected bank */
@@ -72,7 +94,8 @@ kstatus_t syscfg_probe(void)
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR3_REG, 0UL);
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_EXTICR4_REG, 0UL);
     iowrite(SYSCFG_BASE_ADDR + SYSCFG_CMPCR_REG, 0UL);
-
+    syscfg_unmap();
+err:
     return status;
 }
 
@@ -87,13 +110,19 @@ kstatus_t syscfg_set_exti(uint8_t gpio_pin_id,  uint8_t gpio_port_id)
         status = K_ERROR_INVPARAM;
         goto err;
     }
+    if (unlikely((status = syscfg_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
     size_t exticr = (SYSCFG_BASE_ADDR + SYSCFG_EXTICR1_REG);
     /* selecting the correct EXTICR register (4 exti per register)*/
     exticr += 4*(gpio_pin_id >> 2);
+    uint32_t exticr_val = ioread32(exticr);
     /* selecting the correct mask. 4 bits per field */
     uint32_t exticr_shift = (gpio_pin_id % 4)*4;
     /* let's now set the corresponding value */
     exticr = gpio_port_id << exticr_shift;
+    iowrite32(SYSCFG_BASE_ADDR + SYSCFG_EXTICR1_REG, exticr_val);
+    syscfg_unmap();
 err:
     return status;
 }

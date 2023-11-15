@@ -31,6 +31,16 @@
 extern uint32_t _svtor;
 extern uint32_t _ram_start;
 
+static secure_bool_t mm_configured;
+
+static inline secure_bool_t mgr_mm_configured(void)
+{
+    if (mm_configured == SECURE_TRUE) {
+        return mm_configured;
+    }
+    return SECURE_FALSE;
+}
+
 stack_frame_t *memfault_handler(stack_frame_t *frame)
 {
     /* FIXME: differenciate userspace & kernel fault here */
@@ -95,22 +105,6 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_armm_scs(void)
 };
 #endif
 
-__STATIC_INLINE kstatus_t mgr_mm_map_kernel_devices(void)
-{
-    kstatus_t status = K_STATUS_OKAY;
-    struct mpu_region_desc kernel_devs_config = {
-        .id = 2,
-        .addr = 0x40000000UL, /* layout base addr, to generate in layout.h */
-        .size = MPU_REGION_SIZE_256MB, /* layout size to generate in layout.h, or Kdevices to map separately */
-        .access_perm = MPU_REGION_PERM_PRIV,
-        .access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER,
-        .mask = 0x0,
-        .noexec = true,
-    };
-    status = mpu_load_configuration(&kernel_devs_config, 1);
-    return status;
-}
-
 /**
  * @brief map a region of type reg_type, identified by reg_handle, on taskh request
  *
@@ -132,33 +126,11 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
     kstatus_t status = K_SECURITY_INTEGRITY;
     const task_meta_t *meta;
     switch (reg_handle) {
-        case MM_REGION_KERNEL_TXT:
-            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
-                /* only kernel itself can map kernel content */
-                goto end;
-            }
-            status = mgr_mm_map_kernel_txt();
-            break;
-        case MM_REGION_KERNEL_DATA:
-            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
-                /* only kernel itself can map kernel content */
-                goto end;
-            }
-            status = mgr_mm_map_kernel_data();
-            break;
-        case MM_REGION_KERNEL_DEVICE:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
-                /* only kernel itself can map kernel content */
-                goto end;
-            }
-            /* map a given kernel device, using its base addr + size */
-            /* TODO: this requires to check that devh exists and is a kernel property -> needs device nmanager */
-            break;
 #if defined(__arm__)
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
                 /* only kernel itself can map kernel content */
-                goto end;
+                goto err;
             }
             status = mgr_mm_map_kernel_armm_scs();
             break;
@@ -169,13 +141,12 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_TASK_TXT:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
-                goto end;
+                goto err;
             }
             struct mpu_region_desc user_txt_config = {
                 .id = 4,
                 .addr = (uint32_t)meta->s_text,
-                .size = MPU_REGION_SIZE_32KB,   /* FIXME: here we need to calculate for once maybe (in task ?) the size
-                                                 of task text in MPU region enumerate. TBD best way (private in task_t ? other ?)*/
+                .size = mpu_convert_size_to_region(meta->text_size),
                 .access_perm = MPU_REGION_PERM_RO,
                 .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
                 .mask = 0x0,
@@ -186,13 +157,12 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_TASK_DATA:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
-                goto end;
+                goto err;
             }
             struct mpu_region_desc user_data_config = {
                 .id = 5,
                 .addr = (uint32_t)meta->s_data, /* To define: where start the task RAM ? .data ? other ? */
-                .size = MPU_REGION_SIZE_32KB,   /* FIXME: here we need to calculate for once maybe (in task ?) the size
-                                                 of task data in MPU region enumerate. TBD best way (private in task_t ? other ?)*/
+                .size = mpu_convert_size_to_region(meta->data_size),   /* FIXME data_size is a concat of all datas sections */
                 .access_perm = MPU_REGION_PERM_FULL,
                 .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
                 .mask = 0x0,
@@ -207,9 +177,9 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
             /** TODO: define SHM handling (in this manager) */
             break;
         default:
-            goto end;
+            goto err;
     }
-end:
+err:
     return status;
 }
 
@@ -221,35 +191,11 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     switch (reg_handle) {
-        case MM_REGION_KERNEL_TXT:
-            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
-                /* only kernel itself can unmap kernel content */
-                goto end;
-            }
-            mpu_clear_region(0);
-            status = K_STATUS_OKAY;
-            break;
-        case MM_REGION_KERNEL_DATA:
-            if (unlikely(handle_convert_to_u32(requester) != 0x0 || reg_handle != 0)) {
-                /* only kernel itself can unmap kernel content */
-                goto end;
-            }
-            mpu_clear_region(1);
-            status = K_STATUS_OKAY;
-            break;
-        case MM_REGION_KERNEL_DEVICE:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
-                /* only kernel itself can unmap kernel content */
-                goto end;
-            }
-            mpu_clear_region(2);
-            status = K_STATUS_OKAY;
-            break;
 #if defined(__arm__)
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can unmap kernel content */
-                goto end;
+                goto err;
             }
             mpu_clear_region(3);
             status = K_STATUS_OKAY;
@@ -258,7 +204,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_TXT:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can a task txt */
-                goto end;
+                goto err;
             }
             mpu_clear_region(4);
             status = K_STATUS_OKAY;
@@ -266,7 +212,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_SVC_EXCHANGE:
             if (unlikely(unlikely(handle_convert_to_u32(requester) == 0x0UL))) {
                 /* only kernel itself can a task svc_exchange */
-                goto end;
+                goto err;
             }
             mpu_clear_region(5);
             status = K_STATUS_OKAY;
@@ -274,7 +220,7 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
         case MM_REGION_TASK_DATA:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can a task data */
-                goto end;
+                goto err;
             }
             mpu_clear_region(5);
             status = K_STATUS_OKAY;
@@ -286,9 +232,9 @@ kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
             /** TODO: define SHM handling (in this manager). requester can be a user task */
             break;
         default:
-            goto end;
+            goto err;
     }
-end:
+err:
     return status;
 }
 
@@ -327,35 +273,81 @@ kstatus_t mgr_mm_init(void)
 {
 
     kstatus_t status = K_STATUS_OKAY;
+    mm_configured = SECURE_FALSE;
 #ifdef CONFIG_HAS_MPU
     mpu_disable();
     status = mgr_mm_map_kernel_txt();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
     status = mgr_mm_map_kernel_data();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
 #if defined(__arm__)
     status = mgr_mm_map_kernel_armm_scs();
     if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
+        goto err;
     }
 #endif
-    status = mgr_mm_map_kernel_devices();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto end;
-    }
     mpu_enable();
-end:
+    mm_configured = SECURE_TRUE;
+err:
 #endif
     return status;
 }
 
-
 kstatus_t mgr_mm_watchdog(void)
 {
     kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+
+/**
+ * @brief map a kernel device
+ *
+ * INFO: the kernel can map a single SoC device at a time. Be cautious.
+ * This function do not check that a previous device is mapped, for performance
+ * reasons. This is a kernel local specific behavior.
+ *
+ * This API is BSP specific, not using handles, as BSP do not know handles but yet
+ * needs to map themselves. This API then use address/len informations of devices
+ *
+ * @param[in] address: device base address
+ * @param[in] size: device size
+ */
+kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    if (mgr_mm_configured() == SECURE_TRUE) {
+        struct mpu_region_desc kdev_config = {
+            .id = 2,
+            .addr = address,
+            .size = mpu_convert_size_to_region(len),
+            .access_perm = MPU_REGION_PERM_PRIV,
+            .access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER,
+            .mask = 0x0,
+            .noexec = true,
+        };
+        status = mpu_load_configuration(&kdev_config, 1);
+    }
+    return status;
+}
+
+/**
+ * @brief unmap a kernel device
+ *
+ * INFO: this function clear and disable the kernel device region. If nothing is
+ * mapped, this has no impact (other than time cost).
+ *
+ * This API is BSP specific, not using handles, as BSP do not know handles but yet
+ * needs to map themselves. This API then use address/len informations of devices
+ */
+kstatus_t mgr_mm_unmap_kdev(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    if (likely(mgr_mm_configured() == SECURE_TRUE)) {
+        mpu_clear_region(2);
+    }
     return status;
 }
