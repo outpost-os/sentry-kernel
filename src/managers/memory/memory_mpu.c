@@ -125,7 +125,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     const task_meta_t *meta;
-    switch (reg_handle) {
+    switch (reg_type) {
 #if defined(__arm__)
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
@@ -141,8 +141,12 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
         case MM_REGION_TASK_TXT:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
+                pr_err("failed to get metadata for task %08x",
+                    handle_convert_to_u32(requester));
                 goto err;
             }
+            pr_debug("mapping task %08x code section, from %p size %p",
+               handle_convert_to_u32(requester), meta->s_text, meta->text_size);
             struct mpu_region_desc user_txt_config = {
                 .id = 4,
                 .addr = (uint32_t)meta->s_text,
@@ -152,13 +156,18 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 .mask = 0x0,
                 .noexec = false,
             };
+
             status = mpu_load_configuration(&user_txt_config, 1);
             break;
         case MM_REGION_TASK_DATA:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
+                pr_err("failed to get metadata for task %08x",
+                    handle_convert_to_u32(requester));
                 goto err;
             }
+            pr_debug("mapping task %08x data section, from %p size %p",
+               handle_convert_to_u32(requester), meta->s_data, meta->data_size);
             struct mpu_region_desc user_data_config = {
                 .id = 5,
                 .addr = (uint32_t)meta->s_data, /* To define: where start the task RAM ? .data ? other ? */
@@ -190,7 +199,7 @@ err:
 kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
-    switch (reg_handle) {
+    switch (reg_type) {
 #if defined(__arm__)
         case MM_REGION_KERNEL_SYSARM:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
