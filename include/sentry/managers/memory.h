@@ -25,6 +25,20 @@ typedef enum mm_region {
     MM_REGION_TASK_SHM,
 } mm_region_t;
 
+#if defined(CONFIG_HAS_MPU_PMSA_V7)
+typedef struct __attribute__((packed)) region_config {
+    uint32_t rbar;
+    uint32_t rsar;
+} region_config_t;
+
+/**
+ * @brief ARMv7M MPU RBAR/RSAR register pair pool, for fast storage
+ */
+typedef struct __attribute__((packed)) ressource_config {
+    region_config_t region[4];
+} ressource_config_t;
+#endif
+
 stack_frame_t *memfault_handler(stack_frame_t *frame);
 
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
@@ -39,6 +53,5 @@ kstatus_t mgr_mm_watchdog(void);
 kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
-
 
 #endif/*!MEMORY_MANAGER_H*/
