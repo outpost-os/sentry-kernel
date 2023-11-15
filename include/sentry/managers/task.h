@@ -210,6 +210,8 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t);
 
 size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 
+size_t mgr_task_get_text_region_size(const task_meta_t *meta);
+
 #ifdef __cplusplus
 }
 #endif

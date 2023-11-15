@@ -81,6 +81,13 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
            meta->stack_size;
 }
 
+size_t mgr_task_get_text_region_size(const task_meta_t *meta)
+{
+    /*@ assert \valid_read(meta); */
+    return meta->text_size + (meta->text_size % SECTION_ALIGNMENT_LEN) + \
+           meta->rodata_size;
+}
+
 void task_dump_table(void)
 {
 #if defined(CONFIG_BUILD_TARGET_DEBUG)

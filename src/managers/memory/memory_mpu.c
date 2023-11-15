@@ -145,12 +145,13 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                     handle_convert_to_u32(requester));
                 goto err;
             }
+            size_t size = mgr_task_get_text_region_size(meta);
             pr_debug("mapping task %08x code section, from %p size %p",
-               handle_convert_to_u32(requester), meta->s_text, meta->text_size);
+               handle_convert_to_u32(requester), meta->s_text, size);
             struct mpu_region_desc user_txt_config = {
                 .id = 4,
                 .addr = (uint32_t)meta->s_text,
-                .size = mpu_convert_size_to_region(meta->text_size),
+                .size = mpu_convert_size_to_region(size),
                 .access_perm = MPU_REGION_PERM_RO,
                 .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
                 .mask = 0x0,
