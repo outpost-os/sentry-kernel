@@ -10,27 +10,35 @@
 
 #include <sentry/arch/asm-cortex-m/system.h>
 #include <sentry/arch/asm-cortex-m/scb.h>
-#include <sentry/arch/asm-cortex-m/platform.h>
+#include <sentry/arch/asm-cortex-m/thread.h>
 #include <sentry/io.h>
-#include <sentry/thread.h>
+
+#define THREAD_MODE_USER    0xab2f5332UL
+#define THREAD_MODE_KERNEL  0x5371a247UL
 
 
-static inline void __platform_spawn_kthread(kthread_t kernel_thread, size_t kthread_stack_pointer) {
-    /*
-     * Initial context switches to main core thread (idle_thread).
-     */
+static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entrypoint, stack_frame_t *stack_pointer, uint32_t flag) {
+  /*
+   * Initial context switches to main core thread (idle_thread).
+   */
+  uint32_t runlevel;
+  runlevel = 3;  /* user, PSP */
+  if (flag == THREAD_MODE_KERNEL) {
+    runlevel = 2; /* privileged, PSP */
+  }
 	asm volatile
        ("mov r0, %[SP]      \n\t"   \
         "msr psp, r0        \n\t"   \
-        "mov r0, 2          \n\t"   \
+        "mov r0, %[LVL]     \n\t"   \
         "msr control, r0    \n\t"   \
 	      "mov r1, %[PC]      \n\t"   \
 	      "bx r1              \n\t"   \
         :
-        : [PC] "r" (kernel_thread),
-          [SP] "r" (kthread_stack_pointer)
+        : [PC] "r" (entrypoint),
+          [SP] "r" (stack_pointer),
+          [LVL] "r" (runlevel)
         : "r0", "r1");
-        return;
+        __builtin_unreachable();
 }
 
 static inline void __platform_clear_flags(void) {

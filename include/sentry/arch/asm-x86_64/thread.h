@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef __THREAD_H_
-#define __TRHEAD_H_
+#ifndef __THREAD_H
+#define __THREAD_H
+
 /**
  * \file context manipulation, including kernel threads
  */
@@ -56,4 +57,4 @@ static inline stack_frame_t *__thread_init_stack_context(size_t sp, size_t pc)
     return frame;
 }
 
-#endif/*__THREAD_H_*/
+#endif/*__THREAD_H*/

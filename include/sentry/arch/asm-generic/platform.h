@@ -9,8 +9,10 @@
 
 #include <stdbool.h>
 
-#ifdef CONFIG_ARCH_ARM_CORTEX_M
+#if defined(__arm__)
 #include <sentry/arch/asm-cortex-m/platform.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/platform.h>
 #else
 #error "unsupported architecture!"
 #endif
