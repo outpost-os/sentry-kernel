@@ -11,12 +11,36 @@
 
 /{
 	chosen {
-		sentry,vtor_section = <&flash0>;
-		sentry,text_section = <&flash0>;
-		sentry,ram_section = <&sram1>;
+		sentry,kernelram_section = <&kernel_ram>;
+		sentry,idleram_section = <&idle_ram>;
+		sentry,kernelcode_section = <&kernel_code>;
+		sentry,idlecode_section = <&idle_code>;
 		sentry,debug_stdout = <&usart2>;
 	};
 
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		kernel_code: kernel_code@8000000 {
+        	reg = <0x8000000 0x4000>;
+			compatible = "outpost,memory-pool";
+    	};
+		idle_code: idle_code@8004000 {
+        	reg = <0x8004000 0x20>;
+			compatible = "outpost,memory-pool";
+    	};
+
+		kernel_ram: kernel_memory@20000000 {
+        	reg = <0x20000000 0x1000>;
+			compatible = "outpost,memory-pool";
+    	};
+
+    	idle_ram: idle_memory@20004000 {
+        	reg = <0x20004000 0x200>;
+			compatible = "outpost,memory-pool";
+    	};
+	};
 };
 
 &sram1 {
