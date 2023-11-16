@@ -4,6 +4,10 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <sentry/managers/task.h>
 /**
  * This enumerate defines the contigous memory regions that
@@ -53,5 +57,9 @@ kstatus_t mgr_mm_watchdog(void);
 kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif/*!MEMORY_MANAGER_H*/

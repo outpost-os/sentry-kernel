@@ -9,6 +9,7 @@
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
+#include <sentry/managers/memory.h>
 #include <sentry/sched.h>
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/arch/asm-generic/platform.h>
@@ -221,11 +222,19 @@ end:
 static inline kstatus_t task_init_map(task_meta_t const * const meta)
 {
     /* entering state check */
+    kstatus_t status;
     if (unlikely(ctx.state != TASK_MANAGER_STATE_TSK_MAP)) {
         pr_err("invalid state!");
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
-        goto end;
+        status = K_SECURITY_CORRUPTION;
+        goto err;
     }
+    /* mapping task data region first */
+    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
+        status = K_ERROR_MEMFAIL;
+        goto err;
+    }
+    /* configure its content */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
                              meta->text_size + \
@@ -244,10 +253,16 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);
     }
+    /* unmap task data */
+    if (unlikely(mgr_mm_unmap(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
+        status = K_ERROR_MEMFAIL;
+        goto err;
+    }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
-end:
-    return K_STATUS_OKAY;
+    status = K_STATUS_OKAY;
+err:
+    return status;
 }
 
 /**
@@ -308,7 +323,8 @@ static inline kstatus_t task_init_finalize(void)
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
     task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)idle);
 
-    pr_info("[task handle {%04x|%04x|%03x}] idle task forged", (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
+    pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
+        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
     ctx.numtask++;
     ctx.status = sched_schedule(meta->handle);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {

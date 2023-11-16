@@ -111,6 +111,21 @@ extern "C" {
         return *t;
     }
 
+
+    kstatus_t mgr_mm_map(mm_region_t reg_type __attribute__((unused)),
+                         uint32_t reg_handle __attribute__((unused)),
+                         taskh_t requester __attribute__((unused)))
+    {
+        return K_STATUS_OKAY;
+    }
+
+    kstatus_t mgr_mm_unmap(mm_region_t reg_type __attribute__((unused)),
+                           uint32_t reg_handle __attribute__((unused)),
+                           taskh_t requester __attribute__((unused)))
+    {
+        return K_STATUS_OKAY;
+    }
+
     /*
      * scheduler mocking. Associated to mocking mechanism so that
      * we can detect how many call are made to the sheduler in each
