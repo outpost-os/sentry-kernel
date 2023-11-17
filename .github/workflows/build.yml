@@ -70,6 +70,10 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: install prerequisites pkg
+        uses: embedded-devops/action-install-pkg@v2.0
+        with:
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Split compiler reference
         id: split
         shell: bash
@@ -79,7 +83,13 @@ jobs:
           toolchain_version=${input_toolchain##*|}
           echo "compiler=$toolchain_compiler" >> $GITHUB_ENV
           echo "compiler_version=$toolchain_version" >> $GITHUB_ENV
-      - name: Setup compiler
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          components: clippy,rustfmt
+      - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:
           compiler: ${{ env.compiler }}
@@ -100,10 +110,6 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-      - name: install dtc pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
@@ -135,12 +141,22 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: install curl pkg
+        uses: embedded-devops/action-install-pkg@v2.0
+        with:
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup compiler
         uses: embedded-devops/action-setup-compiler@main
         with:
           compiler: gcc
           triple: arm-none-eabi
           ref: '12.3.Rel1'
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          components: clippy,rustfmt
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:
@@ -155,10 +171,6 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
-      - name: install pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
@@ -206,13 +218,9 @@ jobs:
         run: |
           pip install -r requirements.txt
       - name: install dtc pkg
-        uses: embedded-devops/action-install-pkg@v1.0
+        uses: embedded-devops/action-install-pkg@v2.0
         with:
-          package: 'dtc,device-tree-compiler'
-      - name: install curl pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'curl'
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Meson Doc
         uses: embedded-devops/action-meson@main
         with:

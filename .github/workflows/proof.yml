@@ -41,7 +41,17 @@ jobs:
           pypi_server_need_authentication: true
           pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
           pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
-      - name: Setup compiler
+      - name: install prerequisites pkg
+        uses: embedded-devops/action-install-pkg@v2.0
+        with:
+          packages: 'dtc|device-tree-compiler,curl,lld'
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          components: clippy,rustfmt
+      - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:
           compiler: gcc
@@ -51,10 +61,6 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
-      - name: install pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'dtc,device-tree-compiler'
       - name: Install local deps
         run: |
           pip3 install -r requirements.txt
