@@ -203,14 +203,14 @@ SECTIONS
     } > {{ kernelram_section }}
 
     /* heap_stack section, used to check that there is enough RAM left */
-    ._heap_stack :
+    ._stack :
     {
         . = ALIGN(4);
         PROVIDE ( end = . );
         PROVIDE ( _end = . );
         . = . + 2048;
-        _msp_bootupstack = .;
-        . = . + 512;
+        /* top of bootup MSP stack (2k tack) */
+        _bootupstack = .;
         . = ALIGN(4);
     } > {{ kernelram_section }}
 
