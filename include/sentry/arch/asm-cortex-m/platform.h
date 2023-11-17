@@ -21,6 +21,15 @@
  */
 #define SECTION_ALIGNMENT_LEN 0x4UL
 
+static inline uint32_t __platform_get_current_sp(void) {
+  uint32_t sp;
+  asm volatile(
+    "mov %0, sp"
+    : "=r" (sp)
+    :
+    :);
+    return sp;
+}
 
 static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entrypoint, stack_frame_t *stack_pointer, uint32_t flag) {
   /*
