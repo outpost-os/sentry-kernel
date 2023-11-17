@@ -70,7 +70,7 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
-      - name: install curl pkg
+      - name: install prerequisites pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
@@ -83,18 +83,18 @@ jobs:
           toolchain_version=${input_toolchain##*|}
           echo "compiler=$toolchain_compiler" >> $GITHUB_ENV
           echo "compiler_version=$toolchain_version" >> $GITHUB_ENV
-      - name: Setup compiler
-        uses: embedded-devops/action-setup-compiler@main
-        with:
-          compiler: ${{ env.compiler }}
-          triple: arm-none-eabi
-          ref: ${{ env.compiler_version }}
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
+      - name: Setup C toolchain
+        uses: embedded-devops/action-setup-compiler@main
+        with:
+          compiler: ${{ env.compiler }}
+          triple: arm-none-eabi
+          ref: ${{ env.compiler_version }}
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:
