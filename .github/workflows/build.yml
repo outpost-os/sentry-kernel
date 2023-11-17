@@ -71,9 +71,9 @@ jobs:
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
       - name: install curl pkg
-        uses: embedded-devops/action-install-pkg@v1.0
+        uses: embedded-devops/action-install-pkg@v2.0
         with:
-          package: 'curl'
+          packages: 'dtc|device-tree-compiler,curl'
       - name: Split compiler reference
         id: split
         shell: bash
@@ -110,10 +110,6 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-      - name: install dtc pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
@@ -146,9 +142,9 @@ jobs:
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
       - name: install curl pkg
-        uses: embedded-devops/action-install-pkg@v1.0
+        uses: embedded-devops/action-install-pkg@v2.0
         with:
-          package: 'curl'
+          packages: 'dtc|device-tree-compiler,curl'
       - name: Setup compiler
         uses: embedded-devops/action-setup-compiler@main
         with:
@@ -175,10 +171,6 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
-      - name: install pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'dtc,device-tree-compiler'
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
@@ -226,13 +218,9 @@ jobs:
         run: |
           pip install -r requirements.txt
       - name: install dtc pkg
-        uses: embedded-devops/action-install-pkg@v1.0
+        uses: embedded-devops/action-install-pkg@v2.0
         with:
-          package: 'dtc,device-tree-compiler'
-      - name: install curl pkg
-        uses: embedded-devops/action-install-pkg@v1.0
-        with:
-          package: 'curl'
+          packages: 'dtc|device-tree-compiler,curl'
       - name: Meson Doc
         uses: embedded-devops/action-meson@main
         with:
