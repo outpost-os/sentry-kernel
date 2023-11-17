@@ -73,7 +73,7 @@ jobs:
       - name: install curl pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
-          packages: 'dtc|device-tree-compiler,curl'
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Split compiler reference
         id: split
         shell: bash
@@ -144,7 +144,7 @@ jobs:
       - name: install curl pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
-          packages: 'dtc|device-tree-compiler,curl'
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup compiler
         uses: embedded-devops/action-setup-compiler@main
         with:
@@ -220,7 +220,7 @@ jobs:
       - name: install dtc pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
-          packages: 'dtc|device-tree-compiler,curl'
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Meson Doc
         uses: embedded-devops/action-meson@main
         with:
