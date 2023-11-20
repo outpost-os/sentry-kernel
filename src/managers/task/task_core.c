@@ -103,7 +103,7 @@ void task_dump_table(void)
 #endif
         pr_debug("[%02x] task capabilities:\t\t\t%08x", label, t->metadata->capabilities);
         pr_debug("[%02x] --- mapping", label);
-        pr_debug("[%02x] task svc_exhange section start:\t%p", label, t->metadata->s_svcexchange);
+        pr_debug("[%02x] task svc_exchange section start:\t%p", label, t->metadata->s_svcexchange);
         pr_debug("[%02x] task text section start:\t\t%p", label, t->metadata->s_text);
         pr_debug("[%02x] task text section size:\t\t%u", label, t->metadata->text_size);
         pr_debug("[%02x] task rodatda section size:\t\t%u", label, t->metadata->rodata_size);
