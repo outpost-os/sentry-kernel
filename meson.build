@@ -124,9 +124,9 @@ subdir('include/sentry')
 sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 
 # all sources are there, sentry source set is populated in each subdir
-subdir('src')
 subdir('include/uapi')
 subdir('uapi')
+subdir('src')
 
 with_doc_opt = get_option('with_doc')
 if with_doc_opt

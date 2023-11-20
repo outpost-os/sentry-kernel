@@ -260,7 +260,7 @@ err:
  * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
  * [MPU REG 3] [ ARM SCS region                    ] [RW-] [---] SO, only on __arm__
  * [MPU REG 4] [                                   ] [---] [---]
- * [MPU REG 5] [ task Data SVD-exchange region     ] [RW-] [RW-]
+ * [MPU REG 5] [ task Data SVC-exchange region     ] [RW-] [RW-]
  *
  * In User mode:
  *

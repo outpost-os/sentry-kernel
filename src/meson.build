@@ -17,9 +17,7 @@ subdir('security')
 subdir('drivers')
 # managers (generic internal API for various services)
 subdir('managers')
-if kconfig_data.get('CONFIG_BUILD_RUST_MODULES', 0) == 1
 subdir('syscalls')
-endif
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [
