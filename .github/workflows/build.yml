@@ -89,6 +89,9 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
+      - name: Install (c)bindgen
+        run: |
+          cargo install cbindgen bindgen-cli --locked
       - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:
@@ -157,6 +160,9 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
+      - name: Install (c)bindgen
+        run: |
+          cargo install cbindgen bindgen-cli --locked
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:
@@ -203,6 +209,14 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: install prerequisites pkg
+        uses: embedded-devops/action-install-pkg@v2.0
+        with:
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:
