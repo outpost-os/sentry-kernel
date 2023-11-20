@@ -30,6 +30,12 @@ jobs:
         shell: bash
         run: |
           rustup target add thumbv7m-none-eabi
+      - name: Add libclang for bindgen
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y llvm-dev libclang-dev clang
+          export LIBCLANG_PATH=/usr/local/lib
       - name: Add clippy, rustfmt
         shell: bash
         run: |
@@ -43,7 +49,7 @@ jobs:
           cargo fmt --all -- --check
       - name: Lint with clippy
         run: |
-          cargo clippy --target thumbv7m-none-eabi
+          cargo clippy --target thumbv7m-none-eabi -- -Dwarnings
       - name: Run cargo check
         run: |
           cargo check --target thumbv7m-none-eabi

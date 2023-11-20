@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-
+use super::*;
 use systypes::{DispatchError, Status, Syscall};
 
 extern "C" {
@@ -16,7 +15,7 @@ extern "C" {
     fn wait_for_event(event_type_mask: u8, resoucer_handle: u32, timeout: u32) -> u32;
 }
 
-pub fn syscall_dispatch(syscall_number: u32, args: &[u32]) -> Result<Status, DispatchError> {
+pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, DispatchError> {
     let status = match Syscall::try_from(syscall_number)? {
         Syscall::Exit => unsafe { exit(args[0] as i32) },
         Syscall::GetProcessHandle => unsafe { get_process_handle(args[0]) },
@@ -29,6 +28,10 @@ pub fn syscall_dispatch(syscall_number: u32, args: &[u32]) -> Result<Status, Dis
         Syscall::SendIPC => unsafe { send_ipc(args[0], args[1] as u8) },
         Syscall::SendSignal => unsafe { send_signal(args[0], args[1]) },
         Syscall::WaitForEvent => unsafe { wait_for_event(args[0] as u8, args[1], args[2]) },
+        Syscall::ManageCPUSleep => return manage_cpu_sleep(args[0]),
+
+        #[cfg(debug_assertions)]
+        Syscall::Log => return unsafe { log_rs(args[0] as *const i8) },
     };
     Ok(status.into())
 }

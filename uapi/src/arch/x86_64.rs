@@ -3,9 +3,9 @@
 use systypes::*;
 
 #[cfg(test)]
-use sysgate::sysgate;
+use sysgate::gate;
 
-pub fn debug_syscall_handler(syscall_number: u32, args: &[u32]) -> u32 {
+pub fn debug_syscall_handler(syscall_number: u8, args: &[u32]) -> u32 {
     #[cfg(not(test))]
     match Syscall::try_from(syscall_number) {
         Ok(sysc) => {
@@ -21,7 +21,7 @@ pub fn debug_syscall_handler(syscall_number: u32, args: &[u32]) -> u32 {
     }
 
     #[cfg(test)]
-    match sysgate::syscall_dispatch(syscall_number, args) {
+    match gate::syscall_dispatch(syscall_number, args) {
         Ok(x) => x as u32,
         Err(_) => Status::Invalid as u32,
     }
@@ -30,18 +30,18 @@ pub fn debug_syscall_handler(syscall_number: u32, args: &[u32]) -> u32 {
 macro_rules! syscall {
     ($id:expr) => {{
         use crate::arch::x86_64::debug_syscall_handler;
-        debug_syscall_handler($id as u32, &[])
+        debug_syscall_handler($id as u8, &[])
     }};
     ($id:expr, $arg0:expr) => {{
         use crate::arch::x86_64::debug_syscall_handler;
-        debug_syscall_handler($id as u32, &[$arg0])
+        debug_syscall_handler($id as u8, &[$arg0])
     }};
     ($id:expr, $arg0:expr, $arg1:expr) => {{
         use crate::arch::x86_64::debug_syscall_handler;
-        debug_syscall_handler($id as u32, &[$arg0, $arg1])
+        debug_syscall_handler($id as u8, &[$arg0, $arg1])
     }};
     ($id:expr, $arg0:expr, $arg1:expr, $arg2:expr) => {{
         use crate::arch::x86_64::debug_syscall_handler;
-        debug_syscall_handler($id as u32, &[$arg0, $arg1, $arg2])
+        debug_syscall_handler($id as u8, &[$arg0, $arg1, $arg2])
     }};
 }

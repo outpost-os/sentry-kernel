@@ -2,6 +2,6 @@
 members = [
     "uapi",
     "include/uapi/types",
-    "src/syscalls/gate"
+    "src/syscalls",
     ]
 resolver = "2"

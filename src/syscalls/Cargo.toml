@@ -9,4 +9,8 @@ test = false
 doc = true
 
 [dependencies]
-systypes = { path = "../../../include/uapi/types" }
+systypes = { path = "../../include/uapi/types" }
+managers_bindings = { path = "managers_bindings" }
+
+[features]
+mock = []
