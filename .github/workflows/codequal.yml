@@ -10,6 +10,8 @@ on:
 
 env:
   CI: true
+  SONAR_SCANNER_HOME: '/opt/sonar_scanner'
+  SONAR_SCANNER_VERSION: '4.8.1.3023'
 
 jobs:
   sonar-scanner:
@@ -17,12 +19,9 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: orange-classic
+    runs-on: self-hosted
     container:
-      image: docker-kulos-nexus.orange.ledgerlabs.net/codequalbot:v1.0.0
-      credentials:
-        username: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
-        password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
+      image: mesonbuild/ubuntu-rolling:latest
 
     steps:
       - name: Setup git
@@ -36,6 +35,11 @@ jobs:
           token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
+      - name: Install Sonar Scanner
+        uses: embedded-devops/action-sonarscanner-install@v1.1
+        with:
+          sonar_home: ${{ env.SONAR_SCANNER_HOME }}
+          sonar_version: ${{ env.SONAR_SCANNER_VERSION }}
       - name: install prerequisites pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
@@ -77,3 +81,4 @@ jobs:
           token: ${{ secrets.SONAR_TOKEN }}
           project: sentry-kernel
           build_cmd: 'ninja -C builddir all && ninja -C builddir test && ninja -C builddir sonar'
+          sonar_home: ${{ env.SONAR_SCANNER_HOME }}
