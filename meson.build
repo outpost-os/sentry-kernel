@@ -1,4 +1,5 @@
-project('sentry-kernel', 'c','cpp',
+project('sentry-kernel',
+    ['c','cpp','rust'],
     meson_version: '>=1.1.0',
     default_options: [
         'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
@@ -23,6 +24,14 @@ py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
 sentry_source_set = ssmod.source_set()
 sentry_header_set = ssmod.source_set()
+
+if meson.has_external_property('rust_target')
+    add_global_arguments([
+        '--target=@0@'.format(meson.get_external_property('rust_target'))
+    ], language: 'rust', native: false)
+else
+    warning('No `rust_target` defined, build will fail unless it is only docs.')
+endif
 
 kconfig_file = meson.current_source_dir() / 'Kconfig'
 kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kconfig_file)])
@@ -116,11 +125,8 @@ sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
 
 # all sources are there, sentry source set is populated in each subdir
 subdir('src')
-if kconfig_data.get('CONFIG_BUILD_RUST_MODULES', 0) == 1
-add_languages('rust', native: false)
 subdir('include/uapi')
 subdir('uapi')
-endif
 
 with_doc_opt = get_option('with_doc')
 if with_doc_opt
