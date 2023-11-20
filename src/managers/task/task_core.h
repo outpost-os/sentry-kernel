@@ -16,6 +16,7 @@ typedef struct task {
      * such model (quantum-based).
      */
     thread_state_t  state;      /**< current task state */
+    taskh_t         handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
     /* about events */
     ipc_context_t   ipc_events; /**<

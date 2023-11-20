@@ -122,23 +122,28 @@ typedef struct task_meta {
 
     /**
      * Memory mapping information, used for context switching and MPU configuration
+     * Using all of these, the task manager can fully forge the task RAM mapping, using
+     * the following layout:
+     *  RAM (RW-)      FLASH (R-X)
+     * [ stack ]      [ rodata ]
+     * [ heap  ]      [ text   ]
+     * [ bss   ]
+     * [ data  ]
+     * [ svc-e ]
+     *
+     * As a consequence, only svc-e and text base address is required. Overall region
+     * size is a basic addition of each section size, starting from the corresponding
+     * base address
      */
     size_t          s_text;           /**< start address of .text section */
     size_t          text_size;        /**< text section size */
-    size_t          s_rodata;         /**< start address of .data section */
     size_t          rodata_size;      /**< text section size */
-    size_t          si_data;           /**< start address of .data section */
-    size_t          s_data;           /**< start address of .data section in SRAM */
-    size_t          data_size;        /**< text section size */
-    size_t          s_bss;            /**< start address of .bss is SRAM */
+    size_t          data_size;        /**< .data section size */
     size_t          bss_size;         /**< bss size in SRAM */
-    uint16_t        main_offset;      /**< offset of main() in text section */
-    size_t          stack_top;        /**< main thread stack top address */
+    size_t          heap_size;        /**< process heap size. Can be 0 (no heap)*/
+    size_t          s_svcexchange;    /**< SVC exchange area start in RAM. address is project-wide defined */
     uint16_t        stack_size;       /**< main thtrad stack size */
-
-    size_t          heap_base;        /**< process heap base. Always set */
-    uint16_t        heap_size;        /**< process heap size. Can be 0 (no heap)*/
-
+    uint16_t        main_offset;      /**< offset of main() in text section */
     /**
      * Task ressources, that may also requires memory mapping, and associated perms
      */
@@ -175,6 +180,8 @@ typedef struct task_meta {
 
 kstatus_t mgr_task_init(void);
 
+void __attribute__((noreturn)) mgr_task_start(void);
+
 kstatus_t mgr_task_watchdog(void);
 
 /*
@@ -200,6 +207,10 @@ secure_bool_t mgr_task_is_idletask(taskh_t t);
 secure_bool_t mgr_task_handle_exists(taskh_t t);
 
 kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t);
+
+size_t mgr_task_get_data_region_size(const task_meta_t *meta);
+
+size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
 #ifdef __cplusplus
 }

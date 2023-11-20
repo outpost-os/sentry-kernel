@@ -9,10 +9,13 @@
 #include <assert.h>
 #include <string.h>
 #include <sentry/arch/asm-generic/panic.h>
+#include <sentry/arch/asm-generic/platform.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
+#include <sentry/managers/memory.h>
 #include "task_init.h"
+#include "task_idle.h"
 #include "task_core.h"
 
 #ifndef TEST_MODE
@@ -68,6 +71,23 @@ task_t *task_get_table(void)
     return &task_table[0];
 }
 
+size_t mgr_task_get_data_region_size(const task_meta_t *meta)
+{
+    /*@ assert \valid_read(meta); */
+    return CONFIG_SVC_EXCHANGE_AREA_LEN + \
+           meta->data_size + (meta->data_size % SECTION_ALIGNMENT_LEN) + \
+           meta->bss_size + (meta->bss_size % SECTION_ALIGNMENT_LEN) + \
+           meta->heap_size + \
+           meta->stack_size;
+}
+
+size_t mgr_task_get_text_region_size(const task_meta_t *meta)
+{
+    /*@ assert \valid_read(meta); */
+    return meta->text_size + (meta->text_size % SECTION_ALIGNMENT_LEN) + \
+           meta->rodata_size;
+}
+
 void task_dump_table(void)
 {
 #if defined(CONFIG_BUILD_TARGET_DEBUG)
@@ -83,22 +103,15 @@ void task_dump_table(void)
 #endif
         pr_debug("[%02x] task capabilities:\t\t\t%08x", label, t->metadata->capabilities);
         pr_debug("[%02x] --- mapping", label);
-        pr_debug("[%02x] task stack top:\t\t\t%p", label, t->metadata->stack_top);
-        pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
-        pr_debug("[%02x] task heap base:\t\t\t%p", label, t->metadata->heap_base);
-        pr_debug("[%02x] task heap size:\t\t\t%u", label, t->metadata->heap_size);
-
+        pr_debug("[%02x] task svc_exchange section start:\t%p", label, t->metadata->s_svcexchange);
         pr_debug("[%02x] task text section start:\t\t%p", label, t->metadata->s_text);
         pr_debug("[%02x] task text section size:\t\t%u", label, t->metadata->text_size);
-        pr_debug("[%02x] task rodata section start:\t\t%p", label, t->metadata->s_rodata);
         pr_debug("[%02x] task rodatda section size:\t\t%u", label, t->metadata->rodata_size);
-        pr_debug("[%02x] task data section start (flash):\t%p", label, t->metadata->si_data);
-        pr_debug("[%02x] task data section start (RAM):\t%p", label, t->metadata->s_data);
         pr_debug("[%02x] task data section size:\t\t%u", label, t->metadata->data_size);
-        pr_debug("[%02x] task bss section start:\t\t%p", label, t->metadata->s_bss);
         pr_debug("[%02x] task bss section size:\t\t%u", label, t->metadata->bss_size);
+        pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
+        pr_debug("[%02x] task heap size:\t\t\t%u", label, t->metadata->heap_size);
         pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->main_offset);
-
     }
 #endif
 }
@@ -118,20 +131,23 @@ static inline task_t *task_get_from_handle(taskh_t h)
 {
     uint16_t left = 0;
     /* there is numtask + 1 (idle) tasks */
+    /* because of the bitfield usage and the endianess impact, we can't just use
+     * a comparison of the dynamic handle, as this one may (in big endian systems)
+     * not respect the numeric order initiated in the table. Instead, we find the
+     * task (not the job) that match taskh_t, and then check for its current job
+     */
     uint16_t right = numtask+1;
     task_t *tsk = NULL;
+    uint32_t handle_norerun = handle_convert_to_u32(h) & ~HANDLE_TASK_RERUN_MASK;
     while (left < right) {
         uint16_t current = (left + right) >> 1;
-        if ((handle_convert_to_u32(task_table[current].metadata->handle) & HANDLE_ID_MASK) >
-            (handle_convert_to_u32(h) & HANDLE_ID_MASK))
-        {
+        if (handle_convert_to_u32(task_table[current].metadata->handle) > handle_norerun) {
             right = current - 1;
-        } else if ((handle_convert_to_u32(task_table[current].metadata->handle) & HANDLE_ID_MASK) <
-                   (handle_convert_to_u32(h) & HANDLE_ID_MASK)) {
+        } else if (handle_convert_to_u32(task_table[current].metadata->handle) < handle_norerun) {
             left = current + 1;
         } else {
-            /* label do match, is the taskh valid for current label (rerun check) */
-            if (handle_convert_to_u32(task_table[current].metadata->handle) ==
+            /* handle without rerun match, is the taskh valid for current job (rerun check) ? */
+            if (handle_convert_to_u32(task_table[current].handle) ==
                 handle_convert_to_u32(h)) {
                 tsk = &task_table[current];
             }
@@ -293,3 +309,44 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
 end:
     return status;
 }
+
+/**
+ * @brief starting userspace tasks
+ *
+ * Here, we start idle, which is responsible for directly call yield() so that
+ * the scheduler will elect() the task to execute.
+ *
+ * This function switch to userspace and never returns.
+ */
+void __attribute__((noreturn)) mgr_task_start(void)
+{
+    stack_frame_t * sp;
+    size_t pc;
+    const task_meta_t *idle_meta = task_idle_get_meta();
+    if (unlikely(mgr_task_get_sp(idle_meta->handle, &sp) != K_STATUS_OKAY)) {
+        pr_err("failed to get idle function handle!");
+        goto err;
+    };
+    pc = (size_t)&idle;
+#ifndef TEST_MODE
+    if (unlikely(mgr_mm_map(MM_REGION_TASK_TXT, 0, idle_meta->handle) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, idle_meta->handle) != K_STATUS_OKAY)) {
+        goto err;
+    }
+#endif
+    pr_debug("spanwing thread, pc=%p, sp=%p", pc, sp);
+    __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
+
+    __builtin_unreachable();
+err:
+    panic();
+    __builtin_unreachable();
+}
+
+/*
+     * Initial context switches to main core thread (idle_thread).
+     */
+
+    /* This part of the function is never reached */

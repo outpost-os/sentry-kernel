@@ -4,7 +4,6 @@
 /* kernel includes */
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/arch/asm-generic/membarriers.h>
-#include <sentry/mm.h>
 #include <bsp/drivers/gpio/gpio.h>
 #if CONFIG_ARCH_ARM_CORTEX_M
 #include <sentry/arch/asm-cortex-m/systick.h>
@@ -21,6 +20,8 @@
 #include <sentry/sched.h>
 #include <sentry/thread.h>
 
+/* used for debug printing only */
+extern uint32_t _bootupstack;
 
 /*
  * address if the PSP idle stack, as defined in the layout (see m7fw.ld)
@@ -39,12 +40,13 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_interrupt_early_init();
 
     /* init phase */
+    mgr_mm_init();      /* memory protection active */
     mgr_clock_init();
     mgr_interrupt_init();
-
     mgr_io_init();
     mgr_debug_init();
     pr_info("Starting Sentry kernel release %s", "v0.1");
+    pr_info("kernel bootup stack at %p, current frame: %p", &_bootupstack, __platform_get_current_sp());
     pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);
     pr_info("configured dts file: %s", CONFIG_DTS_FILE);
     /* end of basic platform initialization acknowledged */
@@ -55,22 +57,14 @@ __attribute__((noreturn)) void _entrypoint(void)
     sched_init();
     mgr_task_init();    /* list of tasks parsed (depend on sched_init) */
     mgr_device_init();  /* device list and task link forged (depend on task_init) */
-    mgr_mm_init();      /* memory protection active */
+
 
     /* FIXME: to be added to a platform manager */
-    systick_init();
+    //systick_init();
     /* memory protection active now. Any device access (including kernel ones)
        requires to voluntary map/unmap them */
     interrupt_enable();
 
-#if CONFIG_USE_SSP
-    /* TODO initialize SSP with random seed */
-#endif
-    /* initialize memory backend controler (e.g. MPU )*/
-#if 0 /* FIXME */
-    mm_initialize();
-    mm_configure();
-#endif
 
 #if 0
 #if defined(CONFIG_USE_ICACHE) && (CONFIG_USE_ICACHE == 1)
@@ -80,22 +74,13 @@ __attribute__((noreturn)) void _entrypoint(void)
 #if defined(CONFIG_USE_DCACHE) && (CONFIG_USE_DCACHE == 1)
     dcache_enable();
 #endif
-
-
-    // init systick
-    set_core_frequency();
-
     perfo_early_init();
-#endif
-
-#if 0 /* FIXME */
-    systick_init();
-    mgr_io_probe();
-#endif
-
     do {
         asm volatile("wfi");
     } while (1);
+#endif
+    pr_debug("starting userspace");
+    mgr_task_start();
     __builtin_unreachable();
     /* This part of the function is never reached */
 }

@@ -156,6 +156,9 @@ sentry_linker_args = [ '-T@0@'.format(sentry_ldscript.full_path()) ]
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
 
+# there is no mean in building a target ELF file with coverage functions added.
+# It will not fit in target, and it will not be usable as is.
+if get_option('with_tests') == false
 sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
@@ -192,7 +195,7 @@ sentry_bin = custom_target(
     install: true,
     install_dir: '',
 )
-
+endif
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
