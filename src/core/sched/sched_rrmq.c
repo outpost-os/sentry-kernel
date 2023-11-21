@@ -6,6 +6,7 @@
 #include <sentry/managers/debug.h>
 #include <sentry/managers/task.h>
 #include <sentry/sched.h>
+#include "delay.h"
 
 /**
  * @def RRMQ task context for a given task
@@ -95,7 +96,8 @@ kstatus_t sched_rrmq_init(void)
 {
     pr_info("initialize RRMQ scheduler");
     memset(&sched_rrmq_ctx, 0x0, sizeof(sched_rrmq_context_t));
-    // TODO: delayed events queue for sleeping & locked tasks
+    pr_info("clear delay job list");
+    sched_delay_flush();
     sched_rrmq_ctx.active_jobset = &sched_rrmq_ctx.primary;
     return K_STATUS_OKAY;
 }
@@ -213,7 +215,7 @@ taskh_t sched_rrmq_get_current(void)
 }
 
 /* call context: HW ticker IRQn */
-stack_frame_t *sched_refresh(stack_frame_t *frame)
+stack_frame_t *sched_rrmq_refresh(stack_frame_t *frame)
 {
     stack_frame_t *out_frame = frame;
     if (unlikely(sched_rrmq_ctx.current_job == NULL)) {
@@ -232,8 +234,10 @@ stack_frame_t *sched_refresh(stack_frame_t *frame)
 end:
     return out_frame;
 }
-/* default scheduler is FIFO */
+/* default scheduler is RRMQ */
+
 kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_rrmq_schedule")));
 taskh_t sched_elect(void) __attribute__((alias("sched_rrmq_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_rrmq_get_current")));
 kstatus_t sched_init(void) __attribute__((alias("sched_rrmq_init")));
+stack_frame_t *sched_refresh(stack_frame_t *frame) __attribute__((alias("sched_rrmq_refresh")));

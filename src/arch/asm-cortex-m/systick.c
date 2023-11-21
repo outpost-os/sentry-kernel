@@ -9,6 +9,7 @@
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <bsp/drivers/clk/rcc.h>
+#include <sentry/sched.h>
 #include <sentry/io.h>
 
 
@@ -89,18 +90,15 @@ static inline void store_wait_jiffies(uint64_t jiffies_to_wait)
      * TODO: the easy way to do this is a spinlock_lock_irqsave/spinlock_unlock_irqrestore function
      * and with BASEPri CortexM register.
      */
-    interrupt_disable();
+    /* In Sentry we are in handler mode only */
     wait_jiffies = jiffies_to_wait;
-    interrupt_enable();
+    request_data_membarrier();
 }
 
 static inline uint64_t load_wait_jiffies(void)
 {
     uint64_t wait;
-
-    interrupt_disable();
     wait = wait_jiffies;
-    interrupt_enable();
 
     return wait;
 }
@@ -158,11 +156,6 @@ void systick_init(void)
            ((SCB_SYSTICK_TIMER_ENABLE & SCB_SYSTICK_CSR_ENA_Msk) << SCB_SYSTICK_CSR_ENA_Pos) |
            ((SCB_SYSTICK_TICKINT_ENABLE & SCB_SYSTICK_CSR_TICKINT_Msk) << SCB_SYSTICK_CSR_TICKINT_Pos);
     iowrite32(SCB_SYSTICK_CSR, reg);
-#if defined(CONFIG_WITH_LIBTIMER) && CONFIG_WITH_LIBTIMER == 1
-    static_assert(CONFIG_SYSTICK_HZ >= 1000, "system tick frequency MUST NOT be bigger than 1KHz");
-    static_assert((CONFIG_SYSTICK_HZ % 1000) == 0, "system tick must be 1ms multiple");
-    timer_set_period(CONFIG_SYSTICK_HZ / 1000);
-#endif
 }
 
 void systick_stop_and_clear(void)
@@ -180,5 +173,11 @@ stack_frame_t *systick_handler(stack_frame_t * stack_frame)
     if (wait_jiffies > 0) {
         wait_jiffies--;
     }
+    /* upgrade delayed tasks (slepping task) */
+    sched_delay_tick();
+#if CONFIG_SCHED_RRMQ
+    /* refresh quantums */
+    stack_frame = sched_refresh(stack_frame);
+#endif
     return stack_frame;
 }
