@@ -23,6 +23,10 @@ jobs:
         password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
 
     steps:
+      - name: Clear GITHUB_HOME at job start
+        shell: bash
+        run: |
+          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
       - name: Setup git
         uses: embedded-devops/action-setup-git@main
         with:

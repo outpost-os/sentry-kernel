@@ -24,6 +24,10 @@ jobs:
       image: mesonbuild/ubuntu-rolling:latest
 
     steps:
+      - name: Clear GITHUB_HOME at job start
+        shell: bash
+        run: |
+          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
       - name: Setup git
         uses: embedded-devops/action-setup-git@main
         with:
@@ -50,6 +54,9 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
+      - name: Install (c)bindgen
+        run: |
+          cargo install cbindgen bindgen-cli --locked
       - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:
