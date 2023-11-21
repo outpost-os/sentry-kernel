@@ -142,7 +142,7 @@ static inline task_t *task_get_from_handle(taskh_t h)
     while (left < right) {
         uint16_t current = (left + right) >> 1;
         if (handle_convert_to_u32(task_table[current].metadata->handle) > handle_norerun) {
-            right = current - 1;
+            right = (current > 0) ? current - 1 : current;
         } else if (handle_convert_to_u32(task_table[current].metadata->handle) < handle_norerun) {
             left = current + 1;
         } else {
