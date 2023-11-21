@@ -14,6 +14,10 @@ extern "C" {
 
 kstatus_t mgr_clock_init(void);
 
+uint32_t mgr_clock_get_cycle_per_usec(void);
+
+uint64_t mgr_clock_get_cycle(void);
+
 #ifdef __cplusplus
 }
 #endif
