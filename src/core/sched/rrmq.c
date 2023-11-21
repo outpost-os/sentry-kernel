@@ -31,7 +31,7 @@ typedef struct task_rrmq_state {
  * When a job has burn all its quantum, it is no more eligible for current slot
  */
 typedef struct task_rrmq_jobset {
-    task_rrmq_state_t joblist[CONFIG_MAX_TASKS+1];
+    task_rrmq_state_t joblist[CONFIG_MAX_TASKS];
     uint8_t num_jobs;
 } task_rrmq_jobset_t;
 
@@ -50,10 +50,9 @@ typedef struct task_rrmq_jobset {
  *     the job is pushed to other jobset
  *     the job quantum is refill
  *  - the job is blocked (blocking sycall), yield():
- *     the systick sched subhandler is deactivated
- *     the job is pushed to the other jobset
- *     the job quantum is refill
- *  - the job exit: the job is removed from jobset, not added to the other
+ *     the job is removed from the jobset
+ *  - the job exit:
+ *     the job is removed from jobset
  *
  * then the scheduler:
  *   elect another job of the current jobset respecting current RRM policy
@@ -66,16 +65,21 @@ typedef struct task_rrmq_jobset {
  *   in that case, no more schedule-related interrupt will rise
  */
 typedef struct sched_rrmq_context {
-    task_rrmq_jobset_t    primary;
-    task_rrmq_jobset_t    secondary;
-    task_rrmq_jobset_t    delayed_jobset;
+    task_rrmq_jobset_t    primary;         /**< jobset storage, first pool */
+    task_rrmq_jobset_t    secondary;       /**< jobset storage, second pool */
     task_rrmq_jobset_t   *active_jobset;   /**< current jobset */
-    task_rrmq_jobset_t   *backed_jobset;   /**< current jobset */
+    task_rrmq_jobset_t   *backed_jobset;   /**< backed (next timeslot) jobset */
     task_rrmq_state_t    *current_job;     /**< current task that is being executed, or idle */
  } sched_rrmq_context_t;
 
 static sched_rrmq_context_t sched_rrmq_ctx;
 
+/**
+ * Swapping current timeslot job set and backed job set. This happen when current
+ * job set is empty. Any task that have been pushed back to the backed jobset
+ * (yield or quantum fully consummed) is now eligible again, wrf. all elibible
+ * task relative priorities.
+ */
 static inline void sched_swap_tables(void)
 {
     if (sched_rrmq_ctx.active_jobset == &sched_rrmq_ctx.primary) {
@@ -130,7 +134,11 @@ err:
 
 
 
-/* call context: SVC (sys_start) and systick(end of sleep - delayed) */
+/* call context: SVC (sys_start) and systick(end of sleep - delayed)
+ * This can also be called to awake another task that is blocked (end of sleep, or
+ * ipc_wait from current task). The caller is responsible for updating the task
+ * state properly using task manager API **before** calling scheduler.
+ */
 kstatus_t sched_rrmq_schedule(taskh_t t)
 {
     kstatus_t status;
@@ -158,10 +166,12 @@ taskh_t sched_rrmq_elect(void)
     if (state == THREAD_STATE_READY) {
         /* task is not blocked (yield() maybe) and is still eligible, but
          * for next time slot, with a fresh quantum */
+        pr_debug("pushing task handle %p to next quantum window", sched_rrmq_ctx.current_job->handler);
         sched_rrmq_add_to_jobset(sched_rrmq_ctx.current_job->handler, sched_rrmq_ctx.backed_jobset);
     } else {
-        /* task is delayed (sleep, ipc, ....), quantum refreshed, but not ready by now */
-        sched_rrmq_add_to_jobset(sched_rrmq_ctx.current_job->handler, &sched_rrmq_ctx.delayed_jobset);
+        /* task is delayed, so removed from scheduler. sys_sleep() will typically use another
+         * kernel component (a delay manager) to call the schedule() API at the good moment */
+        pr_debug("unscheduling task handle %p", sched_rrmq_ctx.current_job->handler);
     }
     /* deactivate current from current slot */
     sched_rrmq_ctx.current_job->active = false;
