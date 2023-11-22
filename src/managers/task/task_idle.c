@@ -1,4 +1,3 @@
-
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
@@ -19,24 +18,6 @@
 extern size_t _idle_svcexchange;
 extern size_t _sidle;
 extern size_t _eidle;
-
-void __attribute__((noreturn,section(".idle"))) idle(void)
-{
-    /* TODO: yield() first, to force task scheduling */
-
-    do {
-#ifndef TEST_MODE
-        /* TODO: to replace with a sys_set_sleepmode() syscall */
-        #if 0
-        asm volatile("wfi");
-        # else
-        asm volatile("nop");
-        #endif
-#endif
-        /* FIXME: yield to add here */
-    } while (1);
-}
-
 
 static task_meta_t idle_meta;
 

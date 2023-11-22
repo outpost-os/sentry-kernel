@@ -162,6 +162,7 @@ SECTIONS
         . = ALIGN(4);
         _sidle = .;
         *(.idle*)
+        *(.uapi.* )
         _eidle = .;
         . = ALIGN(4);
     } > {{ idlecode_section }}

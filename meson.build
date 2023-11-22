@@ -170,7 +170,7 @@ sentry_elf = executable(
     name_suffix: 'elf',
     sources: [sentry_startup, sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
+    dependencies: [sentry_dep, external_deps, sentry_c_uapi_dep ],
     c_args: [ target_arch_args, global_build_args ],
     link_args: [ '-lgcc', target_arch_args, sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
