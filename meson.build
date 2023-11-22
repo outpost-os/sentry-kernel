@@ -24,6 +24,7 @@ py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
 sentry_source_set = ssmod.source_set()
 sentry_header_set = ssmod.source_set()
+idle_sources = files()
 
 if meson.has_external_property('rust_target')
     add_global_arguments([
@@ -151,16 +152,28 @@ meson.install_dependency_manifest('manifest.json')
 # generator as we need to know the outputed filename at link time
 # (FYI generator generates anonymous file that can be built bu we can't use
 # the generated filename in any other target)
-sentry_ldscript = custom_target('ldscript',
+sentry_ldscript = custom_target('sentry_ldscript',
     input: sentry_ldscript_template,
     output: '@BASENAME@',
     command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
     depends: [ dts ],
 )
 
+idle_ldscript = custom_target('idle_ldscript',
+    input: idle_ldscript_template,
+    output: '@BASENAME@',
+    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
+    depends: [ dts ],
+)
+
+
 sentry_linker_args = [ '-T@0@'.format(sentry_ldscript.full_path()) ]
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
+
+idle_linker_args = [ '-T@0@'.format(idle_ldscript.full_path()) ]
+
+idle_map_file = '@0@.map'.format(meson.project_name())
 
 # there is no mean in building a target ELF file with coverage functions added.
 # It will not fit in target, and it will not be usable as is.
@@ -170,7 +183,7 @@ sentry_elf = executable(
     name_suffix: 'elf',
     sources: [sentry_startup, sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps, sentry_c_uapi_dep ],
+    dependencies: [sentry_dep, external_deps ],
     c_args: [ target_arch_args, global_build_args ],
     link_args: [ '-lgcc', target_arch_args, sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
@@ -178,6 +191,22 @@ sentry_elf = executable(
     install: true,
     install_dir: '',
 )
+
+
+idle_elf = executable(
+    'idle',
+    name_suffix: 'elf',
+    sources: [idle_sources ],
+    include_directories: kernel_inc,
+    dependencies: [ sentry_c_uapi_dep ],
+    c_args: [ target_arch_args, global_build_args ],
+    link_args: [ '-lgcc', target_arch_args, idle_linker_args, '-Wl,-Map=@0@'.format(idle_map_file)],
+    link_language: 'c',
+    link_depends: [ idle_ldscript ],
+    install: true,
+    install_dir: '',
+)
+
 
 # TODO: Use an install hook instead of dummy target
 needs_wsl = []

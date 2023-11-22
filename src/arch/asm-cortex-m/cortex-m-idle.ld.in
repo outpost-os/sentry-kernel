@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-ENTRY(Reset_Handler)
+ENTRY(idle)
 
 MEMORY
 {
@@ -36,44 +36,18 @@ MEMORY
 {%- endfor %}
 }
 
-{%- set kernelram_section = dts.chosen["sentry,kernelram_section"].label.upper() %}
-{%- set kernelcode_section = dts.chosen["sentry,kernelcode_section"].label.upper() %}
 {%- set idleram_section = dts.chosen["sentry,idleram_section"].label.upper() %}
 {%- set idlecode_section = dts.chosen["sentry,idlecode_section"].label.upper() %}
 
 /* Define output sections */
 SECTIONS
 {
-    /* The startup code goes first into FLASH */
-    .isr_vector :
-    {
-        _svtor = .;
-        KEEP(*(.isr_vector)) /* Startup code */
-        . = ALIGN(4);
-    } > {{ kernelcode_section }}
-
-    .task_list :
-    {
-        _task_num = .;
-        *(.task_list.num)
-        . = ALIGN(4);
-        _task_list = .;
-        *(.task_list)
-        . = ALIGN(4);
-        /*
-         * hold all the task static metadata (signed, versioned). Can be upgraded alone.
-         * Can be empty at kernel ELF generation (using _task_list pointer in code), but
-         * must be fullfill by build system when tasks positioned, based on kernel ELF
-         * to be pushed to dedicated memory slot instead, not TEXT
-        */
-    } > {{ kernelcode_section }}
-
-    /* The program code and other data goes into FLASH */
     .text :
     {
         . = ALIGN(4);
+        _sidle = .;
         _stext = .;	            /* create a global symbol at data start */
-        *startup*(.text.Reset_Handler)
+        *startup*(.text.idle)
         *(.text)
         *(.text*)
         *(.rodata)         	/* .rodata sections (constants, strings, etc.) */
@@ -81,29 +55,28 @@ SECTIONS
         *(.glue_7)         	/* glue arm to thumb code */
         *(.glue_7t)        	/* glue thumb to arm code */
         *(.eh_frame)
-
         KEEP (*(.init))
         KEEP (*(.fini))
 
         . = ALIGN(4);
         _etext = .;        	/* define a global symbols at end of code */
         _exit = .;
-
         _sigot = .;
-
-    } > {{ kernelcode_section }}
+        _eidle = .;
+        . = ALIGN(4);
+    } > {{ idlecode_section }}
 
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
-    } > {{ kernelcode_section }}
+    } > {{ idlecode_section }}
 
     .ARM :
     {
         __exidx_start = .;
         *(.ARM.exidx*)
         __exidx_end = .;
-    } > {{ kernelcode_section }}
+    } > {{ idlecode_section }}
 
     .ctors :
     {
@@ -127,20 +100,9 @@ SECTIONS
         KEEP (*(SORT(.ctors.*)))
         KEEP (*(.ctors))
         __CTOR_END__ = .;
-    } > {{ kernelcode_section }}
+    } > {{ idlecode_section }}
 
-    .dtors :
-    {
-        __DTOR_LIST__ = .;
-        KEEP (*crtbegin.o(.dtors))
-        KEEP (*crtbegin?.o(.dtors))
-        KEEP (*(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors))
-        KEEP (*(SORT(.dtors.*)))
-        KEEP (*(.dtors))
-        __DTOR_END__ = .;
-    } > {{ kernelcode_section }}
-
-    /* used by the startup to initialize got */
+        /* used by the startup to initialize got */
     .got : AT ( _sigot ) {
         . = ALIGN(4);
             _sgot = .;
@@ -155,16 +117,6 @@ SECTIONS
 
     /* used by the startup to initialize data */
         _sidata = .;
-    } > {{ kernelcode_section }}
-
-    .idle_task :
-    {
-        . = ALIGN(4);
-        _sidle = .;
-        _idle = .;
-        . = . + 1024; /* living 1k in flash for idle */
-        _eidle = .;
-        . = ALIGN(4);
     } > {{ idlecode_section }}
 
     __etext = .;    /* define a global symbol at end of code */
@@ -180,9 +132,9 @@ SECTIONS
         *(.data)           /* .data sections */
         *(.data*)          /* .data* sections */
         _edata = .;        /* define a global symbol at data end */
-    } > {{ kernelram_section }}
+    } > {{ idleram_section }}
 
-    __CACHE_REGION_START = ORIGIN({{ kernelcode_section }});
+    __CACHE_REGION_START = ORIGIN({{ idlecode_section }});
     __CACHE_REGION_SIZE  = 0;
     __NDATA_ROM = __DATA_ROM + SIZEOF(.data); /* Symbol is used by startup for ncache data initialization */
 
@@ -201,24 +153,6 @@ SECTIONS
         . = ALIGN(4);
         _ebss = .;         /* define a global symbol at bss end */
         __bss_end__ = _ebss;
-    } > {{ kernelram_section }}
-
-    /* heap_stack section, used to check that there is enough RAM left */
-    ._stack :
-    {
-        . = ALIGN(4);
-        PROVIDE ( end = . );
-        PROVIDE ( _end = . );
-        . = . + 2048;
-        /* top of bootup MSP stack (2k tack) */
-        _bootupstack = .;
-        . = ALIGN(4);
-    } > {{ kernelram_section }}
-
-    ._idle :
-    {
-        _idle_svcexchange = .;
-        . = . + 380;
     } > {{ idleram_section }}
 
 }

@@ -7,7 +7,7 @@
 #include <inttypes.h>
 #include <uapi/uapi.h>
 
-void __attribute__((noreturn,section(".idle"))) idle(void)
+void __attribute__((noreturn)) idle(void)
 {
     /* TODO: yield() first, to force task scheduling */
     sys_yield();

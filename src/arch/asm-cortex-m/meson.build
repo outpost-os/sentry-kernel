@@ -49,3 +49,4 @@ sentry_vtor_c = custom_target('gen_vtor',
 sentry_startup += sentry_vtor_c
 
 sentry_ldscript_template = files('cortex-m-sentry.ld.in')
+idle_ldscript_template = files('cortex-m-idle.ld.in')

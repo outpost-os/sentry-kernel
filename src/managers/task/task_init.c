@@ -18,6 +18,8 @@
 #include "task_init.h"
 #include "task_idle.h"
 
+extern size_t _idle;
+
 typedef enum task_mgr_state {
     TASK_MANAGER_STATE_BOOT = 0x0UL,                /**< at boot time */
     /* for each cell of task_meta_table */
@@ -321,7 +323,7 @@ static inline kstatus_t task_init_finalize(void)
     task_table[ctx.numtask].metadata = meta;
     task_table[ctx.numtask].handle = meta->handle;
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)idle);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)&_idle);
 
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
         (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
