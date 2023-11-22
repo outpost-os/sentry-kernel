@@ -54,7 +54,8 @@ CONFIG_SYSTICK_HZ=1000
 # Core functions
 #
 CONFIG_MAX_TASKS=8
-CONFIG_SCHED_FIFO=y
+CONFIG_SCHED_RRMQ=y
+# CONFIG_SCHED_FIFO is not set
 # end of Core functions
 
 #
