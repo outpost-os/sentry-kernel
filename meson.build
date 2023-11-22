@@ -1,6 +1,6 @@
 project('sentry-kernel',
     ['c','cpp','rust'],
-    meson_version: '>=1.1.0',
+    meson_version: '>=1.3.0',
     default_options: [
         'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
         'warning_level=3', 'optimization=s',
@@ -167,11 +167,17 @@ idle_ldscript = custom_target('idle_ldscript',
 )
 
 
-sentry_linker_args = [ '-T@0@'.format(sentry_ldscript.full_path()) ]
+sentry_linker_args = [
+    '-T@0@'.format(sentry_ldscript.full_path()),
+    '-z', 'noexecstack',
+]
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
 
-idle_linker_args = [ '-T@0@'.format(idle_ldscript.full_path()) ]
+idle_linker_args = [
+    '-T@0@'.format(idle_ldscript.full_path()),
+    '-z', 'noexecstack',
+]
 
 idle_map_file = '@0@.map'.format(meson.project_name())
 

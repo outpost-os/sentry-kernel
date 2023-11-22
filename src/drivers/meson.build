@@ -3,7 +3,7 @@
 
 jinja_gen = generator(jinja_cli,
        output: '@BASENAME@',
-       arguments: ['-d', '@0@'.format(svd_json),
+       arguments: ['-d', svd_json.full_path(),
                    '-o', '@OUTPUT@',
                    '@EXTRA_ARGS@',
                    '@INPUT@'],

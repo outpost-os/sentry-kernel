@@ -9,7 +9,6 @@ uapi_headers = custom_target('uapi_header',
     '-c', '@INPUT0@',
     '--depfile', '@OUTPUT@',
     '-o', meson.project_build_root() + '/include/uapi/' + 'uapi.h'],
-    build_always: true
 )
 
 # XXX:
