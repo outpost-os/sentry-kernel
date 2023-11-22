@@ -223,6 +223,8 @@ spawn mode and the respawn mode.
 Action on termination
 """""""""""""""""""""
 
+.. _job_termination:
+
 A task has different termination cases:
 
    * normal termination, using `sys_exit()` syscall or `_exit` POSIX API
@@ -231,7 +233,10 @@ A task has different termination cases:
 The kernel handles both exit cases differently:
 
    * In case of normal termination, the kernel check the task flags as defined in the
-     previous chapter.
+     previous chapter and execute the sigstop handler. This handler is a runtime
+     implementation. If the application developer has defined and declared a custom
+     handler for this case, the runtime sigstop handler will execute it as first,
+     **before** its own execution.
    * In case of abnormal termination (fault, etc.), the kernel call the runtime sysabort handler. This handler
      is a runtime implementation. If the application developer has defined and
      declared a custom handler for this case, the runtime sysabort handler will
