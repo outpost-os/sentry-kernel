@@ -38,7 +38,7 @@ kstatus_t sched_fifo_init(void)
     };
     pr_info("initialize scheduler");
     /* at startup, and without task, */
-    sched_delay_flush(void);
+    sched_delay_flush();
     sched_fifo_ctx.empty = true;
     sched_fifo_ctx.current = current;
     return K_STATUS_OKAY;
