@@ -40,6 +40,8 @@ MEMORY
 {%- set kernelcode_section = dts.chosen["sentry,kernelcode_section"].label.upper() %}
 {%- set idleram_section = dts.chosen["sentry,idleram_section"].label.upper() %}
 {%- set idlecode_section = dts.chosen["sentry,idlecode_section"].label.upper() %}
+{%- set idlecode_size = dts.chosen["sentry,idlecode_section"].reg[1] %}
+{%- set idleram_size = dts.chosen["sentry,idleram_section"].reg[1] %}
 
 /* Define output sections */
 SECTIONS
@@ -162,7 +164,7 @@ SECTIONS
         . = ALIGN(4);
         _sidle = .;
         _idle = .;
-        . = . + 1024; /* living 1k in flash for idle */
+        . = . + {{ idlecode_size }};
         _eidle = .;
         . = ALIGN(4);
     } > {{ idlecode_section }}
@@ -218,7 +220,7 @@ SECTIONS
     ._idle :
     {
         _idle_svcexchange = .;
-        . = . + 380;
+        . = . + {{ idleram_size }};
     } > {{ idleram_section }}
 
 }
