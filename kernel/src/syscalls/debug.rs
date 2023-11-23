@@ -12,7 +12,7 @@ impl fmt::Write for DebugPrint {
 
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    DebugPrint.write_fmt(args).unwrap();
+    DebugPrint.write_fmt(args).expect("Print failed");
 }
 
 #[macro_export]

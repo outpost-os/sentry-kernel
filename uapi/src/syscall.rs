@@ -146,6 +146,13 @@ pub extern "C" fn sys_manage_cpu_sleep(mode: CPUSleep) -> Status {
     syscall!(Syscall::ManageCPUSleep, u32::from(mode)).into()
 }
 
+/// Send a message from the current task's 'svc_exchange area' through
+/// the UART.
+#[no_mangle]
+pub extern "C" fn sys_log(length: usize) -> Status {
+    syscall!(Syscall::Log, length as u32).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

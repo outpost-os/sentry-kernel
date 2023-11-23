@@ -3,19 +3,62 @@ use systypes::*;
 
 use crate::arch::*;
 
-fn check_cap(capability: mgr::sentry_capability_t) -> bool {
-    let cap;
-    unsafe {
+#[repr(i32)]
+#[allow(dead_code)]
+enum Capability {
+    DevBuses = mgr::sentry_capability_CAP_DEV_BUSES as i32,
+    DevIO = mgr::sentry_capability_CAP_DEV_IO as i32,
+    DevDMA = mgr::sentry_capability_CAP_DEV_DMA as i32,
+    DevAnalog = mgr::sentry_capability_CAP_DEV_ANALOG as i32,
+    DevTimer = mgr::sentry_capability_CAP_DEV_TIMER as i32,
+    DevStorage = mgr::sentry_capability_CAP_DEV_STORAGE as i32,
+    DevCrypto = mgr::sentry_capability_CAP_DEV_CRYPTO as i32,
+    DevClock = mgr::sentry_capability_CAP_DEV_CLOCK as i32,
+    SysUpgrade = mgr::sentry_capability_CAP_SYS_UPGRADE as i32,
+    SysPower = mgr::sentry_capability_CAP_SYS_POWER as i32,
+    SysProcStart = mgr::sentry_capability_CAP_SYS_PROCSTART as i32,
+    MemSHMOwn = mgr::sentry_capability_CAP_MEM_SHM_OWN as i32,
+    MemSHMUse = mgr::sentry_capability_CAP_MEM_SHM_USE as i32,
+    MemSHMTransfer = mgr::sentry_capability_CAP_MEM_SHM_TRANSFER as i32,
+    TimHPChrono = mgr::sentry_capability_CAP_TIM_HP_CHRONO as i32,
+    CryKRNG = mgr::sentry_capability_CAP_CRY_KRNG as i32,
+}
+
+#[derive(Clone, Copy)]
+struct TaskMeta {
+    meta: mgr::task_meta_t,
+}
+
+impl TaskMeta {
+    fn current() -> Result<TaskMeta, DispatchError> {
         let mut taskmeta: *const mgr::task_meta = core::ptr::null();
-        cap = mgr::mgr_task_get_metadata(mgr::sched_get_current(), &mut taskmeta);
+        if unsafe { mgr::mgr_task_get_metadata(mgr::sched_get_current(), &mut taskmeta) } != 0 {
+            return Err(DispatchError::IllegalValue);
+        }
+        Ok(TaskMeta {
+            meta: unsafe { *taskmeta },
+        })
     }
-    cap & capability != 0
+
+    fn exchange_bytes(&self) -> &[u8] {
+        unsafe {
+            core::slice::from_raw_parts(
+                self.meta.s_svcexchange as *const u8,
+                mgr::CONFIG_SVC_EXCHANGE_AREA_LEN as usize,
+            )
+        }
+    }
+
+    fn can(self, capability: Capability) -> Result<TaskMeta, DispatchError> {
+        if self.meta.capabilities & capability as u32 == 0 {
+            return Err(DispatchError::InsufficientCapabilities);
+        }
+        Ok(self)
+    }
 }
 
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
-    if !check_cap(mgr::sentry_capability_CAP_SYS_POWER) {
-        return Err(DispatchError::InsufficientCapabilities);
-    }
+    TaskMeta::current()?.can(Capability::SysPower)?;
 
     match CPUSleep::try_from(mode_in)? {
         CPUSleep::AllowSleep => (),
@@ -27,18 +70,10 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
 }
 
 #[cfg(debug_assertions)]
-/// # Safety
-/// We can only make sure this is not a null pointer. We have no way of
-/// verifying the presence of a nul terminator within appropriate bounds.
-pub unsafe fn log_rs(text: *const i8) -> Result<Status, DispatchError> {
-    if !check_cap(mgr::sentry_capability_CAP_DEV_IO) {
-        return Err(DispatchError::InsufficientCapabilities);
-    }
-    if text.is_null() {
-        return Err(DispatchError::IllegalValue);
-    }
-
-    let cstr_text = core::ffi::CStr::from_ptr(text);
+pub fn log_rs(length: usize) -> Result<Status, DispatchError> {
+    let current_task = TaskMeta::current()?.can(Capability::DevIO)?;
+    let cstr_text = core::ffi::CStr::from_bytes_with_nul(&current_task.exchange_bytes()[..length])
+        .map_err(|_| DispatchError::IllegalValue)?;
     let checked_text = cstr_text
         .to_str()
         .map_err(|_| DispatchError::IllegalValue)?;

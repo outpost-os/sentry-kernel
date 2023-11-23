@@ -4,8 +4,8 @@ sysgate_lib = static_library(
     'sysgate',
     sources : ['lib.rs'],
     dependencies: [systypes_dep, managers_bindings_dep],
-    rust_args: global_rust_build_args,
     rust_abi: 'c',
+    rust_args: global_rust_build_args,
 )
 sysgate_dep = declare_dependency(link_with: sysgate_lib)
 
