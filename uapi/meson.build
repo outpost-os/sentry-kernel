@@ -15,6 +15,7 @@ uapi_headers = custom_target('uapi_header',
     '-c', '@INPUT0@',
     '--depfile', '@OUTPUT@',
     '-o', 'uapi/include/uapi/uapi.h'],
+    build_by_default: true
 )
 sentry_c_uapi_headers_dep = declare_dependency(
     sources: [ uapi_headers ],

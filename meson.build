@@ -33,12 +33,13 @@ endif
 kconfig_file = meson.current_source_dir() / 'Kconfig'
 kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kconfig_file)])
 kconfig_h = kconfig_proj.get_variable('kconfig_h')
+kconfig_rustargs = kconfig_proj.get_variable('kconfig_rustargs')
 kconfig_data = kconfig_proj.get_variable('kconfig_data')
 
 external_deps = []
 
 global_build_args = [
-    '-include', '@0@'.format(kconfig_h),
+    '-include', fs.parent(kconfig_h) / fs.name(kconfig_h),
     '-ffreestanding',
     '-fno-builtin',
     '-nostdlib',
@@ -49,6 +50,10 @@ global_build_args = [
     '-Wno-unused-function', # FIXME: while in early dev
     '-Wno-unused-variable', # FIXME: while in early dev
     '-Wno-unused-parameter', # FIXME: while in early dev
+]
+
+global_rust_build_args = [
+   '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs)
 ]
 
 # these flags are overload by arch/<architecture> meson.build file
