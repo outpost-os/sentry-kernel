@@ -11,7 +11,11 @@ endif
 managers_bindings = rust.bindgen(
     input : ['managers_meta.h'],
     output : 'managers_bindings.rs',
-    include_directories : include_directories('../../../include', '../../../include/sentry/arch/asm-cortex-m'),
+    include_directories : include_directories(
+        '../../../include',
+        '../../../include/sentry/arch/asm-cortex-m',
+        '../../../../uapi/include',
+    ),
     args : ['--use-core',
             '--raw-line', '#![no_std]',
             '--raw-line', '#![allow(nonstandard_style)]',
