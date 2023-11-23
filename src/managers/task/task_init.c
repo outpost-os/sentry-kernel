@@ -209,7 +209,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[cell].sp = mgr_task_initialize_sp(stack_top, (meta->s_text + meta->main_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(stack_top, (meta->s_text + meta->entrypoint_offset));
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;

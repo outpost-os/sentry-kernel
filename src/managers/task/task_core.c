@@ -115,7 +115,7 @@ void task_dump_table(void)
         pr_debug("[%02x] task bss section size:\t\t%u", label, t->metadata->bss_size);
         pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
         pr_debug("[%02x] task heap size:\t\t\t%u", label, t->metadata->heap_size);
-        pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->main_offset);
+        pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->entrypoint_offset);
     }
 #endif
 }
@@ -332,7 +332,7 @@ void __attribute__((noreturn)) mgr_task_start(void)
         goto err;
     };
 #ifndef TEST_MODE
-    pc = (size_t)&_idle;
+    pc = (size_t)(idle_meta->s_text + idle_meta->entrypoint_offset);
     if (unlikely(mgr_mm_map(MM_REGION_TASK_TXT, 0, idle_meta->handle) != K_STATUS_OKAY)) {
         goto err;
     }

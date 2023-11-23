@@ -31,6 +31,8 @@ void task_idle_init(void)
     idle_meta.flags = (THREAD_FLAG_AUTOSTART|THREAD_FLAG_PANICONEXIT);
     idle_meta.s_text = (size_t)&_sidle;
     idle_meta.text_size = ((size_t)&_eidle - (size_t)&_sidle);
+    idle_meta.entrypoint_offset = 0x1UL;
+    idle_meta.finalize_offset = 0x0UL; /* TBD for idle */
     idle_meta.rodata_size = 0UL;
     idle_meta.data_size = 0UL;
     idle_meta.bss_size = 0UL;

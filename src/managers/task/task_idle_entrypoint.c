@@ -9,6 +9,7 @@
 
 void __attribute__((noreturn)) idle(void)
 {
+    #if 1
     /* TODO: yield() first, to force task scheduling */
     sys_yield();
 
@@ -18,4 +19,9 @@ void __attribute__((noreturn)) idle(void)
         /* rise from LP, force task election */
         sys_yield();
     } while (1);
+    #else
+    do {
+        asm volatile("nop");
+    } while (1);
+    #endif
 }
