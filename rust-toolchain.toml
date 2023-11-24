@@ -1,0 +1,10 @@
+[toolchain]
+channel = "nightly-2023-11-17"
+components = [ "rustfmt", "clippy" ]
+targets = [ "thumbv7m-none-eabi" ]
+profile = "minimal"
+
+# This toolchain will be automatically installed when using meson
+# because it will invoke `rustc --version` on configure to detect
+# the compiler version, and rustc will check this that it has the
+# elements described in this file.
