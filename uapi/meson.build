@@ -14,7 +14,7 @@ uapi_headers = custom_target('uapi_header',
     command: [cbindgen, meson.current_source_dir(),
     '-c', '@INPUT0@',
     '--depfile', '@OUTPUT@',
-    '-o', 'include/uapi/uapi.h'],
+    '-o', 'uapi/include/uapi/uapi.h'],
 )
 
 if with_uapi_opt or with_idle_opt

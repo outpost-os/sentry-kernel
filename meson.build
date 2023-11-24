@@ -36,7 +36,7 @@ kconfig_h = kconfig_proj.get_variable('kconfig_h')
 kconfig_data = kconfig_proj.get_variable('kconfig_data')
 
 # userspace exported include directory, also used by kernel
-uapi_inc = include_directories('uapi/include')
+#uapi_inc = include_directories('uapi/include')
 
 external_deps = []
 
@@ -112,14 +112,19 @@ with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
 
-# we first load sysgate build dep for uapi
+# at least uapi headers are generated libuapi build is under
+# with_uapi option flag
 subdir('uapi')
 
-if with_kernel_opt or with_idle_opt
-subdir('kernel')
+# building kernel
+if with_idle_opt
+subdir('idle')
 endif
 
-
+# building idle
+if with_kernel_opt
+subdir('kernel')
+endif
 
 with_doc_opt = get_option('with_doc')
 if with_doc_opt
