@@ -6,6 +6,7 @@ uapi_rs_lib = static_library(
     sources : 'lib.rs',
     rust_abi: 'c',
     dependencies : [bitflags_dep, systypes_dep],
+    rust_args: global_rust_build_args,
 )
 
 libuapirs_dep = declare_dependency(link_with : uapi_rs_lib)

@@ -110,7 +110,7 @@ void task_dump_table(void)
         pr_debug("[%02x] task svc_exchange section start:\t%p", label, t->metadata->s_svcexchange);
         pr_debug("[%02x] task text section start:\t\t%p", label, t->metadata->s_text);
         pr_debug("[%02x] task text section size:\t\t%u", label, t->metadata->text_size);
-        pr_debug("[%02x] task rodatda section size:\t\t%u", label, t->metadata->rodata_size);
+        pr_debug("[%02x] task rodata section size:\t\t%u", label, t->metadata->rodata_size);
         pr_debug("[%02x] task data section size:\t\t%u", label, t->metadata->data_size);
         pr_debug("[%02x] task bss section size:\t\t%u", label, t->metadata->bss_size);
         pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
@@ -340,7 +340,7 @@ void __attribute__((noreturn)) mgr_task_start(void)
         goto err;
     }
 #endif
-    pr_debug("spanwing thread, pc=%p, sp=%p", pc, sp);
+    pr_debug("spawning thread, pc=%p, sp=%p", pc, sp);
     __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
 
     __builtin_unreachable();

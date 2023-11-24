@@ -31,7 +31,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, Disp
         Syscall::ManageCPUSleep => return manage_cpu_sleep(args[0]),
 
         #[cfg(debug_assertions)]
-        Syscall::Log => return unsafe { log_rs(args[0] as *const i8) },
+        Syscall::Log => return log_rs(args[0] as usize),
     };
     Ok(status.into())
 }

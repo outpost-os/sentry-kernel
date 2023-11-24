@@ -117,7 +117,7 @@ typedef struct task_meta {
     taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
-    uint16_t        capabilities;  /**< task capabilities mask */
+    uint32_t        capabilities;  /**< task capabilities mask */
     thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
