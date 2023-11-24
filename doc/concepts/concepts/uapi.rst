@@ -9,7 +9,7 @@ portable UAPI.
 The Sentry UAPI is written and Rust and is defined as the following in the
 Syscall namepace:
 
-.. literalinclude:: ../../../include/uapi/types/types.rs
+.. literalinclude:: ../../../uapi/include/uapi/types/types.rs
   :language: rust
   :lines: 10-22
   :linenos:

@@ -23,7 +23,7 @@ using the `sys_start()` syscall API do schedule a new job, but the current job i
 not preempted by this syscall, and the next job will be elected using the updated
 schedulable job list, at preemption (or termination, for FIFO scheduler) time.
 
-.. literalinclude:: ../../../include/sentry/sched.h
+.. literalinclude:: ../../../kernel/include/sentry/sched.h
   :language: c
   :lines: 32
   :caption: schedule function API definition
@@ -38,7 +38,7 @@ handler). The effective context switching is not under the scheduler responsabil
 it only returns the next eligible job based on its own policy to the caller, which
 is responsible for such context switching.
 
-.. literalinclude:: ../../../include/sentry/sched.h
+.. literalinclude:: ../../../kernel/include/sentry/sched.h
   :language: c
   :lines: 43
   :caption: election function API definition
@@ -55,7 +55,7 @@ job afterward. The delayed job is then scheduled, not elected, meaning that it i
 not immediately executed but instead added to the current eligible job list of the
 scheduler.
 
-.. literalinclude:: ../../../include/sentry/sched.h
+.. literalinclude:: ../../../kernel/include/sentry/sched.h
   :language: c
   :lines: 71
   :caption: delaying function API definition
