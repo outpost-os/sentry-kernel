@@ -16,6 +16,9 @@ uapi_headers = custom_target('uapi_header',
     '--depfile', '@OUTPUT@',
     '-o', 'uapi/include/uapi/uapi.h'],
 )
+sentry_c_uapi_headers_dep = declare_dependency(
+    sources: [ uapi_headers ],
+)
 
 if with_uapi_opt or with_idle_opt
 # XXX:

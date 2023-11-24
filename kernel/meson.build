@@ -3,13 +3,15 @@ sentry_header_set = ssmod.source_set()
 
 sentry_header_set.add(kconfig_h)
 
-# kernel code shared include directory. kernel include both kernel & user api
-kernel_inc = include_directories('include')
-uapi_inc = include_directories('../uapi/include')
+# kernel code include both its own headers and UAPI headers
+kernel_inc = include_directories(
+    'include',
+    '../uapi/include'
+)
 
 
 # populated in src
-sentry_ldscript_template = files();
+sentry_ldscript_template = files()
 
 # sentry header set is populated in the include dir
 # BSP is driver related headers. Drivers exported header are only used by
@@ -49,8 +51,8 @@ sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
     sources: [sentry_startup, sentry_header_set_config.sources() ],
-    include_directories: [ kernel_inc, uapi_inc ],
-    dependencies: [sentry_dep, external_deps ],
+    include_directories: kernel_inc,
+    dependencies: [sentry_dep, external_deps, sentry_c_uapi_headers_dep ],
     c_args: [ target_arch_args, global_build_args ],
     link_args: [ '-lgcc', target_arch_args, sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',

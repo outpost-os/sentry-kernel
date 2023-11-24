@@ -35,9 +35,6 @@ kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kcon
 kconfig_h = kconfig_proj.get_variable('kconfig_h')
 kconfig_data = kconfig_proj.get_variable('kconfig_data')
 
-# userspace exported include directory, also used by kernel
-#uapi_inc = include_directories('uapi/include')
-
 external_deps = []
 
 global_build_args = [
