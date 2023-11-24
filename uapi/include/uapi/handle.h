@@ -41,7 +41,7 @@ typedef enum handle_type {
   HANDLE_EXTI   = 4,
   HANDLE_DMA    = 5,
   HANDLE_SHM    = 6,
-  HANDLE_CLK    = 7,
+  HANDLE_SIGNAL = 7,
 } handle_type_t;
 
 
@@ -53,6 +53,13 @@ typedef enum handle_type {
 
 /* handle_specific field definition. This field depend on the handle_familly */
 
+
+typedef struct __attribute__((packed)) signal_handle {
+    unsigned int source   : 16;
+    unsigned int id       : 13; /* unique id for current handle (current device, task, etc) */
+    unsigned int familly  : 3;
+} sigh_t;
+static_assert(sizeof(sigh_t) == sizeof(uint32_t), "invalid sigh_t opaque size");
 
 typedef struct __attribute__((packed)) device_handle {
     unsigned int dev_cap  : 12; /* device required dev-capabilities (mask) */
@@ -92,15 +99,6 @@ typedef struct irq_handle {
 } irqh_t;
 static_assert(sizeof(irqh_t) == sizeof(uint32_t), "invalid irqh_t opaque size");
 
-typedef struct clk_handle {
-    unsigned int bus_id   : 4; /* << 2 to get offset from first clken reg */
-    unsigned int clk_id   : 5; /* clken bit */
-    unsigned int reserved : 4;
-    unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
-    unsigned int familly  : 3;
-} clkh_t;
-static_assert(sizeof(clkh_t) == sizeof(uint32_t), "invalid clkh_t opaque size");
-
 /**
  * utility tooling for u32<->handles translation, using generic.
  * Please use the Genric api, not the specialized macros
@@ -109,13 +107,6 @@ static inline uint32_t handle_convert_irqh_to_u32(irqh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
                ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
                (h.irqn & 0xffUL));
-}
-
-static inline uint32_t handle_convert_clkh_to_u32(clkh_t h) {
-    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
-               ((h.clk_id << 4UL) & 0x1f0UL) |
-               (h.bus_id & 0xfUL));
 }
 
 static inline uint32_t handle_convert_ioh_to_u32(ioh_t h) {
@@ -139,7 +130,6 @@ static inline uint32_t handle_convert_devh_to_u32(devh_t h) {
 
 #define handle_convert_to_u32(T) _Generic((T),  \
               irqh_t:  handle_convert_irqh_to_u32,   \
-              clkh_t:  handle_convert_clkh_to_u32,   \
               ioh_t:   handle_convert_ioh_to_u32,    \
               taskh_t: handle_convert_taskh_to_u32,  \
               devh_t:  handle_convert_devh_to_u32    \

@@ -33,6 +33,18 @@ In Sentry, the following ressource handles exist:
    * **inth_t: interrupt handle**: Identify an interrupt line, from any interrupt controller. This
      include, for example, both NVIC interrupts ad external GPIO triggered interrupts lines.
 
+   * **sigh_t: signal handle**: Identify a signal and its source. A signal is a typed data-less event
+     that can be emitted by a job or the kernel itself. It does not hold any data other that the
+     signal type itself and the signal source.
+     Signal source correspond to the task label only, meaning that the job id is not transmitted.
+     When the source is equal to 0, this means that the kernel is the source of the signal. Supported
+     signals are the following:
+
+     .. literalinclude:: ../../../uapi/include/uapi/signal.h
+       :language: c
+       :lines: 9-22
+       :caption: List of Sentry signals
+
    * **ioh_t: I/O line**: Identify a SoC I/O line. Typically a GPIO pin/port couple, associated to
      a given configuration (direction, speed...).
 
