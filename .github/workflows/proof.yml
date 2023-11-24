@@ -79,7 +79,7 @@ jobs:
           options: '-Dkconfig:config=configs/stm32f429i_disc1_defconfig -Dwith_proof=true'
       - name: build libsentry
         run: |
-          cd builddir && ninja src/libsentry.a
+          cd builddir && ninja kernel/src/libsentry.a
       - name: run framaC
         run: |
           why3 config detect

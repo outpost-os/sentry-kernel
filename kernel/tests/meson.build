@@ -28,7 +28,7 @@ cover_sonar = custom_target(
     command: [
         gcovr,
         '-r', meson.project_source_root(),
-        join_paths(meson.project_build_root(), 'tests'),
+        join_paths(meson.project_build_root(), 'kernel/tests'),
         '-e', join_paths(meson.project_source_root(), 'subprojects'),
         '--sonarqube',
         '-o', 'sonarqube.xml',
