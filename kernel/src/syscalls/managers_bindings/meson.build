@@ -11,6 +11,7 @@ managers_bindings = rust.bindgen(
     args : ['--use-core',
             '--raw-line', '#![no_std]',
             '--raw-line', '#![allow(nonstandard_style)]',
+            '--raw-line', '#[allow(clippy)]',
             '--merge-extern-blocks'],
     c_args : [global_build_args],
     dependencies : [cmsis_dep, declare_dependency(sources: core_h)],
