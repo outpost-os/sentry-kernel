@@ -114,6 +114,12 @@ with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
 
+# Idle implies libuapi
+if with_idle_opt and not with_uapi_opt
+    warning('with_idle is set but witout libuapi, uapi will be forced')
+    with_uapi_opt = true
+endif
+
 # at least uapi headers are generated libuapi build is under
 # with_uapi option flag
 subdir('uapi')
