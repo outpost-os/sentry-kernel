@@ -88,10 +88,13 @@ extern "C" {
     size_t _idle_svcexchange;
 
     /* sample idle function and associated infos */
-    extern void __attribute__((noreturn)) idle(void);
+    void __attribute__((noreturn)) ut_idle(void) {
+        volatile int a = 12;
+        do { a %= 10; } while (1);
+    }
 
-    size_t _sidle = (size_t)idle;
-    size_t _eidle = (size_t)idle + 4;
+    size_t _sidle = (size_t)ut_idle;
+    size_t _eidle = (size_t)ut_idle + 0x400;
 
     /*
      * numtask var is replaced by a dyn call to this function,

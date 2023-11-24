@@ -18,7 +18,11 @@
 #include "task_idle.h"
 #include "task_core.h"
 
+
 #ifndef TEST_MODE
+
+/* idle task position, from linker script */
+extern size_t _idle;
 /**
  * The effective number of task is, in our case, forged by the build system
  *
@@ -111,7 +115,7 @@ void task_dump_table(void)
         pr_debug("[%02x] task bss section size:\t\t%u", label, t->metadata->bss_size);
         pr_debug("[%02x] task stack size:\t\t\t%u", label, t->metadata->stack_size);
         pr_debug("[%02x] task heap size:\t\t\t%u", label, t->metadata->heap_size);
-        pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->main_offset);
+        pr_debug("[%02x] task _start offset from text base:\t%u", label, t->metadata->entrypoint_offset);
     }
 #endif
 }
@@ -321,14 +325,14 @@ end:
 void __attribute__((noreturn)) mgr_task_start(void)
 {
     stack_frame_t * sp;
-    size_t pc;
+    size_t pc = 0;
     const task_meta_t *idle_meta = task_idle_get_meta();
     if (unlikely(mgr_task_get_sp(idle_meta->handle, &sp) != K_STATUS_OKAY)) {
         pr_err("failed to get idle function handle!");
         goto err;
     };
-    pc = (size_t)&idle;
 #ifndef TEST_MODE
+    pc = (size_t)(idle_meta->s_text + idle_meta->entrypoint_offset);
     if (unlikely(mgr_mm_map(MM_REGION_TASK_TXT, 0, idle_meta->handle) != K_STATUS_OKAY)) {
         goto err;
     }

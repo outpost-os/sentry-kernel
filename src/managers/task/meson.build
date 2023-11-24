@@ -7,3 +7,7 @@ sentry_source_set.add(files(
   'task_core.c',
   'task_idle.c',
 ))
+
+idle_sources += files(
+  'task_idle_entrypoint.c',
+)

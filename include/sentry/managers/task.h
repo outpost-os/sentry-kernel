@@ -143,7 +143,8 @@ typedef struct task_meta {
     size_t          heap_size;        /**< process heap size. Can be 0 (no heap)*/
     size_t          s_svcexchange;    /**< SVC exchange area start in RAM. address is project-wide defined */
     uint16_t        stack_size;       /**< main thtrad stack size */
-    uint16_t        main_offset;      /**< offset of main() in text section */
+    uint16_t        entrypoint_offset; /**< offset of _start in text section */
+    uint16_t        finalize_offset;   /**< offset of the _finalize in text section */
     /**
      * Task ressources, that may also requires memory mapping, and associated perms
      */

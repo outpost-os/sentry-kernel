@@ -18,6 +18,12 @@
 #include "task_init.h"
 #include "task_idle.h"
 
+#ifndef TEST_MODE
+extern size_t _idle;
+#else
+extern void (ut_idle)(void);
+#endif
+
 typedef enum task_mgr_state {
     TASK_MANAGER_STATE_BOOT = 0x0UL,                /**< at boot time */
     /* for each cell of task_meta_table */
@@ -203,7 +209,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[cell].sp = mgr_task_initialize_sp(stack_top, (meta->s_text + meta->main_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(stack_top, (meta->s_text + meta->entrypoint_offset));
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;
@@ -321,7 +327,12 @@ static inline kstatus_t task_init_finalize(void)
     task_table[ctx.numtask].metadata = meta;
     task_table[ctx.numtask].handle = meta->handle;
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)idle);
+#ifndef TEST_MODE
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)&_idle);
+#else
+    /* in UT mode, idle is mocked */
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)ut_idle);
+#endif
 
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
         (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
