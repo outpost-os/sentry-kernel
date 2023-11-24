@@ -6,5 +6,6 @@ Sentry software architecture
    :caption: Contents:
 
    bsp.rst
-   user_devices.rst
    syscalls.rst
+   schedulers.rst
+   user_devices.rst

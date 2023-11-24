@@ -41,6 +41,7 @@ concepts_rst = files(
     'concepts/index.rst',
     'concepts/sw_architecture/bsp.rst',
     'concepts/sw_architecture/syscalls.rst',
+    'concepts/sw_architecture/schedulers.rst',
     'concepts/sw_architecture/index.rst',
 )
 concepts = custom_target('doc-concepts',

@@ -4,7 +4,7 @@
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/managers/debug.h>
 #include <sentry/sched.h>
-
+#include "delay.h"
 
 /**
  * @brief Currentky ready tasks queue
@@ -38,6 +38,7 @@ kstatus_t sched_fifo_init(void)
     };
     pr_info("initialize scheduler");
     /* at startup, and without task, */
+    sched_delay_flush();
     sched_fifo_ctx.empty = true;
     sched_fifo_ctx.current = current;
     return K_STATUS_OKAY;
@@ -113,7 +114,16 @@ kstatus_t sched_fifo_schedule(taskh_t t)
 
 taskh_t sched_fifo_elect(void)
 {
-    return sched_fifo_dequeue_task();
+    /* defaulting on idle */
+    taskh_t tsk = {
+        .rerun = 0,
+        .id = SCHED_IDLE_TASK_LABEL,
+        .familly = HANDLE_TASKID,
+    };
+    if (likely(sched_fifo_ctx.empty == false)) {
+        tsk = sched_fifo_dequeue_task();
+    }
+    return tsk;
 }
 
 taskh_t sched_fifo_get_current(void)

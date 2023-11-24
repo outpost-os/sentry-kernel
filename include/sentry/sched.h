@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#ifndef SCHED_H
+#define SCHED_H
+
 #include <sentry/managers/task.h>
+#include <sentry/arch/asm-generic/thread.h>
 
 /**
  * @file generic upper layer API for Sentry schedulers
@@ -53,3 +57,23 @@ taskh_t sched_elect(void);
  * @return the next task handle reference to execute. Can be idle task
  */
 taskh_t sched_get_current(void);
+
+#if defined(CONFIG_SCHED_RRMQ)
+/**
+ * @brief refresh RRMQ quantum of scheduler active task, may generate election
+ */
+stack_frame_t *sched_refresh(stack_frame_t *frame);
+#endif
+
+/**
+ * @brief add a new delayed job to the delay queue, with a delay of delay_ms
+ */
+kstatus_t sched_delay_add(taskh_t job, uint32_t delay_ms);
+
+/**
+ * delay ticker, to be called by the systick using JIFFIES_TO_MSEC(1)
+ * to calculate back the ticker period
+ */
+void sched_delay_tick(void);
+
+#endif/*!SCHED_H*/

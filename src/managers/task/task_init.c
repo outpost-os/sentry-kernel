@@ -326,11 +326,9 @@ static inline kstatus_t task_init_finalize(void)
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
         (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
     ctx.numtask++;
-    ctx.status = sched_schedule(meta->handle);
-    if (unlikely(ctx.status != K_STATUS_OKAY)) {
-        ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
-        goto end;
-    }
+    /* idle is not scheduled, it is instead a fallback of all schedulers, using its handler
+     * at election time only
+     */
     /* finishing with sorting task_table based on task label value */
     task_basic_sort(task_table);
     pr_info("task list ordered based on label");

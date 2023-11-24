@@ -10,7 +10,15 @@ config MAX_TASKS
 
 choice
 	bool "Scheduling policy"
-	default SCHED_FIFO
+	default SCHED_RRMQ
+config SCHED_RRMQ
+	bool "Round-Robin Multiqueue with Quantum scheduler policy"
+	help
+	  Schedule task with multiqueue round-robin, with elastic quantum support
+	  Allows differenciated quantum per task, with timeslotting-based task sets
+	  Highly efficient when well configured.
+	  A task can yield() before its quantum end to refresh it. Blocking syscalls
+	  (IPC, sleep) also refresh the quantum.
 config SCHED_FIFO
 	bool "FIFO-based policy"
 	help
