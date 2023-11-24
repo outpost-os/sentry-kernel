@@ -23,7 +23,7 @@ ssmod = import('sourceset')
 py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
 if meson.has_external_property('rust_target')
-    add_global_arguments([
+    add_project_arguments([
         '--target=@0@'.format(meson.get_external_property('rust_target'))
     ], language: 'rust', native: false)
 else

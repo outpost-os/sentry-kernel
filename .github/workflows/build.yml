@@ -122,7 +122,7 @@ jobs:
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
-          options: '-Dkconfig:config=configs/${{matrix.config}}_defconfig'
+          options: '-Dconfig=configs/${{matrix.config}}_defconfig'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -190,7 +190,7 @@ jobs:
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
-          options: '-Dkconfig:config=configs/stm32f429i_disc1_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
+          options: '-Dconfig=configs/stm32f429i_disc1_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -254,7 +254,7 @@ jobs:
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
-          options: '-Dkconfig:config=configs/stm32f429i_disc1_defconfig -Dwith_doc=true'
+          options: '-Dconfig=configs/stm32f429i_disc1_defconfig -Dwith_doc=true'
       - name: Meson postcheck
         if: failure()
         run: |
