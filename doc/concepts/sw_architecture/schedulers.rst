@@ -33,7 +33,7 @@ Electing a job
 
 Electing a job happens at context switch time, when the current job is preempted or
 terminated. The scheduler select the next job in its current list of schedulable job
-using its own scheduling policy, and return the job identifier (through the `tarkh_t`
+using its own scheduling policy, and return the job identifier (through the `taskh_t`
 handler). The effective context switching is not under the scheduler responsability,
 it only returns the next eligible job based on its own policy to the caller, which
 is responsible for such context switching.
