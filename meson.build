@@ -133,11 +133,6 @@ if with_proof_opt
   subdir('proof')
 endif
 
-with_tests_opt = get_option('with_tests')
-if with_tests_opt
-    subdir('tests')
-endif
-
 meson.install_dependency_manifest('manifest.json')
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))

@@ -84,3 +84,8 @@ sentry_map = custom_target(
     install_dir: '',
 )
 endif
+
+with_tests_opt = get_option('with_tests')
+if with_tests_opt
+    subdir('tests')
+endif
