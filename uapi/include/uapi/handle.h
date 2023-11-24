@@ -38,7 +38,7 @@ typedef enum handle_type {
   HANDLE_DEVICE = 1,
   HANDLE_IO     = 2,
   HANDLE_IRQ    = 3,
-  HANDLE_EXTI   = 4,
+  HANDLE_IPC    = 4,
   HANDLE_DMA    = 5,
   HANDLE_SHM    = 6,
   HANDLE_SIGNAL = 7,
@@ -60,6 +60,14 @@ typedef struct __attribute__((packed)) signal_handle {
     unsigned int familly  : 3;
 } sigh_t;
 static_assert(sizeof(sigh_t) == sizeof(uint32_t), "invalid sigh_t opaque size");
+
+
+typedef struct __attribute__((packed)) ipc_handle {
+    unsigned int source   : 16; /* IPC source (task label) */
+    unsigned int len      : 13; /* IPC len in bytes */
+    unsigned int familly  : 3;
+} ipch_t;
+static_assert(sizeof(ipch_t) == sizeof(uint32_t), "invalid ipch_t opaque size");
 
 typedef struct __attribute__((packed)) device_handle {
     unsigned int dev_cap  : 12; /* device required dev-capabilities (mask) */

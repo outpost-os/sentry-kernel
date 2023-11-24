@@ -37,16 +37,14 @@ In Sentry, the following ressource handles exist:
      that can be emitted by a job or the kernel itself. It does not hold any data other that the
      signal type itself and the signal source.
      Signal source correspond to the task label only, meaning that the job id is not transmitted.
-     When the source is equal to 0, this means that the kernel is the source of the signal. Supported
-     signals are the following:
-
-     .. literalinclude:: ../../../uapi/include/uapi/signal.h
-       :language: c
-       :lines: 9-22
-       :caption: List of Sentry signals
+     When the source is equal to 0, this means that the kernel is the source of the signal.
 
    * **ioh_t: I/O line**: Identify a SoC I/O line. Typically a GPIO pin/port couple, associated to
      a given configuration (direction, speed...).
+
+   * **ipch_t: IPC handle**: Identify an IPC that have been received by the current job. This handle
+     only exist for the current job and hold informations such as the IPC message and source. This
+     handle is ephemeral and is used only for message reception.
 
    * **devh_t: device**: Identify a (memory-mapped) device. All other informations, generated from
      device tree, are forged in the userspace device driver build system and the device manager
@@ -68,6 +66,11 @@ In Sentry, the following ressource handles exist:
      varies depending on the controller usage. Assignation is under kernel responsibility, but streams
      are userspace needs. Again, streams are build-time declared and shared with the kernel so
      that the kernel can validate the handle integrity and ownership at runtime easily.
+
+.. note::
+
+  More about handles and the way they are used in described in the UAPI :ref:`handles <uapi_handles>` usage
+  subchapter
 
 Other userspace/kernelspace communication concepts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
