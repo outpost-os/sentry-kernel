@@ -94,3 +94,8 @@ with_tests_opt = get_option('with_tests')
 if with_tests_opt
     subdir('tests')
 endif
+
+with_proof_opt = get_option('with_proof')
+if with_proof_opt
+  subdir('proof')
+endif

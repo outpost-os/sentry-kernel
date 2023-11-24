@@ -26,24 +26,12 @@ jobs:
         shell: bash
         run: |
           find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
-      - name: Setup nightly toolchain
-        shell: bash
-        run: |
-          rustup default nightly
-      - name: Add rustup cross-toolchain
-        shell: bash
-        run: |
-          rustup target add thumbv7m-none-eabi
       - name: Add libclang for bindgen
         shell: bash
         run: |
           apt-get update
           apt-get install -y llvm-dev libclang-dev clang
           export LIBCLANG_PATH=/usr/local/lib
-      - name: Add clippy, rustfmt
-        shell: bash
-        run: |
-          rustup component add rustfmt clippy
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
