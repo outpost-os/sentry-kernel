@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
+if meson.is_subproject()
+warning('!!! Are you sure you want to build the Idle task as a subproject ?')
+endif
+
 # populated in src
 sentry_ldscript_template = files()
 
