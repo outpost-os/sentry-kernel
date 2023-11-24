@@ -22,10 +22,6 @@ ssmod = import('sourceset')
 
 py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
-sentry_source_set = ssmod.source_set()
-sentry_header_set = ssmod.source_set()
-idle_sources = files()
-
 if meson.has_external_property('rust_target')
     add_global_arguments([
         '--target=@0@'.format(meson.get_external_property('rust_target'))
@@ -38,14 +34,6 @@ kconfig_file = meson.current_source_dir() / 'Kconfig'
 kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kconfig_file)])
 kconfig_h = kconfig_proj.get_variable('kconfig_h')
 kconfig_data = kconfig_proj.get_variable('kconfig_data')
-
-sentry_header_set.add(kconfig_h)
-
-# kernel code shared include directory. kernel include both kernel & user api
-kernel_inc = include_directories('include')
-
-# userspace exported include directory
-uapi_inc = include_directories('include/uapi')
 
 external_deps = []
 
@@ -115,19 +103,25 @@ dtsgen = generator(dts2src,
     output: '@BASENAME@',
 )
 
-# sentry header set is populated in the include dir
-# BSP is driver related headers. Drivers exported header are only used by
-# managers. As such, there should not have <bsp/xx> path out of the managers
-# source directory.
-subdir('include/bsp')
-# kernel-wide exported headers
-subdir('include/sentry')
-sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)
-
 # all sources are there, sentry source set is populated in each subdir
-subdir('include/uapi')
+
+with_uapi_opt = get_option('with_uapi')
+with_kernel_opt = get_option('with_kernel')
+with_idle_opt = get_option('with_idle')
+
+# at least uapi headers are generated libuapi build is under
+# with_uapi option flag
 subdir('uapi')
-subdir('src')
+
+# building kernel
+if with_idle_opt
+subdir('idle')
+endif
+
+# building idle
+if with_kernel_opt
+subdir('kernel')
+endif
 
 with_doc_opt = get_option('with_doc')
 if with_doc_opt
@@ -139,104 +133,7 @@ if with_proof_opt
   subdir('proof')
 endif
 
-with_tests_opt = get_option('with_tests')
-if with_tests_opt
-    subdir('tests')
-endif
-
-
 meson.install_dependency_manifest('manifest.json')
-
-# XXX:
-# For ldscript gen we use a custom target instead of the previously defined
-# generator as we need to know the outputed filename at link time
-# (FYI generator generates anonymous file that can be built bu we can't use
-# the generated filename in any other target)
-sentry_ldscript = custom_target('sentry_ldscript',
-    input: sentry_ldscript_template,
-    output: '@BASENAME@',
-    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
-    depends: [ dts ],
-)
-
-idle_ldscript = custom_target('idle_ldscript',
-    input: idle_ldscript_template,
-    output: '@BASENAME@',
-    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
-    depends: [ dts ],
-)
-
-
-sentry_linker_args = [
-    '-T@0@'.format(sentry_ldscript.full_path()),
-    '-z', 'noexecstack',
-]
-
-sentry_map_file = '@0@.map'.format(meson.project_name())
-
-idle_linker_args = [
-    '-T@0@'.format(idle_ldscript.full_path()),
-    '-z', 'noexecstack',
-]
-
-idle_map_file = '@0@.map'.format(meson.project_name())
-
-# there is no mean in building a target ELF file with coverage functions added.
-# It will not fit in target, and it will not be usable as is.
-if get_option('with_tests') == false
-sentry_elf = executable(
-    meson.project_name(),
-    name_suffix: 'elf',
-    sources: [sentry_startup, sentry_header_set_config.sources() ],
-    include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps ],
-    c_args: [ target_arch_args, global_build_args ],
-    link_args: [ '-lgcc', target_arch_args, sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
-    link_language: 'c',
-    link_depends: [ sentry_ldscript ],
-    install: true,
-    install_dir: '',
-)
-
-
-idle_elf = executable(
-    'idle',
-    name_suffix: 'elf',
-    sources: [idle_sources ],
-    include_directories: kernel_inc,
-    dependencies: [ sentry_c_uapi_dep ],
-    c_args: [ target_arch_args, global_build_args ],
-    link_args: [ '-lgcc', target_arch_args, idle_linker_args, '-Wl,-Map=@0@'.format(idle_map_file)],
-    link_language: 'c',
-    link_depends: [ idle_ldscript ],
-    install: true,
-    install_dir: '',
-)
-
-
-# TODO: Use an install hook instead of dummy target
-needs_wsl = []
-if build_machine.system() == 'windows'
-    needs_wsl = ['wsl']
-endif
-sentry_map = custom_target(
-    input: sentry_elf,
-    output: sentry_map_file,
-    command: needs_wsl + ['touch', '@OUTPUT@'],
-    build_by_default: true,
-    install: true,
-    install_dir: '',
-)
-
-sentry_bin = custom_target(
-    input: sentry_elf,
-    output: '@BASENAME@.bin',
-    command: [objcopy, '--output-target=binary', '@INPUT@', '@OUTPUT@'],
-    build_by_default: true,
-    install: true,
-    install_dir: '',
-)
-endif
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 

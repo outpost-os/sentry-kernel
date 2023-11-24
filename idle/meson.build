@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
+# populated in src
+sentry_ldscript_template = files()
+
+subdir('src')
+
+if get_option('with_tests') == false
+
+idle_ldscript = custom_target('idle_ldscript',
+    input: idle_ldscript_template,
+    output: '@BASENAME@',
+    command: [ dts2src, '-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
+    depends: [ dts ],
+)
+
+idle_linker_args = [
+    '-T@0@'.format(idle_ldscript.full_path()),
+    '-z', 'noexecstack',
+]
+
+idle_map_file = '@0@.map'.format(meson.project_name())
+
+uapi_inc = include_directories('../uapi/include')
+
+idle_elf = executable(
+    'idle',
+    name_suffix: 'elf',
+    sources: [idle_sources ],
+    include_directories: uapi_inc,
+    dependencies: [ sentry_c_uapi_dep ],
+    c_args: [ target_arch_args, global_build_args ],
+    link_args: [ '-lgcc', target_arch_args, idle_linker_args, '-Wl,-Map=@0@'.format(idle_map_file)],
+    link_language: 'c',
+    link_depends: [ idle_ldscript ],
+    install: true,
+    install_dir: '',
+)
+endif

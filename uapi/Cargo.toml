@@ -7,11 +7,11 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-systypes = { path = "../include/uapi/types" }
+systypes = { path = "include/uapi/types" }
 bitflags = { version = "2.4.0" }
 
 [dev-dependencies]
-sysgate = { path = "../src/syscalls", features = ['mock'] }
+sysgate = { path = "../kernel/src/syscalls", features = ['mock'] }
 uapi = { path = '.', features = ['std'] }
 
 [features]

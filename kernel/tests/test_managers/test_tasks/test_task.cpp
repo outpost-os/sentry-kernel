@@ -163,7 +163,7 @@ extern "C" {
 TEST_F(TaskTest, TestForgeEmptyTable) {
     kstatus_t res;
     assign(task_basic_context, 0);
-    EXPECT_CALL(*taskMock, on_task_schedule).Times(1);
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(0);
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
 }
@@ -199,7 +199,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].rodata_size = 0;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
-    EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS+1);
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS);
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
     ASSERT_EQ(is_ordered(task_table), true);
@@ -226,7 +226,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].rodata_size = 0;
     }
     assign(task_full_context, CONFIG_MAX_TASKS);
-    EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS+1);
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS);
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
     ASSERT_EQ(is_ordered(task_table), true);

@@ -6,18 +6,18 @@ test_bsp_exti = executable(
     sources: [
         files(
             'test_exti.cpp',
-            join_paths(meson.project_source_root(), 'src/drivers/exti/stm32-exti.c'),
+            join_paths(meson.project_source_root(), 'kernel/src/drivers/exti/stm32-exti.c'),
         ),
         exti_h, stm32_exti_dtsgen_h, stm32_exti_dtsgen_c,
     ],
     include_directories: kernel_inc,
     cpp_args: [
-        '-I'+join_paths(meson.project_build_root(), 'src/drivers/exti'),
+        '-I'+join_paths(meson.project_build_root(), 'kernel/src/drivers/exti'),
         '-include', '@0@'.format(kconfig_h),
         '-DTEST_MODE=1',
     ],
     c_args: [
-        '-I'+join_paths(meson.project_build_root(), 'src/drivers/exti'),
+        '-I'+join_paths(meson.project_build_root(), 'kernel/src/drivers/exti'),
         global_build_args,
         '-DTEST_MODE=1',
     ],

@@ -40,6 +40,7 @@ sentry_source_set.add_all(sentry_private_gen_header_set)
 sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
 sentry_private_source_config = sentry_private_gen_source_set.apply(kconfig_data, strict: false)
 
+if with_kernel_opt
 # static part library
 sentry_lib = static_library('sentry',
     sources: [
@@ -56,3 +57,4 @@ sentry_dep = declare_dependency(
     link_with: sentry_lib,
     include_directories: kernel_inc,
 )
+endif
