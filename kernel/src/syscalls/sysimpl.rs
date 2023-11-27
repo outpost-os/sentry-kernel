@@ -5,6 +5,7 @@ use crate::arch::*;
 
 #[repr(i32)]
 #[allow(dead_code)]
+#[allow(clippy::unnecessary_cast)] // TODO: potentially fixed using underlying enums with C23
 enum Capability {
     DevBuses = mgr::sentry_capability_CAP_DEV_BUSES as i32,
     DevIO = mgr::sentry_capability_CAP_DEV_IO as i32,
