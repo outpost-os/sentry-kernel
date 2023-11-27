@@ -196,7 +196,7 @@ end:
  *
  * binary search on task_table
  */
-kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state)
+kstatus_t mgr_task_get_state(taskh_t t, job_state_t *state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
@@ -228,9 +228,9 @@ end:
 }
 
 /*@
-    requires thread_state_is_valid(state) == \true;
+    requires job_state_is_valid(state) == \true;
   */
-kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state)
+kstatus_t mgr_task_set_state(taskh_t t, job_state_t state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);

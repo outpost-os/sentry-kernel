@@ -15,7 +15,7 @@ typedef struct task {
      * structure but directly in the scheduler context, when the scheduler do support
      * such model (quantum-based).
      */
-    thread_state_t  state;      /**< current task state */
+    job_state_t     state;      /**< current task state */
     taskh_t         handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
     /* about events */

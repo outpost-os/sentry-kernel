@@ -22,7 +22,7 @@ typedef struct task_rrmq_state {
     taskh_t       handler;
     uint32_t      priority;
     uint32_t      quantum;    /**< set at spawn time to systick period */
-    thread_state_t  state;
+    job_state_t   state;
 } task_rrmq_state_t;
 
 /**
@@ -161,7 +161,7 @@ taskh_t sched_rrmq_elect(void)
         .id = SCHED_IDLE_TASK_LABEL,
         .family = HANDLE_TASKID,
     };
-    thread_state_t state;
+    job_state_t state;
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state!");
     }

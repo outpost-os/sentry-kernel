@@ -53,7 +53,7 @@ extern "C" {
  */
 #define SCHED_IDLE_TASK_LABEL 0xcafeUL
 
-typedef enum thread_state {
+typedef enum job_state {
       JOB_STATE_NOTSTARTED = 0,       /**< thread has not started yet. For not automatically started tasks */
       JOB_STATE_READY,                /**< thread ready, wait for being scheduled */
       JOB_STATE_SLEEPING,             /**< sleeping, can be awoken by any ISR (wfi()-like) */
@@ -67,7 +67,7 @@ typedef enum thread_state {
       JOB_STATE_FINISHED,             /**< thread terminated, returned from thread entrypoint */
       JOB_STATE_IPC_SEND_BLOCKED,     /**< emitted an IPC, wait for receiver to process */
       JOB_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
-} thread_state_t;
+} job_state_t;
 
 /**
  * TODO: to be moved to dedicated header
@@ -100,18 +100,18 @@ typedef struct __attribute__((packed)) job_flags {
 static_assert((sizeof(job_flags_t) == sizeof(uint8_t)), "job_flags_t as invalid size!");
 
 /*@
-  logic boolean thread_state_is_valid(uint32_t thread_state) =
+  logic boolean job_state_is_valid(uint32_t job_state) =
     (
-        thread_state == JOB_STATE_NOTSTARTED ||
-        thread_state == JOB_STATE_READY ||
-        thread_state == JOB_STATE_SLEEPING ||
-        thread_state == JOB_STATE_SLEEPING_DEEP ||
-        thread_state == JOB_STATE_FAULT ||
-        thread_state == JOB_STATE_SECURITY ||
-        thread_state == JOB_STATE_ABORTING ||
-        thread_state == JOB_STATE_FINISHED ||
-        thread_state == JOB_STATE_IPC_SEND_BLOCKED ||
-        thread_state == JOB_STATE_IPC_SIG_RECV_BLOCKED
+        job_state == JOB_STATE_NOTSTARTED ||
+        job_state == JOB_STATE_READY ||
+        job_state == JOB_STATE_SLEEPING ||
+        job_state == JOB_STATE_SLEEPING_DEEP ||
+        job_state == JOB_STATE_FAULT ||
+        job_state == JOB_STATE_SECURITY ||
+        job_state == JOB_STATE_ABORTING ||
+        job_state == JOB_STATE_FINISHED ||
+        job_state == JOB_STATE_IPC_SEND_BLOCKED ||
+        job_state == JOB_STATE_IPC_SIG_RECV_BLOCKED
     );
 */
 
@@ -214,13 +214,13 @@ uint32_t mgr_task_get_num(void);
 
 kstatus_t mgr_task_get_sp(taskh_t t, stack_frame_t **sp);
 
-kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state);
+kstatus_t mgr_task_get_state(taskh_t t, job_state_t *state);
 
 kstatus_t mgr_task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
 
 kstatus_t mgr_task_set_sp(taskh_t t, stack_frame_t *newsp);
 
-kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state);
+kstatus_t mgr_task_set_state(taskh_t t, job_state_t state);
 
 secure_bool_t mgr_task_is_idletask(taskh_t t);
 
