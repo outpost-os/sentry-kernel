@@ -25,6 +25,14 @@ The Sentry dependencies are the following:
      the kconfig syntax that has been intially defined by the Linux kernel and which is
      documented `here <https://www.kernel.org/doc/html/next/kbuild/kconfig-language.html>`_.
 
+   * **device-tree-compiler**: This is the device tree compiler tool, that compile device tree
+     sources into device tree blobs. This tool is a part of the
+     `kernel.org projects <https://git.kernel.org/pub/scm/utils/dtc/dtc.git/>`_ and is
+     packaged in all GNU/Linux distros.
+
+   * **dtschema**: This is python toolset to manipulate and validate device trees.
+     This is a python module that can be installed with pip.
+
    * **sphinx**: Used in order to generate this very documentation. This is a python module.
 
    * **sphinx_rtd_theme**: Theme used for Sentry documentation. This is a python module.
@@ -60,9 +68,9 @@ The Sentry dependencies are the following:
      For example, ARM toolchains can be found `on ARM website <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`_.
 
    * **native C/C++ toolchain**: This is used for unit-testing, in order to compile and
-    execute unit tests. Unit tests are using the gtest/gmock framework. The build system
-    checks if the gtest framework is installed and fallback to a local download if needed.
-    This toolchain can be found as a part of all GNU/Linux distributions.
+     execute unit tests. Unit tests are using the gtest/gmock framework. The build system
+     checks if the gtest framework is installed and fallback to a local download if needed.
+     This toolchain can be found as a part of all GNU/Linux distributions.
 
 
 The meson build system automatically check that all python modules are installed on
