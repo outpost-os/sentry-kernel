@@ -54,45 +54,64 @@ extern "C" {
 #define SCHED_IDLE_TASK_LABEL 0xcafeUL
 
 typedef enum thread_state {
-      THREAD_STATE_NOTSTARTED, /**< thread has not started yet. For not automatically started tasks */
-      THREAD_STATE_READY,     /**< thread ready, wait for being scheduled */
-      THREAD_STATE_SLEEPING, /**< sleeping, can be awoken by any ISR (wfi()-like) */
-      THREAD_STATE_SLEEPING_DEEP, /**< deep sleep, IRQ deactivated for the given sleep time */
-      THREAD_STATE_FAULT,     /**< userspace fault event, not schedulable */
-      THREAD_STATE_SECURITY,  /**< security event risen, not schedulable */
-      THREAD_STATE_ABORTING,  /**< on fault, handling abort-equivalent libc garbage collect. if the task
-                                 implement a sigabrt() handler, the garbage collector execute the user-defined
-                                 function before leaving */
-      THREAD_STATE_FINISHED,  /**< thread terminated, returned from thread entrypoint */
-      THREAD_STATE_IPC_SEND_BLOCKED, /**< emitted an IPC, wait for receiver to process */
-      THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
+      JOB_STATE_NOTSTARTED = 0,       /**< thread has not started yet. For not automatically started tasks */
+      JOB_STATE_READY,                /**< thread ready, wait for being scheduled */
+      JOB_STATE_SLEEPING,             /**< sleeping, can be awoken by any ISR (wfi()-like) */
+      JOB_STATE_SLEEPING_DEEP,        /**< deep sleep, IRQ deactivated for the given sleep time */
+      JOB_STATE_FAULT,                /**< userspace fault event, not schedulable */
+      JOB_STATE_SECURITY,             /**< security event risen, not schedulable */
+      /**< on fault, handling abort-equivalent libc garbage collect. if the task
+        implement a sigabrt() handler, the garbage collector execute the user-defined
+        function before leaving */
+      JOB_STATE_ABORTING,
+      JOB_STATE_FINISHED,             /**< thread terminated, returned from thread entrypoint */
+      JOB_STATE_IPC_SEND_BLOCKED,     /**< emitted an IPC, wait for receiver to process */
+      JOB_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
 } thread_state_t;
 
 /**
  * TODO: to be moved to dedicated header
  * for a given task job, specify the spwaning mode
+ *
+ * needs separated blocks:
+ * - start mode (auto or not)
+ * - exit behavior (restart,panic,restart_with_period)
+ *
+ * to avoid any invalid flags association
  */
-typedef enum thread_flags {
-    THREAD_FLAG_AUTOSTART     = 0x0001UL,
-    THREAD_FLAG_RESTARTONEXIT = 0x0002UL,
-    THREAD_FLAG_PANICONEXIT   = 0x0004UL,
-} thread_flags_t;
+typedef enum job_start_mode {
+    JOB_FLAG_NOSTART         = 0x0UL,
+    JOB_FLAG_AUTOSTART       = 0x1UL,
+} job_start_mode_t;
 
+typedef enum job_exit_mode {
+    JOB_FLAG_NORESTARTONEXIT = 0x0UL,
+    JOB_FLAG_RESTARTONEXIT   = 0x1UL,
+    JOB_FLAG_PANICONEXIT     = 0x2UL,
+    JOB_FLAG_PERIODICRESTART = 0x3UL,
+} job_ext_mode_t;
 
+typedef struct __attribute__((packed)) job_flags {
+    unsigned int start_mode: 1;
+    unsigned int exit_mode:  2;
+    unsigned int reserved:   5;
+} job_flags_t;
+
+static_assert((sizeof(job_flags_t) == sizeof(uint8_t)), "job_flags_t as invalid size!");
 
 /*@
   logic boolean thread_state_is_valid(uint32_t thread_state) =
     (
-        thread_state == THREAD_STATE_NOTSTARTED ||
-        thread_state == THREAD_STATE_READY ||
-        thread_state == THREAD_STATE_SLEEPING ||
-        thread_state == THREAD_STATE_SLEEPING_DEEP ||
-        thread_state == THREAD_STATE_FAULT ||
-        thread_state == THREAD_STATE_SECURITY ||
-        thread_state == THREAD_STATE_ABORTING ||
-        thread_state == THREAD_STATE_FINISHED ||
-        thread_state == THREAD_STATE_IPC_SEND_BLOCKED ||
-        thread_state == THREAD_STATE_IPC_SIG_RECV_BLOCKED
+        thread_state == JOB_STATE_NOTSTARTED ||
+        thread_state == JOB_STATE_READY ||
+        thread_state == JOB_STATE_SLEEPING ||
+        thread_state == JOB_STATE_SLEEPING_DEEP ||
+        thread_state == JOB_STATE_FAULT ||
+        thread_state == JOB_STATE_SECURITY ||
+        thread_state == JOB_STATE_ABORTING ||
+        thread_state == JOB_STATE_FINISHED ||
+        thread_state == JOB_STATE_IPC_SEND_BLOCKED ||
+        thread_state == JOB_STATE_IPC_SIG_RECV_BLOCKED
     );
 */
 
@@ -118,7 +137,7 @@ typedef struct task_meta {
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
     uint32_t        capabilities;  /**< task capabilities mask */
-    thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
+    job_flags_t     flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
      * Memory mapping information, used for context switching and MPU configuration

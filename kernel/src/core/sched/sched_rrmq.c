@@ -126,7 +126,7 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
     jobset->joblist[cell].handler = t;
     jobset->joblist[cell].priority = meta->priority;
     jobset->joblist[cell].quantum = meta->quantum;
-    jobset->joblist[cell].state = THREAD_STATE_READY;
+    jobset->joblist[cell].state = JOB_STATE_READY;
     jobset->num_jobs++;
     /* shedule is not an election, task job is only added to current taskset */
 err:
@@ -165,7 +165,7 @@ taskh_t sched_rrmq_elect(void)
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state!");
     }
-    if (state == THREAD_STATE_READY) {
+    if (state == JOB_STATE_READY) {
         /* task is not blocked (yield() maybe) and is still eligible, but
          * for next time slot, with a fresh quantum */
         pr_debug("pushing task handle %p to next quantum window", sched_rrmq_ctx.current_job->handler);
