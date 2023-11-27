@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <uapi/handle_defs.h>
 
 /**
  * @file Sentry handles specification.
@@ -33,15 +34,6 @@
  * pin is already hardcoded in the ioh_t specific part of the handler.
  */
 
-#define HANDLE_TASKID 0
-#define HANDLE_DEVICE 1
-#define HANDLE_IO     2
-#define HANDLE_IRQ    3
-#define HANDLE_IPC    4
-#define HANDLE_DMA    5
-#define HANDLE_SHM    6
-#define HANDLE_SIGNAL 7
-
 #define HANDLE_ID_SHIFT         13UL
 #define HANDLE_ID_MASK          0x7fff8000UL
 
@@ -49,8 +41,6 @@
 #define HANDLE_FAMILLY_MASK     0xe0000000UL
 
 /* handle_specific field definition. This field depend on the handle_family */
-
-
 typedef struct __attribute__((packed)) signal_handle {
     unsigned int source   : 16;
     unsigned int id       : 13; /* unique id for current handle (current device, task, etc) */
@@ -167,6 +157,5 @@ static inline uint32_t handle_convert_dmah_to_u32(devh_t h) {
               shmh_t:  handle_convert_shmh_to_u32,   \
               dmah_t:  handle_convert_dmah_to_u32    \
         ) (T)
-
 
 #endif/*HANDLE_H*/

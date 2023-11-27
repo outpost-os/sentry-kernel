@@ -1,5 +1,5 @@
-#include <uapi/handle.h>
-#include <sentry/managers/task.h>
+#include <uapi/handle_defs.h>
+#include <sentry/job.h>
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Schema for task metadata",
