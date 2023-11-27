@@ -301,7 +301,7 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
         }
         /* for all devices of a task... */
         for (uint8_t dev = 0; dev < task_table[i].metadata->num_devs; ++i) {
-            if (handle_convert_to_u32(task_table[i].metadata->devices[dev]) ==
+            if (handle_convert_to_u32(task_table[i].metadata->devs[dev]) ==
                 handle_convert_to_u32(d)) {
                     /* task metadata hold the same dev handle as requested */
                     memcpy(t, &task_table[i].metadata->handle, sizeof(taskh_t));

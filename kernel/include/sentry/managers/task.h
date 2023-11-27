@@ -129,10 +129,14 @@ static_assert((sizeof(job_flags_t) == sizeof(uint8_t)), "job_flags_t as invalid 
  */
 typedef struct task_meta {
     /**
-     * Task and struct identification part
+     * Task metadata identification part
      */
     uint64_t        magic;         /**< task structure magic number */
     uint32_t        version;       /**< structure version, may vary based on SDK version */
+
+    /**
+     * Task identification and generic configuration part
+     */
     taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
@@ -140,7 +144,18 @@ typedef struct task_meta {
     job_flags_t     flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
-     * Memory mapping information, used for context switching and MPU configuration
+     * domain management. Ignore if HAS_DOMAIN is not set
+     */
+
+    /**< domain identifier. Depending on the configured domain
+        policy, process ability to communicate with others,
+        process scheduling policy and process election
+        pre- and post- phases may be affected.
+    */
+    uint8_t         domain;
+
+    /**
+     * Task memory mapping information, used for context switching and MPU configuration
      * Using all of these, the task manager can fully forge the task RAM mapping, using
      * the following layout:
      *  RAM (RW-)      FLASH (R-X)
@@ -164,29 +179,20 @@ typedef struct task_meta {
     uint16_t        stack_size;       /**< main thtrad stack size */
     uint16_t        entrypoint_offset; /**< offset of _start in text section */
     uint16_t        finalize_offset;   /**< offset of the _finalize in text section */
+
     /**
      * Task ressources, that may also requires memory mapping, and associated perms
      */
     uint8_t         num_shm;          /**< number of shared memories */
-    uint8_t         shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
+    shmh_t          shms[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
     uint8_t         num_devs;         /**< number of devices */
-    devh_t          devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
+    devh_t          devs[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
     uint8_t         num_dmas;         /**< number of DMA streams */
-    uint8_t         dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
+    dmah_t          dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
                                         FIXME: define dma_t bitfield or struct */
 
-    /**
-     * domain management. Ignore if HAS_DOMAIN is not set
-     */
-    uint8_t         domain;           /**< domain identifier. Depending on the configured domain
-                                            policy, process ability to communicate with others,
-                                            process scheduling policy and process election
-                                            pre- and post- phases may be affected.
-                                             */
-
-
     /*
-     * Security part: the structure itself and the associated task memory
+     * Task integrity part: the structure itself and the associated task memory
      * is checked using HMAC, based on a private key used at production time and
      * verified by the kernel at startup time
      */
