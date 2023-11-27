@@ -16,7 +16,7 @@
         "rust_type": "TaskHandle",
         "value": {
             "taskid": 1234,
-            "familly": 0,
+            "family": 0,
             "rerun": 0
         },
         "description": "task identifier (see handle.h, set with rerun=0)"
@@ -119,7 +119,7 @@
         "c_type": "shmh_t",
         "rust_type": "SHMHandle",
         "value": {
-          "familly": 6,
+          "family": 6,
           "id": 12
         },
         "description": "shared memory handler identifier"
@@ -128,10 +128,28 @@
         "c_type": "shmh_t",
         "rust_type": "SHMHandle",
         "value": {
-          "familly": 6,
-          "id": 12
+          "family": 6,
+          "id": 4
         },
         "description": "shared memory handler identifier"
+      },
+      {
+        "c_type": "shmh_t",
+        "rust_type": "SHMHandle",
+        "value": {
+          "family": 6,
+          "id": 0
+        },
+        "description": "empty slot"
+      },
+      {
+        "c_type": "shmh_t",
+        "rust_type": "SHMHandle",
+        "value": {
+          "family": 6,
+          "id": 0
+        },
+        "description": "empty slot"
       }
     ],
     "num_dev": {
@@ -145,10 +163,37 @@
         "c_type": "devh_t",
         "rust_type": "DEVHandle",
         "value": {
-          "familly": 1,
-          "id": 12
+          "family": 1,
+          "id": 42
         },
         "description": "device handler identifier"
+      },
+      {
+        "c_type": "devh_t",
+        "rust_type": "DEVHandle",
+        "value": {
+          "family": 1,
+          "id": 43
+        },
+        "description": "device handler identifier"
+      },
+      {
+        "c_type": "devh_t",
+        "rust_type": "DEVHandle",
+        "value": {
+          "family": 1,
+          "id": 0
+        },
+        "description": "empty slot"
+      },
+      {
+        "c_type": "devh_t",
+        "rust_type": "DEVHandle",
+        "value": {
+          "family": 1,
+          "id": 0
+        },
+        "description": "empty slot"
       }
     ],
     "num_dma": {
@@ -162,10 +207,37 @@
         "c_type": "dmah_t",
         "rust_type": "DMAHandle",
         "value": {
-          "familly": 5,
-          "id": 12
+          "family": 5,
+          "id": 0
         },
-        "description": "dma stream handler identifier"
+        "description": "empty slot"
+      },
+      {
+        "c_type": "dmah_t",
+        "rust_type": "DMAHandle",
+        "value": {
+          "family": 5,
+          "id": 0
+        },
+        "description": "empty slot"
+      },
+      {
+        "c_type": "dmah_t",
+        "rust_type": "DMAHandle",
+        "value": {
+          "family": 5,
+          "id": 0
+        },
+        "description": "empty slot"
+      },
+      {
+        "c_type": "dmah_t",
+        "rust_type": "DMAHandle",
+        "value": {
+          "family": 5,
+          "id": 0
+        },
+        "description": "empty slot"
       }
     ],
     "task_hmac": [

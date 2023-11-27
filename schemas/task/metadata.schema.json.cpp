@@ -122,10 +122,10 @@
         "type": "object",
         "properties": {
           "c_type": {
-            "enum":["uint32_t"]
+            "enum":["uint8_t"]
           },
           "rust_type": {
-            "enum":["u32"]
+            "enum":["u8"]
           },
           "value": {
             "type": "number"

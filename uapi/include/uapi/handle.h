@@ -107,14 +107,14 @@ static_assert(sizeof(irqh_t) == sizeof(uint32_t), "invalid irqh_t opaque size");
 typedef struct shm_handle {
     unsigned int reserved : 13; /* TODO define reserved content */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
-    unsigned int familly  : 3;
+    unsigned int family  : 3;
 } shmh_t;
 static_assert(sizeof(shmh_t) == sizeof(uint32_t), "invalid shmh_t opaque size");
 
 typedef struct dma_handle {
     unsigned int reserved : 13; /* TODO define reserved content */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
-    unsigned int familly  : 3;
+    unsigned int family  : 3;
 } dmah_t;
 static_assert(sizeof(dmah_t) == sizeof(uint32_t), "invalid dmah_t opaque size");
 
@@ -143,7 +143,7 @@ static inline uint32_t handle_convert_taskh_to_u32(taskh_t h) {
 
 static inline uint32_t handle_convert_shmh_to_u32(shmh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               ((h.family << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
                (h.reserved & 0xfff1UL));
 }
 
@@ -155,7 +155,7 @@ static inline uint32_t handle_convert_devh_to_u32(devh_t h) {
 
 static inline uint32_t handle_convert_dmah_to_u32(devh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-               ((h.familly << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
+               ((h.family << HANDLE_FAMILLY_SHIFT) & HANDLE_FAMILLY_MASK) |
                (h.dev_cap & 0xfffUL));
 }
 
