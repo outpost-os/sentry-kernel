@@ -32,7 +32,7 @@ sentry_private_gen_source_set.add(stm32_rcc_c, stm32_rcc_dt_c)
 sentry_private_gen_header_set.add(stm32_rcc_h, stm32_rcc_dt_h)
 endif
 
-# per subfamilly RCC additions
+# per subfamily RCC additions
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
 stm32f4_rcc_c_template = files('stm32f4-rcc.c.in')
 stm32f4_rcc_h_template = files('stm32f4-rcc.h.in')

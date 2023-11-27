@@ -5,7 +5,7 @@
 #define RCC_STM32F4_H
 
 #ifndef CONFIG_SOC_SUBFAMILY_STM32F4
-#error "this header should not be included in SoCs others than STM32F4 familly"
+#error "this header should not be included in SoCs others than STM32F4 family"
 #endif
 
 /**
@@ -32,7 +32,7 @@
 # define RCC_APB1_BUS_FREQUENCY_MAX 42*MEGA
 # define RCC_APB2_BUS_FREQUENCY_MAX 84*MEGA
 # define RCC_SYSCLOCK_FREQUENCY_MAX 60*MEGA
-#elif defined(CONFIG_SOC_SUBFAMILY_STM32F4) /* XXX: Other F4 familly soc */
+#elif defined(CONFIG_SOC_SUBFAMILY_STM32F4) /* XXX: Other F4 family soc */
 # define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(50,432)
 # define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(100*MEGA,432*MEGA)
 # if defined(SOC_SUBFAMILY_STM32F4x5_7)

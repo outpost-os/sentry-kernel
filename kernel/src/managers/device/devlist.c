@@ -36,7 +36,7 @@ device_state_t devices_state[DEVICE_LIST_SIZE];
 static inline const device_t *mgr_device_get_device(devh_t d)
 {
     const device_t *dev = NULL;
-    /* here we do not match only the id but also the capability and familly
+    /* here we do not match only the id but also the capability and family
      * (i.e. full opaque check)
      */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {

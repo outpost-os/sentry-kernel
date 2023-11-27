@@ -34,7 +34,7 @@ kstatus_t sched_fifo_init(void)
     taskh_t current = {
         .rerun = 0,
         .id = SCHED_NO_TASK_LABEL,
-        .familly = HANDLE_TASKID,
+        .family = HANDLE_TASKID,
     };
     pr_info("initialize scheduler");
     /* at startup, and without task, */
@@ -93,7 +93,7 @@ static inline taskh_t sched_fifo_dequeue_task(void)
     taskh_t t = {
         .rerun = 0,
         .id = SCHED_IDLE_TASK_LABEL,
-        .familly = HANDLE_TASKID,
+        .family = HANDLE_TASKID,
     };
     if (likely(sched_fifo_ctx.empty == false)) {
         t = sched_fifo_ctx.tasks_queue[sched_fifo_ctx.next_task];
@@ -118,7 +118,7 @@ taskh_t sched_fifo_elect(void)
     taskh_t tsk = {
         .rerun = 0,
         .id = SCHED_IDLE_TASK_LABEL,
-        .familly = HANDLE_TASKID,
+        .family = HANDLE_TASKID,
     };
     if (likely(sched_fifo_ctx.empty == false)) {
         tsk = sched_fifo_dequeue_task();

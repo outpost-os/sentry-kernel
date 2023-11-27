@@ -41,9 +41,9 @@ core_h = custom_target('gen_core',
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
-# the way we generate the buses list depend on the SoC familly. To do
+# the way we generate the buses list depend on the SoC family. To do
 # that, the input jinja template is selected depending on the configured SOC
-# familly or subfamilly
+# family or subfamily
 buses_h_in_set = ssmod.source_set()
 buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-buses.h.in'))
 buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32l4-buses.h.in'))

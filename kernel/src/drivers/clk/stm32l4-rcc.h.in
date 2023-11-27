@@ -5,7 +5,7 @@
 #define RCC_STM32L4_H
 
 #ifndef CONFIG_SOC_SUBFAMILY_STM32L4
-#error "this header should not be included in SoCs others than STM32L4 familly"
+#error "this header should not be included in SoCs others than STM32L4 family"
 #endif
 
 /**
@@ -32,7 +32,7 @@
 #define RCC_PLLCFGR_PLLP_SHIFT (17UL)
 #define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP)
 
-/* in L4 familly CIR register is denoted CICR (interrupt clear register)*/
+/* in L4 family CIR register is denoted CICR (interrupt clear register)*/
 #define RCC_CIR_REG RCC_CICR_REG
 
 kstatus_t rcc_select_system_clock(void);

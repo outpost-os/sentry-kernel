@@ -296,7 +296,7 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta,
             ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
             goto end;
         }
-        pr_info("[task handle {%04x|%04x|%03x}] task forged", meta->handle.rerun, meta->handle.id, meta->handle.familly);
+        pr_info("[task handle {%04x|%04x|%03x}] task forged", meta->handle.rerun, meta->handle.id, meta->handle.family);
     }
     ctx.numtask++;
     ctx.state = last_loop_state;
@@ -335,7 +335,7 @@ static inline kstatus_t task_init_finalize(void)
 #endif
 
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
-        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.familly);
+        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
     ctx.numtask++;
     /* idle is not scheduled, it is instead a fallback of all schedulers, using its handler
      * at election time only

@@ -159,7 +159,7 @@ taskh_t sched_rrmq_elect(void)
     taskh_t tsk = {
         .rerun = 0,
         .id = SCHED_IDLE_TASK_LABEL,
-        .familly = HANDLE_TASKID,
+        .family = HANDLE_TASKID,
     };
     thread_state_t state;
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {

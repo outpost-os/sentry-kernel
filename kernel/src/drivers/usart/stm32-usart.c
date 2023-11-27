@@ -25,7 +25,7 @@
 #include "stm32-usart-dt.h"
 
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
-/* STM32L4 familly USART registers are slightly different but we can have an
+/* STM32L4 family USART registers are slightly different but we can have an
  * an homogeneous driver thanks to the simplicity of our usage at kernel level
  */
 #define USART_SR_REG USART_ISR_REG

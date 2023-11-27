@@ -77,12 +77,12 @@ config SOC_SUBFAMILY_STM32F4
 config SOC_SUBFAMILY_STM32F4x5_7
 	bool
 	help
-	  "STM32F405/F407/F415/F417 soc sub familly"
+	  "STM32F405/F407/F415/F417 soc sub family"
 
 config SOC_SUBFAMILY_STM32F42_3xx
 	bool
 	help
-	  "STM32F427/F429/F437/F439 soc sub familly"
+	  "STM32F427/F429/F437/F439 soc sub family"
 
 config SOC_SUBFAMILY_STM32L4
 	bool
@@ -90,7 +90,7 @@ config SOC_SUBFAMILY_STM32L4
 config SOC_SUBFAMILY_STM32L47_8x
 	bool
 	help
-	  "STM32L47x/L48x soc sub familly"
+	  "STM32L47x/L48x soc sub family"
 
 config SOC_SUBFAMILY_STM32U5
 	bool
