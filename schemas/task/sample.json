@@ -117,7 +117,7 @@
     "shms": [
       {
         "c_type": "shmh_t",
-        "rust_type": "shmh_t",
+        "rust_type": "SHMHandle",
         "value": {
           "familly": 6,
           "id": 12
@@ -126,7 +126,7 @@
       },
       {
         "c_type": "shmh_t",
-        "rust_type": "shmh_t",
+        "rust_type": "SHMHandle",
         "value": {
           "familly": 6,
           "id": 12
@@ -143,7 +143,7 @@
     "devs": [
       {
         "c_type": "devh_t",
-        "rust_type": "devh_t",
+        "rust_type": "DEVHandle",
         "value": {
           "familly": 1,
           "id": 12
@@ -160,7 +160,7 @@
     "dmas": [
       {
         "c_type": "dmah_t",
-        "rust_type": "dmah_t",
+        "rust_type": "DMAHandle",
         "value": {
           "familly": 5,
           "id": 12
