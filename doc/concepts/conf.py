@@ -4,6 +4,7 @@
 extensions = [
     'sphinx_rtd_theme',
     'sphinx_simplepdf',
+    'sphinx.ext.todo',
 ]
 
 simplepdf_vars = {

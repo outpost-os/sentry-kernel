@@ -26,7 +26,7 @@ void task_idle_init(void)
     memset((void*)&idle_meta, 0x0, sizeof(task_meta_t));
     idle_meta.handle.rerun = 0;
     idle_meta.handle.id = SCHED_IDLE_TASK_LABEL;
-    idle_meta.handle.familly = HANDLE_TASKID;
+    idle_meta.handle.family = HANDLE_TASKID;
     idle_meta.magic = CONFIG_TASK_MAGIC_VALUE;
     idle_meta.flags = (THREAD_FLAG_AUTOSTART|THREAD_FLAG_PANICONEXIT);
     idle_meta.s_text = (size_t)&_sidle;

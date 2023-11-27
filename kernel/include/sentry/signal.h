@@ -5,6 +5,7 @@
 #define SIGNAL_H
 
 #include <stdint.h>
+#include <uapi/signal.h>
 
 /** Basic signals that are handled at UAPI level. If more
   complex signal handling is required, IPC with upper layer protocol
@@ -23,20 +24,6 @@
   is supported, instead, a wait_for_event() call can be made in the main thread. Spawning
   threads is complex and do consume a lot of memory.
 */
-typedef enum signal {
-    SIGNAL_ABORT,   /**< Abort signal */
-    SIGNAL_ALARM,   /**< timer (from alarm) */
-    SIGNAL_BUS,     /**< bus error (bad memory access, memory required)*/
-    SIGNAL_CONT,    /**< continue if previously stopped */
-    SIGNAL_ILL,     /**< illegal instruction. Can be also used for upper protocols */
-    SIGNAL_IO,      /**< I/O now ready */
-    SIGNAL_PIPE,    /**< broken pipe */
-    SIGNAL_POLL,    /**< event pollable */
-    SIGNAL_TERM,    /**< termination signal. Can be used to stop an IPC stream for e.g. (remote process termination is not possible) */
-    SIGNAL_TRAP,    /**< trace/bp signal (debug usage )*/
-    SIGNAL_USR1,    /**< 1st user-defined signal */
-    SIGNAL_USR2,    /**< 2nd user-defined signal */
-} signal_t;
 
 typedef struct signal_context {
     uint32_t tbd;

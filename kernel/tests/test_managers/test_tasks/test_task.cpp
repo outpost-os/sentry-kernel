@@ -188,7 +188,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
     uint16_t base_id = 0x1000;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         task_full_context[i].handle.id = base_id++;
-        task_full_context[i].handle.familly = HANDLE_TASKID;
+        task_full_context[i].handle.family = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
         task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];
@@ -215,7 +215,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
     memset(task_full_context, 0x0, sizeof(task_full_context));
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         task_full_context[i].handle.id = gen_label();
-        task_full_context[i].handle.familly = HANDLE_TASKID;
+        task_full_context[i].handle.family = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
         task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];

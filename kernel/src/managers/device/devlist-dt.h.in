@@ -136,7 +136,7 @@ static const device_t devices[] = {
                 .dev_cap = 0x0UL,
                 .reserved = 0x0UL,
                 .id = {{ "0x%xUL"|format(loop.index) }},
-                .familly = HANDLE_DEVICE,
+                .family = HANDLE_DEVICE,
             },
             .baseaddr = {{ "0x%08x"|format(device.reg[0]) }},
             .size = {{ "0x%08x"|format(device.reg[1]) }},

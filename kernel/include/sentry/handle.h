@@ -24,13 +24,13 @@
     h.ioport <= PLATFORM_GPIO_PORT_NUM &&
     h.iopin  <= PLATFORM_GPIO_PIN_NUM &&
     h.reserved == 0 &&
-    h.familly == HANDLE_IO;
+    h.family == HANDLE_IO;
 
   // this preficate check that the interrupt handle
   predicate handle_inth_is_valid(inth_t h) =
     h.irqn <= __NVIC_VECTOR_LEN &&
     h.reserved == 0 &&
-    h.familly == HANDLE_INT;
+    h.family == HANDLE_INT;
  */
 
 /*
