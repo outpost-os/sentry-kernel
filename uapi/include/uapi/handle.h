@@ -33,17 +33,14 @@
  * pin is already hardcoded in the ioh_t specific part of the handler.
  */
 
-typedef enum handle_type {
-  HANDLE_TASKID = 0,
-  HANDLE_DEVICE = 1,
-  HANDLE_IO     = 2,
-  HANDLE_IRQ    = 3,
-  HANDLE_IPC    = 4,
-  HANDLE_DMA    = 5,
-  HANDLE_SHM    = 6,
-  HANDLE_SIGNAL = 7,
-} handle_type_t;
-
+#define HANDLE_TASKID 0
+#define HANDLE_DEVICE 1
+#define HANDLE_IO     2
+#define HANDLE_IRQ    3
+#define HANDLE_IPC    4
+#define HANDLE_DMA    5
+#define HANDLE_SHM    6
+#define HANDLE_SIGNAL 7
 
 #define HANDLE_ID_SHIFT         13UL
 #define HANDLE_ID_MASK          0x7fff8000UL

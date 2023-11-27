@@ -70,26 +70,18 @@ typedef enum job_state {
 } job_state_t;
 
 /**
- * TODO: to be moved to dedicated header
- * for a given task job, specify the spwaning mode
- *
- * needs separated blocks:
- * - start mode (auto or not)
- * - exit behavior (restart,panic,restart_with_period)
- *
- * to avoid any invalid flags association
+ * These are job start mode possible values (bitfield)
  */
-typedef enum job_start_mode {
-    JOB_FLAG_NOSTART         = 0x0UL,
-    JOB_FLAG_AUTOSTART       = 0x1UL,
-} job_start_mode_t;
+#define JOB_FLAG_NOSTART     0
+#define JOB_FLAG_AUTOSTART   1
 
-typedef enum job_exit_mode {
-    JOB_FLAG_NORESTARTONEXIT = 0x0UL,
-    JOB_FLAG_RESTARTONEXIT   = 0x1UL,
-    JOB_FLAG_PANICONEXIT     = 0x2UL,
-    JOB_FLAG_PERIODICRESTART = 0x3UL,
-} job_ext_mode_t;
+/**
+ * These are job exit mode possible values (bitfield)
+ */
+#define JOB_FLAG_NORESTARTONEXIT 0
+#define JOB_FLAG_RESTARTONEXIT   1
+#define JOB_FLAG_PANICONEXIT     2
+#define JOB_FLAG_PERIODICRESTART 3
 
 typedef struct __attribute__((packed)) job_flags {
     unsigned int start_mode: 1;

@@ -134,6 +134,9 @@ if with_kernel_opt
 subdir('kernel')
 endif
 
+# schemas and tooling
+subdir('schemas')
+
 with_doc_opt = get_option('with_doc')
 if with_doc_opt
   subdir('doc')
