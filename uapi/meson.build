@@ -1,5 +1,6 @@
 # UAPI header generation is always required
 
+pkg_config = import('pkgconfig')
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('src/lib.rs')
 
@@ -18,6 +19,13 @@ sentry_c_uapi_dep = declare_dependency(
     dependencies: [ libuapirs_dep ],
     compile_args: [ global_build_args, target_arch_args ],
     include_directories: [ userspace_uapi_include_dir ],
+)
+
+pkg_config.generate(
+    uapi_rs_lib,
+    filebase: 'uapi',
+    libraries: [ libuapirs_dep ],
+    extra_cflags: [ global_build_args, target_arch_args ]
 )
 
 endif
