@@ -18,7 +18,7 @@ index 0000000..b9190c0
 @@ -0,0 +1,17 @@
 +project('bitflags-rs', 'rust',
 +  version : '2.4.0',
-+  meson_version : '>= 1.0.0',
++  meson_version : '>= 1.3.0',
 +  default_options: ['target=x86_64-unknown-linux-gnu']
 +)
 +
@@ -28,7 +28,7 @@ index 0000000..b9190c0
 +       '--target=@0@'.format(get_option('target')),
 +    ], language: 'rust', native: false)
 +
-+bitflags = static_library('bitflags', 'src/lib.rs')
++bitflags = static_library('bitflags', 'src/lib.rs', install: true)
 +
 +bitflags_dep = declare_dependency(link_with : bitflags)
 +meson.override_dependency('bitflags-rs', bitflags_dep)
@@ -40,6 +40,5 @@ index 0000000..e69be11
 +++ b/meson.options
 @@ -0,0 +1 @@
 +option('target', type: 'string')
--- 
+--
 2.34.1
-
