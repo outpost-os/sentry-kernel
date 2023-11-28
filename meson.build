@@ -143,9 +143,6 @@ if with_doc_opt
   subdir('doc')
 endif
 
-
-meson.install_dependency_manifest('manifest.json')
-
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
