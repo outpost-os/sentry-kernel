@@ -19,6 +19,7 @@ task_metadata_schema = custom_target(
         '-I', join_paths(meson.current_source_dir(), '../../kernel/include'),
         '-I', join_paths(meson.current_source_dir(), '../../uapi/include'),
         '-include', '@0@'.format(kconfig_h),
+        '-nostdinc', '-undef',
         '-E', '-P',
         '-MT', '@INPUT@',
         '-MMD', '-MF', '@DEPFILE@',
