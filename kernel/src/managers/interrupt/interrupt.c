@@ -16,7 +16,6 @@
 
 stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
 {
-    stack_frame_t *next_frame = frame;
     devh_t dev;
     taskh_t owner;
     /* get the device owning the interrupt */
@@ -29,9 +28,17 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
         /* user interrupt with no owning task ???? */
         panic();
     }
+    irqh_t ev = {
+        .irqn = IRQn,
+        .id = IRQn, /** XXX: is that field has some logic, or being the IRQn only is enough? */
+        .family = HANDLE_IRQ,
+    };
     /* push the inth event into the task input events queue */
-    /* TODO adding inth event to target task input queue */
-    return next_frame;
+    if (unlikely(mgr_task_push_event(ev, owner) == K_STATUS_OKAY)) {
+        /* failed to push IRQ event !!! XXX: what do we do ? */
+        panic();
+    }
+    return frame;
 }
 
 kstatus_t mgr_interrupt_init(void)
