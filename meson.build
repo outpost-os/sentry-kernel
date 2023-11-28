@@ -116,6 +116,8 @@ with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
 
+subdir('support/arch')
+
 # Idle implies libuapi
 if with_idle_opt and not with_uapi_opt
     warning('with_idle is set but witout libuapi, uapi will be forced')
