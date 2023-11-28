@@ -5,6 +5,8 @@ if meson.is_subproject()
 warning('!!! Are you sure you want to build the Idle task as a subproject ?')
 endif
 
+idle_task_name = 'idle'
+
 # populated in src
 sentry_ldscript_template = files()
 
@@ -24,12 +26,12 @@ idle_linker_args = [
     '-z', 'noexecstack',
 ]
 
-idle_map_file = '@0@.map'.format(meson.project_name())
+idle_map_file = '@0@.map'.format(idle_task_name)
 
 uapi_inc = include_directories('../uapi/include')
 
 idle_elf = executable(
-    'idle',
+    idle_task_name,
     name_suffix: 'elf',
     sources: [idle_sources ],
     include_directories: uapi_inc,
@@ -39,6 +41,8 @@ idle_elf = executable(
     link_language: 'c',
     link_depends: [ idle_ldscript ],
     install: true,
-    install_dir: '',
 )
+
+meson.add_install_script(sentry_install_script, idle_map_file, get_option('infodir') / idle_task_name)
+
 endif

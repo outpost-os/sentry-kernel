@@ -51,7 +51,6 @@ sentry_linker_args = [
 
 sentry_map_file = '@0@.map'.format(meson.project_name())
 
-
 sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
@@ -63,7 +62,6 @@ sentry_elf = executable(
     link_language: 'c',
     link_depends: [ sentry_ldscript ],
     install: true,
-    install_dir: '',
 )
 
 sentry_bin = custom_target(
@@ -72,22 +70,12 @@ sentry_bin = custom_target(
     command: [objcopy, '--output-target=binary', '@INPUT@', '@OUTPUT@'],
     build_by_default: true,
     install: true,
-    install_dir: '',
+    install_dir: get_option('bindir'),
+    install_tag: 'runtime',
 )
 
-# TODO: Use an install hook instead of dummy target
-needs_wsl = []
-if build_machine.system() == 'windows'
-    needs_wsl = ['wsl']
-endif
-sentry_map = custom_target(
-    input: sentry_elf,
-    output: sentry_map_file,
-    command: needs_wsl + ['touch', '@OUTPUT@'],
-    build_by_default: true,
-    install: true,
-    install_dir: '',
-)
+meson.add_install_script(sentry_install_script, sentry_map_file, get_option('infodir') / meson.project_name())
+
 endif
 
 with_tests_opt = get_option('with_tests')

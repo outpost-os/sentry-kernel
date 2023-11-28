@@ -27,4 +27,7 @@ task_metadata_schema = custom_target(
         '-o', '@OUTPUT@',
     ],
     build_by_default: true,
+    install: true,
+    install_dir:  get_option('datadir') / meson.project_name(),
+    install_tag: 'bin-devel',
 )

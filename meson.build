@@ -4,7 +4,9 @@ project('sentry-kernel',
     default_options: [
         'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
         'warning_level=3', 'optimization=s',
-        'default_library=static', 'b_pie=false', 'b_staticpic=false'
+        'default_library=static', 'b_pie=false', 'b_staticpic=false',
+        'licensedir=share/info/sentry-kernel',
+        'pkgconfig.relocatable=true',
     ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
@@ -13,6 +15,7 @@ project('sentry-kernel',
 top_dir = meson.current_source_dir()
 
 objcopy = find_program('objcopy')
+sentry_install_script = find_program('support/scripts/install.py')
 
 # dunamai is used for version sync with gconf (in the same way poetry-dynamic-versioning does)
 keyval = import('keyval')
@@ -114,6 +117,8 @@ with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
 
+subdir('support/arch')
+
 # Idle implies libuapi
 if with_idle_opt and not with_uapi_opt
     warning('with_idle is set but witout libuapi, uapi will be forced')
@@ -141,9 +146,6 @@ with_doc_opt = get_option('with_doc')
 if with_doc_opt
   subdir('doc')
 endif
-
-
-meson.install_dependency_manifest('manifest.json')
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
