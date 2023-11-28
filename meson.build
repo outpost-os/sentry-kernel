@@ -4,7 +4,8 @@ project('sentry-kernel',
     default_options: [
         'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
         'warning_level=3', 'optimization=s',
-        'default_library=static', 'b_pie=false', 'b_staticpic=false'
+        'default_library=static', 'b_pie=false', 'b_staticpic=false',
+        'licensedir=share/info/sentry-kernel',
     ],
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
