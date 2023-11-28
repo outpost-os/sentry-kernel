@@ -177,6 +177,25 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 
 size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
+/* specialized event pushing API, do not use directly but instead Generic below */
+kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t);
+kstatus_t mgr_task_push_ipch_event(ipch_t ev, taskh_t t);
+kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t);
+
+/**
+ * @def generic task manager event pushing API
+ *
+ * pushing interrupts (inth_t), IPC (ipch_t) or signals (sigh_t) to a job through
+ * its taskh_t identifier.
+ * If the target task is waiting for an event, the task is set ready again and
+ * readded to the scheduler.
+ */
+#define mgr_task_push_event(T, t) _Generic((T),  \
+              irqh_t:  mgr_task_push_inth_event, \
+              ipch_t:  mgr_task_push_ipch_event, \
+              sigh_t:  mgr_task_push_sigh_event  \
+        ) (T, t)
+
 #ifdef __cplusplus
 }
 #endif

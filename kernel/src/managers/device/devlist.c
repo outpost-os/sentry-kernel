@@ -139,3 +139,55 @@ secure_bool_t mgr_device_is_kernel(devh_t d)
 end:
     return res;
 }
+
+static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint8_t IRQn)
+{
+    secure_bool_t res = SECURE_FALSE;
+    if (unlikely(devinfo->num_interrupt == 0)) {
+        goto end;
+    }
+    for (uint8_t i = 0; i < devinfo->num_interrupt; ++i) {
+        if (devinfo->its[i].it_num == IRQn) {
+            res = SECURE_TRUE;
+            goto end;
+        }
+    }
+end:
+    return res;
+}
+
+kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(devh == NULL)) {
+        goto end;
+    }
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (dev_has_interrupt(&devices_state[i].device->devinfo, IRQn) == SECURE_TRUE) {
+            memcpy(devh, &devices_state[i].device->devinfo.handle, sizeof(devh_t));
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+    status = K_ERROR_NOENT;
+end:
+    return status;
+}
+
+kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(devinfo == NULL)) {
+        goto end;
+    }
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (dev_has_interrupt(&devices_state[i].device->devinfo, IRQn) == SECURE_TRUE) {
+            *devinfo = &devices_state[i].device->devinfo;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+    status = K_ERROR_NOENT;
+end:
+    return status;
+}

@@ -6,6 +6,48 @@
 
 #include <sentry/managers/task.h>
 
+#define TASK_EVENT_QUEUE_DEPTH 16
+
+typedef struct task_event {
+    uint32_t events[TASK_EVENT_QUEUE_DEPTH]; /** all event (inth_t, sigh_t and ipch_t) are uint32_t */
+    uint8_t size;
+    uint8_t num_ev;
+    uint8_t _start;
+    uint8_t _end;
+} task_event_t;
+
+/**
+ * @brief enqueuing event into one of the task input queues
+ */
+static inline kstatus_t task_enqueue_event(uint32_t ev, task_event_t *queue) {
+    kstatus_t status;
+    if (unlikely(queue->num_ev == TASK_EVENT_QUEUE_DEPTH)) {
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    queue->events[queue->_end] = ev;
+    queue->_start = (queue->_end + 1) % TASK_EVENT_QUEUE_DEPTH;
+    queue->num_ev++;
+err:
+    return status;
+}
+
+/**
+ * @brief dequeuing event from one of the task input queues
+ */
+static inline kstatus_t task_dequeue_event(uint32_t *ev, task_event_t *queue) {
+    kstatus_t status;
+    if (unlikely(queue->num_ev == 0)) {
+        status = K_ERROR_NOENT;
+        goto err;
+    }
+    *ev = queue->events[queue->_start];
+    queue->_start = (queue->_start + 1) % TASK_EVENT_QUEUE_DEPTH;
+    queue->num_ev--;
+err:
+    return status;
+}
+
 typedef struct task {
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
     /*
@@ -19,18 +61,20 @@ typedef struct task {
     taskh_t         handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
     /* about events */
-    ipc_context_t   ipc_events; /**<
-                                Each task only has one IPC context (only blocking IPC supported).
-                                When sending IPC, the thread is preempted and wait for the other
-                                to read for its IPC content (no double user/kernel copy, only
-                                user-to-user blob) ensured by disabled reentrancy in kernel.
-                                The context hold only, for a given task, the info indicating if
-                                there is an IPC received and its effective size.
-                                When impacting the thread state (blocking IPC, the state falg
-                                is used)
-                                */
-    signal_context_t signal_events; /**< incomming signal if received, storing signal type and
-                                        source identifier */
+
+    /**<
+      Each task only has one IPC context (only blocking IPC supported).
+      When sending IPC, the thread is preempted and wait for the other
+      to read for its IPC content (no double user/kernel copy, only
+      user-to-user blob) ensured by disabled reentrancy in kernel.
+      The context hold only, for a given task, the info indicating if
+      there is an IPC received and its effective size.
+      When impacting the thread state (blocking IPC, the state falg
+      is used)
+    */
+    task_event_t    ipcs;
+    task_event_t    sigs;
+    task_event_t    ints;
 } task_t;
 
 /**
