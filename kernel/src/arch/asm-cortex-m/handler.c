@@ -95,6 +95,8 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             /* periodic, every each millisecond execution */
             frame = systick_handler(frame);
             break;
+        case (it >= 0):
+            frame = userisr_handler(frame, it);
         default:
             /* defaulting to nothing... */
             break;

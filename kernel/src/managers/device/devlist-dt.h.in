@@ -143,15 +143,72 @@ static const device_t devices[] = {
             .num_interrupt = 0, // FIXME: handle IT in DTS
             .its = {
                 {% for ios in [ 1,2,3,4,5,6,7,8] -%}
-                { .it_controler = 0UL, .it_num = 0UL, .it_handler = NULL },
+                { .it_controler = 0UL, .it_num = 0UL },
                 {% endfor -%}
             },
-            .num_ios = 0, // FIXME: parse DTS device pinmux cfg
+            {#
+             forge dev I/P using DTS pinmux configuration.
+             filling table with zero cell if needed.
+            -#}
+            {% if device['pinctrl-0'] -%}
+            {% set numio = device['pinctrl-0']|length %}
+            .num_ios = {{ numio }},
             .ios = {
-                {% for ios in [ 1,2,3,4,5,6,7,8] -%}
-                { .port = 0UL, .pin = 0UL, .config = 0UL },
+                {% for io in [ 0,1,2,3,4,5,6,7] -%}
+                {% if io < numio -%}
+                {% set io = device['pinctrl-0'][io] -%}
+                {
+                    {#
+                     the GPIO port id is numeric here, using the same resolution
+                     as the GPIO driver device tree forge (see stm32-gpio-dt.h for e.g.
+                    -#}
+                    {% set ns.io_gpio_port=0 -%}
+                    {% set gpio_ports = dts.get_compatible("st,stm32-gpio") -%}
+                    {% for port in gpio_ports -%}
+                    {% if port.status and port.status == "okay" -%}
+                    {% if port.label == io.pinmux[0].label -%}
+                    /* using port {{ port.label.upper() }} */
+                    .port = {{ ns.io_gpio_port }},
+                    {% endif -%}
+                    {% set ns.io_gpio_port = ns.io_gpio_port + 1 -%}
+                    {% endif -%}
+                    {% endfor -%}
+                    .pin = {{ io.pinmux[1] }},
+                    .mode = {{ io.pinmux[2] }},
+                    .af = {{ io.pinmux[3] }},
+                    .ppull =  {{ io.pincfg[0] }},
+                    .speed =  {{ io.pincfg[1] }},
+                    .pupdr =  {{ io.pincfg[2] }},
+                },
+                {% else -%}
+                {
+                    .port = 0,
+                    .pin = 0,
+                    .mode = 0,
+                    .af = 0,
+                    .ppull = 0,
+                    .speed = 0,
+                    .pupdr = 0,
+                },
+                {% endif -%}
                 {% endfor -%}
             },
+            {% else -%}
+            .num_ios = 0,
+            .ios = {
+                {% for io in [0,1,2,3,4,5,6,7] -%}
+                {
+                    .port = 0,
+                    .pin = 0,
+                    .mode = 0,
+                    .af = 0,
+                    .ppull = 0,
+                    .speed = 0,
+                    .pupdr = 0,
+                },
+                {% endfor -%}
+            },
+            {% endif -%}
         },
         .capability = {{ "%s"|format(capa) }},
         {% if device.clocks and not device.label == "rcc" -%}
