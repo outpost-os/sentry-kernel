@@ -11,16 +11,16 @@
 /**
  * These are job start mode possible values (bitfield)
  */
-#define JOB_FLAG_NOSTART     0
-#define JOB_FLAG_AUTOSTART   1
+#define JOB_FLAG_START_NOAUTO 0UL
+#define JOB_FLAG_START_AUTO   1UL
 
 /**
  * These are job exit mode possible values (bitfield)
  */
-#define JOB_FLAG_NORESTARTONEXIT 0
-#define JOB_FLAG_RESTARTONEXIT   1
-#define JOB_FLAG_PANICONEXIT     2
-#define JOB_FLAG_PERIODICRESTART 3
+#define JOB_FLAG_EXIT_NORESTART       0UL
+#define JOB_FLAG_EXIT_RESTART         1UL
+#define JOB_FLAG_EXIT_PANIC           2UL
+#define JOB_FLAG_EXIT_PERIODICRESTART 3UL
 
 /*
  * this header is used for Sentry JSON schema generation. To avoid C content

@@ -16,7 +16,7 @@
         "rust_type": "TaskHandle",
         "value": {
             "taskid": 1234,
-            "family": 0,
+            "family": "0UL",
             "rerun": 0
         },
         "description": "task identifier (see handle.h, set with rerun=0)"
@@ -43,8 +43,8 @@
         "c_type": "job_flags_t",
         "rust_type": "JobFlags",
         "value": {
-          "start_mode": 0,
-          "exit_mode": 0
+          "start_mode": "0UL",
+          "exit_mode": "0UL"
         },
         "description": "task start and exit flags"
     },
@@ -119,7 +119,7 @@
         "c_type": "shmh_t",
         "rust_type": "SHMHandle",
         "value": {
-          "family": 6,
+          "family": "6UL",
           "id": 12
         },
         "description": "shared memory handler identifier"
@@ -128,7 +128,7 @@
         "c_type": "shmh_t",
         "rust_type": "SHMHandle",
         "value": {
-          "family": 6,
+          "family": "6UL",
           "id": 4
         },
         "description": "shared memory handler identifier"
@@ -137,16 +137,7 @@
         "c_type": "shmh_t",
         "rust_type": "SHMHandle",
         "value": {
-          "family": 6,
-          "id": 0
-        },
-        "description": "empty slot"
-      },
-      {
-        "c_type": "shmh_t",
-        "rust_type": "SHMHandle",
-        "value": {
-          "family": 6,
+          "family": "6UL",
           "id": 0
         },
         "description": "empty slot"
@@ -155,7 +146,7 @@
     "num_dev": {
         "c_type": "uint8_t",
         "rust_type": "u8",
-        "value": 3,
+        "value": 1,
         "description": "number of task device(s)"
     },
     "devs": [
@@ -163,82 +154,19 @@
         "c_type": "devh_t",
         "rust_type": "DEVHandle",
         "value": {
-          "family": 1,
+          "family": "1UL",
           "id": 42
         },
         "description": "device handler identifier"
-      },
-      {
-        "c_type": "devh_t",
-        "rust_type": "DEVHandle",
-        "value": {
-          "family": 1,
-          "id": 43
-        },
-        "description": "device handler identifier"
-      },
-      {
-        "c_type": "devh_t",
-        "rust_type": "DEVHandle",
-        "value": {
-          "family": 1,
-          "id": 0
-        },
-        "description": "empty slot"
-      },
-      {
-        "c_type": "devh_t",
-        "rust_type": "DEVHandle",
-        "value": {
-          "family": 1,
-          "id": 0
-        },
-        "description": "empty slot"
       }
     ],
     "num_dma": {
         "c_type": "uint8_t",
         "rust_type": "u8",
-        "value": 3,
+        "value": 0,
         "description": "number of task dma stream(s)"
     },
     "dmas": [
-      {
-        "c_type": "dmah_t",
-        "rust_type": "DMAHandle",
-        "value": {
-          "family": 5,
-          "id": 0
-        },
-        "description": "empty slot"
-      },
-      {
-        "c_type": "dmah_t",
-        "rust_type": "DMAHandle",
-        "value": {
-          "family": 5,
-          "id": 0
-        },
-        "description": "empty slot"
-      },
-      {
-        "c_type": "dmah_t",
-        "rust_type": "DMAHandle",
-        "value": {
-          "family": 5,
-          "id": 0
-        },
-        "description": "empty slot"
-      },
-      {
-        "c_type": "dmah_t",
-        "rust_type": "DMAHandle",
-        "value": {
-          "family": 5,
-          "id": 0
-        },
-        "description": "empty slot"
-      }
     ],
     "task_hmac": [
       {

@@ -4,13 +4,13 @@
 #ifndef HANDLE_DEFS_H
 #define HANDLE_DEFS_H
 
-#define HANDLE_TASKID 0
-#define HANDLE_DEVICE 1
-#define HANDLE_IO     2
-#define HANDLE_IRQ    3
-#define HANDLE_IPC    4
-#define HANDLE_DMA    5
-#define HANDLE_SHM    6
-#define HANDLE_SIGNAL 7
+#define HANDLE_TASKID 0UL
+#define HANDLE_DEVICE 1UL
+#define HANDLE_IO     2UL
+#define HANDLE_IRQ    3UL
+#define HANDLE_IPC    4UL
+#define HANDLE_DMA    5UL
+#define HANDLE_SHM    6UL
+#define HANDLE_SIGNAL 7UL
 
 #endif/*!HANDLE_DEFS_H*/

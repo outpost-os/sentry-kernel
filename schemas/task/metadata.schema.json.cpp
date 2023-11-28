@@ -1,5 +1,8 @@
+#define xstr(s) str(s)
+#define str(s) #s
 #include <uapi/handle_defs.h>
 #include <sentry/job.h>
+
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Schema for task metadata",
@@ -68,9 +71,7 @@
                 "minimum": 1
               },
               "family": {
-                "type": "number",
-                "minimum": HANDLE_TASKID,
-                "maximum": HANDLE_TASKID
+                "enum":[xstr(HANDLE_TASKID)]
               },
               "rerun": {
                 "type": "number",
@@ -177,14 +178,18 @@
             "type": "object",
             "properties": {
               "start_mode": {
-                "type": "number",
-                "minimum": JOB_FLAG_NOSTART,
-                "maximum": JOB_FLAG_AUTOSTART
+                "enum":[
+                  xstr(JOB_FLAG_START_NOAUTO),
+                  xstr(JOB_FLAG_START_AUTO)
+                ]
               },
               "exit_mode": {
-                "type": "number",
-                "minimum": JOB_FLAG_NORESTARTONEXIT,
-                "maximum": JOB_FLAG_PERIODICRESTART
+                "enum":[
+                  xstr(JOB_FLAG_EXIT_NORESTART),
+                  xstr(JOB_FLAG_EXIT_RESTART),
+                  xstr(JOB_FLAG_EXIT_PANIC),
+                  xstr(JOB_FLAG_EXIT_PERIODICRESTART)
+                ]
               }
             },
             "required": [
@@ -443,7 +448,9 @@
             "enum":["u8"]
           },
           "value": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "maximum": CONFIG_MAX_SHM_PER_TASK
           },
           "description": {
             "type": "string"
@@ -471,9 +478,7 @@
               "type": "object",
               "properties": {
                 "family": {
-                  "type": "number",
-                  "minimum": HANDLE_SHM,
-                  "maximum": HANDLE_SHM
+                  "enum":[xstr(HANDLE_SHM)]
                 },
                 "id": {
                   "type": "number"
@@ -495,7 +500,7 @@
             "description"
           ]
         },
-        "minItems": CONFIG_MAX_SHM_PER_TASK,
+        "minItems": 0,
         "maxItems": CONFIG_MAX_SHM_PER_TASK
       },
       "num_dev": {
@@ -509,7 +514,8 @@
           },
           "value": {
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": CONFIG_MAX_DEV_PER_TASK
           },
           "description": {
             "type": "string"
@@ -537,9 +543,7 @@
               "type": "object",
               "properties": {
                 "family": {
-                  "type": "number",
-                  "minimum": HANDLE_DEVICE,
-                  "maximum": HANDLE_DEVICE
+                  "enum":[xstr(HANDLE_DEVICE)]
                 },
                 "id": {
                   "type": "number"
@@ -561,7 +565,7 @@
             "description"
           ]
         },
-        "minItems": CONFIG_MAX_DEV_PER_TASK,
+        "minItems": 0,
         "maxItems": CONFIG_MAX_DEV_PER_TASK
       },
       "num_dma": {
@@ -575,7 +579,8 @@
           },
           "value": {
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": CONFIG_MAX_DMA_STREAMS_PER_TASK
           },
           "description": {
             "type": "string"
@@ -603,9 +608,7 @@
               "type": "object",
               "properties": {
                 "family": {
-                  "type": "number",
-                  "minimum": HANDLE_DMA,
-                  "maximum": HANDLE_DMA
+                  "enum":[xstr(HANDLE_DMA)]
                 },
                 "id": {
                   "type": "number"
@@ -627,7 +630,7 @@
             "description"
           ]
         },
-        "minItems": CONFIG_MAX_DMA_STREAMS_PER_TASK,
+        "minItems": 0,
         "maxItems": CONFIG_MAX_DMA_STREAMS_PER_TASK
       },
       "task_hmac": {

@@ -1,3 +1,5 @@
+dmas = [ ]
+
 [magic]
 c_type = "uint64_t"
 rust_type = "u64"
@@ -17,7 +19,7 @@ description = "task identifier (see handle.h, set with rerun=0)"
 
   [handle.value]
   taskid = 1_234
-  family = 0
+  family = "0UL"
   rerun = 0
 
 [priority]
@@ -44,8 +46,8 @@ rust_type = "JobFlags"
 description = "task start and exit flags"
 
   [flags.value]
-  start_mode = 0
-  exit_mode = 0
+  start_mode = "0UL"
+  exit_mode = "0UL"
 
 [s_text]
 c_type = "size_t"
@@ -119,7 +121,7 @@ rust_type = "SHMHandle"
 description = "shared memory handler identifier"
 
   [shms.value]
-  family = 6
+  family = "6UL"
   id = 12
 
 [[shms]]
@@ -128,7 +130,7 @@ rust_type = "SHMHandle"
 description = "shared memory handler identifier"
 
   [shms.value]
-  family = 6
+  family = "6UL"
   id = 4
 
 [[shms]]
@@ -137,22 +139,13 @@ rust_type = "SHMHandle"
 description = "empty slot"
 
   [shms.value]
-  family = 6
-  id = 0
-
-[[shms]]
-c_type = "shmh_t"
-rust_type = "SHMHandle"
-description = "empty slot"
-
-  [shms.value]
-  family = 6
+  family = "6UL"
   id = 0
 
 [num_dev]
 c_type = "uint8_t"
 rust_type = "u8"
-value = 3
+value = 1
 description = "number of task device(s)"
 
 [[devs]]
@@ -161,77 +154,14 @@ rust_type = "DEVHandle"
 description = "device handler identifier"
 
   [devs.value]
-  family = 1
+  family = "1UL"
   id = 42
-
-[[devs]]
-c_type = "devh_t"
-rust_type = "DEVHandle"
-description = "device handler identifier"
-
-  [devs.value]
-  family = 1
-  id = 43
-
-[[devs]]
-c_type = "devh_t"
-rust_type = "DEVHandle"
-description = "empty slot"
-
-  [devs.value]
-  family = 1
-  id = 0
-
-[[devs]]
-c_type = "devh_t"
-rust_type = "DEVHandle"
-description = "empty slot"
-
-  [devs.value]
-  family = 1
-  id = 0
 
 [num_dma]
 c_type = "uint8_t"
 rust_type = "u8"
-value = 3
+value = 0
 description = "number of task dma stream(s)"
-
-[[dmas]]
-c_type = "dmah_t"
-rust_type = "DMAHandle"
-description = "empty slot"
-
-  [dmas.value]
-  family = 5
-  id = 0
-
-[[dmas]]
-c_type = "dmah_t"
-rust_type = "DMAHandle"
-description = "empty slot"
-
-  [dmas.value]
-  family = 5
-  id = 0
-
-[[dmas]]
-c_type = "dmah_t"
-rust_type = "DMAHandle"
-description = "empty slot"
-
-  [dmas.value]
-  family = 5
-  id = 0
-
-[[dmas]]
-c_type = "dmah_t"
-rust_type = "DMAHandle"
-description = "empty slot"
-
-  [dmas.value]
-  family = 5
-  id = 0
 
 [[task_hmac]]
 c_type = "uint8_t"
