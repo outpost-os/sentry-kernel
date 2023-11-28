@@ -17,6 +17,7 @@ extern "C" {
 #include <sentry/ipc.h>
 #include <sentry/signal.h>
 #include <sentry/ktypes.h>
+#include <sentry/job.h>
 
 /**
  * \file sentry kernel generic types
@@ -53,49 +54,6 @@ extern "C" {
  */
 #define SCHED_IDLE_TASK_LABEL 0xcafeUL
 
-typedef enum thread_state {
-      THREAD_STATE_NOTSTARTED, /**< thread has not started yet. For not automatically started tasks */
-      THREAD_STATE_READY,     /**< thread ready, wait for being scheduled */
-      THREAD_STATE_SLEEPING, /**< sleeping, can be awoken by any ISR (wfi()-like) */
-      THREAD_STATE_SLEEPING_DEEP, /**< deep sleep, IRQ deactivated for the given sleep time */
-      THREAD_STATE_FAULT,     /**< userspace fault event, not schedulable */
-      THREAD_STATE_SECURITY,  /**< security event risen, not schedulable */
-      THREAD_STATE_ABORTING,  /**< on fault, handling abort-equivalent libc garbage collect. if the task
-                                 implement a sigabrt() handler, the garbage collector execute the user-defined
-                                 function before leaving */
-      THREAD_STATE_FINISHED,  /**< thread terminated, returned from thread entrypoint */
-      THREAD_STATE_IPC_SEND_BLOCKED, /**< emitted an IPC, wait for receiver to process */
-      THREAD_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
-} thread_state_t;
-
-/**
- * TODO: to be moved to dedicated header
- * for a given task job, specify the spwaning mode
- */
-typedef enum thread_flags {
-    THREAD_FLAG_AUTOSTART     = 0x0001UL,
-    THREAD_FLAG_RESTARTONEXIT = 0x0002UL,
-    THREAD_FLAG_PANICONEXIT   = 0x0004UL,
-} thread_flags_t;
-
-
-
-/*@
-  logic boolean thread_state_is_valid(uint32_t thread_state) =
-    (
-        thread_state == THREAD_STATE_NOTSTARTED ||
-        thread_state == THREAD_STATE_READY ||
-        thread_state == THREAD_STATE_SLEEPING ||
-        thread_state == THREAD_STATE_SLEEPING_DEEP ||
-        thread_state == THREAD_STATE_FAULT ||
-        thread_state == THREAD_STATE_SECURITY ||
-        thread_state == THREAD_STATE_ABORTING ||
-        thread_state == THREAD_STATE_FINISHED ||
-        thread_state == THREAD_STATE_IPC_SEND_BLOCKED ||
-        thread_state == THREAD_STATE_IPC_SIG_RECV_BLOCKED
-    );
-*/
-
 /**
  * This is the main task structure manipulated by the kernel. Each task build (ELF generation)
  * produce a blob that contain such binary format.
@@ -110,18 +68,33 @@ typedef enum thread_flags {
  */
 typedef struct task_meta {
     /**
-     * Task and struct identification part
+     * Task metadata identification part
      */
     uint64_t        magic;         /**< task structure magic number */
     uint32_t        version;       /**< structure version, may vary based on SDK version */
+
+    /**
+     * Task identification and generic configuration part
+     */
     taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
     uint32_t        capabilities;  /**< task capabilities mask */
-    thread_flags_t  flags;         /**< general task flags (boot mode, etc.)*/
+    job_flags_t     flags;         /**< general task flags (boot mode, etc.)*/
 
     /**
-     * Memory mapping information, used for context switching and MPU configuration
+     * domain management. Ignore if HAS_DOMAIN is not set
+     */
+
+    /**< domain identifier. Depending on the configured domain
+        policy, process ability to communicate with others,
+        process scheduling policy and process election
+        pre- and post- phases may be affected.
+    */
+    uint8_t         domain;
+
+    /**
+     * Task memory mapping information, used for context switching and MPU configuration
      * Using all of these, the task manager can fully forge the task RAM mapping, using
      * the following layout:
      *  RAM (RW-)      FLASH (R-X)
@@ -145,29 +118,20 @@ typedef struct task_meta {
     uint16_t        stack_size;       /**< main thtrad stack size */
     uint16_t        entrypoint_offset; /**< offset of _start in text section */
     uint16_t        finalize_offset;   /**< offset of the _finalize in text section */
+
     /**
      * Task ressources, that may also requires memory mapping, and associated perms
      */
     uint8_t         num_shm;          /**< number of shared memories */
-    uint8_t         shared_memory[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
+    shmh_t          shms[CONFIG_MAX_SHM_PER_TASK];/**< SHM metadatas */ /* shm_t to define*/
     uint8_t         num_devs;         /**< number of devices */
-    devh_t          devices[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
+    devh_t          devs[CONFIG_MAX_DEV_PER_TASK]; /**< devices metadata */
     uint8_t         num_dmas;         /**< number of DMA streams */
-    uint8_t         dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
+    dmah_t          dmas[CONFIG_MAX_DMA_STREAMS_PER_TASK]; /**< DMA streams metadata
                                         FIXME: define dma_t bitfield or struct */
 
-    /**
-     * domain management. Ignore if HAS_DOMAIN is not set
-     */
-    uint8_t         domain;           /**< domain identifier. Depending on the configured domain
-                                            policy, process ability to communicate with others,
-                                            process scheduling policy and process election
-                                            pre- and post- phases may be affected.
-                                             */
-
-
     /*
-     * Security part: the structure itself and the associated task memory
+     * Task integrity part: the structure itself and the associated task memory
      * is checked using HMAC, based on a private key used at production time and
      * verified by the kernel at startup time
      */
@@ -195,13 +159,13 @@ uint32_t mgr_task_get_num(void);
 
 kstatus_t mgr_task_get_sp(taskh_t t, stack_frame_t **sp);
 
-kstatus_t mgr_task_get_state(taskh_t t, thread_state_t *state);
+kstatus_t mgr_task_get_state(taskh_t t, job_state_t *state);
 
 kstatus_t mgr_task_get_metadata(taskh_t t, const task_meta_t **tsk_meta);
 
 kstatus_t mgr_task_set_sp(taskh_t t, stack_frame_t *newsp);
 
-kstatus_t mgr_task_set_state(taskh_t t, thread_state_t state);
+kstatus_t mgr_task_set_state(taskh_t t, job_state_t state);
 
 secure_bool_t mgr_task_is_idletask(taskh_t t);
 

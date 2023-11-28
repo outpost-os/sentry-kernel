@@ -28,7 +28,8 @@ void task_idle_init(void)
     idle_meta.handle.id = SCHED_IDLE_TASK_LABEL;
     idle_meta.handle.family = HANDLE_TASKID;
     idle_meta.magic = CONFIG_TASK_MAGIC_VALUE;
-    idle_meta.flags = (THREAD_FLAG_AUTOSTART|THREAD_FLAG_PANICONEXIT);
+    idle_meta.flags.start_mode = JOB_FLAG_START_NOAUTO;
+    idle_meta.flags.exit_mode = JOB_FLAG_EXIT_PANIC;
     idle_meta.s_text = (size_t)&_sidle;
     idle_meta.text_size = ((size_t)&_eidle - (size_t)&_sidle);
     idle_meta.entrypoint_offset = 0x1UL;

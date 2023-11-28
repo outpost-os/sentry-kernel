@@ -190,7 +190,8 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].handle.id = base_id++;
         task_full_context[i].handle.family = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
-        task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
+        task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
+        task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
         task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];
         task_full_context[i].stack_size = 256;
         task_full_context[i].data_size = 0;
@@ -217,7 +218,8 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].handle.id = gen_label();
         task_full_context[i].handle.family = HANDLE_TASKID;
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
-        task_full_context[i].flags = THREAD_FLAG_AUTOSTART; /* implies sched_schedule() */
+        task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
+        task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
         task_full_context[i].s_svcexchange = (size_t)&task_data_section[0];
         task_full_context[i].stack_size = 256;
         task_full_context[i].data_size = 0;

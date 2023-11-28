@@ -1,0 +1,174 @@
+dmas = [ ]
+
+[magic]
+c_type = "uint64_t"
+rust_type = "u64"
+value = 12_345_678_901_234
+description = "task structure magic number"
+
+[version]
+c_type = "uint32_t"
+rust_type = "u32"
+value = 123_456
+description = "structure version, may vary based on SDK version"
+
+[handle]
+c_type = "taskh_t"
+rust_type = "TaskHandle"
+description = "task identifier (see handle.h, set with rerun=0)"
+
+  [handle.value]
+  taskid = 1_234
+  family = "0UL"
+  rerun = 0
+
+[priority]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 12
+description = "task priority, higher is bigger"
+
+[quantum]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 4
+description = "task quantum, number of HZ allowed contigous periods"
+
+[capabilities]
+c_type = "uint32_t"
+rust_type = "u32"
+value = 123_456
+description = "task capabilities to access ressources"
+
+[flags]
+c_type = "job_flags_t"
+rust_type = "JobFlags"
+description = "task start and exit flags"
+
+  [flags.value]
+  start_mode = "0UL"
+  exit_mode = "0UL"
+
+[s_text]
+c_type = "size_t"
+rust_type = "usize"
+value = 81_233_500
+description = "task code zone start address"
+
+[text_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "size of the .text section"
+
+[rodata_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "size of the .rodata section"
+
+[data_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "size of the .data section"
+
+[bss_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "size of the .bss section"
+
+[heap_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "size of the .heap section"
+
+[s_svcexchange]
+c_type = "size_t"
+rust_type = "usize"
+value = 33_500
+description = "start address of the svcexchange zone in RAM"
+
+[stack_size]
+c_type = "uint16_t"
+rust_type = "u16"
+value = 400
+description = "size of the application stack"
+
+[entrypoint_offset]
+c_type = "uint16_t"
+rust_type = "u16"
+value = 400
+description = "offset of the _start symbol in .text, starting from s_text"
+
+[finalize_offset]
+c_type = "uint16_t"
+rust_type = "u16"
+value = 400
+description = "offset of the _finalize _symbol in .text, starting from s_text"
+
+[num_shm]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 3
+description = "number of task shared memorie(s)"
+
+[[shms]]
+c_type = "shmh_t"
+rust_type = "SHMHandle"
+description = "shared memory handler identifier"
+
+  [shms.value]
+  family = "6UL"
+  id = 12
+
+[[shms]]
+c_type = "shmh_t"
+rust_type = "SHMHandle"
+description = "shared memory handler identifier"
+
+  [shms.value]
+  family = "6UL"
+  id = 4
+
+[[shms]]
+c_type = "shmh_t"
+rust_type = "SHMHandle"
+description = "empty slot"
+
+  [shms.value]
+  family = "6UL"
+  id = 0
+
+[num_dev]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 1
+description = "number of task device(s)"
+
+[[devs]]
+c_type = "devh_t"
+rust_type = "DEVHandle"
+description = "device handler identifier"
+
+  [devs.value]
+  family = "1UL"
+  id = 42
+
+[num_dma]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 0
+description = "number of task dma stream(s)"
+
+[[task_hmac]]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 12
+
+[[metadata_hmac]]
+c_type = "uint8_t"
+rust_type = "u8"
+value = 12

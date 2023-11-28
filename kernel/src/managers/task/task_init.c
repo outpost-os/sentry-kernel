@@ -290,7 +290,7 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta,
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    if (meta->flags & THREAD_FLAG_AUTOSTART) {
+    if (meta->flags.start_mode == JOB_FLAG_START_AUTO) {
         status = sched_schedule(meta->handle);
         if (unlikely(status != K_STATUS_OKAY)) {
             ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
