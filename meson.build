@@ -13,6 +13,7 @@ project('sentry-kernel',
 top_dir = meson.current_source_dir()
 
 objcopy = find_program('objcopy')
+sentry_install_script = find_program('support/scripts/install.py')
 
 # dunamai is used for version sync with gconf (in the same way poetry-dynamic-versioning does)
 keyval = import('keyval')

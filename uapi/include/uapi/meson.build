@@ -1,7 +1,22 @@
 
 cbindgen = find_program('cbindgen')
 
+uapi_headers = files([
+    'capability.h',
+    'device.h',
+    'handle_defs.h',
+    'handle.h',
+    'signal.h',
+])
+
 subdir('types')
+
+foreach header: uapi_headers
+    install_headers(fs.relative_to(header, meson.current_source_dir()),
+        preserve_path: true,
+        follow_symlinks: false,
+    )
+endforeach
 
 userspace_uapi_include_dir = include_directories('.')
 
@@ -18,7 +33,11 @@ uapi_h = custom_target('uapi_header',
     '-c', '@INPUT@',
     '--depfile', '@DEPFILE@',
     '-o', '@OUTPUT@'],
+    install: true,
+    install_dir: get_option('includedir'),
+    install_tag: 'devel',
 )
+
 sentry_c_uapi_headers_dep = declare_dependency(
     sources: [ uapi_h ],
 )
