@@ -5,4 +5,4 @@ systypes_lib = static_library(
     override_options: [ uapi_rust_std ],
     install: true,
 )
-systypes_dep = declare_dependency(link_with : systypes_lib)
+systypes_dep = declare_dependency(link_whole : systypes_lib)

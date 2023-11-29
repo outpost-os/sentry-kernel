@@ -30,7 +30,7 @@ index 0000000..b9190c0
 +
 +bitflags = static_library('bitflags', 'src/lib.rs', install: true)
 +
-+bitflags_dep = declare_dependency(link_with : bitflags)
++bitflags_dep = declare_dependency(link_whole : bitflags)
 +meson.override_dependency('bitflags-rs', bitflags_dep)
 +
 diff --git a/meson.options b/meson.options
