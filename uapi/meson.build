@@ -16,7 +16,6 @@ if with_uapi_opt
 sentry_c_uapi_dep = declare_dependency(
     link_with: uapi_rs_lib,
     sources: [ uapi_h ],
-    dependencies: [ libuapirs_dep ],
     compile_args: [ global_build_args, target_arch_args ],
     include_directories: [ userspace_uapi_include_dir ],
 )
@@ -24,7 +23,6 @@ sentry_c_uapi_dep = declare_dependency(
 pkg_config.generate(
     uapi_rs_lib,
     filebase: 'uapi',
-    libraries: [ libuapirs_dep ],
     extra_cflags: [ global_build_args, target_arch_args ]
 )
 
