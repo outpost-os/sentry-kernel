@@ -26,11 +26,11 @@ jobs:
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
             toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1' ]
-            config = [ 'stm32f429i_disc1' ]
+            config = [ 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|12.3.Rel1' ]
-            config = [ 'stm32f429i_disc1', 'nucleo_l476rg_debug', 'nucleo_f401re' ]
+            config = [ 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'nucleo_l476rg_debug', 'nucleo_f401re' ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
@@ -190,7 +190,7 @@ jobs:
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
+          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Dwith_tests=true -Db_coverage=false -Doptimization=0'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -254,7 +254,7 @@ jobs:
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_defconfig -Dwith_doc=true'
+          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Dwith_doc=true'
       - name: Meson postcheck
         if: failure()
         run: |
