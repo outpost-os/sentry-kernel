@@ -21,6 +21,7 @@
 #define JOB_FLAG_EXIT_RESTART         1UL
 #define JOB_FLAG_EXIT_PANIC           2UL
 #define JOB_FLAG_EXIT_PERIODICRESTART 3UL
+#define JOB_FLAG_EXIT_RESET           4UL
 
 /*
  * this header is used for Sentry JSON schema generation. To avoid C content
@@ -49,8 +50,8 @@ typedef enum job_state {
  */
 typedef struct __attribute__((packed)) job_flags {
     unsigned int start_mode: 1;
-    unsigned int exit_mode:  2;
-    unsigned int :   29; /* reserved */
+    unsigned int exit_mode:  3;
+    unsigned int :   28; /* reserved */
 } job_flags_t;
 static_assert((sizeof(job_flags_t) == sizeof(uint32_t)), "job_flags_t as invalid size!");
 /*@

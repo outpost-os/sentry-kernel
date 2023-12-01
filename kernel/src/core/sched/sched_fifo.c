@@ -33,7 +33,7 @@ kstatus_t sched_fifo_init(void)
 {
     taskh_t current = {
         .rerun = 0,
-        .id = SCHED_NO_TASK_LABEL,
+        .id = SCHED_IDLE_TASK_LABEL,
         .family = HANDLE_TASKID,
     };
     pr_info("initialize scheduler");

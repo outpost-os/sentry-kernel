@@ -34,15 +34,6 @@ extern "C" {
 #endif
 
 /**
- * @def no task label definition
- *
- * At early bootup, before any task is started (even idle), the scheduler returns
- * a specially forged task label denoted 'babe'. This label is forbidden to user
- * tasks and used to detect 'no task exists at all, still in MSP bootup'
- */
-#define SCHED_NO_TASK_LABEL   0xbabeUL
-
-/**
  * @def idle task label definition
  *
  * When no task of the user task set is schedulable, the idle task is the lonely
@@ -53,6 +44,18 @@ extern "C" {
  * to user tasks.
  */
 #define SCHED_IDLE_TASK_LABEL 0xcafeUL
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+/**
+ * @def no task label for autotest
+ *
+ * Autotest exists only in autotest mode, when no other task but autotest and idle
+ * exist. It is used for automatic kernel testing/fuzzing, with remote control if needed
+ * so that the Sentry kernel features can be properly verified.
+ * See the autotest application for more information.
+ */
+#define SCHED_AUTOTEST_TASK_LABEL 0xbabeUL
+#endif
 
 /**
  * This is the main task structure manipulated by the kernel. Each task build (ELF generation)

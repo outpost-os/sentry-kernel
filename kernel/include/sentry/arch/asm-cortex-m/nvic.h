@@ -83,4 +83,8 @@ static inline void interrupt_init(void) {
     return;
 }
 
+static inline void system_reset(void) {
+    NVIC_SystemReset();
+}
+
 #endif/*NVIC_H*/

@@ -17,6 +17,9 @@
 #include "task_core.h"
 #include "task_init.h"
 #include "task_idle.h"
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+#include "task_autotest.h"
+#endif
 
 #ifndef TEST_MODE
 extern size_t _idle;
@@ -304,6 +307,29 @@ end:
     return status;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+static inline kstatus_t task_init_add_autotest(void)
+{
+    /* entering state check */
+    if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
+        pr_err("invalid state!");
+        ctx.status = K_SECURITY_INTEGRITY;
+        goto err;
+    }
+    task_t * task_table = task_get_table();
+    /* adding idle task to list */
+    task_meta_t *meta = task_autotest_get_meta();
+    /* should we though forge a HMAC for idle metadata here ? */
+    task_table[ctx.numtask].metadata = meta;
+    task_table[ctx.numtask].handle = meta->handle;
+    size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)&_idle);
+    ctx.numtask++;
+    ctx.status = K_STATUS_OKAY;
+err:
+    return ctx.status;
+}
+#endif
 
 /**
  * @brief finalize the task table construct
@@ -319,8 +345,12 @@ static inline kstatus_t task_init_finalize(void)
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
         ctx.status = K_SECURITY_INTEGRITY;
-        goto end;
+        goto err;
     }
+    #ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    /* in autotest mode  */
+    task_init_add_autotest();
+    #endif
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
     /* should we though forge a HMAC for idle metadata here ? */
@@ -346,7 +376,7 @@ static inline kstatus_t task_init_finalize(void)
     pr_info("found a total of %u tasks, including idle", ctx.numtask);
     ctx.status = K_STATUS_OKAY;
     ctx.state = TASK_MANAGER_STATE_READY;
-end:
+err:
     return ctx.status;
 }
 
@@ -377,11 +407,12 @@ kstatus_t mgr_task_init(void)
     /* first zeroify the task table (JTAG reflush case) */
     task_t * task_table = task_get_table();
     memset(task_table, 0x0, (CONFIG_MAX_TASKS+1)*sizeof(task_t));
+    /* default state is finalize */
+    ctx.state = TASK_MANAGER_STATE_FINALIZE;
 
-
-    if (mgr_task_get_num() == 0) {
-        ctx.state = TASK_MANAGER_STATE_FINALIZE;
-    } else {
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
+    /* there is no discover in AUTOTEST mode */
+    if (mgr_task_get_num() != 0) {
         ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
     }
     task_mgr_state_t last_loop_state;
@@ -395,34 +426,37 @@ kstatus_t mgr_task_init(void)
         pr_info("starting task blob %u/%u checks", cell+1, mgr_task_get_num());
         ctx.status = task_init_discover_sanitation(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
         ctx.status = task_init_check_meta_integrity(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
         ctx.status = task_init_check_tsk_integrity(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
         ctx.status = task_init_initiate_localinfo(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
         ctx.status = task_init_map(&__task_meta_table[cell]);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
         ctx.status = task_init_schedule(&__task_meta_table[cell], last_loop_state);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
-            goto end;
+            goto err;
         }
     }
+#endif
     /* finalize, adding idle task */
     task_init_finalize();
 
     task_dump_table();
-end:
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
+err:
+#endif
     return ctx.status;
 }
 
