@@ -44,7 +44,9 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_clock_init();
     mgr_interrupt_init();
     mgr_io_init();
+#ifdef CONFIG_BUILD_TARGET_DEBUG
     mgr_debug_init();
+#endif
     pr_info("Starting Sentry kernel release %s", "v0.1");
     pr_info("kernel bootup stack at %p, current frame: %p", &_bootupstack, __platform_get_current_sp());
     pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);

@@ -20,9 +20,7 @@ kstatus_t mgr_debug_init(void)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto end;
     }
-#if CONFIG_BUILD_TARGET_DEBUG
     rcc_enable_debug_clockout();
-#endif
     dbgbuffer_flush();
 end:
     return status;
