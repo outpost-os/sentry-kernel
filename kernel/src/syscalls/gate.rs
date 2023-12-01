@@ -29,9 +29,13 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, Disp
         Syscall::SendSignal => unsafe { send_signal(args[0], args[1]) },
         Syscall::WaitForEvent => unsafe { wait_for_event(args[0] as u8, args[1], args[2]) },
         Syscall::ManageCPUSleep => return manage_cpu_sleep(args[0]),
+        Syscall::Log => {
+            #[cfg(CONFIG_BUILD_TARGET_DEBUG)]
+            return log_rs(args[0] as usize);
 
-        #[cfg(debug_assertions)]
-        Syscall::Log => return log_rs(args[0] as usize),
+            #[cfg(not(CONFIG_BUILD_TARGET_DEBUG))]
+            0
+        }
     };
     Ok(status.into())
 }

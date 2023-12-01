@@ -41,6 +41,7 @@ impl TaskMeta {
         })
     }
 
+    #[allow(dead_code)]
     fn exchange_bytes(&self) -> &[u8] {
         unsafe {
             core::slice::from_raw_parts(
@@ -70,7 +71,7 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
     Ok(Status::Ok)
 }
 
-#[cfg(debug_assertions)]
+#[cfg(CONFIG_BUILD_TARGET_DEBUG)]
 pub fn log_rs(length: usize) -> Result<Status, DispatchError> {
     let current_task = TaskMeta::current()?.can(Capability::DevIO)?;
     let cstr_text = core::ffi::CStr::from_bytes_with_nul(&current_task.exchange_bytes()[..length])
