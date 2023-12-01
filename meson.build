@@ -120,8 +120,7 @@ with_idle_opt = get_option('with_idle')
 subdir('support/arch')
 
 # Idle implies libuapi
-if with_idle_opt and not with_uapi_opt
-    warning('with_idle is set but witout libuapi, uapi will be forced')
+if with_idle_opt or kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
     with_uapi_opt = true
 endif
 
@@ -132,6 +131,11 @@ subdir('uapi')
 # building kernel
 if with_idle_opt
 subdir('idle')
+endif
+
+# building kernel
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+subdir('autotest')
 endif
 
 # building idle
@@ -149,6 +153,9 @@ endif
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+message('> This is an autotest standalone image')
+endif
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
 warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
 endif

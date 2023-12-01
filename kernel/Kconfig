@@ -37,6 +37,22 @@ config BUILD_TARGET_RELEASE
 	select SECU_HW_SETNCHECK
 	select SECU_NO_COMPTOZERO
 	select SECU_LOOP_DBLE_IDX
+
+config BUILD_TARGET_AUTOTEST
+	bool "Built Sentry in autotest mode"
+	help
+	  Build autotest task and activate kernel autotest flag. The kernel
+	  do no more parse the task metadata table but instead load the autotest
+	  app and enable autotest mode in managers and syscalls kernel-side.
+	  This allows a lot of runtime-testing, that can be controlled through
+	  a dedicated, autotest-enabled specific syscall used by the autotest app,
+	  that can be triggered through a serial communication with a CI or a test PC
+	  to generate Sentry test reports.
+	select SECU_SSP_USER
+	select SECU_SSP_KERN
+	select SECU_HW_SETNCHECK
+	select SECU_NO_COMPTOZERO
+	select SECU_LOOP_DBLE_IDX
 endchoice
 
 config WITH_JTAG_CONNECTED
