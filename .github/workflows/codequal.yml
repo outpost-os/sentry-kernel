@@ -80,7 +80,7 @@ jobs:
         with:
           actions: '["prefetch", "setup"]'
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          options: '-Doptimization=0 -Db_coverage=true -Dwith_tests=true -Dconfig=configs/stm32f429i_disc1_defconfig'
+          options: '-Doptimization=0 -Db_coverage=true -Dwith_tests=true -Dconfig=configs/stm32f429i_disc1_debug_defconfig'
       - name: Sonar Scanner
         uses: embedded-devops/action-codequal@main
         with:
