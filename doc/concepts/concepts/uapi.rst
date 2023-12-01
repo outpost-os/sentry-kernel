@@ -61,7 +61,7 @@ This allows the task to dispatch the event toward the corresponding handler when
 multiple drivers with multiple interrupt handlers.
 
 .. todo::
-  implement the `uapi_inth_get_num(inth_t)` function
+  implement the `uapi_inth_get_num(irqh_t)` function
 
 Signal handle
 ~~~~~~~~~~~~~
@@ -135,6 +135,8 @@ uptodate handle and continue the communication.
 
 Sentry events
 ^^^^^^^^^^^^^
+
+.. _events:
 
 The Sentry UAPI is built in order to allow an easy event-driven userspace implementation
 with easy, well-known abstraction. It allows userspace implementation of POSIX API such as `poll()`,

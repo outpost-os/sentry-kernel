@@ -166,6 +166,8 @@ This chapter describes all properties that are task-wide, common to all potentia
 Capabilities
 """"""""""""
 
+.. _capabilities:
+
 Accessing resources is not based on permissions but instead on capabilities.
 All resources a task accesses in embedded system would be a short list of objects.
 These objects are devices, system functions, interrupts, shared memories, another task.
@@ -371,7 +373,7 @@ given task. This metadata contains:
    * list of task devices, denoted with their `devh_t`
    * list of task owned shared memory, denoted with their `shm_t`
    * list of task DMA streams, denoted with their `dmah_t`
-   * if used independently of devices, list of interrupts, denoted with their `inth_t`
+   * if used independently of devices, list of interrupts, denoted with their `irqh_t`
    * the overall metadata HMAC (future used for metadata integrity check at bootup)
    * the task flash content HMAC (future used for metadata integrity check at bootup)
 
