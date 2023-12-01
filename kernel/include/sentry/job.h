@@ -50,9 +50,9 @@ typedef enum job_state {
 typedef struct __attribute__((packed)) job_flags {
     unsigned int start_mode: 1;
     unsigned int exit_mode:  2;
-    unsigned int reserved:   5;
+    unsigned int :   29; /* reserved */
 } job_flags_t;
-static_assert((sizeof(job_flags_t) == sizeof(uint8_t)), "job_flags_t as invalid size!");
+static_assert((sizeof(job_flags_t) == sizeof(uint32_t)), "job_flags_t as invalid size!");
 /*@
   logic boolean job_state_is_valid(uint32_t job_state) =
     (

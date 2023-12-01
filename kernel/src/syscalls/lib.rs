@@ -3,7 +3,7 @@
 pub mod arch;
 pub mod gate;
 
-#[cfg(debug_assertions)]
+#[cfg(CONFIG_BUILD_TARGET_DEBUG)]
 #[macro_use]
 pub mod debug;
 
