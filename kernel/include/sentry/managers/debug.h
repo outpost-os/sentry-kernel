@@ -119,6 +119,10 @@ kstatus_t printk(const char* fmt, ...);
 
 kstatus_t mgr_debug_init(void);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_debug_autotest(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

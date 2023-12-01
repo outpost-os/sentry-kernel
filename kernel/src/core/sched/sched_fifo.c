@@ -131,6 +131,14 @@ taskh_t sched_fifo_get_current(void)
     return sched_fifo_ctx.current;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t sched_fifo_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
 /*
  * Why not using directly schedule() ? The goal is to support, in a future model,
  * MILS architecture which may requires hierarchycal scheduling, in which, depending on
@@ -153,3 +161,4 @@ kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_fifo_schedule"))
 taskh_t sched_elect(void) __attribute__((alias("sched_fifo_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_fifo_get_current")));
 kstatus_t sched_init(void) __attribute__((alias("sched_fifo_init")));
+kstatus_t sched_autotest(void) __attribute__((alias("sched_fifo_autotest")));

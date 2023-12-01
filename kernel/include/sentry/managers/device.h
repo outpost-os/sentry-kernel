@@ -27,6 +27,10 @@ kstatus_t mgr_device_get_info(devh_t, const devinfo_t **devinfo);
 
 secure_bool_t mgr_device_is_kernel(devh_t d);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_device_autotest(void);
+#endif
+
 kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh);
 
 kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo);

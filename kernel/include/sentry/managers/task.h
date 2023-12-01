@@ -177,6 +177,10 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 
 size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_task_autotest(void);
+#endif
+
 /* specialized event pushing API, do not use directly but instead Generic below */
 kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t);
 kstatus_t mgr_task_push_ipch_event(ipch_t ev, taskh_t t);

@@ -76,4 +76,9 @@ kstatus_t sched_delay_add(taskh_t job, uint32_t delay_ms);
  */
 void sched_delay_tick(void);
 
+/**
+ * Run the scheduler autotest sequence
+ */
+kstatus_t sched_autotest(void);
+
 #endif/*!SCHED_H*/

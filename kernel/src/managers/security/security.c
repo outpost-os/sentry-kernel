@@ -14,3 +14,11 @@ kstatus_t mgr_security_init(void)
     status = mgr_security_entropy_init();
     return status;
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_security_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif

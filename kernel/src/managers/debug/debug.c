@@ -38,3 +38,11 @@ kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
 {
 	return usart_tx(logbuf, len);
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_debug_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif

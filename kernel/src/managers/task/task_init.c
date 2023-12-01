@@ -426,6 +426,13 @@ end:
     return ctx.status;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_task_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
 
 /**
  * @fn function that can be called periodically by external security watchdog

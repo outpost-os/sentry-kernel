@@ -81,6 +81,14 @@ kstatus_t mgr_device_init(void)
     return status;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_device_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
 kstatus_t mgr_device_watchdog(void)
 {
     kstatus_t status = K_STATUS_OKAY;

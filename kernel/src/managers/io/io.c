@@ -54,6 +54,14 @@ err:
     return status;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_io_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
 /**
  * @brief Set I/O identified by ioh
  *

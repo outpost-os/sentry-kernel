@@ -28,3 +28,11 @@ kstatus_t mgr_clock_init(void)
 end:
     return status;
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_clock_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif

@@ -234,6 +234,16 @@ stack_frame_t *sched_rrmq_refresh(stack_frame_t *frame)
 end:
     return out_frame;
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t sched_rrmq_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
+
 /* default scheduler is RRMQ */
 
 kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_rrmq_schedule")));
@@ -241,3 +251,4 @@ taskh_t sched_elect(void) __attribute__((alias("sched_rrmq_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_rrmq_get_current")));
 kstatus_t sched_init(void) __attribute__((alias("sched_rrmq_init")));
 stack_frame_t *sched_refresh(stack_frame_t *frame) __attribute__((alias("sched_rrmq_refresh")));
+kstatus_t sched_autotest(void) __attribute__((alias("sched_rrmq_autotest")));

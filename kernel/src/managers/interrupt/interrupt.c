@@ -48,4 +48,12 @@ kstatus_t mgr_interrupt_init(void)
     return K_STATUS_OKAY;
 }
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_interrupt_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
 /** FIXME: add interrupt manipulation (add user handler, del user handler, etc.) */

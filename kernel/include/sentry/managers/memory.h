@@ -58,6 +58,10 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_mm_autotest(void);
+#endif
+
 #if defined(__cplusplus)
 }
 #endif

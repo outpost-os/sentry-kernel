@@ -1,6 +1,6 @@
 
 mgr_device_files = files(
-    'devlist.c',
+    'device.c',
 )
 
 sentry_source_set.add(mgr_device_files)
