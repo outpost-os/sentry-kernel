@@ -1,0 +1,53 @@
+comment "Task configuration"
+
+config TASK_PRIORITY
+    int "Priority"
+    range 0 255
+    help
+      Task priority, bigger is higher
+
+config TASK_QUANTUM
+    int "Quantum"
+    range 0 255
+    help
+      Task quantum, number of HZ allowed contigous periods
+
+config TASK_AUTO_START
+    bool "Auto start"
+    default n
+    help
+      Task started automatically at system startup, default 'n'
+
+choice TASK_EXIT_POLICY
+    prompt "At exit policy"
+    help
+      Kernel behavior if a task reaches exit point
+
+config TASK_EXIT_NORESTART
+    bool "norestart"
+    help
+      **DO NOT** restart the task automatically.
+      If another task has permission to start this task, it can be restarted by this one.
+
+config TASK_EXIT_RESTART
+    bool "restart"
+    help
+      Automatically restarts the stack
+
+config TASK_EXIT_PANIC
+    bool "panic"
+    help
+      If this task reach exist point, the system will panic.
+      Use this for security/critical feature that **MUST NTO** exits
+
+# TODO
+# config TASK_EXIT_PERIODICRESTART
+#    bool "periodic"
+
+endchoice
+
+config TASK_STACK_SIZE
+    hex "stack_size"
+
+config TASK_HEAP_SIZE
+    hex "heap_size"
