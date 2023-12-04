@@ -51,3 +51,79 @@ config TASK_STACK_SIZE
 
 config TASK_HEAP_SIZE
     hex "heap_size"
+
+menu "Capabilities"
+
+config CAP_DEV_BUSES
+    bool "dev_buses"
+    default n
+
+config CAP_DEV_IO
+    bool "dev_io"
+    default n
+
+config CAP_DEV_DMA
+    bool "dev_dma"
+    default n
+
+config CAP_DEV_ANALOG
+    bool "dev_analog"
+    default n
+
+config CAP_DEV_TIMER
+    bool "dev_timer"
+    default n
+
+config CAP_DEV_STORAGE
+    bool "dev_storage"
+    default n
+
+config CAP_DEV_CRYPTO
+    bool "dev_crypto"
+    default n
+
+config CAP_DEV_CLOCK
+    bool "dev_clock"
+    default n
+
+config CAP_DEV_POWER
+    bool "dev_power"
+    default n
+
+config CAP_DEV_NEURAL
+    bool "dev_neural"
+    default n
+
+config CAP_SYS_UPGRADE
+    bool "sys_upgrade"
+    default n
+
+config CAP_SYS_POWER
+    bool "sys_power"
+    default n
+
+config CAP_SYS_PROCSTART
+    bool "sys_procstart"
+    default n
+
+config CAP_MEM_SHM_OWN
+    bool "mem_shm_own"
+    default n
+
+config CAP_MEM_SHM_USE
+    bool "mem_shm_use"
+    default n
+
+config CAP_MEM_SHM_TRANSFER
+    bool "mem_shm_transfer"
+    default n
+
+config CAP_TIM_HP_CHRONO
+    bool "tim_hp_chrono"
+    default n
+
+config CAP_CRY_KRNG
+    bool "cry_krng"
+    default n
+
+endmenu
