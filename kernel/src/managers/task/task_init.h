@@ -8,6 +8,6 @@
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 
-/* no privately exported function by now */
+uint32_t mgr_task_get_num(void);
 
 #endif/*!TASK_INIT_H*/

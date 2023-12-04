@@ -31,7 +31,6 @@ static std::unique_ptr<TaskMock> taskMock;
   they are used in extern 'C'), tests can't be executed in
   parallel */
 static std::unique_ptr<task_meta_t*> taskCtx;
-static std::unique_ptr<uint32_t> taskNum;
 
 class TaskTest : public testing::Test {
     void SetUp() override {
@@ -44,12 +43,10 @@ class TaskTest : public testing::Test {
     void TearDown() override {
         taskMock.reset();
         taskCtx.reset();
-        taskNum.reset();
     }
 protected:
-    void assign(task_meta_t* ctx, uint32_t num) {
+    void assign(task_meta_t* ctx) {
         taskCtx = std::make_unique<task_meta_t*>(ctx);
-        taskNum = std::make_unique<uint32_t>(num);
     }
     uint16_t gen_label(void) {
         std::random_device rd;
@@ -77,7 +74,7 @@ protected:
 
 /**
  * This part contains all the stack manager glue.
- * This include ldscript variable mocks, including numtask
+ * This include ldscript variable mocks, including
  * and metadata table, replaced by a dynamic forge through the
  * taskTest object
  */
@@ -86,24 +83,22 @@ extern "C" {
     /* sample stack area used to let task manager forge a stack */
     uint8_t task_data_section[1024];
     size_t _idle_svcexchange;
+    size_t _autotest_svcexchange;
 
     /* sample idle function and associated infos */
     void __attribute__((noreturn)) ut_idle(void) {
         volatile int a = 12;
         do { a %= 10; } while (1);
     }
+    void __attribute__((noreturn)) ut_autotest(void) {
+        volatile int a = 12;
+        do { a %= 10; } while (1);
+    }
 
     size_t _sidle = (size_t)ut_idle;
     size_t _eidle = (size_t)ut_idle + 0x400;
-
-    /*
-     * numtask var is replaced by a dyn call to this function,
-     *  in TEST_MODE, so that each test can use separated values for
-     */
-    uint32_t ut_get_numtask(void) {
-        uint32_t *num = taskNum.get();
-        return *num;
-    }
+    size_t _sautotest = (size_t)ut_autotest;
+    size_t _eautotest = (size_t)ut_autotest + 0x400;
 
     /*
      * task metadata table is replaced by a dynamic pointer reference
@@ -162,8 +157,13 @@ extern "C" {
  */
 TEST_F(TaskTest, TestForgeEmptyTable) {
     kstatus_t res;
-    assign(task_basic_context, 0);
+    assign(task_basic_context);
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    /* only autotest is scheduled */
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(1);
+#else
     EXPECT_CALL(*taskMock, on_task_schedule).Times(0);
+#endif
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
 }
@@ -173,10 +173,16 @@ TEST_F(TaskTest, TestForgeEmptyTable) {
  */
 TEST_F(TaskTest, TestForgeInvalidFullTable) {
     kstatus_t res;
-    assign(task_basic_context, CONFIG_MAX_TASKS);
+    assign(task_basic_context);
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    /* only autotest is scheduled */
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(1);
+#else
     EXPECT_CALL(*taskMock, on_task_schedule).Times(0);
+#endif
     res = mgr_task_init();
-    ASSERT_EQ(res, K_SECURITY_INTEGRITY);
+    /* no user task found, only idle (and potentially autotest)*/
+    ASSERT_EQ(res, K_STATUS_OKAY);
 }
 
 /*
@@ -199,8 +205,13 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
         task_full_context[i].heap_size = 0;
         task_full_context[i].rodata_size = 0;
     }
-    assign(task_full_context, CONFIG_MAX_TASKS);
+    assign(task_full_context);
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    /* only autotest is scheduled */
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(1);
+#else
     EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS);
+#endif
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
     ASSERT_EQ(is_ordered(task_table), true);
@@ -227,8 +238,13 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
         task_full_context[i].heap_size = 0;
         task_full_context[i].rodata_size = 0;
     }
-    assign(task_full_context, CONFIG_MAX_TASKS);
+    assign(task_full_context);
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    /* only autotest is scheduled */
+    EXPECT_CALL(*taskMock, on_task_schedule).Times(1);
+#else
     EXPECT_CALL(*taskMock, on_task_schedule).Times(CONFIG_MAX_TASKS);
+#endif
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
     ASSERT_EQ(is_ordered(task_table), true);

@@ -7,6 +7,7 @@ test_task = executable(
         'test_task.cpp',
         join_paths(meson.project_source_root(), 'kernel/src/managers/task/task_init.c'),
         join_paths(meson.project_source_root(), 'kernel/src/managers/task/task_idle.c'),
+        join_paths(meson.project_source_root(), 'kernel/src/managers/task/task_autotest.c'),
         join_paths(meson.project_source_root(), 'kernel/src/managers/task/task_core.c'),
     ),
     include_directories: kernel_inc,
