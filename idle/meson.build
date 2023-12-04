@@ -43,6 +43,21 @@ idle_elf = executable(
     install: true,
 )
 
+idle_hex = custom_target(
+    input: idle_elf,
+    output: '@BASENAME@.hex',
+    command: [
+        objcopy,
+        '-O', 'ihex',
+        '@INPUT@',
+        '@OUTPUT@'
+    ],
+    build_always: true,
+    install: true,
+    install_dir: get_option('bindir'),
+    install_tag: 'runtime',
+)
+
 meson.add_install_script(sentry_install_script, idle_map_file, get_option('infodir') / idle_task_name)
 
 endif

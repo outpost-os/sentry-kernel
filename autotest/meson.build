@@ -43,6 +43,21 @@ autotest_elf = executable(
     install: true,
 )
 
+autotest_hex = custom_target(
+    input: autotest_elf,
+    output: '@BASENAME@.hex',
+    command: [
+        objcopy,
+        '-O', 'ihex',
+        '@INPUT@',
+        '@OUTPUT@'
+    ],
+    build_always: true,
+    install: true,
+    install_dir: get_option('bindir'),
+    install_tag: 'runtime',
+)
+
 meson.add_install_script(sentry_install_script, autotest_map_file, get_option('infodir') / autotest_task_name)
 
 endif

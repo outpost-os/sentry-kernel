@@ -64,6 +64,20 @@ sentry_elf = executable(
     install: true,
 )
 
+sentry_hex = custom_target(
+    input: sentry_elf,
+    output: '@BASENAME@.hex',
+    command: [
+        objcopy,
+        '-O', 'ihex',
+        '@INPUT@',
+        '@OUTPUT@'
+    ],
+    build_by_default: true,
+    install: true,
+    install_dir: get_option('bindir'),
+)
+
 sentry_bin = custom_target(
     input: sentry_elf,
     output: '@BASENAME@.bin',

@@ -73,7 +73,7 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
 
 #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
 pub fn log_rs(length: usize) -> Result<Status, DispatchError> {
-    let current_task = TaskMeta::current()?.can(Capability::DevIO)?;
+    let current_task = TaskMeta::current()?;
     let cstr_text = core::ffi::CStr::from_bytes_with_nul(&current_task.exchange_bytes()[..length])
         .map_err(|_| DispatchError::IllegalValue)?;
     let checked_text = cstr_text

@@ -122,6 +122,14 @@ SECTIONS
     __etext = .;    /* define a global symbol at end of code */
     __DATA_ROM = .; /* Symbol is used by startup for data initialization */
 
+    .svcexchange :
+    {
+        . = ALIGN(4);
+        _s_idle_svcexchange = .;
+        . = . + 128;
+        _e_idle_svcexchange = .;        /* define a global symbol at data end */
+    } > {{ idleram_section }}
+
     /* used by the startup to initialize data */
     /* Initialized data sections goes into RAM, load LMA copy after code */
     .data : AT ( _sidata )

@@ -9,6 +9,7 @@
 #include <sentry/arch/asm-cortex-m/handler.h>
 #include <sentry/managers/memory.h>
 #include <sentry/managers/interrupt.h>
+#include <sentry/managers/debug.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -28,6 +29,37 @@ extern __irq_handler_t __vtor_table[];
 */
 stack_frame_t *svc_handler_rs(stack_frame_t *frame);
 
+void dump_frame(stack_frame_t *frame)
+{
+#ifndef CONFIG_BUILD_TARGET_RELEASE
+    uint32_t msp, psp;
+    pr_debug("== frame info");
+    pr_debug("r0\t\t%08x\t\t%08d", frame->r0, frame->r0);
+    pr_debug("r1\t\t%08x\t\t%08d", frame->r1, frame->r1);
+    pr_debug("r2\t\t%08x\t\t%08d", frame->r2, frame->r2);
+    pr_debug("r3\t\t%08x\t\t%08d", frame->r3, frame->r3);
+    pr_debug("r4\t\t%08x\t\t%08d", frame->r4, frame->r4);
+    pr_debug("r5\t\t%08x\t\t%08d", frame->r5, frame->r5);
+    pr_debug("r6\t\t%08x\t\t%08d", frame->r6, frame->r6);
+    pr_debug("r7\t\t%08x\t\t%08d", frame->r7, frame->r7);
+    pr_debug("r8\t\t%08x\t\t%08d", frame->r8, frame->r8);
+    pr_debug("r9\t\t%08x\t\t%08d", frame->r9, frame->r9);
+    pr_debug("r10\t\t%08x\t\t%08d", frame->r10, frame->r10);
+    pr_debug("r11\t\t%08x\t\t%08d", frame->r11, frame->r11);
+    pr_debug("r12\t\t%08x\t\t%08d", frame->r12, frame->r12);
+    pr_debug("lr\t\t%08x\t\t%08d", frame->lr, frame->lr);
+    pr_debug("pc\t\t%08x\t\t%08d", frame->pc, frame->pc);
+    pr_debug("prev_lr\t%08x\t\t%08d", frame->prev_lr, frame->prev_lr);
+    pr_debug("xpsr\t%08x\t\t%08d", frame->xpsr, frame->xpsr);
+    asm volatile (
+        "mrs %0, msp\r\n"   /* r0 <- MSP */
+        "mrs %1, psp\r\n"   /* or r0 <- PSP (process stack) */
+    : "=r" (msp), "=r" (psp) ::);
+    pr_debug("msp\t\t%08x\t\t%08d", msp, msp);
+    pr_debug("psp\t\t%08x\t\t%08d", psp, psp);
+#endif
+}
+
 /*
  * Replaced by real sentry _entrypoint at link time
  */
@@ -35,12 +67,24 @@ extern  __attribute__((noreturn)) void _entrypoint();
 
 static __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
 {
+    pr_debug("Hardfault!!!");
+    SCB_Type *scb = (SCB_Type*)SCB_BASE;
+    if ((scb->HFSR) & SCB_HFSR_FORCED_Pos) {
+        pr_debug("hardfault forced (escalation)");
+    } else {
+        pr_debug("direct hardfault, no escalation");
+    }
+    if ((scb->HFSR) & SCB_HFSR_VECTTBL_Pos) {
+        pr_debug("Bus fault during vector table read.");
+    }
+
 #if defined(CONFIG_BUILD_TARGET_DEBUG)
     #if 0
     /* XXX: To be implemented, helper associated to kernel map */
     mgr_debug_dump_stack(frame);
     #endif
 #endif
+    dump_frame(frame);
     __do_panic();
 }
 
