@@ -44,7 +44,7 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_clock_init();
     mgr_interrupt_init();
     mgr_io_init();
-#ifdef CONFIG_BUILD_TARGET_DEBUG
+#ifndef CONFIG_BUILD_TARGET_RELEASE
     mgr_debug_init();
 #endif
     pr_info("Starting Sentry kernel release %s", "v0.1");

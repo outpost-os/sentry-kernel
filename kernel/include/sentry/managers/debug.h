@@ -29,7 +29,7 @@ extern "C" {
 #define KERN_INFO       "[6]"
 #define KERN_DEBUG      "[7]"
 
-#ifndef CONFIG_BUILD_TARGET_DEBUG
+#ifdef CONFIG_BUILD_TARGET_RELEASE
 /* in non-debug mode, no debug */
 
 static inline kstatus_t debug_rawlog(const uint8_t *logbuf __attribute__((unused)), size_t len __attribute__((unused))) {
@@ -115,12 +115,12 @@ kstatus_t printk(const char* fmt, ...);
 #define pr_debug(fmt, ...) \
 	printk(KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
 
-#endif
-
 kstatus_t mgr_debug_init(void);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_debug_autotest(void);
+#endif
+
 #endif
 
 #ifdef __cplusplus

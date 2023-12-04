@@ -30,10 +30,10 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<Status, Disp
         Syscall::WaitForEvent => unsafe { wait_for_event(args[0] as u8, args[1], args[2]) },
         Syscall::ManageCPUSleep => return manage_cpu_sleep(args[0]),
         Syscall::Log => {
-            #[cfg(CONFIG_BUILD_TARGET_DEBUG)]
+            #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
             return log_rs(args[0] as usize);
 
-            #[cfg(not(CONFIG_BUILD_TARGET_DEBUG))]
+            #[cfg(CONFIG_BUILD_TARGET_RELEASE)]
             0
         }
     };

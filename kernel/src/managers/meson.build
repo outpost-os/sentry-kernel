@@ -5,7 +5,7 @@
 subdir('security')
 subdir('task')
 subdir('io')
-if kconfig_data.get('CONFIG_BUILD_TARGET_DEBUG', 0) == 1
+if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) == 0
 subdir('debug')
 endif
 subdir('clock')

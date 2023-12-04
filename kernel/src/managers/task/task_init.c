@@ -285,8 +285,7 @@ err:
  * that was the tast task. Move to TASK_MANAGER_STATE_ERROR_SECURITY in case of
  * error.
  */
-static inline kstatus_t task_init_schedule(task_meta_t const * const meta,
-                                           task_mgr_state_t last_loop_state)
+static inline kstatus_t task_init_schedule(task_meta_t const * const meta, uint8_t cell)
 {
     kstatus_t status = K_STATUS_OKAY;
     /* entering state check */
@@ -304,7 +303,13 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta,
         pr_info("[task handle {%04x|%04x|%03x}] task forged", meta->handle.rerun, meta->handle.id, meta->handle.family);
     }
     ctx.numtask++;
-    ctx.state = last_loop_state;
+    if (cell == CONFIG_MAX_TASKS-1) {
+        /* last cell, go to finalize */
+        ctx.state = TASK_MANAGER_STATE_FINALIZE;
+    } else {
+        /* continue with next cell */
+        ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
+    }
 end:
     return status;
 }
@@ -426,7 +431,6 @@ kstatus_t mgr_task_init(void)
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
     ctx.state = TASK_MANAGER_STATE_DISCOVER_SANITATION;
     /* there is no discover in AUTOTEST mode */
-    task_mgr_state_t last_loop_state;
     /* for all tasks, discover, analyse, and init */
     for (uint16_t cell = 0; cell < CONFIG_MAX_TASKS; ++cell) {
         pr_info("starting task blob %u/%u checks", cell+1, CONFIG_MAX_TASKS);
@@ -453,7 +457,7 @@ kstatus_t mgr_task_init(void)
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto err;
         }
-        ctx.status = task_init_schedule(&__task_meta_table[cell], last_loop_state);
+        ctx.status = task_init_schedule(&__task_meta_table[cell], cell);
         if (unlikely(ctx.status != K_STATUS_OKAY)) {
             goto err;
         }
