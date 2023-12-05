@@ -162,6 +162,13 @@ taskh_t sched_rrmq_elect(void)
         .family = HANDLE_TASKID,
     };
     job_state_t state;
+    if (unlikely(sched_rrmq_ctx.current_job == NULL)) {
+        /* this case happen only when elect() is called by idle while there is
+         * absolutely NO active job. This is an extreme case, where we
+         * just recall idle.
+         */
+         goto end;
+    }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state!");
     }
@@ -186,7 +193,8 @@ taskh_t sched_rrmq_elect(void)
     }
     /* still no tasks ? schedule idle then */
     if (unlikely(sched_rrmq_ctx.active_jobset->num_jobs == 0)) {
-        /* TODO schedule idle */
+        /* schedule idle */
+        sched_rrmq_ctx.current_job = NULL;
         goto end;
     }
     /* there is at least one task eligible in current task set */

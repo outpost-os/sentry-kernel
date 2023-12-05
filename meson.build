@@ -175,7 +175,7 @@ if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
 # generation instead.
 srec_cat = find_program('srec_cat', required: false, disabler: true)
 
-if srec_cat.found()
+if srec_cat.found() and not get_option('with_tests')
 firmware_hex = custom_target(
     depends: [ autotest_hex, idle_hex, sentry_hex ],
     output: 'firmware.hex',

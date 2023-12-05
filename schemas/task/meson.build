@@ -18,7 +18,7 @@ task_metadata_schema = custom_target(
         '-DSCHEMA_GENERATION',
         '-I', join_paths(meson.current_source_dir(), '../../kernel/include'),
         '-I', join_paths(meson.current_source_dir(), '../../uapi/include'),
-        '-include', '@0@'.format(kconfig_h),
+        '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
         '-nostdinc', '-undef',
         '-E', '-P',
         '-MT', '@INPUT@',
