@@ -3,6 +3,9 @@
 
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/debug.h>
+#include <sentry/managers/task.h>
+#include <uapi/signal.h>
+#include <uapi/handle.h>
 
 #ifndef CONFIG_BUILD_TARGET_RELEASE
 /* pretty printing rodata content, not in release mode */
@@ -38,8 +41,25 @@ void panic_print_event(panic_event_t ev) {
 #endif
 }
 
-#if CONFIG_BUILD_TARGET_AUTOTEST
-kstatus_t panic_emit_signal(panic_event_t ev) {
-
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+/**
+ * @brief emitting signal to autotest task corresponding to current panic event
+ */
+kstatus_t panic_emit_signal(panic_event_t ev)
+{
+    sigh_t signal = {
+        .source = 0, /* kernel */
+        /* offset based panic signal calculation, from panic event value
+         * (order is kept)
+         */
+        .id = ev + SIGNAL_USR2 + 1,
+        .family = HANDLE_SIGNAL,
+    };
+    taskh_t autotest = {
+        .rerun = 0, /* kernel */
+        .id = 0xbabe,
+        .family = HANDLE_TASKID,
+    };
+    return mgr_task_push_event(signal, autotest);
 }
 #endif

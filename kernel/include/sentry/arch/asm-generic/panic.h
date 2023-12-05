@@ -59,11 +59,21 @@ typedef enum panic_event {
 
 void panic_print_event(panic_event_t ev);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t panic_emit_signal(panic_event_t ev);
+#endif
+
 static inline void __attribute__((noreturn)) panic(panic_event_t ev) {
 #if defined(__arm__) || defined(__FRAMAC__)
     /* calling arch-specific panic handler */
     panic_print_event(ev);
+# ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    panic_emit_signal(ev);
+# else
+    /* nominal way, do panic */
     __do_panic();
+# endif
+
 #else
     /* INFO: clang auto purge protection:
         when a loop with no external impact and with a constant
