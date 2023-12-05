@@ -6,7 +6,7 @@
 /// Most important enum is `Syscall`, which defines the list of available
 /// syscalls and sets their identifier/number.
 #[repr(C)]
-#[derive(Debug)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 pub enum Syscall {
     Exit,
     GetProcessHandle,
@@ -27,7 +27,7 @@ pub enum Syscall {
 /// serves as the basis for the syscall dispatcher in the crate
 /// `gate`.
 impl TryFrom<u8> for Syscall {
-    type Error = DispatchError;
+    type Error = Status;
     fn try_from(v: u8) -> Result<Syscall, Self::Error> {
         match v {
             0 => Ok(Syscall::Exit),
@@ -43,20 +43,14 @@ impl TryFrom<u8> for Syscall {
             10 => Ok(Syscall::WaitForEvent),
             11 => Ok(Syscall::ManageCPUSleep),
             12 => Ok(Syscall::Log),
-            _ => Err(DispatchError::IllegalValue),
+            _ => Err(Status::Invalid),
         }
     }
 }
 
-/// Possible errors when converting from a u32 to a syscall number
-pub enum DispatchError {
-    IllegalValue,
-    InsufficientCapabilities,
-}
-
 /// Sentry syscall return values
 #[repr(C)]
-#[derive(Debug, PartialEq)]
+#[cfg_attr(debug_assertions, derive(Debug, PartialEq))]
 pub enum Status {
     Ok,
     Invalid,
@@ -79,7 +73,7 @@ impl From<u32> for Status {
             5 => Status::AlreadyMapped,
             6 => Status::TimeOut,
             7 => Status::Critical,
-            _ => todo!(),
+            _ => panic!(),
         }
     }
 }
@@ -261,14 +255,14 @@ impl From<CPUSleep> for u32 {
 }
 
 impl TryFrom<u32> for CPUSleep {
-    type Error = DispatchError;
+    type Error = Status;
     fn try_from(mode: u32) -> Result<CPUSleep, Self::Error> {
         match mode {
             0 => Ok(CPUSleep::WaitForInterrupt),
             1 => Ok(CPUSleep::WaitForEvent),
             2 => Ok(CPUSleep::ForbidSleep),
             3 => Ok(CPUSleep::AllowSleep),
-            _ => Err(DispatchError::IllegalValue),
+            _ => Err(Status::Invalid),
         }
     }
 }
