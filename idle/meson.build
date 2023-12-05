@@ -22,7 +22,7 @@ idle_ldscript = custom_target('idle_ldscript',
 )
 
 idle_linker_args = [
-    '-T@0@'.format(idle_ldscript.full_path()),
+    '-T' + idle_ldscript.full_path(),
     '-z', 'noexecstack',
 ]
 
@@ -52,7 +52,7 @@ idle_hex = custom_target(
         '@INPUT@',
         '@OUTPUT@'
     ],
-    build_always: true,
+    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
     install_tag: 'runtime',

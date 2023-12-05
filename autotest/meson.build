@@ -22,7 +22,7 @@ autotest_ldscript = custom_target('autotest_ldscript',
 )
 
 autotest_linker_args = [
-    '-T@0@'.format(autotest_ldscript.full_path()),
+    '-T' + autotest_ldscript.full_path(),
     '-z', 'noexecstack',
 ]
 
@@ -52,7 +52,7 @@ autotest_hex = custom_target(
         '@INPUT@',
         '@OUTPUT@'
     ],
-    build_always: true,
+    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
     install_tag: 'runtime',

@@ -77,7 +77,7 @@ jobs:
       - name: install prerequisites pkg
         uses: embedded-devops/action-install-pkg@v2.0
         with:
-          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
+          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld,srecord'
       - name: Split compiler reference
         id: split
         shell: bash

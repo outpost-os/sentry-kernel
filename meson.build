@@ -168,5 +168,26 @@ summary(
     section: 'Configuration'
 )
 
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+# in autotest mode only, fusion all hex into one single hex, to simplify
+# gdb flashing. This mode needs srec_cat to fusion all hex into one
+# other nominal (debug, release) modes use build system based binary
+# generation instead.
+srec_cat = find_program('srec_cat', required: true)
+
+firmware_hex = custom_target(
+    depends: [ autotest_hex, idle_hex, sentry_hex ],
+    output: 'firmware.hex',
+    command: [
+        srec_cat,
+        '-o', '@OUTPUT@', '-Intel',
+        sentry_hex.full_path(), '-Intel',
+        idle_hex.full_path(), '-Intel',
+        autotest_hex.full_path(), '-Intel',
+    ],
+    build_by_default: true,
+)
+endif
+
 # auto-generation (jinja2, json) tooling is there
 # subdir('tools')
