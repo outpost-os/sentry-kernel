@@ -164,7 +164,6 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     Ok(None)
 }
 
-
 fn sched_elect() -> mgr::task_handle {
     unsafe { mgr::sched_elect() }
 }

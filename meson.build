@@ -27,7 +27,8 @@ py3 = pymod.find_installation('python3', modules: ['dunamai'])
 
 if meson.has_external_property('rust_target')
     add_project_arguments([
-        '--target=@0@'.format(meson.get_external_property('rust_target'))
+        '--target=@0@'.format(meson.get_external_property('rust_target')),
+        '-C', 'lto=true',
     ], language: 'rust', native: false)
 else
     warning('No `rust_target` defined, build will fail unless it is only docs.')

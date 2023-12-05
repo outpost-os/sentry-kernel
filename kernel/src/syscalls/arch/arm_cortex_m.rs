@@ -1,7 +1,6 @@
 use crate::gate::syscall_dispatch;
 use core::arch::asm;
 use managers_bindings::stack_frame_t;
-use systypes::Syscall;
 
 #[no_mangle]
 /// # Safety
@@ -19,15 +18,8 @@ pub unsafe fn svc_handler_rs(stack_frame: *mut stack_frame_t) -> *mut stack_fram
     ];
     let new_stack_frame = syscall_dispatch(syscall_num, &args);
     match new_stack_frame {
-        Err(e) => {
-            stack_frame
-        }
-        Ok(None) => {
-            stack_frame
-        }
-        Ok(Some(x)) => {
-            x
-        }
+        Ok(None) | Err(_) => stack_frame,
+        Ok(Some(x)) => x,
     }
 }
 
