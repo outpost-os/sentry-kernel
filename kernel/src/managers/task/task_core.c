@@ -313,7 +313,7 @@ void __attribute__((noreturn)) mgr_task_start(void)
 
     __builtin_unreachable();
 err:
-    panic();
+    panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     __builtin_unreachable();
 }
 

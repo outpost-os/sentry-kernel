@@ -21,12 +21,12 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
     /* get the device owning the interrupt */
     if (unlikely(mgr_device_get_devh_from_interrupt(IRQn, &dev) != K_STATUS_OKAY)) {
         /* interrupt with no known device ???? */
-        panic();
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* get the task owning the device */
     if (unlikely(mgr_task_get_device_owner(dev, &owner) != K_STATUS_OKAY)) {
         /* user interrupt with no owning task ???? */
-        panic();
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     irqh_t ev = {
         .irqn = IRQn,
@@ -36,7 +36,7 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
     /* push the inth event into the task input events queue */
     if (unlikely(mgr_task_push_event(ev, owner) == K_STATUS_OKAY)) {
         /* failed to push IRQ event !!! XXX: what do we do ? */
-        panic();
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
     return frame;
 }

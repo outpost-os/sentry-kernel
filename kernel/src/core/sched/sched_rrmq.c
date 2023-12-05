@@ -109,7 +109,7 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
     kstatus_t status;
     if (unlikely(jobset->num_jobs > CONFIG_MAX_TASKS)) {
         /* should never happen! */
-        panic();
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
     uint8_t cell = 0;
     const task_meta_t *meta;
@@ -236,7 +236,7 @@ stack_frame_t *sched_rrmq_refresh(stack_frame_t *frame)
         taskh_t tsk = sched_rrmq_elect();
         /* context switching */
         if (unlikely(mgr_task_get_sp(tsk, &out_frame) != K_STATUS_OKAY)) {
-            panic();
+            panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
         }
     }
 end:
