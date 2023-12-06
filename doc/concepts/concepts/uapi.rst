@@ -1,6 +1,10 @@
 UAPI model
 ----------
 
+.. index::
+  single: UAPI; model
+  single: UAPI; definition
+
 UAPI introduction
 """""""""""""""""
 
@@ -37,6 +41,13 @@ remains possible. The UAPI Rust crate is designed to be associated to:
 
 Using standard abstractions allows userspace code to stay portable, making easier
 userspace code testing and debugging.
+
+.. index::
+  single: handle; userspace usage
+  single: irqh_t; userspace usage
+  single: sigh_t; userspace usage
+  single: ipch_t; userspace usage
+  single: taskh_t; userspace usage
 
 A little more about handles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -132,6 +143,10 @@ uptodate handle and continue the communication.
   Describes `shm` handles (shared memories), `dma` handles (DMA streams),
   `io` handles (GPIOs and pin config)
 
+
+.. index::
+  single: userspace events; model
+  single: userspace events; implementation
 
 Sentry events
 ^^^^^^^^^^^^^

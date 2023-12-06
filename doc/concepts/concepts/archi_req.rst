@@ -1,6 +1,10 @@
 Architectural model
 -------------------
 
+.. index::
+   single: micro-kernel; design
+   single: micro-kernel; security
+
 Micro-kernel responsibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -16,6 +20,9 @@ is responsible of against logical attacks. In the same time, it must as much as
 possible detect any external invalid behaviors, in order to be able to react as
 much as possible to various exploitation such as fault injection, hardware corruption,
 and so on.
+
+.. index::
+   single: handle; definition
 
 Micro-kernel design: handles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,6 +79,9 @@ In Sentry, the following ressource handles exist:
   More about handles and the way they are used in described in the UAPI :ref:`handles <uapi_handles>` usage
   subchapter
 
+.. index::
+   single: svc_exchange; model
+
 Other userspace/kernelspace communication concepts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -119,6 +129,12 @@ Moreover, user task, never, at any time, uses pointers when communicating with t
    `svc_exchange` region size is a project build time specified value, so that the amount
    of content a userspace task can transmit to the kernel through this region (and the opposite
    direction) can vary, depending on the project needs.
+
+.. index::
+   single: micro-kernel; portability
+   single: micro-kernel; software hierarchy
+   single: managers; definition
+   single: managers; listing
 
 Micro-kernel design for portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -196,6 +212,12 @@ There are multiple managers in Sentry:
    :align: center
 
    Managers and their interactions
+
+.. index::
+   single: system view description; definition
+   single: system view description; usage
+   single: device-tree; definition
+   single: device-tree; usage
 
 SVD and Device-trees
 """"""""""""""""""""

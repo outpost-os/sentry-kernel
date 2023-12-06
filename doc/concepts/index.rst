@@ -12,7 +12,12 @@ Welcome to Sentry documentation!
    concepts/index.rst
    build_system/index.rst
    sw_architecture/index.rst
+   tests/index.rst
 
+.. toctree::
+   :hidden:
+
+   genindex
 
 .. image:: _static/figures/sentry_kernel.png
    :align: center
@@ -31,10 +36,6 @@ secure manipulation of complex or performance critical I/O the SE is
 not able to handle.
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
 
 .. image:: _static/figures/outpost.png
    :align: right
