@@ -87,7 +87,7 @@ the usage of the signal set. Supported signals are the following:
 
      .. literalinclude:: ../../../uapi/include/uapi/signal.h
        :language: c
-       :lines: 9-22
+       :lines: 10-21
        :caption: List of Sentry signals
 
 When receiving a signal, the job receive the signal handle `sigh_t`. It can then

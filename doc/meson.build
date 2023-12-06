@@ -28,6 +28,7 @@ concepts_rst = files(
     'concepts/_static/figures/deadlock.png',
     'concepts/_static/figures/capabilities.png',
     'concepts/_static/figures/outpost_fp.png',
+    'concepts/_static/figures/autotest_mgr.png',
     'concepts/_static/figures/outpost.png',
     'concepts/_static/figures/managers.mermaid',
     'concepts/_static/figures/outpost.ico',
