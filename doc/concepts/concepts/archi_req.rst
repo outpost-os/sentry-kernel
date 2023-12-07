@@ -162,7 +162,7 @@ component is hidden under generic abstraction layers denoted *managers*.
 
 There are multiple managers in Sentry:
 
-   * **Memory manager**: This manager is responsible for configuring the memory protection
+   * **memory manager**: This manager is responsible for configuring the memory protection
      and delivering a portable high level API for manipulate memory such as mapping and
      unmapping Outpost ressources into the context of a Sentry subjet (for example a task).
      This API comply with armv7m MPU as well as RISC-V MPU or even MMU model. The memory manager
@@ -204,6 +204,9 @@ There are multiple managers in Sentry:
      instead abstracted API, so that clocks identifiers is never even known from the userspace. Any
      device bus and clock identifier is a full kernel-side information associated to `devh_t` in the
      device manager.
+
+   * **time manager**: This manager is responsible of durations and delaying, including scheduler
+     API manipulation.
 
 
 .. figure:: ../_static/figures/managers.png
