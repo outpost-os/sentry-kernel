@@ -63,14 +63,18 @@ void panic_print_event(panic_event_t ev);
 kstatus_t panic_emit_signal(panic_event_t ev);
 #endif
 
-static inline void __attribute__((noreturn)) panic(panic_event_t ev) {
+static inline void
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
+__attribute__((noreturn))
+#endif
+panic(panic_event_t ev) {
 #if defined(__arm__) || defined(__FRAMAC__)
     /* calling arch-specific panic handler */
     panic_print_event(ev);
 # ifdef CONFIG_BUILD_TARGET_AUTOTEST
     panic_emit_signal(ev);
 # else
-    /* nominal way, do panic */
+    /* nominal way, do*/
     __do_panic();
 # endif
 
