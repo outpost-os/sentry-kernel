@@ -44,8 +44,13 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_clock_init();
     mgr_interrupt_init();
     mgr_io_init();
+    systick_init();
 #ifndef CONFIG_BUILD_TARGET_RELEASE
     mgr_debug_init();
+#endif
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+    pr_autotest("WARN: starting autotest mode");
+    pr_autotest("INFO: no task discover in this mode");
 #endif
     pr_info("Starting Sentry kernel release %s", "v0.1");
     pr_info("kernel bootup stack at %p, current frame: %p", &_bootupstack, __platform_get_current_sp());
@@ -80,6 +85,9 @@ __attribute__((noreturn)) void _entrypoint(void)
     do {
         asm volatile("wfi");
     } while (1);
+#endif
+#if CONFIG_BUILD_TARGET_AUTOTEST
+    pr_autotest("INFO: init finished");
 #endif
     pr_debug("starting userspace");
     mgr_task_start();

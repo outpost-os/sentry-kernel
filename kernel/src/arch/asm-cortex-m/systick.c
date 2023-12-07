@@ -8,6 +8,7 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
+#include <sentry/arch/asm-cortex-m/dwt.h>
 #include <bsp/drivers/clk/rcc.h>
 #include <sentry/sched.h>
 #include <sentry/io.h>
@@ -76,6 +77,8 @@ typedef enum scb_systick_clkref {
 } scb_systick_clkref_t;
 
 static uint64_t jiffies;
+static uint64_t cycle_jiffies;
+static uint64_t period_jiffies;
 static uint64_t wait_jiffies;
 
 static inline void store_wait_jiffies(uint64_t jiffies_to_wait)
@@ -147,9 +150,15 @@ void systick_init(void)
 
     static_assert(CONFIG_SYSTICK_HZ > 0, "system tick frequency MUST NOT be null");
 
+    period_jiffies = 0ULL;
     jiffies = 0ULL;
+    cycle_jiffies = 0ULL;
     wait_jiffies = 0ULL;
 
+    /* enable cycle precision counting */
+    dwt_enable_cyccnt();
+    dwt_reset_cyccnt();
+    /* calibrate systick */
     systick_calibrate();
     /* enable interrupt, set clksource as CPU clock */
     reg  = ((SCB_SYSTICK_CLKSRC_CPU & SCB_SYSTICK_CSR_CLKSRC_Msk) << SCB_SYSTICK_CSR_CLKSRC_Pos) |
@@ -166,6 +175,45 @@ void systick_stop_and_clear(void)
     SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 }
 
+/**
+ * read, update and return the current cycle count since startup. Can
+ * be called multiple time, with a non-periodic behavior, but non-reentrant
+ */
+uint64_t systime_get_cycle(void)
+{
+    uint32_t dwt = dwt_cyccnt();
+    if (dwt > period_jiffies) {
+        /* dwt has incremented since last handler call. add increment only */
+        cycle_jiffies += (dwt - period_jiffies);
+    } else {
+        /* dwt has reseted since last handler call, add current value + previous
+         * residual
+         */
+        cycle_jiffies += dwt;
+        cycle_jiffies += (0xffffffffUL - period_jiffies);
+    }
+    period_jiffies = dwt;
+    return cycle_jiffies;
+}
+
+/**
+ * return the high word of the cycle counter
+ */
+uint32_t systime_get_cycleh(void)
+{
+    uint64_t cycles = systime_get_cycle();
+    return (uint32_t)((cycles >> 32) & 0xffffffffUL);
+}
+
+/**
+ * return the low word of the cycle counter
+ */
+uint32_t systime_get_cyclel(void)
+{
+    uint64_t cycles = systime_get_cycle();
+    return (uint32_t)(cycles & 0xffffffffUL);
+}
+
 stack_frame_t *systick_handler(stack_frame_t * stack_frame)
 {
     jiffies++;
@@ -173,6 +221,12 @@ stack_frame_t *systick_handler(stack_frame_t * stack_frame)
     if (wait_jiffies > 0) {
         wait_jiffies--;
     }
+    /*
+     * refresh swt-based systime calculation
+     * This is done with HZ period, which guarantee that the no DWT loop is
+     * missed, except in low power mode (when systick is deactivated).
+     */
+    systime_get_cycle();
     /* upgrade delayed tasks (slepping task) */
     sched_delay_tick();
 #if CONFIG_SCHED_RRMQ

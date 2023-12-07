@@ -13,6 +13,9 @@ extern "C" {
 #include <stdarg.h>
 #include <stddef.h>
 #include <sentry/ktypes.h>
+#if CONFIG_BUILD_TARGET_AUTOTEST
+#include <sentry/arch/asm-generic/tick.h>
+#endif
 
 /**
  * Linux-like log levels, so that it is possible to filter-out logs
@@ -67,61 +70,107 @@ kstatus_t printk(const char* fmt, ...);
  */
 #define pr_fmt(fmt) "%s: " fmt "\n", __func__
 
+#if CONFIG_DEBUG_LEVEL > 0
 /**
  * @def emergency messages, the system do not work correctly anymore
  */
 #define pr_emerg(fmt, ...) \
 	printk(KERN_EMERG " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_emerg(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 1
 /**
  * @def alert message, the system is in alert mode, even if it may no be unstable
  */
 #define pr_alert(fmt, ...) \
 	printk(KERN_ALERT " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_alert(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 2
 /**
  * @def critical error of any module
  */
 #define pr_crit(fmt, ...) \
 	printk(KERN_CRIT " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_crit(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 3
 /**
  * @def something went wrong somewhere
  */
 #define pr_err(fmt, ...) \
 	printk(KERN_ERR " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_err(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 4
 /**
  * @def warning information about anything (fallbacking, etc...)
  */
 #define pr_warn(fmt, ...) \
 	printk(KERN_WARNING " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_warn(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 5
 /**
  * @def notice on something that is a little tricky, but not a warning though
  */
 #define pr_notice(fmt, ...) \
 	printk(KERN_NOTICE " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_notice(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 6
 /**
  * @def usual informational messages
  */
 #define pr_info(fmt, ...) \
 	printk(KERN_INFO " " pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_info(fmt, ...)
+#endif
 
+#if CONFIG_DEBUG_LEVEL > 7
 /**
  * @def debugging messages, may generates a lot of output or performances impacts
  */
 #define pr_debug(fmt, ...) \
 	printk(KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
-
-kstatus_t mgr_debug_init(void);
+#else
+#define pr_debug(fmt, ...)
+#endif
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
+/** @def autotest log prefix */
+#define KERN_AUTOTEST   "[T]"
+
+/**
+ * @def pr_ auto format string for pr_autotest only, adding TEST and current timestamping in u64
+ * format
+ */
+#define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
+
+/**
+ * @def autotest messages, for autotest functions only
+ */
+#define pr_autotest(fmt, ...) \
+	printk(KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
+#endif
+
 kstatus_t mgr_debug_autotest(void);
 #endif
 
-#endif
+kstatus_t mgr_debug_init(void);
 
 #ifdef __cplusplus
 }

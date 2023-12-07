@@ -41,4 +41,30 @@ config MAX_DMA_STREAMS_PER_TASK
 
 endmenu
 
+if !BUILD_TARGET_RELEASE
+
+menu "Debug manager"
+
+config DEBUG_LEVEL
+	int "kernel debug level"
+	range 0 8
+	default 7
+	help
+	  Kernel activated debug level, from 0 (no debug) upto 8 (all debug)
+	  debug levels are the following:
+	  - 0 : no debug
+	  - 1 : emerg
+	  - 2 : emerg, alert
+	  - 3 : emerg, alert, critical
+	  - 4 : emerg, alert, critical, error
+	  - 5 : emerg, alert, critical, error, warning
+	  - 6 : emerg, alert, critical, error, warning, notice
+	  - 7 : emerg, alert, critical, error, warning, notice, info
+	  - 8 : emerg, alert, critical, error, warning, notice, info, debug
+	  autotest-specific logging is not impacted by debug level
+
+endmenu
+
+endif
+
 endmenu

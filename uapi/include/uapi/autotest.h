@@ -33,7 +33,7 @@
  * The autotest app can prepare the test-bed at first, typically to map an external
  * console or serial link for tests transmission, deported control plane, or logging.
  */
-typedef enum {
+typedef enum autotest_request {
     /**< entering autotest mode. Allows nominal test-bed config before autotests
        for e.g. test fixtures that need standard syscall usage. From now on, panic
        is redirect to signal-to-autotest */
@@ -49,6 +49,6 @@ typedef enum {
     SENTRY_AUTOTEST_MGR_SECURITY,  /**< ask for security manager autotest */
     SENTRY_AUTOTEST_MGR_TASK,      /**< ask for task manager autotest */
     SENTRY_AUTOTEST_SCHED,         /**< ask for scheduler autotest */
-};
+} autotest_request_t;
 
 #endif /*!UAPI_AUTOTEST_H*/
