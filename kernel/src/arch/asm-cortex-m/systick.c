@@ -10,6 +10,7 @@
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/dwt.h>
 #include <bsp/drivers/clk/rcc.h>
+#include <sentry/managers/time.h>
 #include <sentry/sched.h>
 #include <sentry/io.h>
 
@@ -228,7 +229,7 @@ stack_frame_t *systick_handler(stack_frame_t * stack_frame)
      */
     systime_get_cycle();
     /* upgrade delayed tasks (slepping task) */
-    sched_delay_tick();
+    mgr_time_delay_tick();
 #if CONFIG_SCHED_RRMQ
     /* refresh quantums */
     stack_frame = sched_refresh(stack_frame);

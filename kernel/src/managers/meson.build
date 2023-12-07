@@ -4,6 +4,7 @@
 # Sentry managers list
 subdir('security')
 subdir('task')
+subdir('time')
 subdir('io')
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) == 0
 subdir('debug')

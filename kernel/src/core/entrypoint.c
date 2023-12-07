@@ -5,11 +5,6 @@
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <bsp/drivers/gpio/gpio.h>
-#if CONFIG_ARCH_ARM_CORTEX_M
-#include <sentry/arch/asm-cortex-m/systick.h>
-#else
-#error "unsupported platform"
-#endif
 #include <sentry/managers/io.h>
 #include <sentry/managers/debug.h>
 #include <sentry/managers/clock.h>
@@ -17,7 +12,7 @@
 #include <sentry/managers/security.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/memory.h>
-#include <sentry/sched.h>
+#include <sentry/managers/time.h>
 #include <sentry/thread.h>
 
 /* used for debug printing only */
@@ -44,10 +39,10 @@ __attribute__((noreturn)) void _entrypoint(void)
     mgr_clock_init();
     mgr_interrupt_init();
     mgr_io_init();
-    systick_init();
 #ifndef CONFIG_BUILD_TARGET_RELEASE
     mgr_debug_init();
 #endif
+    mgr_time_init();
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
     pr_autotest("WARN: starting autotest mode");
     pr_autotest("INFO: no task discover in this mode");
@@ -60,8 +55,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     platform_init();
     pr_info("Platform initialization done, continuing with upper layers");
     mgr_security_init();
-
-    sched_init();
     mgr_task_init();    /* list of tasks parsed (depend on sched_init) */
     mgr_device_init();  /* device list and task link forged (depend on task_init) */
 
