@@ -1,5 +1,9 @@
 # sentry zlib
-zlib_files = files(
+zlib_files = files()
+
+subdir('crypto')
+
+zlib_files += files(
     'string.c',
 )
 

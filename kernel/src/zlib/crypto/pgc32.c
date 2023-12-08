@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <inttypes.h>
-#include <sentry/managers/security_crypto.h>
+#include <sentry/zlib/crypto.h>
 
 #define KBYTE 1024
 #define MBYTE 1048576

@@ -5,7 +5,7 @@
 #if defined(CONFIG_HAS_RNG)
 #include <bsp/drivers/rng/rng.h>
 #endif
-#include <sentry/managers/security_crypto.h>
+#include <sentry/zlib/crypto.h>
 #include <sentry/ktypes.h>
 #include <sentry/managers/debug.h>
 
