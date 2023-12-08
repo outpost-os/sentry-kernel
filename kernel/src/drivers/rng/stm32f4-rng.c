@@ -13,7 +13,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
-#include <sentry/crypto/crc32.h>
+#include <sentry/managers/security_crypto.h>
 #include <sentry/managers/memory.h>
 #include <bsp/drivers/clk/rcc.h>
 #include "rng_defs.h"
