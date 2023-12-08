@@ -67,4 +67,46 @@ endmenu
 
 endif
 
+menu "Security manager"
+
+# symbols selected by build mode
+config SECU_SSP_USER
+	bool
+	# support for user threads stack canaries
+
+config SECU_SSP_KERN
+	bool
+	# support for kernel threads stack canaries
+
+config SECU_HW_SETNCHECK
+	bool
+	---help---
+	  when possible (may depend on the hardware device), double verify that
+	  the target register configuration is valid and active
+	# Unable set and check of critical hardware registers
+	# (iowrite + ioread and compare)
+
+config SECU_NO_WEAKTYPES
+	bool
+	---help---
+	  Comparison to 0 lead to potential weak optimizations that should be
+	  avoided in security critical environment. In the same way, hamming distance
+	  of 1 can be easily faulted, in comparison with a discrete type
+
+config SECU_LOOP_DBLE_IDX
+	bool
+	# Double index count and check in critical loops
+
+config SECU_TASK_INTEGRITY_AT_BOOT
+	bool
+
+config SECU_ENFORCE_FAULT_INJECTION
+	bool "Enforce fault injection projections"
+	---help---
+	  Enable this flag to enforce formally proven execution
+	  paths with supplementary checks that whould have been dead
+	  code in nominal execution
+
+endmenu
+
 endmenu
