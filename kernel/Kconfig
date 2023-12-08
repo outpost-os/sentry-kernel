@@ -1,5 +1,5 @@
 rsource 'src/arch/Kconfig'
-rsource 'src/core/Kconfig'
+rsource 'src/startup/Kconfig'
 rsource 'src/managers/Kconfig'
 
 menu "Build mode"

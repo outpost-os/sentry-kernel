@@ -12,12 +12,13 @@ sentry_private_gen_header_set = ssmod.source_set()
 # arch-specific content
 subdir('arch')
 # what can't be deseleted. source listing is dynamic (Kconfig-list)
-subdir('core')
+subdir('startup')
 subdir('drivers')
 # managers (generic internal API for various services)
 subdir('managers')
 subdir('syscalls')
 subdir('sched')
+subdir('zlib')
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [
