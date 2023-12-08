@@ -10,7 +10,6 @@
 /**
  * @file generic upper layer API for Sentry schedulers
  */
-
 kstatus_t sched_init(void);
 
 /**
