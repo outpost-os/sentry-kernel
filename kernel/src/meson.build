@@ -18,6 +18,7 @@ subdir('drivers')
 # managers (generic internal API for various services)
 subdir('managers')
 subdir('syscalls')
+subdir('sched')
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [

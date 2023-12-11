@@ -5,5 +5,4 @@
 sentry_startup += files(
   'entrypoint.c'
 )
-subdir('sched')
 subdir('zlib')
