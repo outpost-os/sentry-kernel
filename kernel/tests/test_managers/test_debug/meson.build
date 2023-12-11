@@ -15,7 +15,7 @@ test_printk = executable(
     c_args: [
         '-DTEST_MODE=1',
         '-DCONFIG_BUILD_TARGET_DEBUG=1',
-        '-include', '@0@'.format(kconfig_h),
+        '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
     ],
     dependencies: [gtest_main ],
     link_language: 'cpp',

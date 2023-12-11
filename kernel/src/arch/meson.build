@@ -9,4 +9,5 @@ endif
 sentry_source_set.add(files(
   'asm-generic/platform.c',
   'asm-generic/sync.c',
+  'asm-generic/panic.c',
 ))

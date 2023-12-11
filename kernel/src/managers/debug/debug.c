@@ -20,7 +20,9 @@ kstatus_t mgr_debug_init(void)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto end;
     }
+#ifdef CONFIG_BUILD_TARGET_DEBUG
     rcc_enable_debug_clockout();
+#endif
     dbgbuffer_flush();
 end:
     return status;
@@ -38,3 +40,11 @@ kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
 {
 	return usart_tx(logbuf, len);
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_debug_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif

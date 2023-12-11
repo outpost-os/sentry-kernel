@@ -109,7 +109,7 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
     kstatus_t status;
     if (unlikely(jobset->num_jobs > CONFIG_MAX_TASKS)) {
         /* should never happen! */
-        panic();
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
     uint8_t cell = 0;
     const task_meta_t *meta;
@@ -162,6 +162,13 @@ taskh_t sched_rrmq_elect(void)
         .family = HANDLE_TASKID,
     };
     job_state_t state;
+    if (unlikely(sched_rrmq_ctx.current_job == NULL)) {
+        /* this case happen only when elect() is called by idle while there is
+         * absolutely NO active job. This is an extreme case, where we
+         * just recall idle.
+         */
+         goto end;
+    }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state!");
     }
@@ -186,7 +193,8 @@ taskh_t sched_rrmq_elect(void)
     }
     /* still no tasks ? schedule idle then */
     if (unlikely(sched_rrmq_ctx.active_jobset->num_jobs == 0)) {
-        /* TODO schedule idle */
+        /* schedule idle */
+        sched_rrmq_ctx.current_job = NULL;
         goto end;
     }
     /* there is at least one task eligible in current task set */
@@ -228,12 +236,22 @@ stack_frame_t *sched_rrmq_refresh(stack_frame_t *frame)
         taskh_t tsk = sched_rrmq_elect();
         /* context switching */
         if (unlikely(mgr_task_get_sp(tsk, &out_frame) != K_STATUS_OKAY)) {
-            panic();
+            panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
         }
     }
 end:
     return out_frame;
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t sched_rrmq_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
+
+
 /* default scheduler is RRMQ */
 
 kstatus_t sched_schedule(taskh_t t) __attribute__((alias("sched_rrmq_schedule")));
@@ -241,3 +259,6 @@ taskh_t sched_elect(void) __attribute__((alias("sched_rrmq_elect")));
 taskh_t sched_get_current(void) __attribute__((alias("sched_rrmq_get_current")));
 kstatus_t sched_init(void) __attribute__((alias("sched_rrmq_init")));
 stack_frame_t *sched_refresh(stack_frame_t *frame) __attribute__((alias("sched_rrmq_refresh")));
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t sched_autotest(void) __attribute__((alias("sched_rrmq_autotest")));
+#endif

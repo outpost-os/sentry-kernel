@@ -1,6 +1,10 @@
 Initial conception model
 ------------------------
 
+.. index::
+   single: micro-kernel; principle
+
+
 Micro-kernel design
 ^^^^^^^^^^^^^^^^^^^
 
@@ -16,6 +20,12 @@ architecture is enforced. To achieve that, this requires some specific considera
      fully partitioned and executed in user mode
 
 The userspace device manipulation concept is fully described in a :ref:`dedicated chapter <userspace_devices>`.
+
+
+.. index::
+   single: application; model
+   single: library; model
+   single: micro-service; model
 
 Application developer model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,6 +92,14 @@ In the same way, the business logic developer can:
 The residual constraint is the analisys of the overall system performances,
 that define how multiple tasks can interact with optimal performances and scheduling. The following
 chapter describes the Sentry tasking model, in order to respond to this part.
+
+
+.. index::
+   single: scheduling; principle
+   single: task; definition
+   single: job; definition
+   single: label; definition
+   single: task handle; definition
 
 About general tasking model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,6 +175,13 @@ Based on the previous, the following terminology is defined:
       its job, depending on the global system configuration. A job is associated to a *task handle*.
    3. A **label** is a 16 bit length identifier defined by the task developer, unique to the task in a project.
    4. A **task handle** is a 32 bit length identifier (see :ref:`handles <handles>`) that identify the current task job, if it exists.
+
+
+.. index::
+   single: capability; concept
+   single: capability; definition
+   single: job start; model
+   single: job termination; model
 
 Tasks properties
 ^^^^^^^^^^^^^^^^
@@ -247,6 +272,10 @@ The kernel handles both exit cases differently:
      If another fault rise while executing the abort handler, the system panic for
      security.
 
+.. index::
+   single: job entrypoint; model
+   single: rust
+
 job entrypoint
 ^^^^^^^^^^^^^^
 
@@ -309,6 +338,10 @@ later case, the job is no more an infinite loop, but instead somehting like:
    restart is a job termination policy. This is interesting when a feature that
    requires periodic action is dynamically activated on the system (for e.g. through
    a received request).
+
+.. index::
+   single: mapping; model
+   single: task metadata
 
 Mapping tasks
 ^^^^^^^^^^^^^

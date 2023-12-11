@@ -3,7 +3,7 @@
 pub mod arch;
 pub mod gate;
 
-#[cfg(CONFIG_BUILD_TARGET_DEBUG)]
+#[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
 #[macro_use]
 pub mod debug;
 

@@ -208,7 +208,9 @@ typedef enum {
     FS_NUM_UCHAR,
     FS_NUM_SHORT,
     FS_NUM_LONG,
+    FS_NUM_UNSIGNEDLONG,
     FS_NUM_LONGLONG,
+    FS_NUM_UNSIGNEDLONGLONG,
     FS_NUM_UNSIGNED,
 } fs_num_mode_t;
 
@@ -344,6 +346,8 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                      */
                     long    lval = 0;
                     long long llval = 0;
+                    unsigned long    luval = 0;
+                    unsigned long long lluval = 0;
                     uint8_t len = 0;
 
                     if (fs_prop.started == false) {
@@ -355,14 +359,35 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         fs_prop.numeric_mode = FS_NUM_LONGLONG;
                         fs_prop.consumed++;
                     }
-                    if (fs_prop.numeric_mode == FS_NUM_LONG) {
-                        lval = va_arg(*args, long);
-
-                        len = dbgbuffer_get_number_len(lval, 10);
-                    } else {
-                        llval = va_arg(*args, long long);
-
-                        len = dbgbuffer_get_number_len(llval, 10);
+                    /* detecting long (long) unsigned */
+                    if (fmt[fs_prop.consumed + 1] == 'u') {
+                        if (fs_prop.numeric_mode == FS_NUM_LONG) {
+                            fs_prop.numeric_mode = FS_NUM_UNSIGNEDLONG;
+                        } else {
+                            fs_prop.numeric_mode = FS_NUM_UNSIGNEDLONGLONG;
+                        }
+                        fs_prop.consumed++;
+                    }
+                    switch (fs_prop.numeric_mode) {
+                        case FS_NUM_LONG:
+                            lval = va_arg(*args, long);
+                            len = dbgbuffer_get_number_len(lval, 10);
+                            break;
+                        case FS_NUM_LONGLONG:
+                            llval = va_arg(*args, long long);
+                            len = dbgbuffer_get_number_len(llval, 10);
+                            break;
+                        case FS_NUM_UNSIGNEDLONG:
+                            luval = va_arg(*args, unsigned long);
+                            len = dbgbuffer_get_number_len(luval, 10);
+                            break;
+                        case FS_NUM_UNSIGNEDLONGLONG:
+                            lluval = va_arg(*args, unsigned long long);
+                            len = dbgbuffer_get_number_len(lluval, 10);
+                            break;
+                        default:
+                            __builtin_unreachable();
+                            break;
                     }
                     if (fs_prop.attr_size && fs_prop.attr_0len) {
                         /* we have to pad with 0 the number to reach
@@ -373,10 +398,22 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
                         }
                     }
                     /* now we can print the number in argument */
-                    if (fs_prop.numeric_mode == FS_NUM_LONG) {
-                        dbgbuffer_write_u32(lval, 10);
-                    } else {
-                        dbgbuffer_write_u64(llval, 10);
+                    switch (fs_prop.numeric_mode) {
+                        case FS_NUM_LONG:
+                            dbgbuffer_write_u32(lval, 10);
+                            break;
+                        case FS_NUM_LONGLONG:
+                            dbgbuffer_write_u64(llval, 10);
+                            break;
+                        case FS_NUM_UNSIGNEDLONG:
+                            dbgbuffer_write_u32(luval, 10);
+                            break;
+                        case FS_NUM_UNSIGNEDLONGLONG:
+                            dbgbuffer_write_u64(lluval, 10);
+                            break;
+                        default:
+                            __builtin_unreachable();
+                            break;
                     }
                     fs_prop.strlen += len;
                     /* => end of format string */

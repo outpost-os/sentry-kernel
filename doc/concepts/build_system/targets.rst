@@ -1,6 +1,9 @@
 Basics and targets
 ------------------
 
+.. index::
+  single: dependencies
+
 Dependencies
 """"""""""""
 
@@ -91,6 +94,11 @@ all python dependencies are described in `requirements.txt`.
     build dependencies in the way he wants.
 
 
+.. index::
+  single: source hierarchy
+  single: idle task; definition
+  single: autotest task; definition
+
 About Sentry sources hierarchy
 """"""""""""""""""""""""""""""
 
@@ -105,7 +113,7 @@ Sentry kernel core
 
 **Built by default**: true
 
-**Output**: `sentry-kernel.elf`
+**Output**: `kernel/sentry-kernel.elf`
 
 The Sentry kernel core is written in both C and Rust and is built by default.
 It is possible to deactivate the kernel build with the following option:
@@ -120,7 +128,7 @@ Sentry UAPI
 
 **Built by default**: true
 
-**Output**: `libuapi.a`
+**Output**: `uapi/libuapi.a`
 
 This is the Sentry UAPI userspace library. This library is fully written in
 Rust, but export its headers in C to allow both C and Rust implementation.
@@ -136,7 +144,7 @@ Sentry Idle task
 
 **Built by default**: true
 
-**Output**: `idle.elf`
+**Output**: `idle/idle.elf`
 
 This is the Sentry Idle task, used as fallback when no user task is eligible.
 This task request a low power enter mode, while not forbidden by another task.
@@ -147,8 +155,24 @@ It is possible to deactivate the libuapi build with the following option:
 
    -Dwith_idle=false
 
+Sentry Autotest task
+~~~~~~~~~~~~~~~~~~~~
 
+**Built by default**: N/A
 
+**Output**: `autotest/autotest.elf`
+
+This is the Sentry utotest task, used in order to execute runtime autotest suite
+on the target device.
+This task is build only when the Sentry kernel configuration is in autotest mode
+(i.e. using the `CONFIG_BUILD_TARGET_AUTOTEST` build target in the config file or
+through the menuconfig interface). This task is not build in any of the other
+build targets (debug or release).
+
+.. index::
+  single: cross-compilation; model
+  single: cross-file; definition
+  single: cross-file; examples
 
 Cross-compilation concept
 """""""""""""""""""""""""
@@ -252,6 +276,10 @@ Here are all the Sentry kernel custom command line options:
 All options can be passed using the widely used `-Doption=value` argument passing. See
 meson build system manual to see all possible options that can be transmitted.
 
+.. index::
+  single: building Sentry
+  single: ninja
+
 Building Sentry
 """""""""""""""
 
@@ -328,42 +356,24 @@ Building the Sentry kernel is as easy as calling Ninja:
 
     ninja -C builddir all
 
+.. index::
+  single: test-suite; build system integration
+  single: unit-test; build system integration
+  single: gtest; build system integration
+  single: SonarQube; build system integration
 
+Testing Sentry
+""""""""""""""
 
-Sentry unit-testing
-"""""""""""""""""""
-
-Sentry kernel unit testing is using the Gtest framework. All unit tests are executed as
+Sentry kernel unit testing is using the gtest framework. All unit tests are executed as
 x86_64 userspace code, meaning that all Sentry code blocks that are executed under test
 are compiled and executed as x86_64 code.
 
-Even if the Sentry kernel is built for embedded, it is not, even for drivers testing,
-a problem to execute unit testsing in order to validate C-level (or Rust level)
-behavior analysis.
-The global model is that any peace of code in Sentry can be extracted, compiled for
-x86_64, and linked to a test source that implement the potential missing blocs and
-validate the behavior of the code under test in various cases.
-
-To do that, the gtest framework delivers multiple useful components such as
-mocks, to trigger execution of test fixtures when the source code calls external
-symbols. In the same time, the usage of C++ allows templated testing, that
-permit to forge a great amount of inputs and stimulii to various Sentry modules.
-
-The Sentry tests suites are natively integrated into meson and are the following:
-
-   * ut-managers: test suite targetting managers
-   * ut-bsp: test suite targetting drivers
-   * ut-utils: test suite targetting generic kernel utilities and core library
-
-
-The Sentry test support is integrated into the build system, and associated to the
-Sentry static analyser to ensure coverage metrics.
-
-Calling only a given test suite is then supported through:
+Calling only a given est suite is then supported through:
 
 .. code-block:: shell
 
-    meson test -C builddir --suite ut-utils
+    meson test -C builddir --suite <suite>
 
 Executing the test suite generates test report. SonarQube XML test report
 can be generated for SonarQube input.
@@ -387,3 +397,7 @@ A typical test execution is the following:
     Unexpected Pass:    0
     Skipped:            0
     Timeout:            0
+
+.. note::
+   More about the way unit testing Sentry is designed in described in a dedicated
+   :ref:`chapter <unittest>`.

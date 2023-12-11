@@ -1,6 +1,4 @@
 
-if kconfig_data.get('CONFIG_BUILD_TARGET_DEBUG', 0) == 1
-
 # very same header name, generated from corresponding svd
 usart_h = custom_target('gen_usart',
     input: peripheral_defs_in,
@@ -26,5 +24,3 @@ sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-usa
 
 sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_usart_dtsgen_c, stm32_usart_dtsgen_h ])
 sentry_private_gen_header_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ usart_h ])
-
-endif

@@ -4,6 +4,11 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
+#include <sentry/arch/asm-generic/thread.h>
+
+void dump_frame(stack_frame_t *frame);
+
+
 /**
  * @brief Arch-specific implementation of the panic() function
  *

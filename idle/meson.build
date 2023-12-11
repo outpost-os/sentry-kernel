@@ -22,7 +22,7 @@ idle_ldscript = custom_target('idle_ldscript',
 )
 
 idle_linker_args = [
-    '-T@0@'.format(idle_ldscript.full_path()),
+    '-T' + idle_ldscript.full_path(),
     '-z', 'noexecstack',
 ]
 
@@ -41,6 +41,21 @@ idle_elf = executable(
     link_language: 'c',
     link_depends: [ idle_ldscript ],
     install: true,
+)
+
+idle_hex = custom_target(
+    input: idle_elf,
+    output: '@BASENAME@.hex',
+    command: [
+        objcopy,
+        '-O', 'ihex',
+        '@INPUT@',
+        '@OUTPUT@'
+    ],
+    build_by_default: true,
+    install: true,
+    install_dir: get_option('bindir'),
+    install_tag: 'runtime',
 )
 
 meson.add_install_script(sentry_install_script, idle_map_file, get_option('infodir') / idle_task_name)

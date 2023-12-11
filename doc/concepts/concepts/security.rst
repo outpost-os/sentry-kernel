@@ -1,6 +1,9 @@
 Security in Sentry
 ------------------
 
+.. index::
+  single: security-model; definition
+
 Security requirements
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -73,6 +76,10 @@ The consideration are the following:
          * **release**: all debug are deactivated, all enforcement are activated and can't be deactivated
            even through the configuration GUI. This include overall bootup integrity checks (task HMACs),
            MPU hardening and various periodic security watchdogs
+
+.. index::
+  single: stack-smashing-protection; definition
+  single: stack-smashing-protection; implementation
 
 About stack smashing protection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

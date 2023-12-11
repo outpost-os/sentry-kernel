@@ -43,6 +43,8 @@ static inline secure_bool_t mgr_mm_configured(void)
 
 stack_frame_t *memfault_handler(stack_frame_t *frame)
 {
+    pr_err("Memory fault !!!");
+    dump_frame(frame);
     /* FIXME: differenciate userspace & kernel fault here */
     __do_panic();
     return frame;
@@ -306,6 +308,14 @@ err:
 #endif
     return status;
 }
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_mm_autotest(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    return status;
+}
+#endif
 
 kstatus_t mgr_mm_watchdog(void)
 {

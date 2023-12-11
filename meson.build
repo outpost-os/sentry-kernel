@@ -120,8 +120,7 @@ with_idle_opt = get_option('with_idle')
 subdir('support/arch')
 
 # Idle implies libuapi
-if with_idle_opt and not with_uapi_opt
-    warning('with_idle is set but witout libuapi, uapi will be forced')
+if with_idle_opt or kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
     with_uapi_opt = true
 endif
 
@@ -132,6 +131,11 @@ subdir('uapi')
 # building kernel
 if with_idle_opt
 subdir('idle')
+endif
+
+# building kernel
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+subdir('autotest')
 endif
 
 # building idle
@@ -149,6 +153,9 @@ endif
 
 message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
 
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+message('> This is an autotest standalone image')
+endif
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
 warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
 endif
@@ -160,6 +167,33 @@ summary(
     },
     section: 'Configuration'
 )
+
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1 and not get_option('with_tests')
+# in autotest mode only, fusion all hex into one single hex, to simplify
+# gdb flashing. This mode needs srec_cat to fusion all hex into one
+# other nominal (debug, release) modes use build system based binary
+# generation instead.
+srec_cat = find_program('srec_cat', required: false, disabler: true)
+
+if srec_cat.found()
+firmware_hex = custom_target(
+    depends: [ autotest_hex, idle_hex, sentry_hex ],
+    output: 'firmware.hex',
+    command: [
+        srec_cat,
+        '-o', '@OUTPUT@', '-Intel',
+        sentry_hex.full_path(), '-Intel',
+        idle_hex.full_path(), '-Intel',
+        autotest_hex.full_path(), '-Intel',
+    ],
+    build_by_default: true,
+)
+else
+warning('srec_cat utility not found!')
+warning('!!! Unable to forge final hex automatically! help yourself with ELF and HEX...')
+endif
+
+endif
 
 # auto-generation (jinja2, json) tooling is there
 # subdir('tools')

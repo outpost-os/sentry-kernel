@@ -31,4 +31,8 @@ kstatus_t mgr_io_unmask_event(ioh_t ioh);
 
 kstatus_t mgr_io_clear_pending_interrupt(ioh_t ioh);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_io_autotest(void);
+#endif
+
 #endif/*IO_MANAGER_H*/

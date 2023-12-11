@@ -24,26 +24,6 @@
 
 /* idle task position, from linker script */
 extern size_t _idle;
-/**
- * The effective number of task is, in our case, forged by the build system
- *
- * In a model where the kernel discovers the task by checking the task section
- * in flash, this field would be upgraded by the kernel itself. Set to 0
- * at compile time, upgraded by build system in kernel ELF directly to match
- * the current project effective number of task(s)
- *
- * This allows binary search in the task list (see @ref task_table) for
- * logarithmic search time
- */
-const uint32_t numtask __attribute__((used, section(".task_list.num")));
-#else
-/*
- * in unit test mode, the numtask var is a UT-delivered value. This value
- * is forge in each test to test various cases (valid, invalid, border cases...)
- */
-uint32_t ut_get_numtask(void);
-#define numtask ut_get_numtask()
-
 #endif
 
 
@@ -95,17 +75,15 @@ size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 
 void task_dump_table(void)
 {
-#if defined(CONFIG_BUILD_TARGET_DEBUG)
+#ifndef CONFIG_BUILD_TARGET_RELEASE
     /* dump all tasks including idle */
-    for (uint8_t i = 0; task_table[i].metadata != NULL && i <= mgr_task_get_num(); ++i) {
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
         task_t *t = &task_table[i];
         uint32_t label = t->metadata->handle.id;
         pr_debug("=== Task labeled '%02x' metainformations:", label);
         pr_debug("[%02x] --- scheduling and permissions", label);
         pr_debug("[%02x] task priority:\t\t\t%u", label, t->metadata->priority);
-#if defined(CONFIG_SCHED_RRMQ_QUANTUM)
         pr_debug("[%02x] task quantum:\t\t\t%u", label, t->metadata->quantum);
-#endif
         pr_debug("[%02x] task capabilities:\t\t\t%08x", label, t->metadata->capabilities);
         pr_debug("[%02x] --- mapping", label);
         pr_debug("[%02x] task svc_exchange section start:\t%p", label, t->metadata->s_svcexchange);
@@ -121,17 +99,6 @@ void task_dump_table(void)
 #endif
 }
 
-/**
- * @brief return the number of declared tasks (idle excluded)
- */
-uint32_t mgr_task_get_num(void)
-{
-    if (unlikely(numtask > CONFIG_MAX_TASKS)) {
-        panic();
-    }
-    return numtask;
-}
-
 static inline task_t *task_get_from_handle(taskh_t h)
 {
     uint16_t left = 0;
@@ -141,7 +108,7 @@ static inline task_t *task_get_from_handle(taskh_t h)
      * not respect the numeric order initiated in the table. Instead, we find the
      * task (not the job) that match taskh_t, and then check for its current job
      */
-    uint16_t right = numtask+1;
+    uint16_t right = mgr_task_get_num();
     task_t *tsk = NULL;
     uint32_t handle_norerun = handle_convert_to_u32(h) & ~HANDLE_TASK_RERUN_MASK;
     while (left < right) {
@@ -294,7 +261,7 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
 {
     kstatus_t status = K_ERROR_NOENT;
     /* for all tasks... */
-    for (uint8_t i = 0; i < numtask+1; ++i) {
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
         if (unlikely(task_table[i].metadata == NULL)) {
             /* should not happen if init done (and thus numtask valid) */
             status = K_SECURITY_CORRUPTION;
@@ -346,7 +313,7 @@ void __attribute__((noreturn)) mgr_task_start(void)
 
     __builtin_unreachable();
 err:
-    panic();
+    panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     __builtin_unreachable();
 }
 

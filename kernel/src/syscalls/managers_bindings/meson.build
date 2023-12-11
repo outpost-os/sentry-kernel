@@ -13,7 +13,7 @@ managers_bindings = rust.bindgen(
             '--raw-line', '#![allow(nonstandard_style)]',
             '--merge-extern-blocks'],
     c_args : [global_build_args],
-    dependencies : [cmsis_dep, declare_dependency(sources: core_h)],
+    dependencies : [cmsis_dep, external_deps, declare_dependency(sources: core_h)],
 )
 managers_bindings_lib = static_library(
     'managers_bindings',

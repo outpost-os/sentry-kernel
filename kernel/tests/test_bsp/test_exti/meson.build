@@ -13,7 +13,7 @@ test_bsp_exti = executable(
     include_directories: kernel_inc,
     cpp_args: [
         '-I'+join_paths(meson.project_build_root(), 'kernel/src/drivers/exti'),
-        '-include', '@0@'.format(kconfig_h),
+        '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
         '-DTEST_MODE=1',
     ],
     c_args: [

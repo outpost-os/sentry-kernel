@@ -23,4 +23,9 @@ sentry_vtor_c = custom_target('gen_vtor',
 
 sentry_startup += sentry_vtor_c
 
+if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+# adding autotest app sections to ldscript. autotest specific
+sentry_ldscript_template = files('cortex-m-sentry-autotest.ld.in')
+else
 sentry_ldscript_template = files('cortex-m-sentry.ld.in')
+endif

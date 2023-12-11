@@ -18,6 +18,10 @@ uint32_t mgr_clock_get_cycle_per_usec(void);
 
 uint64_t mgr_clock_get_cycle(void);
 
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+kstatus_t mgr_clock_autotest(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
