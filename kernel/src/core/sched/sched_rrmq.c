@@ -6,7 +6,6 @@
 #include <sentry/managers/debug.h>
 #include <sentry/managers/task.h>
 #include <sentry/sched.h>
-#include "delay.h"
 
 /**
  * @def RRMQ task context for a given task
@@ -97,7 +96,6 @@ kstatus_t sched_rrmq_init(void)
     pr_info("initialize RRMQ scheduler");
     memset(&sched_rrmq_ctx, 0x0, sizeof(sched_rrmq_context_t));
     pr_info("clear delay job list");
-    sched_delay_flush();
     sched_rrmq_ctx.active_jobset = &sched_rrmq_ctx.primary;
     return K_STATUS_OKAY;
 }

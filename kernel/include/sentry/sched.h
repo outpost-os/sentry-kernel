@@ -65,17 +65,6 @@ taskh_t sched_get_current(void);
 stack_frame_t *sched_refresh(stack_frame_t *frame);
 #endif
 
-/**
- * @brief add a new delayed job to the delay queue, with a delay of delay_ms
- */
-kstatus_t sched_delay_add(taskh_t job, uint32_t delay_ms);
-
-/**
- * delay ticker, to be called by the systick using JIFFIES_TO_MSEC(1)
- * to calculate back the ticker period
- */
-void sched_delay_tick(void);
-
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 /**
  * Run the scheduler autotest sequence
