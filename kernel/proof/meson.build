@@ -59,7 +59,7 @@ framac_md_opts = [
 ]
 #'-wp-prop="-@lemma"',
 kernel_entrypoint = files(
-  '../src/core/entrypoint.c',
+  '../src/startup/entrypoint.c',
 )
 
 # Part 1: analysis from kernel entrypoint. These targets check the call graph from
