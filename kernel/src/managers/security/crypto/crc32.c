@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <inttypes.h>
-#include <sentry/crypto/crc32.h>
+#include <sentry/managers/security_crypto.h>
 
 static const uint32_t crc32_tab[] =
 {
