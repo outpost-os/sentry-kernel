@@ -62,7 +62,7 @@ typedef struct task {
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
     /* about events */
 
-    /**<
+    /**
       Each task only has one IPC context (only blocking IPC supported).
       When sending IPC, the thread is preempted and wait for the other
       to read for its IPC content (no double user/kernel copy, only
