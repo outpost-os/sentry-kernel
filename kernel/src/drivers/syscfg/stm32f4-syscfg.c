@@ -15,7 +15,7 @@
 #include <sentry/io.h>
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
-#include <sentry/managers/security_crypto.h>
+#include <sentry/zlib/crypto.h>
 #include "syscfg_defs.h"
 #include "stm32-syscfg-dt.h"
 

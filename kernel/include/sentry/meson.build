@@ -25,8 +25,12 @@ sentry_header_set.add(files(
   'managers/interrupt.h',
   'managers/io.h',
   'managers/memory.h',
-  'managers/security_crypto.h',
   'managers/security.h',
   'managers/task.h',
   'managers/time.h',
+))
+
+# zlib headers
+sentry_header_set.add(files(
+  'zlib/crypto.h',
 ))

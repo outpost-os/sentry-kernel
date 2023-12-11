@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SECURITY_CRYPTO_H
-#define SECURITY_CRYPTO_H
+#ifndef ZLIB_CRYPTO_H
+#define ZLIB_CRYPTO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,4 +36,4 @@ uint32_t pcg32(void);
 }
 #endif
 
-#endif/*!SECURITY_CRYPTO_H*/
+#endif/*!ZLIB_CRYPTO_H*/
