@@ -28,6 +28,7 @@ static inline kstatus_t task_enqueue_event(uint32_t ev, task_event_t *queue) {
     queue->events[queue->_end] = ev;
     queue->_start = (queue->_end + 1) % TASK_EVENT_QUEUE_DEPTH;
     queue->num_ev++;
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
@@ -44,6 +45,7 @@ static inline kstatus_t task_dequeue_event(uint32_t *ev, task_event_t *queue) {
     *ev = queue->events[queue->_start];
     queue->_start = (queue->_start + 1) % TASK_EVENT_QUEUE_DEPTH;
     queue->num_ev--;
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
