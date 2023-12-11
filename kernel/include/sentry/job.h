@@ -40,7 +40,7 @@ typedef enum job_state {
       JOB_STATE_ABORTING,
       JOB_STATE_FINISHED,             /**< thread terminated, returned from thread entrypoint */
       JOB_STATE_IPC_SEND_BLOCKED,     /**< emitted an IPC, wait for receiver to process */
-      JOB_STATE_IPC_SIG_RECV_BLOCKED, /**< listening on IPC&signals events but no event received by now */
+      JOB_STATE_WAITFOREVENT, /**< listening on IPC&signals events but no event received by now */
 } job_state_t;
 
 /**
@@ -65,7 +65,7 @@ static_assert((sizeof(job_flags_t) == sizeof(uint32_t)), "job_flags_t as invalid
         job_state == JOB_STATE_ABORTING ||
         job_state == JOB_STATE_FINISHED ||
         job_state == JOB_STATE_IPC_SEND_BLOCKED ||
-        job_state == JOB_STATE_IPC_SIG_RECV_BLOCKED
+        job_state == JOB_STATE_WAITFOREVENT
     );
 */
 #endif

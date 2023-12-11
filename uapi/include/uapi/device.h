@@ -17,13 +17,16 @@ typedef int (*it_handler_p)(uint8_t it);
 typedef struct it_info {
     uint8_t      it_controler; /**< interrupt controler identifier */
     uint8_t      it_num;     /**< interrupt number */
-    it_handler_p it_handler; /**< interrupt handler, ignored in kernel, used in userspace driver */
 } it_info_t;
 
 typedef struct io_info {
     uint8_t      port;   /**< GPIO port identifier, declared in DTS */
     uint8_t      pin;    /**< GPIO pin identifier, declared in DTS */
-    uint32_t     config; /**< GPIO pin configuration (dt-binding based bitfield, declared in DTS) */
+    uint8_t      mode;   /** GPIO pin mode (AF, OUT, IN....), declared in DTS */
+    uint8_t      af;     /**< GPIO AF identifier, declared in DTS */
+    uint8_t      ppull;  /**< GPIO ppull config, declared in DTS */
+    uint8_t      speed;  /**< GPIO speed config, declared in DTS */
+    uint32_t     pupdr; /**< GPIO pupdr config, declared in DTS */
 } io_info_t;
 
 

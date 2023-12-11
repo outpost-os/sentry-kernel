@@ -32,7 +32,7 @@
     	};
 
 		kernel_ram: kernel_memory@20000000 {
-        	reg = <0x20000000 0x1000>;
+        	reg = <0x20000000 0x2000>;
 			compatible = "outpost,memory-pool";
     	};
 

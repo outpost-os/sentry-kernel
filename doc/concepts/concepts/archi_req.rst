@@ -30,7 +30,7 @@ in order to identify a ressource. Handles are forged at build time.
 
 In Sentry, the following ressource handles exist:
 
-   * **inth_t: interrupt handle**: Identify an interrupt line, from any interrupt controller. This
+   * **irqh_t: interrupt handle**: Identify an interrupt line, from any interrupt controller. This
      include, for example, both NVIC interrupts ad external GPIO triggered interrupts lines.
 
    * **sigh_t: signal handle**: Identify a signal and its source. A signal is a typed data-less event
@@ -170,7 +170,7 @@ There are multiple managers in Sentry:
      setting the I/O pins and ports accordingly and authenticating the `ioh_t` handle and owner.
 
    * **interrupt manager**: This manager is responsible for interrupts (except core interrupts).
-     This manager is using `inth_t` as typical argument and is responsible for manipulating the
+     This manager is using `irqh_t` as typical argument and is responsible for manipulating the
      corresponding interrupt line (being an internal or external line, in interaction with the
      I/O manager in this later case).
 

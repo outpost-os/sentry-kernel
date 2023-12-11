@@ -14,6 +14,7 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
 #include <sentry/managers/memory.h>
+#include <sentry/sched.h>
 #include "task_init.h"
 #include "task_idle.h"
 #include "task_core.h"
@@ -349,8 +350,62 @@ err:
     __builtin_unreachable();
 }
 
-/*
-     * Initial context switches to main core thread (idle_thread).
-     */
 
-    /* This part of the function is never reached */
+
+/**
+ * About events manipulation in tasks
+ */
+kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(t);
+    job_state_t state;
+    task_enqueue_event(handle_convert_to_u32(ev), &tsk->ints);
+    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (likely(state == JOB_STATE_WAITFOREVENT)) {
+        mgr_task_set_state(t, JOB_STATE_READY);
+        sched_schedule(t);
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+
+kstatus_t mgr_task_push_ipch_event(ipch_t ev, taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(t);
+    job_state_t state;
+    task_enqueue_event(handle_convert_to_u32(ev), &tsk->ipcs);
+    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (likely(state == JOB_STATE_WAITFOREVENT)) {
+        mgr_task_set_state(t, JOB_STATE_READY);
+        sched_schedule(t);
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(t);
+    job_state_t state;
+    task_enqueue_event(handle_convert_to_u32(ev), &tsk->sigs);
+    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (likely(state == JOB_STATE_WAITFOREVENT)) {
+        mgr_task_set_state(t, JOB_STATE_READY);
+        sched_schedule(t);
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}

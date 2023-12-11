@@ -8,6 +8,7 @@
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
 #include <sentry/managers/memory.h>
+#include <sentry/managers/interrupt.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -96,6 +97,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             frame = systick_handler(frame);
             break;
         default:
+            if (it >= 0) {
+                frame = userisr_handler(frame, it);
+            }
             /* defaulting to nothing... */
             break;
     }
