@@ -13,6 +13,7 @@
 #include <sentry/sched.h>
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/arch/asm-generic/platform.h>
+#include <sentry/zlib/sort.h>
 
 #include "task_core.h"
 #include "task_init.h"
@@ -50,26 +51,9 @@ struct task_mgr_ctx {
 
 static struct task_mgr_ctx ctx;
 
-
-static inline void task_swap(task_t *t1, task_t *t2)
+static inline int task_cmp(const void *t1, const void *t2)
 {
-    task_t pivot;
-    memcpy(&pivot, t2, sizeof(task_t));
-    memcpy(t2, t1, sizeof(task_t));
-    memcpy(t1, &pivot, sizeof(task_t));
-}
-
-static inline void task_basic_sort(task_t *table)
-{
-    uint16_t i, j;
-    for (i = 0; i < mgr_task_get_num(); i++) {
-        for (j = 0; j < mgr_task_get_num() - 1 - i; j++) {
-            /** INFO: task table is configured to CONFIG_MAX_TASKS+1 to handle idle, j+1 always valid */
-            if (table[j].metadata->handle.id > table[j+1].metadata->handle.id) {
-                task_swap(&table[j], &table[j + 1]);
-            }
-        }
-    }
+    return ((task_t*)t1)->metadata->handle.id - ((task_t*)t2)->metadata->handle.id;
 }
 
 #ifndef TEST_MODE
@@ -388,7 +372,8 @@ static inline kstatus_t task_init_finalize(void)
      * at election time only
      */
     /* finishing with sorting task_table based on task label value */
-    task_basic_sort(task_table);
+    ctx.status = bubble_sort(task_table, mgr_task_get_num(), sizeof(task_table[0]),
+                             task_cmp, NULL);
     pr_info("task list ordered based on label");
     pr_info("found a total of %u tasks, including idle", ctx.numtask);
     ctx.status = K_STATUS_OKAY;
