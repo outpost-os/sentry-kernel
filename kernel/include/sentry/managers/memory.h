@@ -43,8 +43,6 @@ typedef struct __attribute__((packed)) ressource_config {
 } ressource_config_t;
 #endif
 
-stack_frame_t *memfault_handler(stack_frame_t *frame);
-
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
 kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);

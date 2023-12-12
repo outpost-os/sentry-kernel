@@ -31,6 +31,20 @@ static inline uint32_t __platform_get_current_sp(void) {
     return sp;
 }
 
+/**
+ * @def refuses unaligned accesses (word unaligned access for
+ * word accesses or hword unaligned for hword accesses)
+ * unaligned accesses is a path to multiple bugs such as invalid
+ * htons/ntohs, invalid remote communication for hosts with strict
+ * alignment, performances impacts, cache impact, etc.
+ *
+ * when activated, unaligned access generates UsageFault
+ */
+static inline void __platform_enforce_alignment(void) {
+    SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
+    request_data_membarrier();
+}
+
 static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entrypoint, stack_frame_t *stack_pointer, uint32_t flag) {
   /*
    * Initial context switches to main core thread (idle_thread).
