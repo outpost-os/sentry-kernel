@@ -7,6 +7,7 @@
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
+#include <sentry/arch/asm-generic/platform.h>
 #include <sentry/managers/memory.h>
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/debug.h>
@@ -72,7 +73,7 @@ __STATIC_FORCEINLINE secure_bool_t is_userspace_fault(stack_frame_t *frame) {
 
 __STATIC_FORCEINLINE stack_frame_t *may_panic(stack_frame_t *frame) {
     stack_frame_t *newframe = frame;
-    if (is_userspace_fault(frame)) {
+    if (is_userspace_fault(frame) == SECURE_TRUE) {
         taskh_t tsk = sched_get_current();
         /* user mode, fault source is userspace:
          *  1. set task as faulted
@@ -112,6 +113,8 @@ __STATIC_FORCEINLINE __attribute__((noreturn)) void hardfault_handler(stack_fram
     #endif
 #endif
     dump_frame(frame);
+    __platform_clear_flags();
+    request_data_membarrier();
     __do_panic();
 }
 
@@ -139,13 +142,9 @@ __STATIC_FORCEINLINE stack_frame_t *usagefault_handler(stack_frame_t *frame)
         pr_debug("Division by 0!");
     }
     dump_frame(frame);
-    if (is_userspace_fault(frame)) {
-        /* targetting only UFSR part */
-        cfsr &= SCB_CFSR_USGFAULTSR_Msk;
-        /* clearing usage fault bits (sticky bits) by writting 1 on it */
-        iowrite32((size_t)&SCB->CFSR, cfsr);
-    }
     newframe = may_panic(frame);
+    __platform_clear_flags();
+    request_data_membarrier();
     return newframe;
 }
 
@@ -172,6 +171,7 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
     }
     dump_frame(frame);
     newframe = may_panic(frame);
+    request_data_membarrier();
     return newframe;
 }
 
@@ -249,6 +249,7 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
 {
     uint32_t *src;
     uint32_t *p;
+    uint32_t shcsr;
     __disable_irq();
 
     /*
@@ -291,6 +292,10 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
         *p = *src++;
     }
 
+    /* enable supported fault handlers */
+    shcsr = 0;
+    shcsr |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
+    iowrite32((size_t)&SCB->SHCSR, shcsr);
     /* branch to sentry kernel entry point */
     _entrypoint();
 
