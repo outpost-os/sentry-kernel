@@ -197,6 +197,8 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
 stack_frame_t *Default_SubHandler(stack_frame_t *frame)
 {
     int it;
+    stack_frame_t *newframe = frame;
+    taskh_t current = sched_get_current();
     /* get back interrupt name */
     __GET_IPSR(it);
     it &= IPSR_ISR_Msk;
@@ -218,27 +220,35 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             hardfault_handler(frame);
             /*@ assert \false; */
         case MEMMANAGE_IRQ:
-            frame = memfault_handler(frame);
+            newframe = memfault_handler(frame);
             break;
         case USAGEFAULT_IRQ:
-            frame = usagefault_handler(frame);
+            newframe = usagefault_handler(frame);
             break;
         case SVC_IRQ:
-            frame = svc_handler(frame);
+            newframe = svc_handler(frame);
             break;
         case SYSTICK_IRQ:
             /* periodic, every each millisecond execution */
-            frame = systick_handler(frame);
+            newframe = systick_handler(frame);
             break;
         default:
             if (it >= 0) {
-                frame = userisr_handler(frame, it);
+                newframe = userisr_handler(frame, it);
             }
             /* defaulting to nothing... */
             break;
     }
+    if (newframe != frame) {
+        /* context switching here, saving previous context (frame) to task
+         * ctx before leaving.
+         */
+        if (unlikely(mgr_task_set_sp(current, frame) != K_STATUS_OKAY)) {
+            __do_panic();
+        }
+    }
 
-    return frame;
+    return newframe;
 }
 
 
