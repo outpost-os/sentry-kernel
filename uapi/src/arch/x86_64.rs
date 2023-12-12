@@ -22,8 +22,8 @@ pub fn debug_syscall_handler(syscall_number: u8, args: &[u32]) -> u32 {
 
     #[cfg(test)]
     match gate::syscall_dispatch(syscall_number, args) {
-        Ok(x) => x as u32,
-        Err(_) => Status::Invalid as u32,
+        Ok(_) => Status::Ok as u32,
+        Err(x) => x as u32,
     }
 }
 

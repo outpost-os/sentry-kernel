@@ -169,4 +169,20 @@ mod tests {
     fn basic_start() {
         assert_eq!(sys_start(ProcessLabel::Label0), Status::Ok);
     }
+
+    #[test]
+    fn basic_yield() {
+        assert_eq!(sys_yield(), Status::Ok);
+    }
+
+    #[test]
+    fn basic_exit() {
+        assert_eq!(sys_exit(1), Status::Ok);
+    }
+
+    #[test]
+    #[should_panic]
+    fn invalid_status() {
+        assert_eq!(sys_exit(0xaaaa), Status::Ok);
+    }
 }

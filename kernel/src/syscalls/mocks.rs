@@ -1,15 +1,14 @@
-use managers_bindings::{task_meta, taskh_t};
+pub use managers_bindings::{
+    devh_t, job_state_t, kstatus_t, stack_frame_t, task_handle, task_meta,
+};
+
+extern crate std;
 
 #[no_mangle]
-fn debug_rawlog(_s: *const u8, _length: usize) {}
-
-#[no_mangle]
-extern "C" fn sched_get_current() -> taskh_t {
-    taskh_t {
-        _bitfield_align_1: [0u8; 0],
-        _bitfield_1: taskh_t::new_bitfield_1(0, 0, 0),
-    }
+extern "C" fn debug_rawlog(s: *const u8, length: usize) -> kstatus_t {
+    std::print!("[debug_rawlog]: ");
+    let string_ = unsafe { core::slice::from_raw_parts(s, length) };
+    let string_ = unsafe { core::str::from_utf8_unchecked(string_) };
+    std::println!("{}", string_);
+    0
 }
-
-#[no_mangle]
-extern "C" fn mgr_task_get_metadata(_task_handle: taskh_t, _taskm: *mut *const task_meta) {}

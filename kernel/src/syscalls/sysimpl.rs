@@ -1,28 +1,89 @@
+use crate::arch::*;
+use crate::gate::StackFramePointer;
 use managers_bindings as mgr;
 use systypes::*;
 
-use crate::arch::*;
+#[cfg(windows)]
+type EnumBinding = i32;
+#[cfg(not(windows))]
+type EnumBinding = u32;
 
-#[repr(i32)]
-#[allow(dead_code)]
-#[allow(clippy::unnecessary_cast)] // TODO: potentially fixed using underlying enums with C23
 enum Capability {
-    DevBuses = mgr::sentry_capability_CAP_DEV_BUSES as i32,
-    DevIO = mgr::sentry_capability_CAP_DEV_IO as i32,
-    DevDMA = mgr::sentry_capability_CAP_DEV_DMA as i32,
-    DevAnalog = mgr::sentry_capability_CAP_DEV_ANALOG as i32,
-    DevTimer = mgr::sentry_capability_CAP_DEV_TIMER as i32,
-    DevStorage = mgr::sentry_capability_CAP_DEV_STORAGE as i32,
-    DevCrypto = mgr::sentry_capability_CAP_DEV_CRYPTO as i32,
-    DevClock = mgr::sentry_capability_CAP_DEV_CLOCK as i32,
-    SysUpgrade = mgr::sentry_capability_CAP_SYS_UPGRADE as i32,
-    SysPower = mgr::sentry_capability_CAP_SYS_POWER as i32,
-    SysProcStart = mgr::sentry_capability_CAP_SYS_PROCSTART as i32,
-    MemSHMOwn = mgr::sentry_capability_CAP_MEM_SHM_OWN as i32,
-    MemSHMUse = mgr::sentry_capability_CAP_MEM_SHM_USE as i32,
-    MemSHMTransfer = mgr::sentry_capability_CAP_MEM_SHM_TRANSFER as i32,
-    TimHPChrono = mgr::sentry_capability_CAP_TIM_HP_CHRONO as i32,
-    CryKRNG = mgr::sentry_capability_CAP_CRY_KRNG as i32,
+    DevBuses,
+    DevIO,
+    DevDMA,
+    DevAnalog,
+    DevTimer,
+    DevStorage,
+    DevCrypto,
+    DevClock,
+    SysUpgrade,
+    SysPower,
+    SysProcStart,
+    MemSHMOwn,
+    MemSHMUse,
+    MemSHMTransfer,
+    TimHPChrono,
+    CryKRNG,
+}
+
+impl TryFrom<EnumBinding> for Capability {
+    type Error = Status;
+    fn try_from(cap: EnumBinding) -> Result<Capability, Self::Error> {
+        let capability = match cap {
+            mgr::sentry_capability_CAP_DEV_BUSES => Capability::DevBuses,
+            mgr::sentry_capability_CAP_DEV_IO => Capability::DevIO,
+            mgr::sentry_capability_CAP_DEV_DMA => Capability::DevDMA,
+            mgr::sentry_capability_CAP_DEV_ANALOG => Capability::DevAnalog,
+            mgr::sentry_capability_CAP_DEV_TIMER => Capability::DevTimer,
+            mgr::sentry_capability_CAP_DEV_STORAGE => Capability::DevStorage,
+            mgr::sentry_capability_CAP_DEV_CRYPTO => Capability::DevCrypto,
+            mgr::sentry_capability_CAP_DEV_CLOCK => Capability::DevClock,
+            mgr::sentry_capability_CAP_SYS_UPGRADE => Capability::SysUpgrade,
+            mgr::sentry_capability_CAP_SYS_POWER => Capability::SysPower,
+            mgr::sentry_capability_CAP_SYS_PROCSTART => Capability::SysProcStart,
+            mgr::sentry_capability_CAP_MEM_SHM_OWN => Capability::MemSHMOwn,
+            mgr::sentry_capability_CAP_MEM_SHM_USE => Capability::MemSHMUse,
+            mgr::sentry_capability_CAP_MEM_SHM_TRANSFER => Capability::MemSHMTransfer,
+            mgr::sentry_capability_CAP_TIM_HP_CHRONO => Capability::TimHPChrono,
+            mgr::sentry_capability_CAP_CRY_KRNG => Capability::CryKRNG,
+            _ => return Err(Status::Invalid),
+        };
+        Ok(capability)
+    }
+}
+
+enum JobState {
+    NotStarted,
+    Ready,
+    Sleeping,
+    SleepingDeep,
+    Fault,
+    Security,
+    Aborting,
+    Finished,
+    IPCSendBlocked,
+    WaitForEvent,
+}
+
+impl TryFrom<EnumBinding> for JobState {
+    type Error = Status;
+    fn try_from(state: EnumBinding) -> Result<JobState, Self::Error> {
+        let thread_state = match state {
+            mgr::job_state_JOB_STATE_NOTSTARTED => JobState::NotStarted,
+            mgr::job_state_JOB_STATE_READY => JobState::Ready,
+            mgr::job_state_JOB_STATE_SLEEPING => JobState::Sleeping,
+            mgr::job_state_JOB_STATE_SLEEPING_DEEP => JobState::SleepingDeep,
+            mgr::job_state_JOB_STATE_SECURITY => JobState::Security,
+            mgr::job_state_JOB_STATE_ABORTING => JobState::Aborting,
+            mgr::job_state_JOB_STATE_FAULT => JobState::Fault,
+            mgr::job_state_JOB_STATE_FINISHED => JobState::Finished,
+            mgr::job_state_JOB_STATE_IPC_SEND_BLOCKED => JobState::IPCSendBlocked,
+            mgr::job_state_JOB_STATE_WAITFOREVENT => JobState::WaitForEvent,
+            _ => return Err(Status::Invalid),
+        };
+        Ok(thread_state)
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -31,10 +92,10 @@ struct TaskMeta {
 }
 
 impl TaskMeta {
-    fn current() -> Result<TaskMeta, DispatchError> {
+    fn current() -> Result<TaskMeta, Status> {
         let mut taskmeta: *const mgr::task_meta = core::ptr::null();
         if unsafe { mgr::mgr_task_get_metadata(mgr::sched_get_current(), &mut taskmeta) } != 0 {
-            return Err(DispatchError::IllegalValue);
+            return Err(Status::Invalid);
         }
         Ok(TaskMeta {
             meta: unsafe { *taskmeta },
@@ -51,15 +112,34 @@ impl TaskMeta {
         }
     }
 
-    fn can(self, capability: Capability) -> Result<TaskMeta, DispatchError> {
+    fn can(self, capability: Capability) -> Result<TaskMeta, Status> {
         if self.meta.capabilities & capability as u32 == 0 {
-            return Err(DispatchError::InsufficientCapabilities);
+            return Err(Status::Denied);
         }
         Ok(self)
     }
 }
 
-pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
+impl JobState {
+    fn current() -> Result<JobState, Status> {
+        let mut taskstate: mgr::job_state_t = 0;
+        if unsafe { mgr::mgr_task_get_state(mgr::sched_get_current(), &mut taskstate) } != 0 {
+            return Err(Status::Denied);
+        }
+        taskstate.try_into()
+    }
+
+    fn set(&mut self, new_state: JobState) -> Result<Status, Status> {
+        let status =
+            unsafe { mgr::mgr_task_set_state(mgr::sched_get_current(), new_state as EnumBinding) };
+        if status != 0 {
+            return Err((status as u32).into());
+        }
+        Ok(Status::Ok)
+    }
+}
+
+pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
     TaskMeta::current()?.can(Capability::SysPower)?;
 
     match CPUSleep::try_from(mode_in)? {
@@ -68,72 +148,87 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<Status, DispatchError> {
         CPUSleep::WaitForEvent => __wfe(),
         CPUSleep::WaitForInterrupt => __wfi(),
     }
-    Ok(Status::Ok)
+    Ok(None)
 }
 
 #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
-pub fn log_rs(length: usize) -> Result<Status, DispatchError> {
+pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     let current_task = TaskMeta::current()?;
-    let cstr_text = core::ffi::CStr::from_bytes_with_nul(&current_task.exchange_bytes()[..length])
-        .map_err(|_| DispatchError::IllegalValue)?;
-    let checked_text = cstr_text
-        .to_str()
-        .map_err(|_| DispatchError::IllegalValue)?;
-    println!("{}", checked_text);
-    Ok(Status::Ok)
+    let checked_text = core::str::from_utf8(&current_task.exchange_bytes()[..length])
+        .map_err(|_| Status::Invalid)?;
+    let status = unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) } as u32;
+    if status != 0 {
+        return Err(status.into());
+    }
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn exit(_status: i32) -> u32 {
-    0
+fn sched_elect() -> mgr::task_handle {
+    unsafe { mgr::sched_elect() }
 }
 
-#[no_mangle]
-extern "C" fn get_process_handle(_process: u32) -> u32 {
-    0
+fn task_get_sp(taskh: mgr::task_handle) -> Result<StackFramePointer, Status> {
+    let mut sp: *mut mgr::stack_frame_t = core::ptr::null_mut();
+    let status = unsafe { mgr::mgr_task_get_sp(taskh, &mut sp) } as u32;
+    if status != 0 {
+        return Err(status.into());
+    }
+    Ok(sp.into())
 }
 
-#[no_mangle]
-extern "C" fn r#yield() -> u32 {
-    0
+pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
+    JobState::current()?.set(if Status::from(status as u32) == Status::Ok {
+        JobState::Finished
+    } else {
+        JobState::Aborting
+    })?;
+    task_get_sp(sched_elect())
 }
 
-#[no_mangle]
-extern "C" fn sleep(_duration_ms: u32, _sleep_mode: u32) -> u32 {
-    0
+pub fn get_process_handle(_process: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn start(_process: u32) -> u32 {
-    0
+pub fn r#yield() -> Result<StackFramePointer, Status> {
+    task_get_sp(sched_elect())
 }
 
-#[no_mangle]
-extern "C" fn map(_resource: u32) -> u32 {
-    0
+pub fn sleep(_duration_ms: u32, _sleep_mode: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn unmap(_resource: u32) -> u32 {
-    0
+pub fn start(_process: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn shm_set_credential(_resource: u32, _id: u32, _shm_perm: u32) -> u32 {
-    0
+pub fn map(_resource: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn send_ipc(_resource_type: u32, _length: u8) -> u32 {
-    0
+pub fn unmap(_resource: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn send_signal(_resource_type: u32, _signal_type: u32) -> u32 {
-    0
+pub fn shm_set_credential(
+    _resource: u32,
+    _id: u32,
+    _shm_perm: u32,
+) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
 
-#[no_mangle]
-extern "C" fn wait_for_event(_event_type_mask: u8, _resoucer_handle: u32, _timeout: u32) -> u32 {
-    0
+pub fn send_ipc(_resource_type: u32, _length: u8) -> Result<StackFramePointer, Status> {
+    Ok(None)
+}
+
+pub fn send_signal(_resource_type: u32, _signal_type: u32) -> Result<StackFramePointer, Status> {
+    Ok(None)
+}
+
+pub fn wait_for_event(
+    _event_type_mask: u8,
+    _resoucer_handle: u32,
+    _timeout: u32,
+) -> Result<StackFramePointer, Status> {
+    Ok(None)
 }
