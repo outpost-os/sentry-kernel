@@ -8,7 +8,8 @@
 
 #define TASK_EVENT_QUEUE_DEPTH 16
 
-typedef struct task_event {
+/* this structure is 32bits multiple ensured */
+typedef struct __attribute__((packed)) task_event {
     uint32_t events[TASK_EVENT_QUEUE_DEPTH]; /** all event (inth_t, sigh_t and ipch_t) are uint32_t */
     uint8_t size;
     uint8_t num_ev;
@@ -59,7 +60,7 @@ typedef struct task {
      * structure but directly in the scheduler context, when the scheduler do support
      * such model (quantum-based).
      */
-    job_state_t     state;      /**< current task state */
+
     taskh_t         handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
     /* about events */
@@ -77,6 +78,8 @@ typedef struct task {
     task_event_t    ipcs;
     task_event_t    sigs;
     task_event_t    ints;
+
+    job_state_t     state;      /**< current task state */
 } task_t;
 
 /**

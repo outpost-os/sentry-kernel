@@ -44,7 +44,7 @@ extern size_t _idle;
 /* in test mode, we get back the table for analysis */
 static
 #endif
-task_t task_table[CONFIG_MAX_TASKS+1];
+_Alignas(uint64_t) task_t task_table[CONFIG_MAX_TASKS+1];
 
 /**
  * @brief return the local task table address
