@@ -1,6 +1,7 @@
 use crate::gate::syscall_dispatch;
 use core::arch::asm;
 use managers_bindings::stack_frame_t;
+use systypes::Status;
 
 #[no_mangle]
 /// # Safety
@@ -16,10 +17,19 @@ pub unsafe fn svc_handler_rs(stack_frame: *mut stack_frame_t) -> *mut stack_fram
         (*stack_frame).r2,
         (*stack_frame).r3,
     ];
-    let new_stack_frame = syscall_dispatch(syscall_num, &args);
-    match new_stack_frame {
-        Ok(None) | Err(_) => stack_frame,
-        Ok(Some(x)) => x,
+    match syscall_dispatch(syscall_num, &args) {
+        Ok(None) => {
+            (*stack_frame).r0 = Status::Ok as u32;
+            stack_frame
+        }
+        Ok(Some(ret_stack_frame)) => {
+            (*ret_stack_frame).r0 = Status::Ok as u32;
+            ret_stack_frame
+        }
+        Err(err) => {
+            (*stack_frame).r0 = err as u32;
+            stack_frame
+        }
     }
 }
 
