@@ -217,7 +217,15 @@ end:
 
 taskh_t sched_rrmq_get_current(void)
 {
-    return sched_rrmq_ctx.current_job->handler;
+    taskh_t tsk = {
+        .family = HANDLE_TASKID,
+        .id = SCHED_IDLE_TASK_LABEL,
+        .rerun = 0,
+    };
+    if (likely(sched_rrmq_ctx.current_job != NULL)) {
+        tsk = sched_rrmq_ctx.current_job->handler;
+    }
+    return tsk;
 }
 
 /* call context: HW ticker IRQn */
