@@ -130,10 +130,10 @@ impl JobState {
     }
 
     fn set(&mut self, new_state: JobState) -> Result<Status, Status> {
-        let status =
-            unsafe { mgr::mgr_task_set_state(mgr::sched_get_current(), new_state as EnumBinding) };
-        if status != 0 {
-            return Err((status as u32).into());
+        if unsafe { mgr::mgr_task_set_state(mgr::sched_get_current(), new_state as EnumBinding) }
+            != 0
+        {
+            return Err(Status::Invalid);
         }
         Ok(Status::Ok)
     }
@@ -156,9 +156,8 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     let current_task = TaskMeta::current()?;
     let checked_text = core::str::from_utf8(&current_task.exchange_bytes()[..length])
         .map_err(|_| Status::Invalid)?;
-    let status = unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) } as u32;
-    if status != 0 {
-        return Err(status.into());
+    if unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) } != 0 {
+        return Err(Status::Invalid);
     }
     Ok(None)
 }
@@ -169,9 +168,8 @@ fn sched_elect() -> mgr::task_handle {
 
 fn task_get_sp(taskh: mgr::task_handle) -> Result<StackFramePointer, Status> {
     let mut sp: *mut mgr::stack_frame_t = core::ptr::null_mut();
-    let status = unsafe { mgr::mgr_task_get_sp(taskh, &mut sp) } as u32;
-    if status != 0 {
-        return Err(status.into());
+    if unsafe { mgr::mgr_task_get_sp(taskh, &mut sp) } != 0 {
+        return Err(Status::Invalid);
     }
     Ok(sp.into())
 }
