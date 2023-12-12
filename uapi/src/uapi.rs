@@ -17,17 +17,17 @@ impl From<ResourceHandleBits> for ResourceHandle {
     }
 }
 
-static mut SVC_EXCHANGE_AREA: [u8; 128] = [0; 128];
+const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
+static mut SVC_EXCHANGE_AREA: [u8; SVC_EXCH_AREA_LEN] = [0u8; SVC_EXCH_AREA_LEN];
 
 struct DebugPrint;
 
 impl fmt::Write for DebugPrint {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..s.len() + 1] };
-        let (end, buf) = exch_area.split_last_mut().ok_or(fmt::Error)?;
-        buf.copy_from_slice(s.as_bytes());
-        *end = 0;
-        sys_log(s.len() + 1);
+        let max_length = s.len().min(SVC_EXCH_AREA_LEN);
+        let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..max_length] };
+        exch_area.copy_from_slice(&s.as_bytes()[..max_length]);
+        sys_log(max_length);
         Ok(())
     }
 }
@@ -150,7 +150,15 @@ mod tests {
 
     #[test]
     fn logging() {
-        print!("plorp");
-        assert_eq!(unsafe { &SVC_EXCHANGE_AREA[0..6] }, "plorp\0".as_bytes());
+        let text = "plorp";
+        print!("{}", text);
+        assert_eq!(unsafe { &SVC_EXCHANGE_AREA[..text.len()] }, text.as_bytes());
+    }
+
+    #[test]
+    fn bad_logging() {
+        let text = "more than 128 characters long string aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        print!("{}", text);
+        assert_eq!(unsafe { &SVC_EXCHANGE_AREA }, &text.as_bytes()[..128]);
     }
 }

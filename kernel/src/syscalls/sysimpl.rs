@@ -154,10 +154,9 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
 #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
 pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     let current_task = TaskMeta::current()?;
-    let cstr_text = core::ffi::CStr::from_bytes_with_nul(&current_task.exchange_bytes()[..length])
+    let checked_text = core::str::from_utf8(&current_task.exchange_bytes()[..length])
         .map_err(|_| Status::Invalid)?;
-    let checked_text = cstr_text.to_str().map_err(|_| Status::Invalid)?;
-    let status = unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) };
+    let status = unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) } as u32;
     if status != 0 {
         return Err(status.into());
     }
