@@ -293,8 +293,7 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     }
 
     /* enable supported fault handlers */
-    shcsr = 0;
-    shcsr |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
+    shcsr = SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
     iowrite32((size_t)&SCB->SHCSR, shcsr);
     /* branch to sentry kernel entry point */
     _entrypoint();
