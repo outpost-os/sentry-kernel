@@ -5,6 +5,7 @@
 #include <sentry/ktypes.h>
 #include <sentry/managers/security.h>
 #include <sentry/managers/debug.h>
+#include <sentry/arch/asm-generic/platform.h>
 #include "entropy.h"
 
 kstatus_t mgr_security_init(void)
@@ -12,6 +13,10 @@ kstatus_t mgr_security_init(void)
     kstatus_t status;
     pr_info("initialize security manager...");
     status = mgr_security_entropy_init();
+#ifndef CONFIG_BUILD_TARGET_DEBUG
+    pr_info("disable unaligned access");
+    __platform_enforce_alignment();
+#endif
     return status;
 }
 
