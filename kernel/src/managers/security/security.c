@@ -14,7 +14,7 @@ kstatus_t mgr_security_init(void)
     pr_info("initialize security manager...");
     status = mgr_security_entropy_init();
 #ifndef CONFIG_BUILD_TARGET_DEBUG
-    pr_info("disable unaligned access");
+    pr_info("Forbid unaligned access");
     __platform_enforce_alignment();
 #endif
     return status;
