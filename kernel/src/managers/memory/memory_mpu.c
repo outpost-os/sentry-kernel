@@ -41,15 +41,6 @@ static inline secure_bool_t mgr_mm_configured(void)
     return SECURE_FALSE;
 }
 
-stack_frame_t *memfault_handler(stack_frame_t *frame)
-{
-    pr_err("Memory fault !!!");
-    dump_frame(frame);
-    /* FIXME: differenciate userspace & kernel fault here */
-    __do_panic();
-    return frame;
-}
-
 /*
  * Per region function implementation, forced inline, but
  * clearer.
