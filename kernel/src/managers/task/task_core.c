@@ -101,28 +101,10 @@ void task_dump_table(void)
 
 static inline task_t *task_get_from_handle(taskh_t h)
 {
-    uint16_t left = 0;
-    /* there is numtask + 1 (idle) tasks */
-    /* because of the bitfield usage and the endianess impact, we can't just use
-     * a comparison of the dynamic handle, as this one may (in big endian systems)
-     * not respect the numeric order initiated in the table. Instead, we find the
-     * task (not the job) that match taskh_t, and then check for its current job
-     */
-    uint16_t right = mgr_task_get_num();
     task_t *tsk = NULL;
-    uint32_t handle_norerun = handle_convert_to_u32(h) & ~HANDLE_TASK_RERUN_MASK;
-    while (left < right) {
-        uint16_t current = (left + right) >> 1;
-        if (handle_convert_to_u32(task_table[current].metadata->handle) > handle_norerun) {
-            right = (current > 0) ? current - 1 : current;
-        } else if (handle_convert_to_u32(task_table[current].metadata->handle) < handle_norerun) {
-            left = current + 1;
-        } else {
-            /* handle without rerun match, is the taskh valid for current job (rerun check) ? */
-            if (handle_convert_to_u32(task_table[current].handle) ==
-                handle_convert_to_u32(h)) {
-                tsk = &task_table[current];
-            }
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        if (handle_convert_to_u32(task_table[i].handle) == handle_convert_to_u32(h)) {
+            tsk = &task_table[i];
             goto end;
         }
     }

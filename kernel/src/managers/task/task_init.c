@@ -323,8 +323,9 @@ static inline kstatus_t task_init_add_autotest(void)
     pr_info("[task handle {%04x|%04x|%03x}] autotest task forged",
        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
     /* autotest is scheduled as a standard task */
-    sched_schedule(meta->handle);
+    request_data_membarrier();
     ctx.numtask++;
+    sched_schedule(meta->handle);
     ctx.status = K_STATUS_OKAY;
 err:
     return ctx.status;

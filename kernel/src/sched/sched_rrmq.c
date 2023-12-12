@@ -17,11 +17,11 @@
  * @param state: task state, READY in active lists, may be other state in delayed
  */
 typedef struct task_rrmq_state {
-    bool          active;
     taskh_t       handler;
     uint32_t      priority;
     uint32_t      quantum;    /**< set at spawn time to systick period */
     job_state_t   state;
+    bool          active;
 } task_rrmq_state_t;
 
 /**
@@ -31,8 +31,8 @@ typedef struct task_rrmq_state {
  * When a job has burn all its quantum, it is no more eligible for current slot
  */
 typedef struct task_rrmq_jobset {
+    uint32_t num_jobs;
     task_rrmq_state_t joblist[CONFIG_MAX_TASKS];
-    uint8_t num_jobs;
 } task_rrmq_jobset_t;
 
 /**
@@ -72,7 +72,7 @@ typedef struct sched_rrmq_context {
     task_rrmq_state_t    *current_job;     /**< current task that is being executed, or idle */
  } sched_rrmq_context_t;
 
-static sched_rrmq_context_t sched_rrmq_ctx;
+static sched_rrmq_context_t _Alignas(uint32_t) sched_rrmq_ctx;
 
 /**
  * Swapping current timeslot job set and backed job set. This happen when current
@@ -110,7 +110,7 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
     uint8_t cell = 0;
-    const task_meta_t *meta;
+    const task_meta_t *meta = NULL;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         if (jobset->joblist[i].active == false) {
             /* 1st empty cell, using it */
@@ -119,12 +119,14 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
         }
     }
     if (unlikely((status = mgr_task_get_metadata(t, &meta)) != K_STATUS_OKAY)) {
+        pr_err("failed to get metadata for task %p", t.id);
         goto err;
     }
     jobset->joblist[cell].handler = t;
     jobset->joblist[cell].priority = meta->priority;
     jobset->joblist[cell].quantum = meta->quantum;
     jobset->joblist[cell].state = JOB_STATE_READY;
+    jobset->joblist[cell].active = true;
     jobset->num_jobs++;
     /* shedule is not an election, task job is only added to current taskset */
 err:
@@ -142,6 +144,7 @@ err:
 kstatus_t sched_rrmq_schedule(taskh_t t)
 {
     kstatus_t status;
+    pr_debug("adding task %p to scheduler", t.id);
     status = sched_rrmq_add_to_jobset(t, sched_rrmq_ctx.active_jobset);
     return status;
 }
@@ -165,10 +168,12 @@ taskh_t sched_rrmq_elect(void)
          * absolutely NO active job. This is an extreme case, where we
          * just recall idle.
          */
-         goto end;
+         pr_err("no job currently scheduled (idle fallback mode), directly electing new one");
+         goto elect;
     }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
-        pr_err("failed to get task state!");
+        pr_err("failed to get task state for task %x !",
+           sched_rrmq_ctx.current_job->handler.id);
     }
     if (state == JOB_STATE_READY) {
         /* task is not blocked (yield() maybe) and is still eligible, but
@@ -184,6 +189,7 @@ taskh_t sched_rrmq_elect(void)
     sched_rrmq_ctx.current_job->active = false;
     /* decrement current number of jobs in active jobset */
     sched_rrmq_ctx.active_jobset->num_jobs--;
+elect:
     /* elect new task */
     /* if there is no more task in current set, switch */
     if (unlikely(sched_rrmq_ctx.active_jobset->num_jobs == 0)) {
@@ -192,6 +198,7 @@ taskh_t sched_rrmq_elect(void)
     /* still no tasks ? schedule idle then */
     if (unlikely(sched_rrmq_ctx.active_jobset->num_jobs == 0)) {
         /* schedule idle */
+        pr_debug("no job found, leaving to idle");
         sched_rrmq_ctx.current_job = NULL;
         goto end;
     }
@@ -208,9 +215,13 @@ taskh_t sched_rrmq_elect(void)
             }
         }
     }
-    /* higher priority task found in list, elect it */
+    if (unlikely(next == NULL)) {
+        goto end;
+    }
+    /* task found in list (priority based), elect it */
     sched_rrmq_ctx.current_job = next;
     tsk = next->handler;
+    pr_debug("job %p elected", next->handler.id);
 end:
     return tsk;
 }
