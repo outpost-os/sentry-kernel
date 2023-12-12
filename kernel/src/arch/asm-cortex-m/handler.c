@@ -11,6 +11,7 @@
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+#include <sentry/io.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -61,9 +62,17 @@ void dump_frame(stack_frame_t *frame)
 #endif
 }
 
-static inline stack_frame_t *may_panic(stack_frame_t *frame) {
-    stack_frame_t *newframe = frame;
+__STATIC_FORCEINLINE secure_bool_t is_userspace_fault(stack_frame_t *frame) {
+    secure_bool_t res = SECURE_FALSE;
     if (likely(frame->lr & 0x4UL)) {
+        res = SECURE_TRUE;
+    }
+    return res;
+}
+
+__STATIC_FORCEINLINE stack_frame_t *may_panic(stack_frame_t *frame) {
+    stack_frame_t *newframe = frame;
+    if (is_userspace_fault(frame)) {
         taskh_t tsk = sched_get_current();
         /* user mode, fault source is userspace:
          *  1. set task as faulted
@@ -96,7 +105,6 @@ __STATIC_FORCEINLINE __attribute__((noreturn)) void hardfault_handler(stack_fram
     if ((SCB->HFSR) & SCB_HFSR_VECTTBL_Pos) {
         pr_debug("Bus fault during vector table read.");
     }
-
 #if defined(CONFIG_BUILD_TARGET_DEBUG)
     #if 0
     /* XXX: To be implemented, helper associated to kernel map */
@@ -110,26 +118,33 @@ __STATIC_FORCEINLINE __attribute__((noreturn)) void hardfault_handler(stack_fram
 __STATIC_FORCEINLINE stack_frame_t *usagefault_handler(stack_frame_t *frame)
 {
     stack_frame_t *newframe = frame;
+    size_t cfsr = SCB->CFSR;
     pr_debug("Usagefault!!!");
-    if ((SCB->CFSR) & SCB_CFSR_UNDEFINSTR_Msk) {
+    if (cfsr & SCB_CFSR_UNDEFINSTR_Msk) {
         pr_debug("Undefined instruction!");
     }
-    if ((SCB->CFSR) & SCB_CFSR_INVSTATE_Msk) {
+    if (cfsr & SCB_CFSR_INVSTATE_Msk) {
         pr_debug("invalid state!");
     }
-    if ((SCB->CFSR) & SCB_CFSR_INVPC_Msk) {
+    if (cfsr & SCB_CFSR_INVPC_Msk) {
         pr_debug("invalid PC!");
     }
-    if ((SCB->CFSR) & SCB_CFSR_NOCP_Msk) {
+    if (cfsr & SCB_CFSR_NOCP_Msk) {
         pr_debug("No coprocessor!");
     }
-    if ((SCB->CFSR) & SCB_CFSR_UNALIGNED_Msk) {
+    if (cfsr & SCB_CFSR_UNALIGNED_Msk) {
         pr_debug("Unaligned memory access!");
     }
-    if ((SCB->CFSR) & SCB_CFSR_DIVBYZERO_Msk) {
+    if (cfsr & SCB_CFSR_DIVBYZERO_Msk) {
         pr_debug("Division by 0!");
     }
     dump_frame(frame);
+    if (is_userspace_fault(frame)) {
+        /* targetting only UFSR part */
+        cfsr &= SCB_CFSR_USGFAULTSR_Msk;
+        /* clearing usage fault bits (sticky bits) by writting 1 on it */
+        iowrite32((size_t)&SCB->CFSR, cfsr);
+    }
     newframe = may_panic(frame);
     return newframe;
 }
@@ -138,9 +153,24 @@ __STATIC_FORCEINLINE stack_frame_t *usagefault_handler(stack_frame_t *frame)
 __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
 {
     stack_frame_t *newframe = frame;
+    size_t cfsr = SCB->CFSR;
     pr_err("Memory fault !!!");
+    if (cfsr & SCB_CFSR_IACCVIOL_Msk) {
+        pr_debug("Instruction access violation!");
+    }
+    if (cfsr & SCB_CFSR_DACCVIOL_Msk) {
+        pr_debug("Data access violation!");
+    }
+    if (cfsr & SCB_CFSR_MUNSTKERR_Msk) {
+        pr_debug("Fault while unstacking from exception!");
+    }
+    if (cfsr & SCB_CFSR_MSTKERR_Msk) {
+        pr_debug("Fault while stacking for exception entry!");
+    }
+    if (cfsr & SCB_CFSR_MMARVALID_Msk) {
+        pr_debug("Fault at address %p", SCB->MMFAR);
+    }
     dump_frame(frame);
-    /* FIXME: differenciate userspace & kernel fault here */
     newframe = may_panic(frame);
     return newframe;
 }
