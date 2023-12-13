@@ -10,13 +10,27 @@ extern size_t _s_idle_svcexchange;
 #include <inttypes.h>
 #include <uapi/uapi.h>
 
+/**
+ * NOTE: idle task is a 'bare' Sentry kernel task, meaning that there is
+ * no build system calculating each section and mapping the task on the target.
+ *
+ * As a consequence, the kernel is not able to determine the size of the .data
+ * and .bss sections, and these two values are hardcoded (data and bss set to 0)
+ * This means that idle task MUST NOT use any globals.
+ *
+ * Of course, this restriction do not impact standard userspace apps :-)
+ */
+
 void __attribute__((noreturn)) idle(void)
 {
     const char *welcommsg="hello this is idle!\n";
+    const char *yieldmsg="yielding for scheduler...\n";
+
     memcpy(&_s_idle_svcexchange, welcommsg, 20);
     sys_log(20);
 
-    #if 1
+    memcpy(&_s_idle_svcexchange, yieldmsg, 26);
+    sys_log(26);
     /* TODO: yield() first, to force task scheduling */
     sys_yield();
 
@@ -26,9 +40,4 @@ void __attribute__((noreturn)) idle(void)
         /* rise from LP, force task election */
         sys_yield();
     } while (1);
-    #else
-    do {
-        asm volatile("nop");
-    } while (1);
-    #endif
 }
