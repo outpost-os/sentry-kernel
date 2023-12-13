@@ -20,6 +20,7 @@ pub enum Syscall {
     SendSignal,
     WaitForEvent,
     ManageCPUSleep,
+    Alarm,
     Log,
 }
 
@@ -43,7 +44,8 @@ impl TryFrom<u8> for Syscall {
             10 => Ok(Syscall::WaitForEvent),
             11 => Ok(Syscall::ManageCPUSleep),
             12 => Ok(Syscall::Log),
-            _ => Err(Status::Invalid),
+            13 => Ok(Syscall::Alarm),
+            14.. => Err(Status::Invalid),
         }
     }
 }

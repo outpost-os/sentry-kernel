@@ -146,6 +146,12 @@ pub extern "C" fn sys_manage_cpu_sleep(mode: CPUSleep) -> Status {
     syscall!(Syscall::ManageCPUSleep, u32::from(mode)).into()
 }
 
+/// Send a SIGALRM signal to the task after `timeout_ms` milliseconds.
+#[no_mangle]
+pub extern "C" fn sys_alarm(timeout_ms: u32) -> Status {
+    syscall!(Syscall::Alarm, timeout_ms).into()
+}
+
 /// Send a message from the current task's 'svc_exchange area' through
 /// the UART.
 #[no_mangle]

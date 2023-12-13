@@ -18,6 +18,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::SendSignal => send_signal(args[0], args[1]),
         Syscall::WaitForEvent => wait_for_event(args[0] as u8, args[1], args[2]),
         Syscall::ManageCPUSleep => manage_cpu_sleep(args[0]),
+        Syscall::Alarm => alarm(args[0]),
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),
@@ -203,6 +204,17 @@ fn task_get_sp(taskh: mgr::task_handle) -> Result<StackFramePointer, Status> {
     Ok(sp.into())
 }
 
+fn time_delay_add_signal(
+    taskh: mgr::task_handle,
+    delay_ms: u32,
+    signal: mgr::sigh_t,
+) -> Result<Status, Status> {
+    if unsafe { mgr::mgr_time_delay_add_signal(taskh, delay_ms, signal) } != 0 {
+        return Err(Status::Busy);
+    }
+    Ok(Status::Ok)
+}
+
 pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
     JobState::current()?.set(if Status::from(status as u32) == Status::Ok {
         JobState::Finished
@@ -260,4 +272,15 @@ pub fn wait_for_event(
     Ok(None)
 }
 
+#[allow(clippy::unnecessary_cast)] // `as u32` only necessary on msvc toolchains
+pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
+    let current_job = sched_get_current();
 
+    let mut signal = mgr::sigh_t::default();
+    signal.set_id(mgr::signal_SIGNAL_ALARM as u32);
+    signal.set_family(mgr::HANDLE_SIGNAL);
+    signal.set_source(current_job.id());
+
+    time_delay_add_signal(current_job, timeout_ms, signal)?;
+    Ok(None)
+}
