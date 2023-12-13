@@ -243,17 +243,15 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     }
     /* the next job may not be the previous one */
     next = sched_get_current();
-    if (newframe != frame) {
+    if (handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next)) {
+        pr_debug("context switch !!! from %x to %x", current.id, next.id);
+        pr_debug("frame update !!! from %p to %p", frame, newframe);
         /* context switching here, saving previous context (frame) to task
          * ctx before leaving.
          */
-        pr_debug("frame update !!! from %p to %p", frame, newframe);
-        if (unlikely(mgr_task_set_sp(next, frame) != K_STATUS_OKAY)) {
+        if (unlikely(mgr_task_set_sp(current, (stack_frame_t*)__get_PSP()) != K_STATUS_OKAY)) {
             __do_panic();
         }
-    }
-    if (handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next)) {
-        pr_debug("context switch !!! from %x to %x", current.id, next.id);
         /**
          * and then map next task memory
          * TODO: map next task ressources, demap previous one ressources too
@@ -265,7 +263,6 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             __do_panic();
         }
     }
-
     return newframe;
 }
 

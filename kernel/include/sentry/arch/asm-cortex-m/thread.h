@@ -43,10 +43,13 @@ static inline stack_frame_t *__thread_init_stack_context(size_t sp, size_t pc)
     frame->r11 = 0x0;
     frame->r12 = 0x0;
     frame->pc = (pc | 0x1); /* thumb2 mode */
+    frame->xpsr = 0x21000200UL;
 #if defined(CONFIG_FPU_HARDFP_ABI)
     frame->lr = EXC_RETURN_THREAD_PSP_FPU;
+    frame->prev_lr = EXC_RETURN_THREAD_PSP_FPU; /* _start LR */
 #else
     frame->lr = EXC_RETURN_THREAD_PSP;
+    frame->prev_lr = EXC_RETURN_THREAD_PSP; /* _start LR */
 #endif
     return frame;
 }

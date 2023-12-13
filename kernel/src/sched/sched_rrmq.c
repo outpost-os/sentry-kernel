@@ -97,6 +97,7 @@ kstatus_t sched_rrmq_init(void)
     memset(&sched_rrmq_ctx, 0x0, sizeof(sched_rrmq_context_t));
     pr_info("clear delay job list");
     sched_rrmq_ctx.active_jobset = &sched_rrmq_ctx.primary;
+    sched_rrmq_ctx.backed_jobset = &sched_rrmq_ctx.secondary;
     return K_STATUS_OKAY;
 }
 
@@ -168,7 +169,7 @@ taskh_t sched_rrmq_elect(void)
          * absolutely NO active job. This is an extreme case, where we
          * just recall idle.
          */
-         pr_err("no job currently scheduled (idle fallback mode), directly electing new one");
+         pr_debug("no job currently scheduled (idle fallback mode), directly electing new one");
          goto elect;
     }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {

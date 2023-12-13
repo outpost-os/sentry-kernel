@@ -315,9 +315,9 @@ static inline kstatus_t task_init_add_autotest(void)
     task_table[ctx.numtask].handle = meta->handle;
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
 #ifndef TEST_MODE
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)&_idle);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
 #else
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)ut_idle);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)ut_autotest);
 #endif
     task_table[ctx.numtask].state = JOB_STATE_READY;
     pr_info("[task handle {%04x|%04x|%03x}] autotest task forged",
