@@ -237,6 +237,17 @@ impl From<SleepMode> for u32 {
     }
 }
 
+impl TryFrom<u32> for SleepMode {
+    type Error = Status;
+    fn try_from(mode: u32) -> Result<SleepMode, Self::Error> {
+        match mode {
+            0 => Ok(SleepMode::Shallow),
+            1 => Ok(SleepMode::Deep),
+            _ => Err(Status::Invalid),
+        }
+    }
+}
+
 #[repr(C)]
 pub enum CPUSleep {
     WaitForInterrupt,

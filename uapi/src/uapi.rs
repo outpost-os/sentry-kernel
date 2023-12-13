@@ -157,6 +157,11 @@ mod tests {
         0
     }
 
+    #[no_mangle]
+    extern "C" fn mgr_time_delay_add_job(_job: task_handle, _duration_ms: u32) -> kstatus_t {
+        0
+    }
+
     #[test]
     fn logging() {
         let text = "plorp";

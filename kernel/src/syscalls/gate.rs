@@ -82,7 +82,7 @@ enum JobState {
     NotStarted,
     Ready,
     Sleeping,
-    SleepingDeep,
+    DeepSleeping,
     Fault,
     Security,
     Aborting,
@@ -98,7 +98,7 @@ impl TryFrom<EnumBinding> for JobState {
             mgr::job_state_JOB_STATE_NOTSTARTED => JobState::NotStarted,
             mgr::job_state_JOB_STATE_READY => JobState::Ready,
             mgr::job_state_JOB_STATE_SLEEPING => JobState::Sleeping,
-            mgr::job_state_JOB_STATE_SLEEPING_DEEP => JobState::SleepingDeep,
+            mgr::job_state_JOB_STATE_SLEEPING_DEEP => JobState::DeepSleeping,
             mgr::job_state_JOB_STATE_SECURITY => JobState::Security,
             mgr::job_state_JOB_STATE_ABORTING => JobState::Aborting,
             mgr::job_state_JOB_STATE_FAULT => JobState::Fault,
@@ -215,6 +215,13 @@ fn time_delay_add_signal(
     Ok(Status::Ok)
 }
 
+fn time_delay_add_job(taskh: mgr::task_handle, duration_ms: u32) -> Result<Status, Status> {
+    if unsafe { mgr::mgr_time_delay_add_job(taskh, duration_ms) } != 0 {
+        return Err(Status::Busy);
+    }
+    Ok(Status::Ok)
+}
+
 pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
     JobState::current()?.set(if Status::from(status as u32) == Status::Ok {
         JobState::Finished
@@ -232,8 +239,14 @@ pub fn r#yield() -> Result<StackFramePointer, Status> {
     task_get_sp(sched_elect())
 }
 
-pub fn sleep(_duration_ms: u32, _sleep_mode: u32) -> Result<StackFramePointer, Status> {
-    Ok(None)
+pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Status> {
+    let mode = match SleepMode::try_from(sleep_mode)? {
+        SleepMode::Shallow => JobState::Sleeping,
+        SleepMode::Deep => JobState::DeepSleeping,
+    };
+    JobState::current()?.set(mode)?;
+    time_delay_add_job(sched_get_current(), duration_ms)?;
+    task_get_sp(sched_elect())
 }
 
 pub fn start(_process: u32) -> Result<StackFramePointer, Status> {

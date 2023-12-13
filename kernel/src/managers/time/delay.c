@@ -51,7 +51,7 @@ kstatus_t mgr_time_delay_flush(void)
  * - K_STATUS_OKAY on success
  * - K_ERROR_BUSY if no remaining space found
  */
-kstatus_t mgr_time_delay_add(taskh_t job, uint32_t delay_ms)
+kstatus_t mgr_time_delay_add_job(taskh_t job, uint32_t delay_ms)
 {
     kstatus_t status;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
