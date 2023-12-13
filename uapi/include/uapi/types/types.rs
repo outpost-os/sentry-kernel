@@ -20,6 +20,7 @@ pub enum Syscall {
     SendSignal,
     WaitForEvent,
     ManageCPUSleep,
+    Alarm,
     Log,
 }
 
@@ -43,7 +44,8 @@ impl TryFrom<u8> for Syscall {
             10 => Ok(Syscall::WaitForEvent),
             11 => Ok(Syscall::ManageCPUSleep),
             12 => Ok(Syscall::Log),
-            _ => Err(Status::Invalid),
+            13 => Ok(Syscall::Alarm),
+            14.. => Err(Status::Invalid),
         }
     }
 }
@@ -231,6 +233,17 @@ impl From<SleepMode> for u32 {
         match mode {
             SleepMode::Shallow => 0,
             SleepMode::Deep => 1,
+        }
+    }
+}
+
+impl TryFrom<u32> for SleepMode {
+    type Error = Status;
+    fn try_from(mode: u32) -> Result<SleepMode, Self::Error> {
+        match mode {
+            0 => Ok(SleepMode::Shallow),
+            1 => Ok(SleepMode::Deep),
+            _ => Err(Status::Invalid),
         }
     }
 }

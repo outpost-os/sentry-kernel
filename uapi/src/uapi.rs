@@ -54,7 +54,7 @@ macro_rules! println {
 mod tests {
     use super::*;
     use core::mem::transmute;
-    use sysgate::mocks::*; // {kstatus_t, task_handle, task_meta, job_state_t};
+    use sysgate::mocks::*;
 
     const FAKE_TASK_HANDLE: task_handle = unsafe { transmute(0) };
     static mut FAKE_TASK_META: task_meta = task_meta {
@@ -146,6 +146,20 @@ mod tests {
     #[no_mangle]
     extern "C" fn sched_elect() -> task_handle {
         FAKE_TASK_HANDLE
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_time_delay_add_signal(
+        _job: task_handle,
+        _delay_ms: u32,
+        _sig: sigh_t,
+    ) -> kstatus_t {
+        0
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_time_delay_add_job(_job: task_handle, _duration_ms: u32) -> kstatus_t {
+        0
     }
 
     #[test]

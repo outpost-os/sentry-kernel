@@ -15,6 +15,7 @@ fn main() {
 
     let bindings = bindings
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        .derive_default(true)
         .generate()
         .expect("Unable to generate bindings");
 
