@@ -27,6 +27,8 @@ void task_autotest_init(void)
     autotest_meta.handle.rerun = 0;
     autotest_meta.handle.id = SCHED_AUTOTEST_TASK_LABEL;
     autotest_meta.handle.family = HANDLE_TASKID;
+    autotest_meta.quantum = 10;
+    autotest_meta.priority = 1;
     autotest_meta.magic = CONFIG_TASK_MAGIC_VALUE;
     autotest_meta.flags.start_mode = JOB_FLAG_START_AUTO;
     autotest_meta.flags.exit_mode = JOB_FLAG_EXIT_RESET;
