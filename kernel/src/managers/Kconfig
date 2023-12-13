@@ -45,6 +45,13 @@ if !BUILD_TARGET_RELEASE
 
 menu "Debug manager"
 
+config DEBUG_COLORS
+	bool "Support for ANSI colors support"
+	default n
+	help
+	  Activate ASCII coloration on serial console for kernel debugging
+	  output. Userspace log is not impacted
+
 config DEBUG_LEVEL
 	int "kernel debug level"
 	range 0 8
