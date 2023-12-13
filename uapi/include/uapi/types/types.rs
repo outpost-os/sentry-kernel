@@ -20,8 +20,8 @@ pub enum Syscall {
     SendSignal,
     WaitForEvent,
     ManageCPUSleep,
-    Alarm,
     Log,
+    Alarm,
 }
 
 /// Implementing fallible conversion from `u32` to `Syscall`
