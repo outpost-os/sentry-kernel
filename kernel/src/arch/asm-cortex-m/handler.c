@@ -201,6 +201,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     stack_frame_t *newframe = frame;
     taskh_t current = sched_get_current();
     taskh_t next;
+
     /* get back interrupt name */
     __GET_IPSR(it);
     it &= IPSR_ISR_Msk;
@@ -241,16 +242,17 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             /* defaulting to nothing... */
             break;
     }
+
     /* the next job may not be the previous one */
     next = sched_get_current();
-    if (handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next)) {
+    if (unlikely(handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next))) {
         pr_debug("context switch !!! from %x to %x", current.id, next.id);
         pr_debug("frame update !!! from %p to %p", frame, newframe);
         /* context switching here, saving previous context (frame) to task
          * ctx before leaving.
          */
         if (unlikely(mgr_task_set_sp(current, (stack_frame_t*)__get_PSP()) != K_STATUS_OKAY)) {
-            __do_panic();
+             __do_panic();
         }
         /**
          * and then map next task memory
@@ -262,6 +264,14 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
         if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, next) != K_STATUS_OKAY)) {
             __do_panic();
         }
+    } else {
+        /* when no context switch happen (i.e. the same task is elected or no election),
+           we may need to fallback to previous frame, as elect() may return an invalid frame
+           (i.e. without the current saving). This is the case when the very same job is
+           elected.
+           when there is no election, this code as no effect (newframe == frame).
+         */
+        newframe = frame;
     }
     return newframe;
 }

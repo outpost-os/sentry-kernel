@@ -175,16 +175,15 @@ taskh_t sched_rrmq_elect(void)
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state for task %x !",
            sched_rrmq_ctx.current_job->handler.id);
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     if (state == JOB_STATE_READY) {
         /* task is not blocked (yield() maybe) and is still eligible, but
          * for next time slot, with a fresh quantum */
-        pr_debug("pushing task handle %p to next quantum window", sched_rrmq_ctx.current_job->handler);
         sched_rrmq_add_to_jobset(sched_rrmq_ctx.current_job->handler, sched_rrmq_ctx.backed_jobset);
     } else {
         /* task is delayed, so removed from scheduler. sys_sleep() will typically use another
          * kernel component (a delay manager) to call the schedule() API at the good moment */
-        pr_debug("unscheduling task handle %p", sched_rrmq_ctx.current_job->handler);
     }
     /* deactivate current from current slot */
     sched_rrmq_ctx.current_job->active = false;
@@ -222,7 +221,6 @@ elect:
     /* task found in list (priority based), elect it */
     sched_rrmq_ctx.current_job = next;
     tsk = next->handler;
-    pr_debug("job %p elected", next->handler.id);
 end:
     return tsk;
 }
