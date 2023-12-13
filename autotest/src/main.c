@@ -40,6 +40,10 @@ void __attribute__((noreturn)) autotest(void)
         asm volatile("nop");
         memcpy(&_s_autotest_svcexchange, plop, 10);
         sys_log(10);
+        SleepDuration duration;
+        duration.tag = SLEEP_DURATION_ARBITRARY_MS;
+        duration.arbitrary_ms = 1000UL;
+        sys_sleep(duration, SLEEP_MODE_DEEP);
         /* Let's test */
     } while (!test_finished);
    //sys_exit(0);

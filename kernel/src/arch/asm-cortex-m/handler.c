@@ -145,7 +145,6 @@ __STATIC_FORCEINLINE stack_frame_t *usagefault_handler(stack_frame_t *frame)
     newframe = may_panic(frame);
     __platform_clear_flags();
     request_data_membarrier();
-    __do_panic();
     return newframe;
 }
 
@@ -246,8 +245,6 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     /* the next job may not be the previous one */
     next = sched_get_current();
     if (unlikely(handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next))) {
-        pr_debug("context switch !!! from %x to %x", current.id, next.id);
-        pr_debug("frame update !!! from %p to %p", frame, newframe);
         /* context switching here, saving previous context (frame) to task
          * ctx before leaving.
          */
