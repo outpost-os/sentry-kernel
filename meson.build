@@ -118,6 +118,7 @@ with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
 
+subdir('tools')
 subdir('support/arch')
 
 # Idle implies libuapi

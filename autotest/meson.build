@@ -58,6 +58,16 @@ autotest_hex = custom_target(
     install_tag: 'runtime',
 )
 
+autotest_json = custom_target(
+    input: autotest_elf,
+    output: '@BASENAME@.json',
+    command: [
+        parseelf,
+        '@INPUT@',
+    ],
+    build_by_default: true,
+)
+
 meson.add_install_script(sentry_install_script, autotest_map_file, get_option('infodir') / autotest_task_name)
 
 endif

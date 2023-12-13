@@ -8,7 +8,7 @@ task_files = [
 ]
 
 if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
-    task_files += join_paths(meson.project_source_root(), 'kernel/src/managers/task/task_autotest.c')
+    task_files += join_paths(meson.project_build_root(), 'kernel/src/managers/task/task_autotest.c')
 endif
 
 test_task = executable(

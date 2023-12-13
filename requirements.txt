@@ -10,3 +10,4 @@ jinja-cli
 swig
 sphinx-simplepdf
 weasyprint
+lief
