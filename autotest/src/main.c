@@ -10,6 +10,9 @@
 
 extern size_t _s_autotest_svcexchange;
 
+int foo;
+int bla=42;
+
 /**
  * NOTE: autotest task is a 'bare' Sentry kernel task, meaning that there is
  * no build system calculating each section and mapping the task on the target.
@@ -27,6 +30,8 @@ void __attribute__((noreturn)) autotest(void)
     const char *welcommsg="hello this is autotest!\n";
     const char *testmsg="starting test suite...\n";
     const char *plop="autoplop!\n";
+    foo = 12;
+    bla = 14;
     memcpy(&_s_autotest_svcexchange, welcommsg, 24);
     sys_log(24);
     memcpy(&_s_autotest_svcexchange, testmsg, 23);

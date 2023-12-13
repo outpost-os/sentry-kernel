@@ -8,9 +8,6 @@
 #include <string.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
-#include "task_core.h"
-#include "task_init.h"
-#include "task_autotest.h"
 
 /**
  * ldscript provided
@@ -36,9 +33,9 @@ void task_autotest_init(void)
     autotest_meta.text_size = ((size_t)&_eautotest - (size_t)&_sautotest);
     autotest_meta.entrypoint_offset = 0x1UL;
     autotest_meta.finalize_offset = 0x0UL; /* TBD for idle */
-    autotest_meta.rodata_size = 0UL;
-    autotest_meta.data_size = 0UL;
-    autotest_meta.bss_size = 0UL;
+    autotest_meta.rodata_size = 0UL; /* fusionned in .text by now */
+    autotest_meta.data_size = {{ "%#08xUL"|format(data["size"]) }};
+    autotest_meta.bss_size = {{ "%#08xUL"|format(bss["size"]) }};
     autotest_meta.heap_size = 0UL;
     autotest_meta.s_svcexchange = (size_t)&_autotest_svcexchange;
     autotest_meta.stack_size = 2048; /* should be highly enough */

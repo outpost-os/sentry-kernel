@@ -9,7 +9,14 @@ sentry_source_set.add(files(
 ))
 
 if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
-sentry_source_set.add(files(
-  'task_autotest.c',
-))
+task_autotest_template = files('task_autotest.c.in')
+
+task_autotest = custom_target('gen_task_autotest',
+  input: task_autotest_template,
+  output: '@BASENAME@',
+  depends: [ autotest_json ],
+  command: [ jinja_cli, '-d', autotest_json, '-o', '@OUTPUT@', '@INPUT@' ],
+)
+
+sentry_source_set.add(task_autotest)
 endif
