@@ -164,6 +164,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn syscall_enum() {
+        for syscall_num in 0..32 {
+            match Syscall::try_from(syscall_num) {
+                Ok(sysn) => {
+                    assert_eq!(sysn as u8, syscall_num); // ensure roundtrip loops
+                }
+                Err(_) => (),
+            }
+        }
+    }
+
+    #[test]
     fn basic_sleep() {
         assert_eq!(
             sys_sleep(SleepDuration::D1ms, SleepMode::Shallow),
