@@ -235,11 +235,11 @@ typedef struct {
  * by the format string itself, and return 0 if the format string has been
  * correctly parsed, or 1 if the format string parsing failed.
  */
-static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
+static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                                           uint8_t * consumed,
                                           uint32_t * out_str_len)
 {
-    kstatus_t status = K_ERROR_INVPARAM;
+    uint8_t status = 1; /* invalid */
     fs_properties_t fs_prop = {
         .attr_0len = false,
         .attr_size = false,
@@ -623,7 +623,7 @@ static kstatus_t print_handle_format_string(const char *fmt, va_list *args,
         fs_prop.consumed++;
     } while (fmt[fs_prop.consumed]);
 end:
-    status = K_STATUS_OKAY;
+    status = 0;
 err:
     *out_str_len += fs_prop.strlen;
     *consumed = fs_prop.consumed + 1;   /* consumed is starting with 0 */
@@ -639,9 +639,9 @@ err:
    requires \valid_read(fmt);
    requires \valid(sizew);
 */
-static kstatus_t print_with_len(const char *fmt, va_list *args, size_t *sizew)
+static uint8_t print_with_len(const char *fmt, va_list *args, size_t *sizew)
 {
-    kstatus_t status;
+    uint8_t status = 1;
     int     i = 0;
     uint8_t consumed = 0;
     uint32_t out_str_s = 0;
@@ -649,7 +649,7 @@ static kstatus_t print_with_len(const char *fmt, va_list *args, size_t *sizew)
     while (fmt[i]) {
         if (fmt[i] == '%') {
             status = print_handle_format_string(&(fmt[i]), args, &consumed, &out_str_s);
-            if (unlikely(status != K_STATUS_OKAY)) {
+            if(unlikely(status != 0)) {
                 /* the string format parsing has failed ! */
                 goto err;
             }
@@ -660,7 +660,7 @@ static kstatus_t print_with_len(const char *fmt, va_list *args, size_t *sizew)
             dbgbuffer_write_char(fmt[i++]);
         }
     }
-    status = K_STATUS_OKAY;
+    status = 0;
 err:
     *sizew = out_str_s;
     return status;
@@ -689,7 +689,9 @@ __attribute__ ((format (printf, 1, 2))) kstatus_t printk(const char *fmt, ...)
      * before execute the current printf command
      */
     va_start(args, fmt);
-    status = print_with_len(fmt, &args, &len);
+    if (likely(print_with_len(fmt, &args, &len) == 0)) {
+        status = K_STATUS_OKAY;
+    }
     va_end(args);
     if (unlikely(status != K_STATUS_OKAY)) {
         dbgbuffer_flush();
@@ -697,6 +699,7 @@ __attribute__ ((format (printf, 1, 2))) kstatus_t printk(const char *fmt, ...)
     }
     /* display to debug output */
     dbgbuffer_display();
+
 err:
     dbgbuffer_flush();
     return status;
