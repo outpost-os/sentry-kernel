@@ -6,6 +6,7 @@ test_printk = executable(
     sources: files(
         'test_printk.cpp',
         join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log.c'),
+        join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
     ),
     include_directories: kernel_inc,
     cpp_args: [
