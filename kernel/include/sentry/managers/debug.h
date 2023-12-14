@@ -23,6 +23,26 @@ extern "C" {
  * LOG_LEVEL value
  */
 
+#ifdef CONFIG_DEBUG_COLORS
+#define BG_COLOR_BLACK  "\x1b[37;40m"
+#define BG_COLOR_RED    "\x1b[37;41m"
+#define BG_COLOR_GREEN  "\x1b[37;42m"
+#define BG_COLOR_YELLOW "\x1b[37;43m"
+#define BG_COLOR_BLUE   "\x1b[37;44m"
+#define BG_COLOR_PURPLE "\x1b[37;45m"
+#define BG_COLOR_CYAN   "\x1b[37;46m"
+#define BG_COLOR_WHITE  "\x1b[37;47m"
+#else
+#define BG_COLOR_BLACK
+#define BG_COLOR_RED
+#define BG_COLOR_GREEN
+#define BG_COLOR_YELLOW
+#define BG_COLOR_BLUE
+#define BG_COLOR_PURPLE
+#define BG_COLOR_CYAN
+#define BG_COLOR_WHITE
+#endif
+
 #define KERN_EMERG      "[0]"
 #define KERN_ALERT      "[1]"
 #define KERN_CRIT       "[2]"
@@ -68,14 +88,14 @@ kstatus_t printk(const char* fmt, ...);
 /**
  * @def pr_ auto format string for all pr_xxx API. Not to be used directly
  */
-#define pr_fmt(fmt) "%s: " fmt "\n", __func__
+#define pr_fmt(fmt) "%s: " fmt BG_COLOR_BLACK "\n", __func__
 
 #if CONFIG_DEBUG_LEVEL > 0
 /**
  * @def emergency messages, the system do not work correctly anymore
  */
 #define pr_emerg(fmt, ...) \
-	printk(KERN_EMERG " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_RED KERN_EMERG " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_emerg(fmt, ...)
 #endif
@@ -85,7 +105,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def alert message, the system is in alert mode, even if it may no be unstable
  */
 #define pr_alert(fmt, ...) \
-	printk(KERN_ALERT " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_RED KERN_ALERT " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_alert(fmt, ...)
 #endif
@@ -95,7 +115,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def critical error of any module
  */
 #define pr_crit(fmt, ...) \
-	printk(KERN_CRIT " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_RED KERN_CRIT " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_crit(fmt, ...)
 #endif
@@ -105,7 +125,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def something went wrong somewhere
  */
 #define pr_err(fmt, ...) \
-	printk(KERN_ERR " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_RED KERN_ERR " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_err(fmt, ...)
 #endif
@@ -115,7 +135,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def warning information about anything (fallbacking, etc...)
  */
 #define pr_warn(fmt, ...) \
-	printk(KERN_WARNING " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_PURPLE KERN_WARNING " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_warn(fmt, ...)
 #endif
@@ -125,7 +145,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def notice on something that is a little tricky, but not a warning though
  */
 #define pr_notice(fmt, ...) \
-	printk(KERN_NOTICE " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_PURPLE KERN_NOTICE " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_notice(fmt, ...)
 #endif
@@ -135,7 +155,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def usual informational messages
  */
 #define pr_info(fmt, ...) \
-	printk(KERN_INFO " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_BLUE KERN_INFO " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_info(fmt, ...)
 #endif
@@ -145,7 +165,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def debugging messages, may generates a lot of output or performances impacts
  */
 #define pr_debug(fmt, ...) \
-	printk(KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_GREEN KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_debug(fmt, ...)
 #endif
@@ -158,13 +178,13 @@ kstatus_t printk(const char* fmt, ...);
  * @def pr_ auto format string for pr_autotest only, adding TEST and current timestamping in u64
  * format
  */
-#define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
+#define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt BG_COLOR_BLACK "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
 
 /**
  * @def autotest messages, for autotest functions only
  */
 #define pr_autotest(fmt, ...) \
-	printk(KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
+	printk(BG_COLOR_CYAN KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
 #endif
 
 kstatus_t mgr_debug_autotest(void);
