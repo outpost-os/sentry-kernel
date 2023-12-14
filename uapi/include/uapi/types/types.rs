@@ -5,8 +5,54 @@
 ///
 /// Most important enum is `Syscall`, which defines the list of available
 /// syscalls and sets their identifier/number.
-#[repr(C)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+///
+
+/// This macro takes an enum and implements fallible conversion from a u8
+/// exhaustively, as required by the SVC Handler.
+///
+/// ```
+/// pub enum Syscall {
+///     Exit,
+/// }
+///
+/// impl TryFrom<u8> for Syscall {
+///     type Error = ();
+///     fn try_from(v: u8) -> Result<Self, Self::Error> {
+///         match v {
+///             x if x == Syscall::Exit as u8 => Ok(Syscall::Exit),
+///             _ => Err(())
+///         }
+///     }
+/// }
+/// ```
+/// (inspired by https://stackoverflow.com/a/58715864)
+///
+/// It also ensures that there cannot be a mismatch between the u8 value
+/// used to define the enum, and the value used for converting to it.
+macro_rules! syscall_list {
+    ($vis:vis enum $name:ident {
+        $($vname:ident,)*
+    }) => {
+        #[repr(C)]
+        #[cfg_attr(debug_assertions, derive(Debug))]
+        $vis enum $name {
+            $($vname,)*
+        }
+
+        impl TryFrom<u8> for $name {
+            type Error = Status;
+
+            fn try_from(v: u8) -> Result<Self, Self::Error> {
+                match v {
+                    $(x if x == $name::$vname as u8 => Ok($name::$vname),)*
+                    _ => Err(Status::Invalid),
+                }
+            }
+        }
+    }
+}
+
+syscall_list! {
 pub enum Syscall {
     Exit,
     GetProcessHandle,
@@ -23,31 +69,6 @@ pub enum Syscall {
     Log,
     Alarm,
 }
-
-/// Implementing fallible conversion from `u32` to `Syscall`
-/// serves as the basis for the syscall dispatcher in the crate
-/// `gate`.
-impl TryFrom<u8> for Syscall {
-    type Error = Status;
-    fn try_from(v: u8) -> Result<Syscall, Self::Error> {
-        match v {
-            0 => Ok(Syscall::Exit),
-            1 => Ok(Syscall::GetProcessHandle),
-            2 => Ok(Syscall::Yield),
-            3 => Ok(Syscall::Sleep),
-            4 => Ok(Syscall::Start),
-            5 => Ok(Syscall::Map),
-            6 => Ok(Syscall::Unmap),
-            7 => Ok(Syscall::SHMSetCredential),
-            8 => Ok(Syscall::SendIPC),
-            9 => Ok(Syscall::SendSignal),
-            10 => Ok(Syscall::WaitForEvent),
-            11 => Ok(Syscall::ManageCPUSleep),
-            12 => Ok(Syscall::Log),
-            13 => Ok(Syscall::Alarm),
-            14.. => Err(Status::Invalid),
-        }
-    }
 }
 
 /// Sentry syscall return values
