@@ -17,20 +17,18 @@
  * @param wait_time_ms: time to wait in miliseconds
  */
 typedef struct task_delay_state {
-    bool              active;
     taskh_t           handler;
     sigh_t            sig;
     uint32_t          wait_time_ms;
+    bool              active;
 } task_delay_state_t;
 
 typedef struct delayed_jobset {
     task_delay_state_t joblist[CONFIG_MAX_TASKS];
     task_delay_state_t evlist[CONFIG_MAX_DELAYED_EVENTS];
-    uint8_t num_jobs;
-    uint8_t num_ev;
 } delayed_jobset_t;
 
-static delayed_jobset_t delay_ctx;
+static _Alignas(uint32_t) delayed_jobset_t delay_ctx;
 
 /**
  * @brief flush all events, events list is made empty

@@ -145,7 +145,6 @@ err:
 kstatus_t sched_rrmq_schedule(taskh_t t)
 {
     kstatus_t status;
-    pr_debug("adding task %p to scheduler", t.id);
     status = sched_rrmq_add_to_jobset(t, sched_rrmq_ctx.active_jobset);
     return status;
 }
@@ -169,7 +168,6 @@ taskh_t sched_rrmq_elect(void)
          * absolutely NO active job. This is an extreme case, where we
          * just recall idle.
          */
-         pr_debug("no job currently scheduled (idle fallback mode), directly electing new one");
          goto elect;
     }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
@@ -198,7 +196,6 @@ elect:
     /* still no tasks ? schedule idle then */
     if (unlikely(sched_rrmq_ctx.active_jobset->num_jobs == 0)) {
         /* schedule idle */
-        pr_debug("no job found, leaving to idle");
         sched_rrmq_ctx.current_job = NULL;
         goto end;
     }
