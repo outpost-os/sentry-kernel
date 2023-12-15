@@ -1,7 +1,7 @@
 use crate::syscall::*;
 use bitflags::bitflags;
 use core::fmt;
-use systypes::ResourceHandle;
+use systypes::{ResourceHandle, Status};
 
 bitflags! {
     pub struct ResourceHandleBits: u32 {
@@ -48,6 +48,20 @@ macro_rules! print {
 macro_rules! println {
     () => ($crate::print!("\n"));
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)))
+}
+
+pub fn get_random() -> Result<u32, Status> {
+    match sys_get_random() {
+        Status::Ok => (),
+        any_err => return Err(any_err),
+    };
+    let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
+    Ok(u32::from_be_bytes([
+        exch_area[0],
+        exch_area[1],
+        exch_area[2],
+        exch_area[3],
+    ]))
 }
 
 #[cfg(test)]
@@ -162,6 +176,14 @@ mod tests {
         0
     }
 
+    #[no_mangle]
+    extern "C" fn mgr_security_entropy_generate(seed: *mut u32) -> kstatus_t {
+        unsafe {
+            *seed = 0xaabbccdd;
+        }
+        0
+    }
+
     #[test]
     fn logging() {
         let text = "plorp";
@@ -174,5 +196,10 @@ mod tests {
         let text = "more than 128 characters long string aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         print!("{}", text);
         assert_eq!(unsafe { &SVC_EXCHANGE_AREA }, &text.as_bytes()[..128]);
+    }
+
+    #[test]
+    fn random() {
+        assert_eq!(get_random(), Ok(0xaabbccdd));
     }
 }

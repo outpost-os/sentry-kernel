@@ -159,6 +159,12 @@ pub extern "C" fn sys_log(length: usize) -> Status {
     syscall!(Syscall::Log, length as u32).into()
 }
 
+/// Retrieve a random number (u32)
+#[no_mangle]
+pub extern "C" fn sys_get_random() -> Status {
+    syscall!(Syscall::GetRandom).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
