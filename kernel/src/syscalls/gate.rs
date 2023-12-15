@@ -19,6 +19,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::WaitForEvent => wait_for_event(args[0] as u8, args[1], args[2]),
         Syscall::ManageCPUSleep => manage_cpu_sleep(args[0]),
         Syscall::Alarm => alarm(args[0]),
+        Syscall::GetRandom => get_random(),
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),
@@ -127,11 +128,19 @@ impl TaskMeta {
         })
     }
 
-    #[allow(dead_code)]
-    fn exchange_bytes(&self) -> &[u8] {
+    fn get_exchange_bytes(&self) -> &[u8] {
         unsafe {
             core::slice::from_raw_parts(
                 self.meta.s_svcexchange as *const u8,
+                mgr::CONFIG_SVC_EXCHANGE_AREA_LEN as usize,
+            )
+        }
+    }
+
+    fn get_exchange_bytes_mut(&mut self) -> &mut [u8] {
+        unsafe {
+            core::slice::from_raw_parts_mut(
+                self.meta.s_svcexchange as *mut u8,
                 mgr::CONFIG_SVC_EXCHANGE_AREA_LEN as usize,
             )
         }
@@ -177,7 +186,7 @@ pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
 #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
 pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     let current_task = TaskMeta::current()?;
-    let checked_text = core::str::from_utf8(&current_task.exchange_bytes()[..length])
+    let checked_text = core::str::from_utf8(&current_task.get_exchange_bytes()[..length])
         .map_err(|_| Status::Invalid)?;
     if unsafe { mgr::debug_rawlog(checked_text.as_ptr(), checked_text.len()) } != 0 {
         return Err(Status::Invalid);
@@ -297,3 +306,16 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
     time_delay_add_signal(current_job, timeout_ms, signal)?;
     Ok(None)
 }
+
+fn get_random() -> Result<StackFramePointer, Status> {
+    let mut current_task = TaskMeta::current()?.can(Capability::CryKRNG)?;
+
+    let mut rand = 0u32;
+    if unsafe { mgr::mgr_security_entropy_generate(&mut rand) } != 0 {
+        return Err(Status::Invalid);
+    }
+    current_task.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_be_bytes());
+    Ok(None)
+}
+
+// fn get_cycle(arg: u32) -> Result<StackFramePointer, Status> {

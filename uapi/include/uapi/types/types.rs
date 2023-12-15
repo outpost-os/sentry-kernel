@@ -68,6 +68,7 @@ pub enum Syscall {
     ManageCPUSleep,
     Log,
     Alarm,
+    GetRandom,
 }
 }
 
