@@ -8,8 +8,7 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
-#include <sentry/arch/asm-cortex-m/dwt.h>
-#include <bsp/drivers/clk/rcc.h>
+#include <sentry/arch/asm-cortex-m/tick.h>
 #include <sentry/managers/time.h>
 #include <sentry/sched.h>
 #include <sentry/io.h>
@@ -78,57 +77,7 @@ typedef enum scb_systick_clkref {
 } scb_systick_clkref_t;
 
 static uint64_t jiffies;
-static uint64_t cycle_jiffies;
-static uint64_t period_jiffies;
-static uint64_t wait_jiffies;
 
-static inline void store_wait_jiffies(uint64_t jiffies_to_wait)
-{
-    /*
-     * There is no way to load/store atomically double word on cortex M architecture
-     * so, the only available method is with irq dis/en, a.k.a. critical section or spinlock in the
-     * very case of single core processor.
-     * XXX: add a proper handling to this, i.e. with the following use case:
-     *  - critical section enter while irq are disabled (do not enable interrupt unintendedly)
-     *  - nested critical section (? do we need this ? do we need).
-     * TODO: the easy way to do this is a spinlock_lock_irqsave/spinlock_unlock_irqrestore function
-     * and with BASEPri CortexM register.
-     */
-    /* In Sentry we are in handler mode only */
-    wait_jiffies = jiffies_to_wait;
-    request_data_membarrier();
-}
-
-static inline uint64_t load_wait_jiffies(void)
-{
-    uint64_t wait;
-    wait = wait_jiffies;
-
-    return wait;
-}
-
-/*
- * By now, while we do not use timer or external based wait mechanism,
- * the following implementation is used for waiting:
- * the wait(ms) function set a counter with ms+1,
- * and arm the pendsv handler. Each time the systick is being executed, if there
- * is a waiter, (ms+1 value is bigger than 0), the value is decremented.
- * If the value is 0, the systick stops decrement, the wait() stops waiting.
- *
- * **DO NOT CALL** from interrupt
- */
-void wait(unsigned long long ms)
-{
-    jiffies_t wait = MSEC_TO_JIFFIES(ms + 1);
-
-    store_wait_jiffies(wait);
-    request_data_membarrier();
-
-    do {
-        /* XXX: do we spin or wait here */
-        asm volatile ("nop");
-    } while (load_wait_jiffies() > 0);
-}
 
 static void systick_calibrate(void)
 {
@@ -151,14 +100,8 @@ void systick_init(void)
 
     static_assert(CONFIG_SYSTICK_HZ > 0, "system tick frequency MUST NOT be null");
 
-    period_jiffies = 0ULL;
     jiffies = 0ULL;
-    cycle_jiffies = 0ULL;
-    wait_jiffies = 0ULL;
 
-    /* enable cycle precision counting */
-    dwt_enable_cyccnt();
-    dwt_reset_cyccnt();
     /* calibrate systick */
     systick_calibrate();
     /* enable interrupt, set clksource as CPU clock */
@@ -176,52 +119,10 @@ void systick_stop_and_clear(void)
     SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 }
 
-/**
- * read, update and return the current cycle count since startup. Can
- * be called multiple time, with a non-periodic behavior, but non-reentrant
- */
-uint64_t systime_get_cycle(void)
-{
-    uint32_t dwt = dwt_cyccnt();
-    if (dwt > period_jiffies) {
-        /* dwt has incremented since last handler call. add increment only */
-        cycle_jiffies += (dwt - period_jiffies);
-    } else {
-        /* dwt has reseted since last handler call, add current value + previous
-         * residual
-         */
-        cycle_jiffies += dwt;
-        cycle_jiffies += (0xffffffffUL - period_jiffies);
-    }
-    period_jiffies = dwt;
-    return cycle_jiffies;
-}
-
-/**
- * return the high word of the cycle counter
- */
-uint32_t systime_get_cycleh(void)
-{
-    uint64_t cycles = systime_get_cycle();
-    return (uint32_t)((cycles >> 32) & 0xffffffffUL);
-}
-
-/**
- * return the low word of the cycle counter
- */
-uint32_t systime_get_cyclel(void)
-{
-    uint64_t cycles = systime_get_cycle();
-    return (uint32_t)(cycles & 0xffffffffUL);
-}
 
 stack_frame_t *systick_handler(stack_frame_t * stack_frame)
 {
     jiffies++;
-
-    if (wait_jiffies > 0) {
-        wait_jiffies--;
-    }
     /*
      * refresh swt-based systime calculation
      * This is done with HZ period, which guarantee that the no DWT loop is

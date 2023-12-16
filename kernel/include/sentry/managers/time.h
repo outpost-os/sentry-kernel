@@ -9,7 +9,6 @@ extern "C" {
 #endif
 
 #include <sentry/arch/asm-generic/tick.h>
-#include <bsp/drivers/clk/rcc.h>
 #include <sentry/managers/task.h>
 #include <uapi/handle.h>
 
@@ -32,32 +31,19 @@ kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, sigh_t sig);
 
 
 static inline uint64_t mgr_time_get_cycle(void) {
+
     uint64_t ts = systime_get_cycleh();
     ts <<= 32;
     ts |= systime_get_cyclel();
     return ts;
 }
 
-static inline uint64_t mgr_time_get_micro(void) {
-    uint64_t ts = systime_get_cycleh();
-    uint32_t freq = rcc_get_core_frequency();
-    /* divide freq by number of micros in 1 sec */
-    freq /= 1000000UL;
-    ts <<= 32;
-    ts |= systime_get_cyclel();
-    ts /= freq;
-    return ts;
+static inline uint64_t mgr_time_get_microseconds(void) {
+    return systime_get_microseconds();
 }
 
-static inline uint64_t mgr_time_get_milli(void) {
-    uint64_t ts = systime_get_cycleh();
-    uint32_t freq = rcc_get_core_frequency();
-    /* divide freq by number of millis in 1 sec */
-    freq /= 1000UL;
-    ts <<= 32;
-    ts |= systime_get_cyclel();
-    ts /= freq;
-    return ts;
+static inline uint64_t mgr_time_get_milliseconds(void) {
+    return systime_get_milliseconds();
 }
 /**
  * delay ticker, to be called by the systick using JIFFIES_TO_MSEC(1)

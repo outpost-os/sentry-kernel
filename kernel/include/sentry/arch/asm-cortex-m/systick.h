@@ -14,6 +14,14 @@
 /* FIXME to set*/
 #define CONFIG_SYSTICK_HZ 1000
 
+#define JIFFIES_TO_SEC(x)  ((x) / CONFIG_SYSTICK_HZ)
+#define JIFFIES_TO_MSEC(x) ((x) * 1000UL / CONFIG_SYSTICK_HZ)
+#define SEC_TO_JIFFIES(x)  ((x) * CONFIG_SYSTICK_HZ)
+#define MSEC_TO_JIFFIES(x) ((x) * CONFIG_SYSTICK_HZ / 1000UL)
+
+typedef uint64_t jiffies_t;
+
+jiffies_t systime_get_jiffies(void);
 
 //#include "handler.h"
 
@@ -85,33 +93,6 @@
 #define STK_TENMS_Pos		0u
 #define STK_TENMS_Msk		(0xffffffu << STK_TENMS_Pos)
 
-
-
-#define JIFFIES_TO_SEC(x)  ((x) / CONFIG_SYSTICK_HZ)
-#define JIFFIES_TO_MSEC(x) ((x) * 1000UL / CONFIG_SYSTICK_HZ)
-#define SEC_TO_JIFFIES(x)  ((x) * CONFIG_SYSTICK_HZ)
-#define MSEC_TO_JIFFIES(x) ((x) * CONFIG_SYSTICK_HZ / 1000UL)
-
-typedef uint64_t jiffies_t;
-
-jiffies_t systime_get_jiffies(void);
-
-__attribute__((always_inline))
-static inline uint64_t systime_get_seconds(void)
-{
-    return JIFFIES_TO_SEC(systime_get_jiffies());
-}
-
-__attribute__((always_inline))
-static inline uint64_t systime_get_milliseconds(void)
-{
-    return JIFFIES_TO_MSEC(systime_get_jiffies());
-}
-
-uint64_t systime_get_cycle(void);
-
-uint32_t systime_get_cycleh(void);
-uint32_t systime_get_cyclel(void);
 
 void systick_init(void);
 stack_frame_t *systick_handler(stack_frame_t * stack_frame);
