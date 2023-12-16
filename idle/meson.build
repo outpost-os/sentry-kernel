@@ -10,6 +10,10 @@ idle_task_name = 'idle'
 # populated in src
 sentry_ldscript_template = files()
 
+userspace_args = [
+    '-fstack-protector-strong',
+]
+
 subdir('src')
 
 if get_option('with_tests') == false
@@ -36,7 +40,7 @@ idle_elf = executable(
     sources: [idle_sources ],
     include_directories: uapi_inc,
     dependencies: [ sentry_c_uapi_dep ],
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, userspace_args ],
     link_args: [ '-lgcc', target_arch_args, idle_linker_args, '-Wl,-Map=@0@'.format(idle_map_file)],
     link_language: 'c',
     link_depends: [ idle_ldscript ],

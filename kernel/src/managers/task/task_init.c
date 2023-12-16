@@ -13,6 +13,7 @@
 #include <sentry/sched.h>
 #include <sentry/arch/asm-generic/membarriers.h>
 #include <sentry/arch/asm-generic/platform.h>
+#include <sentry/arch/asm-generic/panic.h>
 #include <sentry/zlib/sort.h>
 
 #include "task_core.h"
@@ -198,10 +199,11 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[cell].sp = mgr_task_initialize_sp(stack_top, (meta->s_text + meta->entrypoint_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset));
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;
+    ctx.numtask++;
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -224,33 +226,7 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         status = K_SECURITY_CORRUPTION;
         goto err;
     }
-    /* mapping task data region first */
-    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
-        status = K_ERROR_MEMFAIL;
-        goto err;
-    }
-    /* configure its content */
-    if (likely(meta->data_size)) {
-        size_t data_source = meta->s_text + \
-                             meta->text_size + \
-                             meta->text_size % SECTION_ALIGNMENT_LEN + \
-                             meta->rodata_size + \
-                             meta->rodata_size % SECTION_ALIGNMENT_LEN;
-        size_t data_start =  meta->s_svcexchange + \
-                            CONFIG_SVC_EXCHANGE_AREA_LEN;
-        pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
-        memcpy((void*)data_source, (void*)data_start, meta->data_size);
-    }
-    if (likely(meta->bss_size)) {
-        size_t bss_start =  meta->s_svcexchange + \
-                            CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                            meta->data_size + (meta->data_size % SECTION_ALIGNMENT_LEN);
-        pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
-        memset((void*)bss_start, 0x0, meta->bss_size);
-    }
-    /* unmap task data */
-    if (unlikely(mgr_mm_unmap(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
-        status = K_ERROR_MEMFAIL;
+    if ((status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
@@ -286,7 +262,6 @@ static inline kstatus_t task_init_schedule(task_meta_t const * const meta, uint8
         }
         pr_info("[task handle {%04x|%04x|%03x}] task forged", meta->handle.rerun, meta->handle.id, meta->handle.family);
     }
-    ctx.numtask++;
     if (cell == CONFIG_MAX_TASKS-1) {
         /* last cell, go to finalize */
         ctx.state = TASK_MANAGER_STATE_FINALIZE;
@@ -301,36 +276,70 @@ end:
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 static inline kstatus_t task_init_add_autotest(void)
 {
+    task_t * task_table = task_get_table();
+    /* adding idle task to list */
+    task_meta_t *meta = task_autotest_get_meta();
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
         ctx.status = K_SECURITY_INTEGRITY;
         goto err;
     }
-    task_t * task_table = task_get_table();
-    /* adding idle task to list */
-    task_meta_t *meta = task_autotest_get_meta();
     /* should we though forge a HMAC for idle metadata here ? */
     task_table[ctx.numtask].metadata = meta;
     task_table[ctx.numtask].handle = meta->handle;
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
 #ifndef TEST_MODE
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
 #else
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(autotest_sp, (size_t)ut_autotest);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)ut_autotest);
 #endif
     task_table[ctx.numtask].state = JOB_STATE_READY;
+
     pr_info("[task handle {%04x|%04x|%03x}] autotest task forged",
-       (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
+    (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
     /* autotest is scheduled as a standard task */
     request_data_membarrier();
+    /* task added to task local task list, needed so that others managers can request it */
     ctx.numtask++;
+    if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    /* and schedule it */
     sched_schedule(meta->handle);
     ctx.status = K_STATUS_OKAY;
 err:
     return ctx.status;
 }
 #endif
+
+static inline kstatus_t task_init_add_idle(void)
+{
+    task_t * task_table = task_get_table();
+    /* adding idle task to list */
+    task_meta_t *meta = task_idle_get_meta();
+    /* entering state check */
+    if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
+        pr_err("invalid state!");
+        ctx.status = K_SECURITY_INTEGRITY;
+        goto err;
+    }
+    /* should we though forge a HMAC for idle metadata here ? */
+    task_table[ctx.numtask].metadata = meta;
+    task_table[ctx.numtask].handle = meta->handle;
+    size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
+    /* Idle special case, as we directly execute idle at boot, there is no stack_frame_t saved on stack */
+    task_table[ctx.numtask].sp = (stack_frame_t*)idle_sp;
+    task_table[ctx.numtask].state = JOB_STATE_READY;
+    pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
+        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
+    ctx.numtask++;
+    if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+err:
+    return ctx.status;
+}
 
 /**
  * @brief finalize the task table construct
@@ -341,7 +350,6 @@ err:
 static inline kstatus_t task_init_finalize(void)
 {
     task_t * task_table = task_get_table();
-
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
@@ -350,25 +358,13 @@ static inline kstatus_t task_init_finalize(void)
     }
     #ifdef CONFIG_BUILD_TARGET_AUTOTEST
     /* in autotest mode  */
-    task_init_add_autotest();
+    if (unlikely(task_init_add_autotest() != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
     #endif
-    /* adding idle task to list */
-    task_meta_t *meta = task_idle_get_meta();
-    /* should we though forge a HMAC for idle metadata here ? */
-    task_table[ctx.numtask].metadata = meta;
-    task_table[ctx.numtask].handle = meta->handle;
-    size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-#ifndef TEST_MODE
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)&_idle);
-#else
-    /* in UT mode, idle is mocked */
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp(idle_sp, (size_t)ut_idle);
-#endif
-    task_table[ctx.numtask].state = JOB_STATE_READY;
-
-    pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
-        (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
-    ctx.numtask++;
+    if (unlikely(task_init_add_idle() != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
     /* idle is not scheduled, it is instead a fallback of all schedulers, using its handler
      * at election time only
      */

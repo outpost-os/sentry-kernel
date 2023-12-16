@@ -10,6 +10,7 @@
 #include <stddef.h>
 
 #include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/managers/security.h>
 
 /* the firmware bare default handler save the overall missing registers (i.e.
  * not saved by the NVIC) on the stack, generating a stack frame with a full
@@ -26,11 +27,16 @@ typedef struct stack_frame {
 static_assert(sizeof(stack_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
 
 
-static inline stack_frame_t *__thread_init_stack_context(size_t sp, size_t pc)
+static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc)
 {
+    /* on ARM, 4 first arguments are passed using registers R0 -> r3 */
+    uint32_t seed = 0;
+    if (unlikely(mgr_security_entropy_generate(&seed) != K_STATUS_OKAY)) {
+        return NULL;
+    }
     stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
-    frame->r0 = 0x0;
-    frame->r1 = 0x0;
+    frame->r0 = rerun;
+    frame->r1 = seed;
     frame->r2 = 0x0;
     frame->r3 = 0x0;
     frame->r4 = 0x0;

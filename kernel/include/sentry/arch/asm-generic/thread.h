@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef ASM_GEN_THREAD_H
+#define ASM_GEN_THREAD_H
 
 /**
  * \file interrupts controller entrypoint, multiplatform
@@ -18,4 +18,4 @@
 #error "unsupported architecture!"
 #endif
 
-#endif/*THREAD_H*/
+#endif/*ASM_GEN_THREAD_H*/

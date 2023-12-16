@@ -222,9 +222,9 @@ end:
 /*
  * Forge a stack context
  */
-stack_frame_t *mgr_task_initialize_sp(size_t sp, size_t pc)
+stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc)
 {
-    stack_frame_t *frame = __thread_init_stack_context(sp, pc);
+    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc);
     return frame;
 }
 
@@ -299,6 +299,46 @@ err:
     __builtin_unreachable();
 }
 
+
+kstatus_t task_set_job_layout(task_meta_t const * const meta)
+{
+    kstatus_t status;
+     /* mapping task data region first */
+    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
+        status = K_ERROR_MEMFAIL;
+        goto err;
+    }
+    /* copy data segment if non null */
+    if (likely(meta->data_size)) {
+        size_t data_source = meta->s_text + \
+                             meta->text_size + \
+                             meta->text_size % SECTION_ALIGNMENT_LEN + \
+                             meta->rodata_size + \
+                             meta->rodata_size % SECTION_ALIGNMENT_LEN;
+        size_t data_start =  meta->s_svcexchange + \
+                            CONFIG_SVC_EXCHANGE_AREA_LEN;
+        pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
+        memcpy((void*)data_source, (void*)data_start, meta->data_size);
+    }
+    /* zeroify bss if non-null */
+    if (likely(meta->bss_size)) {
+        size_t bss_start =  meta->s_svcexchange + \
+                            CONFIG_SVC_EXCHANGE_AREA_LEN + \
+                            meta->data_size + (meta->data_size % SECTION_ALIGNMENT_LEN);
+        pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
+        memset((void*)bss_start, 0x0, meta->bss_size);
+    }
+    /* zeroify SVC Exchange */
+    memset((void*)meta->s_svcexchange, 0x0, CONFIG_SVC_EXCHANGE_AREA_LEN);
+    /* unmap task data */
+    if (unlikely(mgr_mm_unmap(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
+        status = K_ERROR_MEMFAIL;
+        goto err;
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
 
 
 /**
