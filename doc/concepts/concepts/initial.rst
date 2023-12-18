@@ -279,17 +279,76 @@ The kernel handles both exit cases differently:
 job entrypoint
 ^^^^^^^^^^^^^^
 
-In C mode The task job entrypoint is the usual `int main(void)` function, as defined
-in the ISO C definition. In full Rust, the main function is the usual `fn main()` function.
+.. _job_entrypoint:
 
-There is no specific runtime manual initialization to define in the userspace task,
-as the Outpost OS and Sentry kernel do not directly call the `main` function but instead
-use the standard `_start` symbol of the userspace runtime that is responsible for the
-userspace task initialization. This avoids any supplementary, potentially buggy,
-requirements on the user application developer. This function, to start with, initiates
-the stack smashing protection of the userspace job.
+Sentry kernel consider that there is, somewhere, a `_start` symbol (most of the
+time, this symbol is hosted by the user libc) that needs to be called.
+This symbol is the task entrypoint.
 
-This allows to write userspace jobs as simple as:
+In Sentry, the entrypoint is called with the following prototype:
+
+.. code-block:: C
+
+   /**
+    * @param[in] runid: run identifier, starting at 0 at boot
+    *   the runid is incremented each time the task job is respawned
+    * @param[in] seed: current job input seed, to be used for SSP
+    */
+   void __attribute__((no_stack_protector, noreturn)) _start(uint32_t runid, uint32_t seed)
+   {
+         // [...]
+         do {
+            /* my task loop... */
+         } while (1);
+         __builtin__unreachable();
+   }
+
+.. note::
+   the entrypoint symbol name is not a requirement but instead more a convention
+   accepted by all toolchains. Entrypoint symbol can be overriden by linker script
+   but the usage of `_start` symbol avoid this
+
+The given arguments are used in order to inform the userspace job of the current
+run identifier and to allow initialization of the stack smashing protection.
+
+Sentry is not resposible for upper layers implementation, although, a typical call
+stack model would be:
+
+.. code-block:: C
+
+   uint32_t __stack_chk_guard = 0;
+
+   int main(void)
+   {
+      printf("Hello!")
+      /* [...] */
+      return 0;
+   }
+
+   void __attribute__((no_stack_protector, noreturn)) _start(uint32_t runid, uint32_t seed)
+   {
+      int task_ret;
+      __stack_chk_guard = seed;
+      /* SSP activated now */
+      __libc_init();
+      task_ret = main();
+      sys_exit(task_ret);
+      __builtin__unreachable()
+   }
+
+In Outpost, the `_start` symbol is, in C, under the libshield responsability. It can
+though be implemented in Rust or any language while the ABI is respected.
+
+No kernel-level or global job mapping requirement is needed when the job is being
+executed, as the Sentry kernel:
+
+   * Copy the `.data` and `.got` section in SRAM
+   * zeroify the `.bss` section
+   * zeriofy the `.svc_exchange` section
+   * initialize any kernel-level checked canaries (sections barriers, etc.)
+
+Considering `_start` being a part of the runtime, this allows user developpers to
+write userspace jobs as simple as:
 
 .. code-block:: C
 
