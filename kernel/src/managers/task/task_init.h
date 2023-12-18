@@ -10,4 +10,6 @@
 
 uint32_t mgr_task_get_num(void);
 
+void mgr_task_set_userspace_spawned(void);
+
 #endif/*!TASK_INIT_H*/

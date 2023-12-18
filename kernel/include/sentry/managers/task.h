@@ -180,6 +180,8 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 
 size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
+secure_bool_t mgr_task_is_userspace_spawned(void);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_task_autotest(void);
 #endif
