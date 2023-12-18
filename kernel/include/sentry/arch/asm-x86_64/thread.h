@@ -26,13 +26,11 @@ typedef struct stack_frame {
     uint16_t cs, ss, ds, es, fs, gs;
 } __attribute__((packed)) stack_frame_t;
 
-static_assert(sizeof(stack_frame_t) == (17*sizeof(uint64_t)+6*sizeof(uint16_t)), "Invalid stack frame size");
-
-static inline stack_frame_t *__thread_init_stack_context(size_t sp, size_t pc)
+static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc)
 {
     stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
-    frame->rax = 0x0;
-    frame->rbx = 0x0;
+    frame->rax = rerun;
+    frame->rbx = 0x0; /* seed to 0 on x86_64 */
     frame->rcx = 0x0;
     frame->rdx = 0x0;
     frame->rsi = 0x0;

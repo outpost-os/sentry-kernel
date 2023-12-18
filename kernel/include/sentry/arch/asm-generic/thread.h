@@ -4,6 +4,9 @@
 #ifndef ASM_GEN_THREAD_H
 #define ASM_GEN_THREAD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * \file interrupts controller entrypoint, multiplatform
  */
@@ -16,6 +19,10 @@
 #include <sentry/arch/asm-i386/thread.h>
 #else
 #error "unsupported architecture!"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif/*ASM_GEN_THREAD_H*/

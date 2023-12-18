@@ -8,9 +8,5 @@
  */
 
 #include <sentry/arch/asm-generic/thread.h>
-/**
- * kernel thread type definition
- */
-typedef int (*kthread_t)(void);
 
 #endif/*THREAD_H*/

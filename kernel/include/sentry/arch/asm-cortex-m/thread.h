@@ -8,6 +8,7 @@
  */
 #include <inttypes.h>
 #include <stddef.h>
+#include <assert.h>
 
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/managers/security.h>
