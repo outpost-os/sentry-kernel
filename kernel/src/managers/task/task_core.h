@@ -5,6 +5,7 @@
 #define TASK_CORE_H
 
 #include <sentry/managers/task.h>
+#include <sentry/arch/asm-generic/memory.h>
 
 #define TASK_EVENT_QUEUE_DEPTH 16
 
@@ -53,7 +54,13 @@ err:
 
 kstatus_t task_set_job_layout(task_meta_t const * const meta);
 
-typedef struct task {
+typedef struct  task {
+    /* about task layouting */
+    /** a task hold at most CONFIG_NUM_MPU_REGIONS-2 regions (as the 2 others hold
+       the kernel)
+       CAUTION: this field is size-impacting in kernel RAM !
+    */
+    mpu_ressource_t layout[CONFIG_NUM_MPU_REGIONS-2];
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
     /*
      * Task context information, these fields store dynamic values, such as current
@@ -65,6 +72,7 @@ typedef struct task {
 
     taskh_t         handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
+
     /* about events */
 
     /**
