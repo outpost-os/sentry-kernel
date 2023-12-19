@@ -29,6 +29,12 @@ config HAS_MPU_PMSA_V7
 config HAS_MPU_PMSA_V8
 	bool
 
+config NUM_MPU_REGIONS
+	int
+	default 8 if HAS_MPU_PMSA_V7
+	default 16 if HAS_MPU_PMSA_V8
+
+
 config HAS_NVIC
 	bool
 
@@ -67,6 +73,8 @@ config ARCH_ARM_ARMV8M
 	select THUMB
 	select LITTLE_ENDIAN
 	select HAS_DWT
+
+
 
 config SOC_FAMILY_STM32
 	bool
@@ -128,7 +136,7 @@ choice
 config ARCH_MCU_STM32U5
 	bool "STM32U5"
 	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
+	select ARCH_ARM_ARMV8M
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_FPU

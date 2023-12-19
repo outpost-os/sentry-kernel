@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <sentry/managers/task.h>
+
 /**
  * This enumerate defines the contigous memory regions that
  * can be (un)mapped by the memory manager.
@@ -27,7 +28,7 @@ typedef enum mm_region {
 typedef enum mm_k_region {
     MM_REGION_KERNEL_TXT = 0, /* starting point of userspace ressources */
     MM_REGION_KERNEL_DATA = 1,
-    MM_REGION_KERNEL_DEVICE = 7,
+    MM_REGION_KERNEL_DEVICE = CONFIG_NUM_MPU_REGIONS - 1,
 } mm_k_region_t;
 
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
