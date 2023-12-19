@@ -20,7 +20,7 @@ kstatus_t mgr_time_init(void)
     kstatus_t status;
     mgr_time_delay_flush();
     /* initialize platform ticker */
-    systick_init();
+    systime_init();
     /* initialize scheduler */
     if (unlikely((status = sched_init()) != K_STATUS_OKAY)) {
         pr_emerg("failed to init scheduler!");
