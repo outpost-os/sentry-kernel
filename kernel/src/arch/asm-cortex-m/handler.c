@@ -8,6 +8,7 @@
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
 #include <sentry/arch/asm-generic/platform.h>
+#include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/memory.h>
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/debug.h>
@@ -186,6 +187,24 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
                   "mov %0, r1\n\t" \
                   : "=r" (intr) :: "r1" ); })
 
+/**
+ * demap current task downto svc_exchange only. has sence only when userspace is running
+ */
+static inline void demap_task_protected_area(void) {
+    if (unlikely(mgr_task_is_userspace_spawned() == SECURE_FALSE)) {
+        goto end;
+    }
+    taskh_t current = sched_get_current();
+    /* resize current task mapping to SVC Exchange only now that its stack is saved
+       from now on, the kernel do not have anymore access to the task data, except the
+       svc_exchange area
+     */
+    if (unlikely(mgr_mm_resize_taskdata_to_svcexchange(current) != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+end:
+    return;
+}
 
 /**
  * @brief dispatcher and generic handler manager
@@ -200,6 +219,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     stack_frame_t *newframe = frame;
     taskh_t current = sched_get_current();
     taskh_t next;
+
 
     /* get back interrupt name */
     __GET_IPSR(it);
@@ -228,13 +248,16 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
             newframe = usagefault_handler(frame);
             break;
         case SVC_IRQ:
+            demap_task_protected_area();
             newframe = svc_handler(frame);
             break;
         case SYSTICK_IRQ:
+            demap_task_protected_area();
             /* periodic, every each millisecond execution */
             newframe = systick_handler(frame);
             break;
         default:
+            demap_task_protected_area();
             if (it >= 0) {
                 newframe = userisr_handler(frame, it);
             }
@@ -269,6 +292,10 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
            when there is no election, this code as no effect (newframe == frame).
          */
         newframe = frame;
+        /* reallowing task data before leaving handler mode */
+        if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, current) != K_STATUS_OKAY)) {
+            __do_panic();
+        }
     }
     return newframe;
 }

@@ -46,6 +46,7 @@ typedef enum task_mgr_state {
 
 struct task_mgr_ctx {
     task_mgr_state_t state;
+    secure_bool_t    userspace_spawned;
     uint16_t         numtask;
     kstatus_t        status;
 };
@@ -400,6 +401,7 @@ kstatus_t mgr_task_init(void)
     ctx.numtask = 0; /* at the end, before adding idle task, must be equal
                         to buildsys set number of tasks */
     ctx.status = K_STATUS_OKAY;
+    ctx.userspace_spawned = SECURE_FALSE;
     pr_info("init idletask metadata");
     task_idle_init();
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
@@ -482,4 +484,14 @@ kstatus_t mgr_task_autotest(void)
 kstatus_t mgr_task_watchdog(void)
 {
     return K_STATUS_OKAY;
+}
+
+void mgr_task_set_userspace_spawned(void)
+{
+    ctx.userspace_spawned = SECURE_TRUE;
+}
+
+secure_bool_t mgr_task_is_userspace_spawned(void)
+{
+    return ctx.userspace_spawned;
 }

@@ -47,6 +47,8 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
 
 kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
+kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target);
+
 kstatus_t mgr_mm_init(void);
 
 kstatus_t mgr_mm_watchdog(void);

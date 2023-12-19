@@ -99,6 +99,35 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_armm_scs(void)
 #endif
 
 /**
+ * Reduce current data section to svcexchange only
+ * INFO: optimisation can be done here: MPU register states should be cached in task data to avoid dyn calculation
+ */
+kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_meta_t const * meta;
+    if (unlikely((status = mgr_task_get_metadata(target, &meta)) == K_ERROR_INVPARAM)) {
+        /* invalid task handle */
+        pr_err("failed to get metadata for task %08x",
+        handle_convert_to_u32(target));
+        goto err;
+    }
+    struct mpu_region_desc user_data_config = {
+        .id = 5,
+        .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
+        .size = mpu_convert_size_to_region(CONFIG_SVC_EXCHANGE_AREA_LEN),
+        .access_perm = MPU_REGION_PERM_FULL,
+        .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+        .mask = 0x0,
+        .noexec = true,
+    };
+    status = mpu_load_configuration(&user_data_config, 1);
+err:
+    return status;
+}
+
+
+/**
  * @brief map a region of type reg_type, identified by reg_handle, on taskh request
  *
  * If mapping a kernel anon region (txt, data):
@@ -129,6 +158,23 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
             break;
 #endif
         case MM_REGION_TASK_SVC_EXCHANGE:
+            /* warning: mapping svc_exchange unmap task data, only svc_exchange is kept */
+            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
+                /* invalid task handle */
+                pr_err("failed to get metadata for task %08x",
+                    handle_convert_to_u32(requester));
+                goto err;
+            }
+            struct mpu_region_desc user_svc_config = {
+                .id = 5,
+                .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
+                .size = mpu_convert_size_to_region(CONFIG_SVC_EXCHANGE_AREA_LEN),
+                .access_perm = MPU_REGION_PERM_FULL,
+                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+                .mask = 0x0,
+                .noexec = true,
+            };
+            status = mpu_load_configuration(&user_svc_config, 1);
             /* FIXME: define if this is a real need, instead of through a mm_resize(TASK_DATA) instead */
             break;
         case MM_REGION_TASK_TXT:

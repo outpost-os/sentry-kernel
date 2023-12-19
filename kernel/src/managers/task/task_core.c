@@ -291,6 +291,7 @@ void __attribute__((noreturn)) mgr_task_start(void)
     }
 #endif
     pr_debug("spawning thread, pc=%p, sp=%p", pc, sp);
+    mgr_task_set_userspace_spawned();
     __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
 
     __builtin_unreachable();
