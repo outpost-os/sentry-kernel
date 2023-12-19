@@ -49,8 +49,39 @@ config DEBUG_COLORS
 	bool "Support for ANSI colors support"
 	default n
 	help
-	  Activate ASCII coloration on serial console for kernel debugging
+	  Activate ANSI coloration on serial console for kernel debugging
 	  output. Userspace log is not impacted
+
+if DEBUG_COLORS
+
+choice
+	bool "ANSI color mode"
+	default DEBUG_COLORS_REGULAR
+config DEBUG_COLORS_REGULAR
+	bool "regular message highlighting"
+	help
+	  kernel messages are highighted using foreground color, regular mode
+config DEBUG_COLORS_BOLD
+	bool "bold message highlighting"
+	help
+	  kernel messages are highighted using foreground color, bold mode
+config DEBUG_COLORS_BACKGROUND
+	bool "background message highlighting"
+	help
+	  kernel messages are highighted using background color
+endchoice
+
+choice
+	bool "Default text color"
+	default DEBUG_COLOR_DEFAULT_WHITE
+config DEBUG_COLOR_DEFAULT_WHITE
+	bool "default text color to white"
+config DEBUG_COLOR_DEFAULT_BLACK
+	bool "default text color to black"
+endchoice
+
+
+endif
 
 config DEBUG_LEVEL
 	int "kernel debug level"

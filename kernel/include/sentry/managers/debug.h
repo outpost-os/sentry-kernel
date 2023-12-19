@@ -23,24 +23,49 @@ extern "C" {
  * LOG_LEVEL value
  */
 
-#ifdef CONFIG_DEBUG_COLORS
-#define BG_COLOR_BLACK  "\x1b[37;40m"
-#define BG_COLOR_RED    "\x1b[37;41m"
-#define BG_COLOR_GREEN  "\x1b[37;42m"
-#define BG_COLOR_YELLOW "\x1b[37;43m"
-#define BG_COLOR_BLUE   "\x1b[37;44m"
-#define BG_COLOR_PURPLE "\x1b[37;45m"
-#define BG_COLOR_CYAN   "\x1b[37;46m"
-#define BG_COLOR_WHITE  "\x1b[37;47m"
+#if defined(CONFIG_DEBUG_COLORS_BACKGROUND)
+/* colored BG, FG is adapted */
+#define COLOR_BLACK  "\x1b[37;40m"
+#define COLOR_RED    "\x1b[37;41m"
+#define COLOR_GREEN  "\x1b[30;42m"
+#define COLOR_YELLOW "\x1b[37;43m"
+#define COLOR_BLUE   "\x1b[37;44m"
+#define COLOR_PURPLE "\x1b[37;45m"
+#define COLOR_CYAN   "\x1b[30;46m"
+#define COLOR_WHITE  "\x1b[30;47m"
+#elif defined(CONFIG_DEBUG_COLORS_REGULAR)
+#define COLOR_BLACK  "\x1b[0;30m"
+#define COLOR_RED    "\x1b[0;31m"
+#define COLOR_GREEN  "\x1b[0;32m"
+#define COLOR_YELLOW "\x1b[0;33m"
+#define COLOR_BLUE   "\x1b[0;34m"
+#define COLOR_PURPLE "\x1b[0;35m"
+#define COLOR_CYAN   "\x1b[0;36m"
+#define COLOR_WHITE  "\x1b[0;37m"
+#elif defined(CONFIG_DEBUG_COLORS_BOLD)
+#define COLOR_BLACK  "\x1b[0;30m" /* no bold for black (reset case) */
+#define COLOR_RED    "\x1b[1;31m"
+#define COLOR_GREEN  "\x1b[1;32m"
+#define COLOR_YELLOW "\x1b[1;33m"
+#define COLOR_BLUE   "\x1b[1;34m"
+#define COLOR_PURPLE "\x1b[1;35m"
+#define COLOR_CYAN   "\x1b[1;36m"
+#define COLOR_WHITE  "\x1b[0;37m" /* no bold for white (reset case)*/
 #else
-#define BG_COLOR_BLACK
-#define BG_COLOR_RED
-#define BG_COLOR_GREEN
-#define BG_COLOR_YELLOW
-#define BG_COLOR_BLUE
-#define BG_COLOR_PURPLE
-#define BG_COLOR_CYAN
-#define BG_COLOR_WHITE
+#define COLOR_BLACK
+#define COLOR_RED
+#define COLOR_GREEN
+#define COLOR_YELLOW
+#define COLOR_BLUE
+#define COLOR_PURPLE
+#define COLOR_CYAN
+#define COLOR_WHITE
+
+#endif
+#if defined(CONFIG_DEBUG_COLOR_DEFAULT_WHITE)
+#define COLOR_RESET  COLOR_WHITE
+#else
+#define COLOR_RESET  COLOR_BLACK
 #endif
 
 #define KERN_EMERG      "[0]"
@@ -88,14 +113,14 @@ kstatus_t printk(const char* fmt, ...);
 /**
  * @def pr_ auto format string for all pr_xxx API. Not to be used directly
  */
-#define pr_fmt(fmt) "%s: " fmt BG_COLOR_BLACK "\n", __func__
+#define pr_fmt(fmt) "%s: " fmt COLOR_RESET "\n", __func__
 
 #if CONFIG_DEBUG_LEVEL > 0
 /**
  * @def emergency messages, the system do not work correctly anymore
  */
 #define pr_emerg(fmt, ...) \
-	printk(BG_COLOR_RED KERN_EMERG " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_RED KERN_EMERG " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_emerg(fmt, ...)
 #endif
@@ -105,7 +130,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def alert message, the system is in alert mode, even if it may no be unstable
  */
 #define pr_alert(fmt, ...) \
-	printk(BG_COLOR_RED KERN_ALERT " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_RED KERN_ALERT " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_alert(fmt, ...)
 #endif
@@ -115,7 +140,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def critical error of any module
  */
 #define pr_crit(fmt, ...) \
-	printk(BG_COLOR_RED KERN_CRIT " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_RED KERN_CRIT " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_crit(fmt, ...)
 #endif
@@ -125,7 +150,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def something went wrong somewhere
  */
 #define pr_err(fmt, ...) \
-	printk(BG_COLOR_RED KERN_ERR " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_RED KERN_ERR " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_err(fmt, ...)
 #endif
@@ -135,7 +160,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def warning information about anything (fallbacking, etc...)
  */
 #define pr_warn(fmt, ...) \
-	printk(BG_COLOR_PURPLE KERN_WARNING " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_PURPLE KERN_WARNING " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_warn(fmt, ...)
 #endif
@@ -145,7 +170,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def notice on something that is a little tricky, but not a warning though
  */
 #define pr_notice(fmt, ...) \
-	printk(BG_COLOR_PURPLE KERN_NOTICE " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_PURPLE KERN_NOTICE " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_notice(fmt, ...)
 #endif
@@ -155,7 +180,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def usual informational messages
  */
 #define pr_info(fmt, ...) \
-	printk(BG_COLOR_BLUE KERN_INFO " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_BLUE KERN_INFO " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_info(fmt, ...)
 #endif
@@ -165,7 +190,7 @@ kstatus_t printk(const char* fmt, ...);
  * @def debugging messages, may generates a lot of output or performances impacts
  */
 #define pr_debug(fmt, ...) \
-	printk(BG_COLOR_GREEN KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_GREEN KERN_DEBUG " " pr_fmt(fmt), ##__VA_ARGS__)
 #else
 #define pr_debug(fmt, ...)
 #endif
@@ -178,13 +203,13 @@ kstatus_t printk(const char* fmt, ...);
  * @def pr_ auto format string for pr_autotest only, adding TEST and current timestamping in u64
  * format
  */
-#define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt BG_COLOR_BLACK "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
+#define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt COLOR_RESET "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
 
 /**
  * @def autotest messages, for autotest functions only
  */
 #define pr_autotest(fmt, ...) \
-	printk(BG_COLOR_CYAN KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
+	printk(COLOR_CYAN KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
 #endif
 
 kstatus_t mgr_debug_autotest(void);
