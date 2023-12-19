@@ -17,6 +17,11 @@
 #define THREAD_MODE_USER    0xab2f5332UL
 #define THREAD_MODE_KERNEL  0x5371a247UL
 
+
+#ifndef __WORDSIZE
+#define __WORDSIZE 4UL
+#endif
+
 /**
  * @def alignment size of sections. 4bytes on ARM32
  */

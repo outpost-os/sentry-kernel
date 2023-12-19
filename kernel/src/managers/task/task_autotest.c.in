@@ -34,6 +34,7 @@ void task_autotest_init(void)
     autotest_meta.entrypoint_offset = 0x1UL;
     autotest_meta.finalize_offset = 0x0UL; /* TBD for idle */
     autotest_meta.rodata_size = 0UL; /* fusionned in .text by now */
+    autotest_meta.got_size = 0UL;
     autotest_meta.data_size = {{ "%#08xUL"|format(data["size"]) }};
     autotest_meta.bss_size = {{ "%#08xUL"|format(bss["size"]) }};
     autotest_meta.heap_size = 0UL;

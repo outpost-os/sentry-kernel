@@ -8,6 +8,7 @@
 #error "arch specific header must not be included directly!"
 #endif
 
+#include <limits.h>
 #include <sentry/arch/asm-x86_64/thread.h>
 #include <sentry/io.h>
 
