@@ -63,13 +63,21 @@ task_t *task_get_table(void)
  */
 size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
+    size_t data_align = 0;
+    if (meta->data_size % __WORDSIZE) {
+        data_align = __WORDSIZE - (meta->data_size % __WORDSIZE);
+    }
+    size_t bss_align = 0;
+    if (meta->bss_size % __WORDSIZE) {
+        bss_align = __WORDSIZE - (meta->bss_size % __WORDSIZE);
+    }
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
            meta->got_size + \
            meta->data_size + \
-           __WORDSIZE - (meta->data_size % __WORDSIZE) + \
+           data_align + \
            meta->bss_size + \
-           __WORDSIZE - (meta->bss_size % __WORDSIZE) + \
+           bss_align + \
            meta->heap_size + \
            meta->stack_size;
 }
@@ -80,9 +88,13 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
  */
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
+    size_t text_align = 0;
+    if (meta->text_size % __WORDSIZE) {
+        text_align = __WORDSIZE - (meta->text_size % __WORDSIZE);
+    }
     /*@ assert \valid_read(meta); */
     return meta->text_size + \
-           __WORDSIZE - (meta->text_size % __WORDSIZE) + \
+           text_align + \
            meta->rodata_size;
     /* got and data in flash are excluded (no need) */
 }
