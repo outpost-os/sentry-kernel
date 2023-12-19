@@ -36,4 +36,37 @@ struct mpu_region_desc {
 # error "Unknown MPU type!"
 #endif
 
+/* a mpu ressource is a mpu_ressource_t opaque. On thumbv7m (and thumbv8m) this is
+  the concatenation of RBAR & RASR registers values.
+  A task hold a table of this opaque, allowing store multiple upto 3 regions, to
+  fast and efficiently keep trace of currently mapped regions.
+*/
+typedef struct mpu_ressource {
+    uint32_t ressource_addr;
+    uint32_t ressource_cfg;
+} mpu_ressource_t;
+
+
+__STATIC_FORCEINLINE kstatus_t mpu_forge_ressource(const struct mpu_region_desc *descs,
+                                                   mpu_ressource_t *ressource)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    uint32_t rbar;
+    uint32_t rasr;
+    const struct mpu_region_desc *desc = NULL;
+
+    if (unlikely((descs == NULL) || (ressource == NULL))) {
+        goto end;
+    }
+    ressource->ressource_addr = ARM_MPU_RBAR(desc->id, desc->addr);
+    ressource->ressource_cfg = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
+                           desc->access_perm,
+                           desc->access_attrs,
+                           desc->mask,
+                           desc->size);
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
 #endif/*__ARCH_MPU_H*/

@@ -144,6 +144,16 @@ static inline uint8_t mpu_convert_size_to_region(uint32_t size) {
 #define mpu_clear_region(rnr) ARM_MPU_ClrRegion((rnr))
 
 /**
+ * Number of supported region in current MPU
+ */
+#define MPU_REGION_NUMBER ((MPU->TYPE & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos)
+
+/**
+ * Max number of batch configuration of region on current MPU
+ */
+#define mpu_get_maxbatch() MPU_TYPE_RALIASES
+
+/**
  * Load memory regions description table in MPU
  */
 __STATIC_FORCEINLINE kstatus_t mpu_load_configuration(const struct mpu_region_desc *region_descs,
