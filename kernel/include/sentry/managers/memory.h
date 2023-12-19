@@ -19,29 +19,16 @@ extern "C" {
  *      of them
  */
 typedef enum mm_region {
-#if defined(__arm__)
-    MM_REGION_KERNEL_SYSARM,
-#endif
-    MM_REGION_TASK_SVC_EXCHANGE,
-    MM_REGION_TASK_TXT,
-    MM_REGION_TASK_DATA,
-    MM_REGION_TASK_DEVICE,
-    MM_REGION_TASK_SHM,
+    MM_REGION_TASK_TXT = 2, /* starting point of userspace ressources */
+    MM_REGION_TASK_DATA = 3,
+    MM_REGION_TASK_RESSOURCE = 4, /* starting at 4 */
 } mm_region_t;
 
-#if defined(CONFIG_HAS_MPU_PMSA_V7)
-typedef struct __attribute__((packed)) region_config {
-    uint32_t rbar;
-    uint32_t rsar;
-} region_config_t;
-
-/**
- * @brief ARMv7M MPU RBAR/RSAR register pair pool, for fast storage
- */
-typedef struct __attribute__((packed)) ressource_config {
-    region_config_t region[4];
-} ressource_config_t;
-#endif
+typedef enum mm_k_region {
+    MM_REGION_KERNEL_TXT = 0, /* starting point of userspace ressources */
+    MM_REGION_KERNEL_DATA = 1,
+    MM_REGION_KERNEL_DEVICE = 7,
+} mm_k_region_t;
 
 kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 

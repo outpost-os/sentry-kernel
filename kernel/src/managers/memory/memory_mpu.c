@@ -8,6 +8,7 @@
 
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-generic/membarriers.h>
+#include <sentry/arch/asm-generic/panic.h>
 
 
 #if defined(__arm__) || defined(__FRAMAC__)
@@ -50,7 +51,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     struct mpu_region_desc kernel_txt_config = {
-        .id = 0,
+        .id = MM_REGION_KERNEL_TXT,
         .addr = (uint32_t)&_svtor, /* starting at vtor for ^2 size vs base alignment */
         .size = MPU_REGION_SIZE_32KB,
         .access_perm = MPU_REGION_PERM_PRIV,
@@ -66,7 +67,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     struct mpu_region_desc kernel_data_config = {
-        .id = 1,
+        .id = MM_REGION_KERNEL_DATA,
         .addr = (uint32_t)&_ram_start,
         .size = MPU_REGION_SIZE_16KB, /* ldscript to fix, this is big */
         .access_perm = MPU_REGION_PERM_PRIV,
@@ -77,26 +78,6 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
     status = mpu_load_configuration(&kernel_data_config, 1);
     return status;
 }
-
-#if defined(__arm__)
-__STATIC_INLINE kstatus_t mgr_mm_map_kernel_armm_scs(void)
-{
-
-    kstatus_t status = K_STATUS_OKAY;
-    /* ARM system memory, strongly ordered */
-    struct mpu_region_desc kernel_scs_config = {
-        .id = 3,
-        .addr = SCS_BASE,
-        .size = MPU_REGION_SIZE_1MB,
-        .access_perm = MPU_REGION_PERM_PRIV,
-        .access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER,
-        .mask = 0x0,
-        .noexec = true,
-    };
-    status = mpu_load_configuration(&kernel_scs_config, 1);
-    return status;
-};
-#endif
 
 /**
  * Reduce current data section to svcexchange only
@@ -113,7 +94,7 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target)
         goto err;
     }
     struct mpu_region_desc user_data_config = {
-        .id = 5,
+        .id = MM_REGION_TASK_DATA,
         .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
         .size = mpu_convert_size_to_region(CONFIG_SVC_EXCHANGE_AREA_LEN),
         .access_perm = MPU_REGION_PERM_FULL,
@@ -148,35 +129,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
     kstatus_t status = K_SECURITY_INTEGRITY;
     const task_meta_t *meta;
     switch (reg_type) {
-#if defined(__arm__)
-        case MM_REGION_KERNEL_SYSARM:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0)) {
-                /* only kernel itself can map kernel content */
-                goto err;
-            }
-            status = mgr_mm_map_kernel_armm_scs();
-            break;
-#endif
-        case MM_REGION_TASK_SVC_EXCHANGE:
-            /* warning: mapping svc_exchange unmap task data, only svc_exchange is kept */
-            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
-                /* invalid task handle */
-                pr_err("failed to get metadata for task %08x",
-                    handle_convert_to_u32(requester));
-                goto err;
-            }
-            struct mpu_region_desc user_svc_config = {
-                .id = 5,
-                .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
-                .size = mpu_convert_size_to_region(CONFIG_SVC_EXCHANGE_AREA_LEN),
-                .access_perm = MPU_REGION_PERM_FULL,
-                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-                .mask = 0x0,
-                .noexec = true,
-            };
-            status = mpu_load_configuration(&user_svc_config, 1);
-            /* FIXME: define if this is a real need, instead of through a mm_resize(TASK_DATA) instead */
-            break;
+
         case MM_REGION_TASK_TXT:
             if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
                 /* invalid task handle */
@@ -186,7 +139,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
             }
             size_t size = mgr_task_get_text_region_size(meta);
             struct mpu_region_desc user_txt_config = {
-                .id = 4,
+                .id = MM_REGION_TASK_TXT,
                 .addr = (uint32_t)meta->s_text,
                 .size = mpu_convert_size_to_region(size),
                 .access_perm = MPU_REGION_PERM_RO,
@@ -194,7 +147,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 .mask = 0x0,
                 .noexec = false,
             };
-
+            //pr_debug("task txt: mapping region %d", MM_REGION_TASK_TXT);
             status = mpu_load_configuration(&user_txt_config, 1);
             break;
         case MM_REGION_TASK_DATA:
@@ -205,7 +158,7 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 goto err;
             }
             struct mpu_region_desc user_data_config = {
-                .id = 5,
+                .id = MM_REGION_TASK_DATA,
                 .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
                 .size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
                 .access_perm = MPU_REGION_PERM_FULL,
@@ -213,15 +166,14 @@ kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requeste
                 .mask = 0x0,
                 .noexec = true,
             };
+            //pr_debug("task data: mapping region %d", MM_REGION_TASK_DATA);
             status = mpu_load_configuration(&user_data_config, 1);
             break;
-        case MM_REGION_TASK_DEVICE:
+        case MM_REGION_TASK_RESSOURCE:
             /** TODO: needs dev manager */
             break;
-        case MM_REGION_TASK_SHM:
-            /** TODO: define SHM handling (in this manager) */
-            break;
         default:
+            panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
             goto err;
     }
 err:
@@ -236,30 +188,12 @@ kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     switch (reg_type) {
-#if defined(__arm__)
-        case MM_REGION_KERNEL_SYSARM:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
-                /* only kernel itself can unmap kernel content */
-                goto err;
-            }
-            mpu_clear_region(3);
-            status = K_STATUS_OKAY;
-            break;
-#endif
         case MM_REGION_TASK_TXT:
             if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
                 /* only kernel itself can a task txt */
                 goto err;
             }
-            mpu_clear_region(4);
-            status = K_STATUS_OKAY;
-            break;
-        case MM_REGION_TASK_SVC_EXCHANGE:
-            if (unlikely(unlikely(handle_convert_to_u32(requester) == 0x0UL))) {
-                /* only kernel itself can a task svc_exchange */
-                goto err;
-            }
-            mpu_clear_region(5);
+            mpu_clear_region(MM_REGION_TASK_TXT);
             status = K_STATUS_OKAY;
             break;
         case MM_REGION_TASK_DATA:
@@ -267,14 +201,11 @@ kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t reques
                 /* only kernel itself can a task data */
                 goto err;
             }
-            mpu_clear_region(5);
+            mpu_clear_region(MM_REGION_TASK_DATA);
             status = K_STATUS_OKAY;
             break;
-        case MM_REGION_TASK_DEVICE:
+        case MM_REGION_TASK_RESSOURCE:
             /** TODO: needs dev manager. requester can be a user task */
-            break;
-        case MM_REGION_TASK_SHM:
-            /** TODO: define SHM handling (in this manager). requester can be a user task */
             break;
         default:
             goto err;
@@ -293,18 +224,18 @@ err:
  * [MPU REG 0] [ kernel TXT section                ] [R-X] [---]
  * [MPU REG 1] [ kernel DATA section               ] [RW-] [---]
  * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
- * [MPU REG 3] [ ARM SCS region                    ] [RW-] [---] SO, only on __arm__
+ * [MPU REG 3] [ task Data SVC-exchange region     ] [RW-] [RW-]
  * [MPU REG 4] [                                   ] [---] [---]
- * [MPU REG 5] [ task Data SVC-exchange region     ] [RW-] [RW-]
+ * [MPU REG 5] [      ] [RW-] [RW-]
  *
  * In User mode:
  *
  * [MPU REG 0] [ kernel TXT section                ] [R-X] [---] // syscall gate
  * [MPU REG 1] [ kernel DATA section               ] [RW-] [---] // syscall gate
- * [MPU REG 2] [ task ressources bank 2, if needed ] |---] [---]
- * [MPU REG 3] [ task ressources bank 2, if needed ] [---] [---]
- * [MPU REG 4] [ task TXT section                  ] [R-X] [R-X]
- * [MPU REG 5] [ task Data section                 ] [RW-] [RW-]
+ * [MPU REG 2] [ task TXT section                  ] [R-X] [R-X]
+ * [MPU REG 3] [ task Data section                 ] [RW-] [RW-]
+ * [MPU REG 4] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 5] [ task ressources bank 1, if needed ] [---] [---]
  * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
  * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
  *
@@ -329,12 +260,6 @@ kstatus_t mgr_mm_init(void)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
-#if defined(__arm__)
-    status = mgr_mm_map_kernel_armm_scs();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
-#endif
     mpu_enable();
     mm_configured = SECURE_TRUE;
 err:
@@ -374,7 +299,7 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len)
     kstatus_t status = K_STATUS_OKAY;
     if (mgr_mm_configured() == SECURE_TRUE) {
         struct mpu_region_desc kdev_config = {
-            .id = 2,
+            .id = MM_REGION_KERNEL_DEVICE,
             .addr = address,
             .size = mpu_convert_size_to_region(len),
             .access_perm = MPU_REGION_PERM_PRIV,
@@ -400,7 +325,7 @@ kstatus_t mgr_mm_unmap_kdev(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     if (likely(mgr_mm_configured() == SECURE_TRUE)) {
-        mpu_clear_region(2);
+        mpu_clear_region(MM_REGION_KERNEL_DEVICE);
     }
     return status;
 }
