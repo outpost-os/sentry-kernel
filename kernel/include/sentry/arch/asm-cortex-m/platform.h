@@ -11,6 +11,7 @@
 #include <sentry/arch/asm-cortex-m/system.h>
 #include <sentry/arch/asm-cortex-m/scb.h>
 #include <sentry/arch/asm-cortex-m/thread.h>
+#include <sentry/managers/security.h>
 #include <sentry/io.h>
 
 #define THREAD_MODE_USER    0xab2f5332UL
@@ -49,7 +50,10 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
   /*
    * Initial context switches to main core thread (idle_thread).
    */
-  uint32_t runlevel;
+  uint32_t runlevel = 0; /* spawning very first thread here, rerun == 0*/
+  uint32_t seed = 0UL;
+  /* at init time, used for idle task only, RNG is setup, should not fail */
+  mgr_security_entropy_generate(&seed);
   runlevel = 3;  /* user, PSP */
   if (flag == THREAD_MODE_KERNEL) {
     runlevel = 2; /* privileged, PSP */
@@ -59,13 +63,17 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
         "msr psp, r0        \n\t"   \
         "mov r0, %[LVL]     \n\t"   \
         "msr control, r0    \n\t"   \
-	      "mov r1, %[PC]      \n\t"   \
-	      "bx r1              \n\t"   \
+        "mov r0, %[THREADID] \n\t"   \
+        "mov r1, %[SEED]    \n\t"   \
+	      "mov r5, %[PC]      \n\t"   \
+	      "bx r5              \n\t"   \
         :
         : [PC] "r" (entrypoint),
           [SP] "r" (stack_pointer),
-          [LVL] "r" (runlevel)
-        : "r0", "r1");
+          [LVL] "r" (runlevel),
+          [THREADID] "r" (runlevel),
+          [SEED] "r" (seed)
+        : "r0", "r1", "r5");
         __builtin_unreachable();
 }
 

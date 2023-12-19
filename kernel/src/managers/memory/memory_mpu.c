@@ -186,7 +186,7 @@ err:
  * @brief unmap a region of type reg_type, identified by reg_handle, on taskh request
  *
  */
-kstatus_t mgr_mm_ummap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
+kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     switch (reg_type) {

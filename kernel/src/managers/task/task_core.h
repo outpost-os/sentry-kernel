@@ -51,6 +51,8 @@ err:
     return status;
 }
 
+kstatus_t task_set_job_layout(task_meta_t const * const meta);
+
 typedef struct task {
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
     /*

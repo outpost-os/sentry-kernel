@@ -156,7 +156,7 @@ kstatus_t mgr_task_watchdog(void);
  * About module specific API
  */
 
-stack_frame_t *mgr_task_initialize_sp(size_t sp, size_t pc);
+stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc);
 
 uint32_t mgr_task_get_num(void);
 

@@ -35,7 +35,7 @@ void task_idle_init(void)
     idle_meta.entrypoint_offset = 0x1UL;
     idle_meta.finalize_offset = 0x0UL; /* TBD for idle */
     idle_meta.rodata_size = 0UL;
-    idle_meta.data_size = 0UL;
+    idle_meta.data_size = 4UL; /* ssp seed value initial data size */
     idle_meta.bss_size = 0UL;
     idle_meta.heap_size = 0UL;
     idle_meta.s_svcexchange = (size_t)&_idle_svcexchange;

@@ -5,4 +5,5 @@ subdir('arch')
 
 idle_sources = files(
   'main.c',
+  'ssp.c',
 )

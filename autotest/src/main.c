@@ -11,6 +11,8 @@
 
 extern size_t _s_autotest_svcexchange;
 
+uint32_t __stack_chk_guard = 0;
+
 /**
  * NOTE: autotest task is a 'bare' Sentry kernel task, meaning that there is
  * no build system calculating each section and mapping the task on the target.
@@ -22,9 +24,11 @@ extern size_t _s_autotest_svcexchange;
  * Of course, this restriction do not impact standard userspace apps :-)
  */
 
-void __attribute__((noreturn)) autotest(void)
+void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label, uint32_t seed)
 {
     bool test_finished = false;
+    /* update SSP value with given seed */
+    __stack_chk_guard = seed;
     const char *welcommsg="hello this is autotest!\n";
     const char *testmsg="starting test suite...\n";
     uint32_t sleep_time = 1000UL;

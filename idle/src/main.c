@@ -11,6 +11,10 @@ extern size_t _s_idle_svcexchange;
 #include <uapi/uapi.h>
 
 /**
+ * This is the lonely .data variable of idle, used for SSP
+ */
+uint32_t __stack_chk_guard = 0;
+/**
  * NOTE: idle task is a 'bare' Sentry kernel task, meaning that there is
  * no build system calculating each section and mapping the task on the target.
  *
@@ -21,10 +25,13 @@ extern size_t _s_idle_svcexchange;
  * Of course, this restriction do not impact standard userspace apps :-)
  */
 
-void __attribute__((noreturn)) idle(void)
+void __attribute__((no_stack_protector, used, noreturn)) idle(uint32_t label, uint32_t seed)
 {
     const char *welcommsg="hello this is idle!\n";
     const char *yieldmsg="yielding for scheduler...\n";
+
+    /* update SSP value with given seed */
+    __stack_chk_guard = seed;
 
     memcpy(&_s_idle_svcexchange, welcommsg, 20);
     sys_log(20);

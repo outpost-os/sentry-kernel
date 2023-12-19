@@ -7,6 +7,10 @@ endif
 
 autotest_task_name = 'autotest'
 
+userspace_args = [
+    '-fstack-protector-strong',
+]
+
 # populated in src
 autotest_ldscript_template = files()
 
@@ -36,7 +40,7 @@ autotest_elf = executable(
     sources: [autotest_sources ],
     include_directories: uapi_inc,
     dependencies: [ sentry_c_uapi_dep ],
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, userspace_args ],
     link_args: [ '-lgcc', target_arch_args, autotest_linker_args, '-Wl,-Map=@0@'.format(autotest_map_file)],
     link_language: 'c',
     link_depends: [ autotest_ldscript ],
