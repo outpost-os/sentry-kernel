@@ -437,3 +437,32 @@ kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t)
 err:
     return status;
 }
+
+kstatus_t mgr_task_add_ressource(taskh_t t, mpu_ressource_t ressource)
+{
+    kstatus_t status;
+    task_t *cell;
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+    if (unlikely(cell->num_ressources >= CONFIG_NUM_MPU_REGIONS-2)) {
+        status = K_ERROR_MEMFAIL;
+        goto err;
+    }
+    memcpy(&cell->layout[cell->num_ressources], &ressource, sizeof(mpu_ressource_t));
+    cell->num_ressources++;
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/**
+ * @brief dequeuing event from one of the task input queues
+ */
+kstatus_t mgr_task_remove_ressource(taskh_t t, mpu_ressource_t ressource)
+{
+    kstatus_t status;
+    status = K_STATUS_OKAY;
+    return status;
+}

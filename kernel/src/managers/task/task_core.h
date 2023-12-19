@@ -61,6 +61,7 @@ typedef struct  task {
        CAUTION: this field is size-impacting in kernel RAM !
     */
     mpu_ressource_t layout[CONFIG_NUM_MPU_REGIONS-2];
+    uint32_t num_ressources; /* number of ressources, including txt and data */
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
     /*
      * Task context information, these fields store dynamic values, such as current
@@ -97,6 +98,8 @@ typedef struct  task {
  */
 
 task_t *task_get_table(void);
+
+task_t *task_get_cell(taskh_t t);
 
 void task_dump_table(void);
 

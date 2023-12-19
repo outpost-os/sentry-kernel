@@ -22,17 +22,8 @@ extern "C" {
 /**
  * \file sentry kernel generic types
  */
-
-#if defined(__arm__) || defined(__FRAMAC__)
-#include <sentry/arch/asm-cortex-m/thread.h>
-#elif defined(__x86_64__)
-#include <sentry/arch/asm-x86_64/thread.h>
-#elif defined(__i386__)
-#include <sentry/arch/asm-i386/thread.h>
-#else
-#error "unsupported architecture!"
-#endif
-
+#include <sentry/arch/asm-generic/thread.h>
+#include <sentry/arch/asm-generic/memory.h>
 /**
  * @def idle task label definition
  *
@@ -183,6 +174,10 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
 secure_bool_t mgr_task_is_userspace_spawned(void);
+
+kstatus_t mgr_task_add_ressource(taskh_t t, mpu_ressource_t ressource);
+
+kstatus_t mgr_task_remove_ressource(taskh_t t, mpu_ressource_t ressource);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_task_autotest(void);
