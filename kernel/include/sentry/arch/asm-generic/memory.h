@@ -14,6 +14,8 @@ extern "C" {
 
 #if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/mpu.h>
+#elif defined(__x86_64__)
+#include <sentry/arch/asm-x86_64/memory.h>
 #endif
 
 #ifdef __cplusplus
