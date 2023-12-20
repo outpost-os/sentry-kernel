@@ -22,7 +22,8 @@ extern "C" {
 typedef enum mm_region {
     MM_REGION_TASK_TXT = 2, /* starting point of userspace ressources */
     MM_REGION_TASK_DATA = 3,
-    MM_REGION_TASK_RESSOURCE = 4, /* starting at 4 */
+    MM_REGION_TASK_RESSOURCE_DEVICE, /* starting at 4, no fixed order */
+    MM_REGION_TASK_RESSOURCE_SHM,
 } mm_region_t;
 
 typedef enum mm_k_region {
@@ -30,10 +31,6 @@ typedef enum mm_k_region {
     MM_REGION_KERNEL_DATA = 1,
     MM_REGION_KERNEL_DEVICE = CONFIG_NUM_MPU_REGIONS - 1,
 } mm_k_region_t;
-
-kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
-
-kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester);
 
 kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target);
 
@@ -45,6 +42,15 @@ kstatus_t mgr_mm_watchdog(void);
 kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
+
+kstatus_t mgr_mm_forge_empty_table(mpu_ressource_t *ressource_tab);
+
+/* fast implementation of task mapping.
+   map all task currently mapped ressources. all empty user regions are cleared
+*/
+kstatus_t mgr_mm_map_task(taskh_t t);
+
+kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, mpu_ressource_t *ressource);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_mm_autotest(void);

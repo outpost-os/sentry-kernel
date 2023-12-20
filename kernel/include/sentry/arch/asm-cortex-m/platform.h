@@ -91,6 +91,20 @@ static inline void __platform_clear_flags(void) {
     return;
 }
 
+static inline void __attribute__((noreturn)) __platform_start_userspace(void)
+{
+    //pr_debug("spawning thread, pc=%p, sp=%p", pc, sp);
+    size_t icsr;
+    //__platform_spawn_thread(pc, sp, THREAD_MODE_USER);
+    /* force Pendsv interrupt to initiate first schedule */
+    icsr = ioread32(SCB->ICSR);
+    icsr |= SCB_ICSR_PENDSVSET_Msk;
+    iowrite32((size_t)&SCB->ICSR, icsr);
+    __ISB();
+    __DSB();
+    do { asm volatile ("nop"); } while (1);
+    __builtin_unreachable();
+}
 
 void __platform_init(void);
 

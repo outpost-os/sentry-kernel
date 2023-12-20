@@ -175,9 +175,17 @@ size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
 secure_bool_t mgr_task_is_userspace_spawned(void);
 
+/**
+ * Add (map) a mappable ressource to the task current layout
+ */
 kstatus_t mgr_task_add_ressource(taskh_t t, mpu_ressource_t ressource);
 
-kstatus_t mgr_task_remove_ressource(taskh_t t, mpu_ressource_t ressource);
+/**
+ * Remove the ressource identified by its id (region id) from the task current layout
+ */
+kstatus_t mgr_task_remove_ressource(taskh_t t, uint8_t id);
+
+kstatus_t mgr_task_get_layout_from_handle(taskh_t t, const mpu_ressource_t **layout);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_task_autotest(void);

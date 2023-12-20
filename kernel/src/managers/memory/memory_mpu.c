@@ -108,108 +108,88 @@ err:
 }
 
 
-/**
- * @brief map a region of type reg_type, identified by reg_handle, on taskh request
- *
- * If mapping a kernel anon region (txt, data):
- *  - reg_handle is ignored and MUST be 0
- *  - requester is ignored and MUST be 0
- * If mapping a kernel ressource (device):
- *  - reg_handle is a valid kernel devh_t
- *  - requester is ignored nd MUST be 0
- * If mapping a userspace anon region (txt, data):
- *  - reg_handle is ignored and MUST be 0
- *  - requester is the taskh_t requiring the mapping
- * If mapping a userspace ressource (device, shm):
- * - reg_handle is a ressource identifier (devh_t, shmh_t)
- * - requester is the taskh_t requiring the mapping
- */
-kstatus_t mgr_mm_map(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
-{
-    kstatus_t status = K_SECURITY_INTEGRITY;
-    const task_meta_t *meta;
-    switch (reg_type) {
 
-        case MM_REGION_TASK_TXT:
-            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
-                /* invalid task handle */
-                pr_err("failed to get metadata for task %08x",
-                    handle_convert_to_u32(requester));
-                goto err;
-            }
-            size_t size = mgr_task_get_text_region_size(meta);
-            struct mpu_region_desc user_txt_config = {
-                .id = MM_REGION_TASK_TXT,
-                .addr = (uint32_t)meta->s_text,
-                .size = mpu_convert_size_to_region(size),
-                .access_perm = MPU_REGION_PERM_RO,
-                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-                .mask = 0x0,
-                .noexec = false,
-            };
-            //pr_debug("task txt: mapping region %d", MM_REGION_TASK_TXT);
-            status = mpu_load_configuration(&user_txt_config, 1);
-            break;
-        case MM_REGION_TASK_DATA:
-            if (unlikely((status = mgr_task_get_metadata(requester, &meta)) == K_ERROR_INVPARAM)) {
-                /* invalid task handle */
-                pr_err("failed to get metadata for task %08x",
-                    handle_convert_to_u32(requester));
-                goto err;
-            }
-            struct mpu_region_desc user_data_config = {
-                .id = MM_REGION_TASK_DATA,
-                .addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
-                .size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
-                .access_perm = MPU_REGION_PERM_FULL,
-                .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-                .mask = 0x0,
-                .noexec = true,
-            };
-            //pr_debug("task data: mapping region %d", MM_REGION_TASK_DATA);
-            status = mpu_load_configuration(&user_data_config, 1);
-            break;
-        case MM_REGION_TASK_RESSOURCE:
-            /** TODO: needs dev manager */
-            break;
-        default:
-            panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
-            goto err;
+kstatus_t mgr_mm_map_task(taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const mpu_ressource_t *layout;
+    if (unlikely((status = mgr_task_get_layout_from_handle(t, &layout)) != K_STATUS_OKAY)) {
+        pr_err("failed to get meta for task handle %x", t);
+        goto err;
     }
+    mpu_fastload(layout, CONFIG_NUM_MPU_REGIONS-2);
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
 
 /**
- * @brief unmap a region of type reg_type, identified by reg_handle, on taskh request
+ * @brief forge an empty task memory layout
  *
+ * all task memory regions are set as invalid
  */
-kstatus_t mgr_mm_unmap(mm_region_t reg_type, uint32_t reg_handle, taskh_t requester)
+kstatus_t mgr_mm_forge_empty_table(mpu_ressource_t *ressource_tab)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(ressource_tab == NULL)) {
+        goto err;
+    }
+    for (uint8_t i = 0; i < CONFIG_NUM_MPU_REGIONS-2;++i) {
+        mpu_forge_unmapped_ressource(i + MM_REGION_TASK_TXT, ressource_tab);
+        ressource_tab++;
+    }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/**
+ * @brief forge a ressource opaque entry for the entry layout table
+ *
+ * all task memory regions are set as invalid
+ */
+kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, mpu_ressource_t *ressource)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
+    const task_meta_t *meta;
+    struct mpu_region_desc mpu_cfg;
+    if (unlikely((status = mgr_task_get_metadata(t, &meta)) == K_ERROR_INVPARAM)) {
+        /* invalid task handle */
+        pr_err("failed to get metadata for task %08x",
+        handle_convert_to_u32(t));
+        goto err;
+    }
     switch (reg_type) {
         case MM_REGION_TASK_TXT:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
-                /* only kernel itself can a task txt */
-                goto err;
-            }
-            mpu_clear_region(MM_REGION_TASK_TXT);
-            status = K_STATUS_OKAY;
+            mpu_cfg.id = MM_REGION_TASK_TXT,
+            mpu_cfg.addr = (uint32_t)meta->s_text,
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_text_region_size(meta)),
+            mpu_cfg.access_perm = MPU_REGION_PERM_RO,
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+            mpu_cfg.mask = 0x0,
+            mpu_cfg.noexec = false,
+            mpu_forge_ressource(&mpu_cfg, ressource);
             break;
         case MM_REGION_TASK_DATA:
-            if (unlikely(handle_convert_to_u32(requester) == 0x0UL)) {
-                /* only kernel itself can a task data */
-                goto err;
-            }
-            mpu_clear_region(MM_REGION_TASK_DATA);
-            status = K_STATUS_OKAY;
+            mpu_cfg.id = MM_REGION_TASK_DATA,
+            mpu_cfg.addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
+            mpu_cfg.access_perm = MPU_REGION_PERM_FULL,
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+            mpu_cfg.mask = 0x0,
+            mpu_cfg.noexec = true,
+            mpu_forge_ressource(&mpu_cfg, ressource);
             break;
-        case MM_REGION_TASK_RESSOURCE:
-            /** TODO: needs dev manager. requester can be a user task */
+        case MM_REGION_TASK_RESSOURCE_DEVICE:
+            /* TODO for other ressources */
+            break;
+        case MM_REGION_TASK_RESSOURCE_SHM:
+            /* TODO for other ressources */
             break;
         default:
-            goto err;
+            break;
     }
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
@@ -226,7 +206,9 @@ err:
  * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
  * [MPU REG 3] [ task Data SVC-exchange region     ] [RW-] [RW-]
  * [MPU REG 4] [                                   ] [---] [---]
- * [MPU REG 5] [      ] [RW-] [RW-]
+ * [MPU REG 5] [                                   ] [---] [---]
+ * [MPU REG 6] [                                   ] [---] [---]
+ * [MPU REG 7] [                                   ] [---] [---]
  *
  * In User mode:
  *
@@ -239,15 +221,9 @@ err:
  * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
  * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
  *
- *
- * info: reg 2 to be removed & replaced with dynamic, per device map/unmap mechanism
- * through -dt struct generation (each device -dt.c generated code implement devxxx_map() and
- * devxx_unmap() that call the current mgr_mm_map() and mgr_mm_unmap() with the dt-based
- * generated structure containing base addr & size)
  */
 kstatus_t mgr_mm_init(void)
 {
-
     kstatus_t status = K_STATUS_OKAY;
     mm_configured = SECURE_FALSE;
 #ifdef CONFIG_HAS_MPU
