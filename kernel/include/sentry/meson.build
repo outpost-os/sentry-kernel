@@ -33,4 +33,6 @@ sentry_header_set.add(files(
 # zlib headers
 sentry_header_set.add(files(
   'zlib/crypto.h',
+  'zlib/math.h',
+  'zlib/sort.h',
 ))

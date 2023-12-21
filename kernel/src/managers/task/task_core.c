@@ -15,6 +15,7 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
 #include <sentry/managers/memory.h>
+#include <sentry/zlib/math.h>
 #include <sentry/sched.h>
 #include "task_init.h"
 #include "task_idle.h"
@@ -63,21 +64,11 @@ task_t *task_get_table(void)
  */
 size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
-    size_t data_align = 0;
-    if (meta->data_size % __WORDSIZE) {
-        data_align = __WORDSIZE - (meta->data_size % __WORDSIZE);
-    }
-    size_t bss_align = 0;
-    if (meta->bss_size % __WORDSIZE) {
-        bss_align = __WORDSIZE - (meta->bss_size % __WORDSIZE);
-    }
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
            meta->got_size + \
-           meta->data_size + \
-           data_align + \
-           meta->bss_size + \
-           bss_align + \
+           ROUND_UP_TO(meta->data_size, __WORDSIZE) + \
+           ROUND_UP_TO(meta->bss_size, __WORDSIZE) + \
            meta->heap_size + \
            meta->stack_size;
 }
@@ -88,13 +79,8 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
  */
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
-    size_t text_align = 0;
-    if (meta->text_size % __WORDSIZE) {
-        text_align = __WORDSIZE - (meta->text_size % __WORDSIZE);
-    }
     /*@ assert \valid_read(meta); */
-    return meta->text_size + \
-           text_align + \
+    return ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
            meta->rodata_size;
     /* got and data in flash are excluded (no need) */
 }
@@ -341,11 +327,9 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
-                             meta->text_size + \
-                             __WORDSIZE - (meta->text_size % __WORDSIZE) + \
+                             ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
                              meta->got_size + \
-                             meta->rodata_size + \
-                             __WORDSIZE - (meta->rodata_size % __WORDSIZE); /* data is word aligned */
+                             ROUND_UP_TO(meta->rodata_size, __WORDSIZE);
         size_t data_start =  meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN + \
                              meta->got_size;
@@ -357,8 +341,7 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
         size_t bss_start =  meta->s_svcexchange + \
                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
                             meta->got_size + \
-                            meta->data_size + \
-                            __WORDSIZE - (meta->data_size % __WORDSIZE);
+                            ROUND_UP_TO(meta->data_size, __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);
     }
