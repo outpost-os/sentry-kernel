@@ -12,6 +12,8 @@
 /* the opaque is mapped on u64 on x86_64 */
 typedef uint64_t layout_ressource_t;
 
+#define TASK_MAX_RESSOURCES_NUM (6)
+
 /**
  * MPU-implementation generic region definition. Can be used as well for ARM as for RISC-V
  */

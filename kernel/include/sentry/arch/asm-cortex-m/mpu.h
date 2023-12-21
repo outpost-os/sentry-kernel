@@ -43,6 +43,7 @@ struct mpu_region_desc {
 */
 typedef ARM_MPU_Region_t layout_ressource_t;
 
+#define TASK_MAX_RESSOURCES_NUM (CONFIG_NUM_MPU_REGIONS - 2)
 
 
 __STATIC_FORCEINLINE uint8_t mpu_get_id_from_ressource(const layout_ressource_t ressource)

@@ -111,7 +111,7 @@ extern "C" {
 
     kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
     {
-        for (uint8_t i = 0; i < CONFIG_NUM_MPU_REGIONS-2; i++) {
+        for (uint8_t i = 0; i < TASK_MAX_RESSOURCES_NUM; i++) {
             memset(&ressource_tab[i], 0x0, sizeof(layout_ressource_t));
         }
         return K_STATUS_OKAY;

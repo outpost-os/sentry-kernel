@@ -117,7 +117,7 @@ kstatus_t mgr_mm_map_task(taskh_t t)
         pr_err("failed to get meta for task handle %x", t);
         goto err;
     }
-    mpu_fastload(layout, CONFIG_NUM_MPU_REGIONS-2);
+    mpu_fastload(layout, TASK_MAX_RESSOURCES_NUM);
     status = K_STATUS_OKAY;
 err:
     return status;
@@ -134,7 +134,7 @@ kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
     if (unlikely(ressource_tab == NULL)) {
         goto err;
     }
-    for (uint8_t i = 0; i < CONFIG_NUM_MPU_REGIONS-2;++i) {
+    for (uint8_t i = 0; i < TASK_MAX_RESSOURCES_NUM;++i) {
         mpu_forge_unmapped_ressource(i + MM_REGION_TASK_TXT, ressource_tab);
         ressource_tab++;
     }

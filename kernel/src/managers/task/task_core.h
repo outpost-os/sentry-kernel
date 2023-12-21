@@ -56,11 +56,10 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta);
 
 typedef struct  task {
     /* about task layouting */
-    /** a task hold at most CONFIG_NUM_MPU_REGIONS-2 regions (as the 2 others hold
-       the kernel)
+    /** a task hold at most TASK_MAX_RESSOURCES_NUM regions (see memory.h backend)
        CAUTION: this field is size-impacting in kernel RAM !
     */
-    layout_ressource_t layout[CONFIG_NUM_MPU_REGIONS-2];
+    layout_ressource_t layout[TASK_MAX_RESSOURCES_NUM];
     uint32_t num_ressources; /* number of ressources, including txt and data */
     const task_meta_t *metadata; /**< task metadata (const, build-time, informations) */
     /*
