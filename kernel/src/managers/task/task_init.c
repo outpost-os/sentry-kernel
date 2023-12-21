@@ -184,7 +184,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     kstatus_t status = K_SECURITY_INTEGRITY;
     task_t * task_table = task_get_table();
     uint16_t cell = ctx.numtask;
-    mpu_ressource_t ressource;
+    layout_ressource_t ressource;
 
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_INIT_LOCALINFO)) {
@@ -288,7 +288,7 @@ static inline kstatus_t task_init_add_autotest(void)
     task_t * task_table = task_get_table();
     /* adding idle task to list */
     task_meta_t *meta = task_autotest_get_meta();
-    mpu_ressource_t ressource;
+    layout_ressource_t ressource;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
@@ -333,7 +333,7 @@ static inline kstatus_t task_init_add_idle(void)
     task_t * task_table = task_get_table();
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
-    mpu_ressource_t ressource;
+    layout_ressource_t ressource;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");

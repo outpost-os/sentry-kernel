@@ -36,22 +36,22 @@ struct mpu_region_desc {
 # error "Unknown MPU type!"
 #endif
 
-/* a mpu ressource is a mpu_ressource_t opaque. On thumbv7m (and thumbv8m) this is
+/* a mpu ressource is a layout_ressource_t opaque. On thumbv7m (and thumbv8m) this is
   the concatenation of RBAR & RASR registers values.
   A task hold a table of this opaque, allowing store multiple upto 3 regions, to
   fast and efficiently keep trace of currently mapped regions.
 */
-typedef ARM_MPU_Region_t mpu_ressource_t;
+typedef ARM_MPU_Region_t layout_ressource_t;
 
 
 
-__STATIC_FORCEINLINE uint8_t mpu_get_id_from_ressource(const mpu_ressource_t ressource)
+__STATIC_FORCEINLINE uint8_t mpu_get_id_from_ressource(const layout_ressource_t ressource)
 {
     uint8_t id = (uint8_t)((ressource.RBAR & MPU_RBAR_REGION_Msk) >> MPU_RBAR_REGION_Pos);
     return id;
 }
 
-__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, mpu_ressource_t* ressource)
+__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_ressource_t* ressource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(ressource == NULL)) {
@@ -65,7 +65,7 @@ end:
 }
 
 __STATIC_FORCEINLINE kstatus_t mpu_forge_ressource(const struct mpu_region_desc *desc,
-                                                   mpu_ressource_t *ressource)
+                                                   layout_ressource_t *ressource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     uint32_t rbar;
@@ -85,7 +85,7 @@ end:
     return status;
 }
 
-__STATIC_FORCEINLINE void mpu_fastload(const mpu_ressource_t *ressource, uint8_t num_ressources)
+__STATIC_FORCEINLINE void mpu_fastload(const layout_ressource_t *ressource, uint8_t num_ressources)
 {
     __ISB();
     __DSB();

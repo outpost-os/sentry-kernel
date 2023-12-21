@@ -43,14 +43,14 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
 
-kstatus_t mgr_mm_forge_empty_table(mpu_ressource_t *ressource_tab);
+kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab);
 
 /* fast implementation of task mapping.
    map all task currently mapped ressources. all empty user regions are cleared
 */
 kstatus_t mgr_mm_map_task(taskh_t t);
 
-kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, mpu_ressource_t *ressource);
+kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_ressource_t *ressource);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_mm_autotest(void);

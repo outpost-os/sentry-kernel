@@ -112,7 +112,7 @@ err:
 kstatus_t mgr_mm_map_task(taskh_t t)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    const mpu_ressource_t *layout;
+    const layout_ressource_t *layout;
     if (unlikely((status = mgr_task_get_layout_from_handle(t, &layout)) != K_STATUS_OKAY)) {
         pr_err("failed to get meta for task handle %x", t);
         goto err;
@@ -128,7 +128,7 @@ err:
  *
  * all task memory regions are set as invalid
  */
-kstatus_t mgr_mm_forge_empty_table(mpu_ressource_t *ressource_tab)
+kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(ressource_tab == NULL)) {
@@ -148,7 +148,7 @@ err:
  *
  * all task memory regions are set as invalid
  */
-kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, mpu_ressource_t *ressource)
+kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_ressource_t *ressource)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     const task_meta_t *meta;
