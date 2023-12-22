@@ -1,6 +1,8 @@
 Sentry Autotest mode
 --------------------
 
+.. _autotest:
+
 .. index::
     single: autotest; model
     single: test; autotest test model
@@ -133,10 +135,22 @@ logging post-processing.
 The kernel autotest dediacated logging is using the `pr_autotest()` API, which
 work in a very similar way to other `pr_` API of the debug manager:
 
-.. literalinclude:: ../../../kernel/include/sentry/managers/debug.h
-   :language: c
-   :lines: 119-133
+.. code-block:: c
+   :linenos:
    :caption: Autotest dedicated kernel logging API
+
+   /** @def autotest log prefix */
+   #define KERN_AUTOTEST   "[T]"
+   /**
+    * @def pr_ auto format string for pr_autotest only, adding TEST and current timestamping in u64
+    * format
+    */
+   #define pr_autotest_fmt(fmt) "%lu%lu: %s: " fmt "\n", systime_get_cycleh(),systime_get_cyclel(), __func__
+   /**
+    * @def autotest messages, for autotest functions only
+    */
+   #define pr_autotest(fmt, ...) \
+   	printk(KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
 
 With such an API, test output formatting is automatically generated.
 

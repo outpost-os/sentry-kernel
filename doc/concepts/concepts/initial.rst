@@ -138,6 +138,8 @@ project-configured external event of interrupt to awake.
 Task terminology
 """"""""""""""""
 
+.. _task_terminology:
+
 A task (terminology homogeneous with the notion of *task sets* in real-time sytems),
 is a user application that is responsible for executing a given project-related function.
 To this task are associated unique properties:
@@ -254,23 +256,31 @@ Action on termination
 
 A task has different termination cases:
 
-   * normal termination, using `sys_exit()` syscall or `_exit` POSIX API
+   * normal termination, using `sys_exit()` syscall
    * abnormal termination, due to any fault
 
-The kernel handles both exit cases differently:
 
-   * In case of normal termination, the kernel check the task flags as defined in the
-     previous chapter and execute the sigstop handler. This handler is a runtime
-     implementation. If the application developer has defined and declared a custom
-     handler for this case, the runtime sigstop handler will execute it as first,
-     **before** its own execution.
-   * In case of abnormal termination (fault, etc.), the kernel call the runtime sysabort handler. This handler
-     is a runtime implementation. If the application developer has defined and
-     declared a custom handler for this case, the runtime sysabort handler will
-     call the task custom handler **after** its own execution. When the sysabort
-     handler execution is executed, the task is in a dedicated state associated to it.
-     If another fault rise while executing the abort handler, the system panic for
-     security.
+The kernel check the task flags as defined in the previous chapter and
+execute the `exitpoint` function with the exit return value.
+This symbol is a runtime implementation (typically libc).
+
+This symbol must respect the following API:
+
+.. code-block:: c
+
+   void _exit(uint32_t exitcode, bool has_panic);
+
+In case of userspace fault, `has_panic` is true and the exitcode hold the fault
+value. In case of voluntary exit, `has_panic` is false and the exitcode is the
+one set by the job at `sys_exit()` call time.
+
+If another fault rise while executing the `exitpoint` , the system panic for
+security.
+
+.. warning::
+   this function is NOT the atexit() POSIX quivalent, which is only for normal
+   termination. Depending on the libc, atexit() and exit functions for normal
+   termination can be added to this function implementation if needed
 
 .. index::
    single: job entrypoint; model

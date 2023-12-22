@@ -69,10 +69,14 @@ The consideration are the following:
 
    6. bootup and modes
 
-      * Sentry build natively supports two modes: `debug` and `release`
+      * Sentry build natively supports three modes: `debug`, `autotest` and `release`
          * **debug**: debug manager is compiled and linked, adding usart and other debug features.
            Some debug-related feature that may reduce security can be activated. The build system
            inform the developer that the kernel is built in debug mode and MUST NOT be used in production
+         * **autotest**: debug manager has debug line activated, but other features are in release mode.
+           The kernel do not parse the task metadata list but instead spawn a single task denoted
+           `autotest` in order to execute various uapi and kernel-space tests (security, performances)
+           on the hardware target. See :ref:`autotest chapter<autotest>` for more informations.
          * **release**: all debug are deactivated, all enforcement are activated and can't be deactivated
            even through the configuration GUI. This include overall bootup integrity checks (task HMACs),
            MPU hardening and various periodic security watchdogs
