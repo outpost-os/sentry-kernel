@@ -31,6 +31,46 @@ err:
     return status;
 }
 
+/**
+  * This function is an export of its static inline version
+  * because `bindgen` would not be able to see it otherwise
+  *
+  * @return number of cycles elapsed since boot
+  */
+uint64_t mgr_time_get_cycle(void) {
+    return __mgr_time_get_cycle();
+}
+
+/**
+  * This function is an export of its static inline version
+  * because `bindgen` would not be able to see it otherwise
+  *
+  * @return number of nanoseconds elapsed since boot
+  */
+uint64_t mgr_time_get_nanoseconds(void) {
+    return __mgr_time_get_nanoseconds();
+}
+
+/**
+  * This function is an export of its static inline version
+  * because `bindgen` would not be able to see it otherwise
+  *
+  * @return number of microseconds elapsed since boot
+  */
+uint64_t mgr_time_get_microseconds(void) {
+    return __mgr_time_get_microseconds();
+}
+
+/**
+  * This function is an export of its static inline version
+  * because `bindgen` would not be able to see it otherwise
+  *
+  * @return number of milliseconds elapsed since boot
+  */
+uint64_t mgr_time_get_milliseconds(void) {
+    return __mgr_time_get_milliseconds();
+}
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 /**
   * @brief autotesting time manager

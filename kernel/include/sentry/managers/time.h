@@ -29,8 +29,27 @@ kstatus_t mgr_time_delay_add_job(taskh_t job, uint32_t delay_ms);
  */
 kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, sigh_t sig);
 
+/**
+ * @brief retrieve current number of cycles since boot
+ */
+uint64_t mgr_time_get_cycle(void);
 
-static inline uint64_t mgr_time_get_cycle(void) {
+/**
+ * @brief retrieve nanoseconds elapsed since boot
+ */
+uint64_t mgr_time_get_nanoseconds(void);
+
+/**
+ * @brief retrieve microseconds elapsed since boot
+ */
+uint64_t mgr_time_get_microseconds(void);
+
+/**
+ * @brief retrieve milliseconds elapsed since boot
+ */
+uint64_t mgr_time_get_milliseconds(void);
+
+static inline uint64_t __mgr_time_get_cycle(void) {
 
     uint64_t ts = systime_get_cycleh();
     ts <<= 32;
@@ -38,13 +57,18 @@ static inline uint64_t mgr_time_get_cycle(void) {
     return ts;
 }
 
-static inline uint64_t mgr_time_get_microseconds(void) {
+static inline uint64_t __mgr_time_get_microseconds(void) {
     return systime_get_microseconds();
 }
 
-static inline uint64_t mgr_time_get_milliseconds(void) {
+static inline uint64_t __mgr_time_get_milliseconds(void) {
     return systime_get_milliseconds();
 }
+
+static inline uint64_t __mgr_time_get_nanoseconds(void) {
+    return systime_get_nanoseconds();
+}
+
 /**
  * delay ticker, to be called by the systick using JIFFIES_TO_MSEC(1)
  * to calculate back the ticker period
