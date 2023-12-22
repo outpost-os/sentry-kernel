@@ -1,5 +1,5 @@
-UAPI architecture
------------------
+Syscalls
+--------
 
 About basics
 ^^^^^^^^^^^^
@@ -23,42 +23,41 @@ In the kernel counter part:
      also depend on `systypes`
 
 
+.. index::
+  single: UAPI; syscalls
+  single: UAPI; syscall definition
+
+
 
 Syscall definition
 ^^^^^^^^^^^^^^^^^^
 
+.. index::
+  single: sys_alarm; definition
+  single: sys_alarm; usage
+.. include:: syscalls/alarm.rst
 
+.. index::
+  single: sys_exit; definition
+  single: sys_exit; usage
+.. include:: syscalls/exit.rst
 
-Exit
-""""
+.. index::
+  single: sys_get_random; definition
+  single: sys_get_random; usage
+.. include:: syscalls/get_random.rst
 
-**API definition**:
+.. index::
+  single: sys_get_task_handle; definition
+  single: sys_get_task_handle; usage
+.. include:: syscalls/get_task_handle.rst
 
-.. code-block:: rust
+.. index::
+  single: sys_log; definition
+  single: sys_log; usage
+.. include:: syscalls/log.rst
 
-   fn uapi::exit(status: i32) -> u32
-
-.. code-block:: c
-
-   sys_return_t sys_exit(uint32_t status);
-
-
-**Usage**:
-
-   Terminate the current job with status code given in argument.
-   Any non-zero status code is considered as an abnormal status code and is
-   passed to job termination mechanism.
-
-**Required capability**
-
-   None.
-
-**Return values**
-
-   End the current job, never returns.
-
-.. note::
-    The goal here is to support runtime-based termination call with potential
-    application developper hook (sigterm handler), so that a unified central handler
-    can react to various status code values, wherever the `exit()` call is made in the
-    job implementation.
+.. index::
+  single: sys_send_signal; definition
+  single: sys_send_signal; usage
+.. include:: syscalls/send_signal.rst

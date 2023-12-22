@@ -42,10 +42,14 @@ concepts_rst = files(
     'concepts/concepts/security.rst',
     'concepts/concepts/index.rst',
     'concepts/concepts/initial.rst',
-    'concepts/concepts/uapi.rst',
     'concepts/index.rst',
+    'concepts/uapi/index.rst',
+    'concepts/uapi/model.rst',
+    'concepts/uapi/syscalls.rst',
+    'concepts/uapi/syscalls/alarm.rst',
+    'concepts/uapi/syscalls/exit.rst',
+    'concepts/uapi/syscalls/log.rst',
     'concepts/sw_architecture/bsp.rst',
-    'concepts/sw_architecture/syscalls.rst',
     'concepts/sw_architecture/schedulers.rst',
     'concepts/sw_architecture/task_layout.rst',
     'concepts/sw_architecture/index.rst',
@@ -65,6 +69,19 @@ concepts = custom_target('doc-concepts',
         'doc/concepts',
     ])
 doc_concepts = alias_target('doc-concepts', concepts)
+
+concepts_singlehtml = custom_target('doc-concepts-singlehtml',
+    input: concepts_rst,
+    depend_files: [files('concepts/conf.py')],
+    output: 'concepts_singlehtml',
+    command: [sphinx, '-b', 'singlehtml', '-q', '-d',
+        'build/doctrees',
+        '-Dversion=' + meson.project_version(),
+        join_paths(meson.current_source_dir(), 'concepts'),
+        'doc/concepts_singlehtml',
+    ])
+doc_concepts_singlehtml = alias_target('doc-concepts-singlehtml', concepts_singlehtml)
+
 
 concepts_pdf = custom_target('doc-concepts-pdf',
     input: concepts_rst,

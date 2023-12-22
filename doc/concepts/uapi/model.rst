@@ -77,6 +77,8 @@ multiple drivers with multiple interrupt handlers.
 Signal handle
 ~~~~~~~~~~~~~
 
+.. _signals:
+
 The signal handler identify both the signal source and the signal identifier. The signal
 source can be the kernel itself or a task allowed to communicate with the current job.
 
@@ -85,10 +87,24 @@ events that can impact the lifecycle of the embedded system. The supported signa
 are voluntary a subset of the standard POSIX signal definition to help developer with
 the usage of the signal set. Supported signals are the following:
 
-     .. literalinclude:: ../../../uapi/include/uapi/signal.h
-       :language: c
-       :lines: 10-21
-       :caption: List of Sentry signals
+.. code-block:: C
+  :linenos:
+  :caption: Sentry supported UAPI signal list
+
+  typedef enum Signal {
+    SIGNAL_ABORT,
+    SIGNAL_ALARM,
+    SIGNAL_BUS,
+    SIGNAL_CONT,
+    SIGNAL_ILL,
+    SIGNAL_IO,
+    SIGNAL_PIPE,
+    SIGNAL_POLL,
+    SIGNAL_TERM,
+    SIGNAL_TRAP,
+    SIGNAL_USR1,
+    SIGNAL_USR2,
+  } Signal;
 
 When receiving a signal, the job receive the signal handle `sigh_t`. It can then
 get back the source and the signal identifier, and deduce the action to take.
