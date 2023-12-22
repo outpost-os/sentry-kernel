@@ -61,7 +61,6 @@ SECTIONS
         . = ALIGN(4);
         _etext = .;        	/* define a global symbols at end of code */
         _exit = .;
-        _sigot = .;
         _eautotest = .;
         . = ALIGN(4);
     } > {{ autotestcode_section }}
@@ -102,21 +101,10 @@ SECTIONS
         __CTOR_END__ = .;
     } > {{ autotestcode_section }}
 
-        /* used by the startup to initialize got */
-    .got : AT ( _sigot ) {
-        . = ALIGN(4);
-            _sgot = .;
-            /*  *(.got.plt)
-            *    We don't need plt segment
-            *    since we do not need dynamic library relocation
-            */
-            *(.got)
-            *(.got*)
-        . = ALIGN(4);
-        _egot = .;
-
-    /* used by the startup to initialize data */
-        _sidata = .;
+/* the .got should be empty. This is checked at the end of this script. */
+    .got :
+    {
+        *(.got .got*)
     } > {{ autotestcode_section }}
 
     __etext = .;    /* define a global symbol at end of code */
@@ -133,7 +121,7 @@ SECTIONS
 
     /* used by the startup to initialize data */
     /* Initialized data sections goes into RAM, load LMA copy after code */
-    .data : AT ( _sidata )
+    .data :
     {
         . = ALIGN(4);
         _ram_start = .;
@@ -141,7 +129,9 @@ SECTIONS
         *(.data)           /* .data sections */
         *(.data*)          /* .data* sections */
         _edata = .;        /* define a global symbol at data end */
-    } > {{ autotestram_section }}
+    } > {{ autotestram_section }} AT> {{ autotestcode_section }}
+
+    _sidata = LOADADDR(.data);
 
     __CACHE_REGION_START = ORIGIN({{ autotestcode_section }});
     __CACHE_REGION_SIZE  = 0;
@@ -165,3 +155,5 @@ SECTIONS
     } > {{ autotestram_section }}
 
 }
+
+ASSERT(SIZEOF(.got) == 0, "error: .got is not empty");
