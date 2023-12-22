@@ -51,6 +51,18 @@ static inline uint64_t systime_get_microseconds(void) {
     return ts;
 }
 
+__attribute__((always_inline))
+static inline uint64_t systime_get_nanoseconds(void) {
+    uint64_t ts = systime_get_cycleh();
+    uint32_t freq = rcc_get_core_frequency();
+    /* divide freq by number of ns in 1 sec */
+    freq /= 1000000000UL;
+    ts <<= 32;
+    ts |= systime_get_cyclel();
+    ts /= freq;
+    return ts;
+}
+
 
 
 #endif/*!__ASM_TICK_H*/

@@ -39,6 +39,16 @@ static inline uint64_t systime_get_microseconds(void) {
     return time_ms;
 }
 
+__attribute__((always_inline))
+static inline uint64_t systime_get_nanoseconds(void)
+{
+    struct timespec spec;
+    uint64_t time_ms;
+    clock_gettime(CLOCK_MONOTONIC, &spec);
+    time_ms = (spec.tv_sec*1000000000UL) + spec.tv_nsec;
+    return time_ms;
+}
+
 static inline uint64_t systime_get_cycle(void) {
     unsigned long lo, hi;
     asm volatile ( "rdtsc" : "=a" (lo), "=d" (hi) );

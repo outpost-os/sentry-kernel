@@ -47,4 +47,4 @@ jobs:
           cargo check
       - name: Tests
         run: |
-          cargo test
+          cargo test -- --test-threads=1

@@ -165,6 +165,12 @@ pub extern "C" fn sys_get_random() -> Status {
     syscall!(Syscall::GetRandom).into()
 }
 
+/// Retrieve number of cycles since boot (u64)
+#[no_mangle]
+pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
+    syscall!(Syscall::GetCycle, precision as u32).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

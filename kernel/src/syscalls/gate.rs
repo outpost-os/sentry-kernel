@@ -20,6 +20,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::ManageCPUSleep => manage_cpu_sleep(args[0]),
         Syscall::Alarm => alarm(args[0]),
         Syscall::GetRandom => get_random(),
+        Syscall::GetCycle => get_cycle(args[0]),
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),
@@ -317,4 +318,19 @@ fn get_random() -> Result<StackFramePointer, Status> {
     Ok(None)
 }
 
-// fn get_cycle(arg: u32) -> Result<StackFramePointer, Status> {
+fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
+    let mut current_task = TaskMeta::current()?;
+    let precision = Precision::try_from(precision)?;
+
+    let cycles = match precision {
+        Precision::Cycle => {
+            current_task = current_task.can(Capability::TimHPChrono)?;
+            unsafe { mgr::mgr_time_get_cycle() }
+        }
+        Precision::Nanoseconds => unsafe { mgr::mgr_time_get_nanoseconds() },
+        Precision::Microseconds => unsafe { mgr::mgr_time_get_microseconds() },
+        Precision::Milliseconds => unsafe { mgr::mgr_time_get_milliseconds() },
+    };
+    current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_be_bytes());
+    Ok(None)
+}

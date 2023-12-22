@@ -69,7 +69,30 @@ pub enum Syscall {
     Log,
     Alarm,
     GetRandom,
+    GetCycle,
 }
+}
+
+macro_rules! mirror_enum {
+    ($to:ty, $vis:vis enum $name:ident {
+        $($vname:ident,)*
+    }) => {
+        #[repr(C)]
+        $vis enum $name {
+            $($vname,)*
+        }
+
+        impl TryFrom<$to> for $name {
+            type Error = Status;
+
+            fn try_from(v: $to) -> Result<Self, Self::Error> {
+                match v {
+                    $(x if x == $name::$vname as $to => Ok($name::$vname),)*
+                    _ => Err(Status::Invalid),
+                }
+            }
+        }
+    }
 }
 
 /// Sentry syscall return values
@@ -338,5 +361,15 @@ impl TryFrom<u32> for CPUSleep {
             3 => Ok(CPUSleep::AllowSleep),
             _ => Err(Status::Invalid),
         }
+    }
+}
+
+mirror_enum! {
+    u32,
+    pub enum Precision {
+        Cycle,
+        Nanoseconds,
+        Microseconds,
+        Milliseconds,
     }
 }
