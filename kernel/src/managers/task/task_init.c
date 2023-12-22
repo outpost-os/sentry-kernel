@@ -184,6 +184,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     kstatus_t status = K_SECURITY_INTEGRITY;
     task_t * task_table = task_get_table();
     uint16_t cell = ctx.numtask;
+    layout_ressource_t ressource;
 
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_INIT_LOCALINFO)) {
@@ -201,10 +202,16 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
     task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset));
+    mgr_mm_forge_empty_table(task_table[cell].layout);
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;
     ctx.numtask++;
+    /* forge current task layout to task context */
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -227,6 +234,7 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         status = K_SECURITY_CORRUPTION;
         goto err;
     }
+    /* configure task data layout content */
     if ((status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }
@@ -280,6 +288,7 @@ static inline kstatus_t task_init_add_autotest(void)
     task_t * task_table = task_get_table();
     /* adding idle task to list */
     task_meta_t *meta = task_autotest_get_meta();
+    layout_ressource_t ressource;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
@@ -299,10 +308,15 @@ static inline kstatus_t task_init_add_autotest(void)
 
     pr_info("[task handle {%04x|%04x|%03x}] autotest task forged",
     (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
+    mgr_mm_forge_empty_table(task_table[ctx.numtask].layout);
     /* autotest is scheduled as a standard task */
     request_data_membarrier();
     /* task added to task local task list, needed so that others managers can request it */
     ctx.numtask++;
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
     if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }
@@ -319,6 +333,7 @@ static inline kstatus_t task_init_add_idle(void)
     task_t * task_table = task_get_table();
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
+    layout_ressource_t ressource;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
@@ -330,11 +345,21 @@ static inline kstatus_t task_init_add_idle(void)
     task_table[ctx.numtask].handle = meta->handle;
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
     /* Idle special case, as we directly execute idle at boot, there is no stack_frame_t saved on stack */
+#if 1
     task_table[ctx.numtask].sp = (stack_frame_t*)idle_sp;
+#else
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, idle_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
+#endif
     task_table[ctx.numtask].state = JOB_STATE_READY;
+    mgr_mm_forge_empty_table(task_table[ctx.numtask].layout);
     pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
         (uint32_t)meta->handle.rerun, (uint32_t)meta->handle.id, (uint32_t)meta->handle.family);
     ctx.numtask++;
+
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
+    mgr_task_add_ressource(meta->handle, ressource);
     if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }

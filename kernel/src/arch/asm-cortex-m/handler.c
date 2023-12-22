@@ -276,14 +276,8 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
         }
         /**
          * and then map next task memory
-         * TODO: map next task ressources, demap previous one ressources too
          */
-        if (unlikely(mgr_mm_map(MM_REGION_TASK_TXT, 0, next) != K_STATUS_OKAY)) {
-            __do_panic();
-        }
-        if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, next) != K_STATUS_OKAY)) {
-            __do_panic();
-        }
+        mgr_mm_map_task(next);
     } else {
         /* when no context switch happen (i.e. the same task is elected or no election),
            we may need to fallback to previous frame, as elect() may return an invalid frame
@@ -292,9 +286,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
            when there is no election, this code as no effect (newframe == frame).
          */
         newframe = frame;
-        /* reallowing task data before leaving handler mode */
-        if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, current) != K_STATUS_OKAY)) {
-            __do_panic();
+        /* reallowing task data before leaving handler mode, only if userspace is started */
+        if (likely(mgr_task_is_userspace_spawned())) {
+            mgr_mm_map_task(next);
         }
     }
     return newframe;
@@ -352,7 +346,8 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     }
 
     /* enable supported fault handlers */
-    shcsr = SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
+    shcsr = SCB_SHCSR_USGFAULTENA_Msk |
+            SCB_SHCSR_MEMFAULTENA_Msk;
     iowrite32((size_t)&SCB->SHCSR, shcsr);
     /* branch to sentry kernel entry point */
     _entrypoint();

@@ -36,4 +36,63 @@ struct mpu_region_desc {
 # error "Unknown MPU type!"
 #endif
 
+/* a mpu ressource is a layout_ressource_t opaque. On thumbv7m (and thumbv8m) this is
+  the concatenation of RBAR & RASR registers values.
+  A task hold a table of this opaque, allowing store multiple upto 3 regions, to
+  fast and efficiently keep trace of currently mapped regions.
+*/
+typedef ARM_MPU_Region_t layout_ressource_t;
+
+#define TASK_MAX_RESSOURCES_NUM (CONFIG_NUM_MPU_REGIONS - 2)
+
+
+__STATIC_FORCEINLINE uint8_t mpu_get_id_from_ressource(const layout_ressource_t ressource)
+{
+    uint8_t id = (uint8_t)((ressource.RBAR & MPU_RBAR_REGION_Msk) >> MPU_RBAR_REGION_Pos);
+    return id;
+}
+
+__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_ressource_t* ressource)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(ressource == NULL)) {
+        goto end;
+    }
+    ressource->RBAR = ARM_MPU_RBAR(id, 0x0UL);
+    ressource->RASR = 0x0UL;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+__STATIC_FORCEINLINE kstatus_t mpu_forge_ressource(const struct mpu_region_desc *desc,
+                                                   layout_ressource_t *ressource)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    uint32_t rbar;
+    uint32_t rasr;
+
+    if (unlikely((desc == NULL) || (ressource == NULL))) {
+        goto end;
+    }
+    ressource->RBAR = ARM_MPU_RBAR(desc->id, desc->addr);
+    ressource->RASR = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
+                           desc->access_perm,
+                           desc->access_attrs,
+                           desc->mask,
+                           desc->size);
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+__STATIC_FORCEINLINE void mpu_fastload(const layout_ressource_t *ressource, uint8_t num_ressources)
+{
+    __ISB();
+    __DSB();
+    ARM_MPU_Load(ressource, num_ressources);
+    __ISB();
+    __DSB();
+}
+
 #endif/*__ARCH_MPU_H*/

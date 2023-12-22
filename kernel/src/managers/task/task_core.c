@@ -63,13 +63,21 @@ task_t *task_get_table(void)
  */
 size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
+    size_t data_align = 0;
+    if (meta->data_size % __WORDSIZE) {
+        data_align = __WORDSIZE - (meta->data_size % __WORDSIZE);
+    }
+    size_t bss_align = 0;
+    if (meta->bss_size % __WORDSIZE) {
+        bss_align = __WORDSIZE - (meta->bss_size % __WORDSIZE);
+    }
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
            meta->got_size + \
            meta->data_size + \
-           __WORDSIZE - (meta->data_size % __WORDSIZE) + \
+           data_align + \
            meta->bss_size + \
-           __WORDSIZE - (meta->bss_size % __WORDSIZE) + \
+           bss_align + \
            meta->heap_size + \
            meta->stack_size;
 }
@@ -80,9 +88,13 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
  */
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
+    size_t text_align = 0;
+    if (meta->text_size % __WORDSIZE) {
+        text_align = __WORDSIZE - (meta->text_size % __WORDSIZE);
+    }
     /*@ assert \valid_read(meta); */
     return meta->text_size + \
-           __WORDSIZE - (meta->text_size % __WORDSIZE) + \
+           text_align + \
            meta->rodata_size;
     /* got and data in flash are excluded (no need) */
 }
@@ -295,19 +307,14 @@ void __attribute__((noreturn)) mgr_task_start(void)
         pr_err("failed to get idle function handle!");
         goto err;
     };
-#ifndef TEST_MODE
     pc = (size_t)(idle_meta->s_text + idle_meta->entrypoint_offset);
-    if (unlikely(mgr_mm_map(MM_REGION_TASK_TXT, 0, idle_meta->handle) != K_STATUS_OKAY)) {
-        goto err;
-    }
-    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, idle_meta->handle) != K_STATUS_OKAY)) {
-        goto err;
-    }
-#endif
-    pr_debug("spawning thread, pc=%p, sp=%p", pc, sp);
+    /* at startupt, sched return idle */
+    mgr_mm_map_task(idle_meta->handle);
+    /** XXX: there is a race here, if the pr_info() is not printed, a memory fault rise
+        it seems that the MPU configuration take a little time before being active */
+    pr_info("spawning thread, pc=%p, sp=%p", pc, sp);
     mgr_task_set_userspace_spawned();
     __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
-
     __builtin_unreachable();
 err:
     panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
@@ -319,8 +326,8 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
 {
     kstatus_t status;
      /* mapping task data region first */
-    if (unlikely(mgr_mm_map(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
-        status = K_ERROR_MEMFAIL;
+    if (unlikely(mgr_mm_map_task(meta->handle) != K_STATUS_OKAY)) {
+        status = K_ERROR_INVPARAM;
         goto err;
     }
     /* copy got, if non-null */
@@ -357,11 +364,6 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     }
     /* zeroify SVC Exchange */
     memset((void*)meta->s_svcexchange, 0x0, CONFIG_SVC_EXCHANGE_AREA_LEN);
-    /* unmap task data */
-    if (unlikely(mgr_mm_unmap(MM_REGION_TASK_DATA, 0, meta->handle) != K_STATUS_OKAY)) {
-        status = K_ERROR_MEMFAIL;
-        goto err;
-    }
     status = K_STATUS_OKAY;
 err:
     return status;
@@ -421,6 +423,60 @@ kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t)
         mgr_task_set_state(t, JOB_STATE_READY);
         sched_schedule(t);
     }
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_add_ressource(taskh_t t, layout_ressource_t ressource)
+{
+    kstatus_t status;
+    task_t *cell;
+    uint8_t ressourceid;
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+    /* TODO: adding assertion on ressource region id >= MM_REGION_TASK_TXT */
+    /**
+     * userspace ressources, starting at task TXT, is always greater than MM_REGION_TASK_TXT
+     */
+    ressourceid = mpu_get_id_from_ressource(ressource) - MM_REGION_TASK_TXT;
+    memcpy(&cell->layout[ressourceid], &ressource, sizeof(layout_ressource_t));
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/**
+ * @brief removing a ressource from task context, based on its identifier
+ * (typically region identifier)
+ */
+kstatus_t mgr_task_remove_ressource(taskh_t t, uint8_t id)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
+        goto err;
+    }
+    mpu_forge_unmapped_ressource(id, &cell->layout[id - MM_REGION_TASK_TXT]);
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_get_layout_from_handle(taskh_t t,
+                                          const layout_ressource_t **layout)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely(layout == NULL)) {
+        goto err;
+    }
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
+        goto err;
+    }
+    *layout = &cell->layout[0];
     status = K_STATUS_OKAY;
 err:
     return status;

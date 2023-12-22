@@ -109,21 +109,28 @@ extern "C" {
         return *t;
     }
 
+    kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
+    {
+        for (uint8_t i = 0; i < TASK_MAX_RESSOURCES_NUM; i++) {
+            memset(&ressource_tab[i], 0x0, sizeof(layout_ressource_t));
+        }
+        return K_STATUS_OKAY;
+    }
 
-    kstatus_t mgr_mm_map(mm_region_t reg_type __attribute__((unused)),
-                         uint32_t reg_handle __attribute__((unused)),
-                         taskh_t requester __attribute__((unused)))
+/* fast implementation of task mapping.
+   map all task currently mapped ressources. all empty user regions are cleared
+*/
+    kstatus_t mgr_mm_map_task(taskh_t t __attribute__((unused)))
     {
         return K_STATUS_OKAY;
     }
 
-    kstatus_t mgr_mm_unmap(mm_region_t reg_type __attribute__((unused)),
-                           uint32_t reg_handle __attribute__((unused)),
-                           taskh_t requester __attribute__((unused)))
+    kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type __attribute__((unused)),
+                                     taskh_t t __attribute__((unused)),
+                                     layout_ressource_t *ressource __attribute__((unused)))
     {
         return K_STATUS_OKAY;
     }
-
     /*
      * scheduler mocking. Associated to mocking mechanism so that
      * we can detect how many call are made to the sheduler in each
