@@ -215,6 +215,45 @@ pub enum Signal {
 
     /// 2nd user-defined signal
     Usr2,
+
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicUserHardFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelHardFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicUserBusFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelBusFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicUserUsageFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelUsageFault,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicUserMemAccess,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelMemAccess,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelInvalidUsespaceInput,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelShorterKBuffersConfig,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelInvalidManagerState,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelInvalidManagerResponse,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelTimeout,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicKernelBadCFICalculation,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicHardwareInvalidState,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    PanicHardwareUnexpectedModification,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    AutotestDone,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    AutotestFailed,
+    #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    AutotestTimedOut,
 }
 
 pub type ProcessID = u32;

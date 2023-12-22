@@ -5,7 +5,6 @@
 #define SIGNAL_H
 
 #include <stdint.h>
-#include <uapi/signal.h>
 
 /** Basic signals that are handled at UAPI level. If more
   complex signal handling is required, IPC with upper layer protocol

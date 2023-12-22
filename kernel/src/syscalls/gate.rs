@@ -294,12 +294,11 @@ pub fn wait_for_event(
     Ok(None)
 }
 
-#[allow(clippy::unnecessary_cast)] // `as u32` only necessary on msvc toolchains
 pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
     let current_job = sched_get_current();
 
     let mut signal = mgr::sigh_t::default();
-    signal.set_id(mgr::signal_SIGNAL_ALARM as u32);
+    signal.set_id(Signal::Alarm as u32);
     signal.set_family(mgr::HANDLE_SIGNAL);
     signal.set_source(current_job.id());
 
