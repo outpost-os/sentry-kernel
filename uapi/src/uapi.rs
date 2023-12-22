@@ -81,6 +81,8 @@ mod tests {
         flags: unsafe { transmute(0u32) },
         s_text: 0,
         text_size: 0,
+        s_got: 0,
+        got_size: 0,
         rodata_size: 0,
         data_size: 0,
         bss_size: 0,

@@ -254,6 +254,52 @@
           "description"
         ]
       },
+      "s_got": {
+        "type": "object",
+        "properties": {
+          "c_type": {
+            "enum":["size_t"]
+          },
+          "rust_type": {
+            "enum":["usize"]
+          },
+          "value": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "c_type",
+          "rust_type",
+          "value",
+          "description"
+        ]
+      },
+      "got_size": {
+        "type": "object",
+        "properties": {
+          "c_type": {
+            "enum":["size_t"]
+          },
+          "rust_type": {
+            "enum":["usize"]
+          },
+          "value": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "c_type",
+          "rust_type",
+          "value",
+          "description"
+        ]
+      },
       "rodata_size": {
         "type": "object",
         "properties": {

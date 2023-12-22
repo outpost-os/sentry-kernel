@@ -1,5 +1,3 @@
-dmas = [ ]
-
 [magic]
 c_type = "uint64_t"
 rust_type = "u64"
@@ -61,34 +59,46 @@ rust_type = "usize"
 value = 33_500
 description = "size of the .text section"
 
+[s_got]
+c_type = "size_t"
+rust_type = "usize"
+value = 81_233_500
+description = "task code zone start address"
+
+[got_size]
+c_type = "size_t"
+rust_type = "usize"
+value = 16_500
+description = "size of the .text section"
+
 [rodata_size]
 c_type = "size_t"
 rust_type = "usize"
-value = 33_500
+value = 1_500
 description = "size of the .rodata section"
 
 [data_size]
 c_type = "size_t"
 rust_type = "usize"
-value = 33_500
+value = 2324
 description = "size of the .data section"
 
 [bss_size]
 c_type = "size_t"
 rust_type = "usize"
-value = 33_500
+value = 4020
 description = "size of the .bss section"
 
 [heap_size]
 c_type = "size_t"
 rust_type = "usize"
-value = 33_500
+value = 4096
 description = "size of the .heap section"
 
 [s_svcexchange]
 c_type = "size_t"
 rust_type = "usize"
-value = 33_500
+value = 2_000_000
 description = "start address of the svcexchange zone in RAM"
 
 [stack_size]
@@ -162,6 +172,8 @@ c_type = "uint8_t"
 rust_type = "u8"
 value = 0
 description = "number of task dma stream(s)"
+
+dmas = [ ]
 
 [[task_hmac]]
 c_type = "uint8_t"

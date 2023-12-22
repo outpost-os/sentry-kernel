@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/thread.h>
@@ -56,21 +57,34 @@ task_t *task_get_table(void)
     return &task_table[0];
 }
 
+/**
+ * TODO: this calculation may be done once for a task at boot time and stord
+ * in task dyn data. This though required a fast taskh to task info accessor
+ */
 size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
-           meta->data_size + (meta->data_size % SECTION_ALIGNMENT_LEN) + \
-           meta->bss_size + (meta->bss_size % SECTION_ALIGNMENT_LEN) + \
+           meta->got_size + \
+           meta->data_size + \
+           __WORDSIZE - (meta->data_size % __WORDSIZE) + \
+           meta->bss_size + \
+           __WORDSIZE - (meta->bss_size % __WORDSIZE) + \
            meta->heap_size + \
            meta->stack_size;
 }
 
+/**
+ * TODO: this calculation may be done once for a task at boot time and stord
+ * in task dyn data. This though required a fast taskh to task info accessor
+ */
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
-    return meta->text_size + (meta->text_size % SECTION_ALIGNMENT_LEN) + \
+    return meta->text_size + \
+           __WORDSIZE - (meta->text_size % __WORDSIZE) + \
            meta->rodata_size;
+    /* got and data in flash are excluded (no need) */
 }
 
 void task_dump_table(void)
@@ -309,15 +323,25 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
         status = K_ERROR_MEMFAIL;
         goto err;
     }
+    /* copy got, if non-null */
+    if (likely(meta->got_size)) {
+        size_t data_source = meta->s_got;
+        size_t data_start  = meta->s_svcexchange + \
+                             CONFIG_SVC_EXCHANGE_AREA_LEN;
+        pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->data_size, data_source, data_start);
+        memcpy((void*)data_source, (void*)data_start, meta->data_size);
+    }
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
                              meta->text_size + \
-                             meta->text_size % SECTION_ALIGNMENT_LEN + \
+                             __WORDSIZE - (meta->text_size % __WORDSIZE) + \
+                             meta->got_size + \
                              meta->rodata_size + \
-                             meta->rodata_size % SECTION_ALIGNMENT_LEN;
+                             __WORDSIZE - (meta->rodata_size % __WORDSIZE); /* data is word aligned */
         size_t data_start =  meta->s_svcexchange + \
-                            CONFIG_SVC_EXCHANGE_AREA_LEN;
+                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
+                             meta->got_size;
         pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
         memcpy((void*)data_source, (void*)data_start, meta->data_size);
     }
@@ -325,7 +349,9 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     if (likely(meta->bss_size)) {
         size_t bss_start =  meta->s_svcexchange + \
                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                            meta->data_size + (meta->data_size % SECTION_ALIGNMENT_LEN);
+                            meta->got_size + \
+                            meta->data_size + \
+                            __WORDSIZE - (meta->data_size % __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);
     }

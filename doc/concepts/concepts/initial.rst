@@ -476,3 +476,8 @@ There is no specific memory constraint on task mapping for task placement other 
 logical region (task code, task RAM) the usual power of two constraint between the base address and
 the size. There is no fixed region size, no inter-task alignment, no link between task code and RAM
 region size and so on.
+
+
+.. note::
+  More informations on the way task memory mapping is done is described in
+  :ref:`Task Layout <task_layout>` chapter
