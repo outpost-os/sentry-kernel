@@ -15,7 +15,6 @@ extern "C" {
 #include <sentry/managers/device.h>
 #include <sentry/dma.h>
 #include <sentry/ipc.h>
-#include <sentry/signal.h>
 #include <sentry/ktypes.h>
 #include <sentry/job.h>
 

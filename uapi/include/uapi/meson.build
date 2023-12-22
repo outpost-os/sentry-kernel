@@ -6,7 +6,6 @@ uapi_headers = files([
     'device.h',
     'handle_defs.h',
     'handle.h',
-    'signal.h',
 ])
 
 subdir('types')
@@ -41,3 +40,5 @@ uapi_h = custom_target('uapi_header',
 sentry_c_uapi_headers_dep = declare_dependency(
     sources: [ uapi_h ],
 )
+
+external_deps += sentry_c_uapi_headers_dep

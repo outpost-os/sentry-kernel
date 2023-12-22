@@ -4,7 +4,7 @@
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/debug.h>
 #include <sentry/managers/task.h>
-#include <uapi/signal.h>
+#include <uapi/uapi.h>
 #include <uapi/handle.h>
 
 #ifndef CONFIG_BUILD_TARGET_RELEASE
