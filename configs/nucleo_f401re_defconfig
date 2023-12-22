@@ -72,7 +72,7 @@ CONFIG_MAX_DMA_STREAMS_PER_TASK=4
 # end of Task manager
 # Debug manager
 #
-CONFIG_DEBUG_COLORS=y
+# CONFIG_DEBUG_COLORS is not set
 CONFIG_DEBUG_LEVEL=7
 # end of Debug manager
 # end of Managers
