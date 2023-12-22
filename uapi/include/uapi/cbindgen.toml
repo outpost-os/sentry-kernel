@@ -45,7 +45,7 @@ extra_bindings = []
 
 
 [parse.expand]
-# crates = ["cbindgen"]
+crates = ["systypes"]
 # all_features = false
 # default_features = true
 features = ["cbindgen"]

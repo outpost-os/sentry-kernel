@@ -1,7 +1,7 @@
 use crate::syscall::*;
 use bitflags::bitflags;
 use core::fmt;
-use systypes::{ResourceHandle, Status};
+use systypes::*;
 
 bitflags! {
     pub struct ResourceHandleBits: u32 {
@@ -56,12 +56,18 @@ pub fn get_random() -> Result<u32, Status> {
         any_err => return Err(any_err),
     };
     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
-    Ok(u32::from_be_bytes([
-        exch_area[0],
-        exch_area[1],
-        exch_area[2],
-        exch_area[3],
-    ]))
+    let result = u32::from_be_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
+    Ok(result)
+}
+
+pub fn get_cycles() -> Result<u64, Status> {
+    match sys_get_cycle(Precision::Cycle) {
+        Status::Ok => (),
+        any_err => return Err(any_err),
+    };
+    let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..8] };
+    let result = u64::from_be_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -184,6 +190,26 @@ mod tests {
         0
     }
 
+    #[no_mangle]
+    extern "C" fn mgr_time_get_cycle() -> u64 {
+        111
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_time_get_nanoseconds() -> u64 {
+        222
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_time_get_microseconds() -> u64 {
+        333
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_time_get_milliseconds() -> u64 {
+        444
+    }
+
     #[test]
     fn logging() {
         let text = "plorp";
@@ -201,5 +227,10 @@ mod tests {
     #[test]
     fn random() {
         assert_eq!(get_random(), Ok(0xaabbccdd));
+    }
+
+    #[test]
+    fn cycles() {
+        assert_eq!(get_cycles(), Ok(111));
     }
 }
