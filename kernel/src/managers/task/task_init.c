@@ -84,7 +84,7 @@ static inline int task_cmp(const void *t1, const void *t2)
  * the kernel would 'search and copy' the tasks metadata in its own section at boot time.
  * Although, once copied, the table would store the very same content.
  */
-static const task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
+static task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
 #else
 /* UT provided */
 const task_meta_t *ut_get_task_meta_table(void);
