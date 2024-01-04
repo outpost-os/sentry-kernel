@@ -234,9 +234,9 @@ end:
 /*
  * Forge a stack context
  */
-stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc)
+stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size_t got)
 {
-    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc);
+    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc, got);
     return frame;
 }
 

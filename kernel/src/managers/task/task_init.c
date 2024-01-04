@@ -300,9 +300,9 @@ static inline kstatus_t task_init_add_autotest(void)
     task_table[ctx.numtask].handle = meta->handle;
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
 #ifndef TEST_MODE
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset), 0);
 #else
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)ut_autotest);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)ut_autotest, 0);
 #endif
     task_table[ctx.numtask].state = JOB_STATE_READY;
 
