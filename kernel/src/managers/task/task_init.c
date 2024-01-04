@@ -198,10 +198,12 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     }
     /* forge local info, push back current and next afterward */
     task_table[cell].metadata = meta;
+    task_table[cell].handle = meta->handle;
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
+    task_table[cell].state = JOB_STATE_READY;
     mgr_mm_forge_empty_table(task_table[cell].layout);
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
@@ -235,7 +237,8 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         goto err;
     }
     /* configure task data layout content */
-    if ((status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
+    status = task_set_job_layout(meta);
+    if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
