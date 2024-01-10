@@ -26,7 +26,7 @@ typedef struct stack_frame {
     uint16_t cs, ss, ds, es, fs, gs;
 } __attribute__((packed)) stack_frame_t;
 
-static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc)
+static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc, size_t got)
 {
     stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
     frame->rax = rerun;
@@ -38,7 +38,7 @@ static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t 
     frame->rbp = 0x0;
     frame->rsp = 0x0;
     frame->r8 = 0x0;
-    frame->r9 = 0x0;
+    frame->r9 = got;
     frame->r10 = 0x0;
     frame->r11 = 0x0;
     frame->r12 = 0x0;

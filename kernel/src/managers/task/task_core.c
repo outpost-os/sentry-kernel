@@ -66,11 +66,11 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
-           meta->got_size + \
+           ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
            ROUND_UP_TO(meta->data_size, __WORDSIZE) + \
            ROUND_UP_TO(meta->bss_size, __WORDSIZE) + \
-           meta->heap_size + \
-           meta->stack_size;
+           ROUND_UP_TO(meta->heap_size, __WORDSIZE) + \
+           ROUND_UP_TO(meta->stack_size, __WORDSIZE);
 }
 
 /**
@@ -234,9 +234,9 @@ end:
 /*
  * Forge a stack context
  */
-stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc)
+stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size_t got)
 {
-    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc);
+    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc, got);
     return frame;
 }
 
@@ -318,29 +318,29 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     }
     /* copy got, if non-null */
     if (likely(meta->got_size)) {
-        size_t data_source = meta->s_got;
-        size_t data_start  = meta->s_svcexchange + \
+        size_t got_source = meta->s_text + \
+                             ROUND_UP_TO(meta->text_size, __WORDSIZE);
+        size_t got_start  = meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN;
-        pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->data_size, data_source, data_start);
-        memcpy((void*)data_source, (void*)data_start, meta->data_size);
+        pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->got_size, got_source, got_start);
+        memcpy((void*)got_start, (void*)got_source, meta->got_size);
     }
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
                              ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
-                             meta->got_size + \
-                             ROUND_UP_TO(meta->rodata_size, __WORDSIZE);
+                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
         size_t data_start =  meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                             meta->got_size;
+                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
         pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
-        memcpy((void*)data_source, (void*)data_start, meta->data_size);
+        memcpy((void*)data_start, (void*)data_source, meta->data_size);
     }
     /* zeroify bss if non-null */
     if (likely(meta->bss_size)) {
         size_t bss_start =  meta->s_svcexchange + \
                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                            meta->got_size + \
+                            ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
                             ROUND_UP_TO(meta->data_size, __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);

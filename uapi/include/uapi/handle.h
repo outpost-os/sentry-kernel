@@ -45,7 +45,7 @@ typedef struct __attribute__((packed)) signal_handle {
     unsigned int source   : 16;
     unsigned int id       : 13; /* unique id for current handle (current device, task, etc) */
     unsigned int family  : 3;
-} sigh_t;
+} sigh_t __attribute__((aligned(4)));
 static_assert(sizeof(sigh_t) == sizeof(uint32_t), "invalid sigh_t opaque size");
 
 
@@ -53,7 +53,7 @@ typedef struct __attribute__((packed)) ipc_handle {
     unsigned int source   : 16; /* IPC source (task label) */
     unsigned int len      : 13; /* IPC len in bytes */
     unsigned int family  : 3;
-} ipch_t;
+} ipch_t __attribute__((aligned(4)));
 static_assert(sizeof(ipch_t) == sizeof(uint32_t), "invalid ipch_t opaque size");
 
 typedef struct __attribute__((packed)) device_handle {
@@ -61,7 +61,7 @@ typedef struct __attribute__((packed)) device_handle {
     unsigned int reserved : 1;
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int family  : 3;
-} devh_t;
+} devh_t __attribute__((aligned(4)));
 
 static_assert(sizeof(devh_t) == sizeof(uint32_t), "invalid devh_t opaque size");
 
@@ -69,7 +69,7 @@ typedef struct __attribute__((packed)) task_handle {
     unsigned int rerun    : 13; /* current spawn id (start with 1) */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int family  : 3;
-} taskh_t;
+} taskh_t __attribute__((aligned(4)));
 static_assert(sizeof(taskh_t) == sizeof(uint32_t), "invalid taskh_t opaque size");
 
 
@@ -83,7 +83,7 @@ typedef struct __attribute__((packed))  io_handle {
     /* this part is fixed */
     unsigned int id       : 16; /* unique id for current handle (current device, task, etc) */
     unsigned int family  : 3;
-} ioh_t;
+} ioh_t __attribute__((aligned(4)));
 static_assert(sizeof(ioh_t) == sizeof(uint32_t), "invalid ioh_t opaque size");
 
 typedef struct irq_handle {

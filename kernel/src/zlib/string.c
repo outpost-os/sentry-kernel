@@ -76,11 +76,12 @@ static void   *sentry_memcpy(void * restrict dest, const void* restrict src, siz
     if (unlikely(regions_overlaps(dest, src, n) == SECURE_TRUE)) {
         goto err;
     }
+
     uint32_t *s = (uint32_t*)src;
     uint32_t *d = (uint32_t*)dest;
 
     /* copy word by word */
-    while (n > 4) {
+    while (n >= 4) {
         *d = *s;
         d++;
         s++;

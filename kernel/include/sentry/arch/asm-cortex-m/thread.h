@@ -28,7 +28,7 @@ typedef struct stack_frame {
 static_assert(sizeof(stack_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
 
 
-static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc)
+static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc, size_t got)
 {
     /* on ARM, 4 first arguments are passed using registers R0 -> r3 */
     uint32_t seed = 0;
@@ -45,7 +45,7 @@ static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t 
     frame->r6 = 0x0;
     frame->r7 = 0x0;
     frame->r8 = 0x0;
-    frame->r9 = 0x0;
+    frame->r9 = got;
     frame->r10 = 0x0;
     frame->r11 = 0x0;
     frame->r12 = 0x0;

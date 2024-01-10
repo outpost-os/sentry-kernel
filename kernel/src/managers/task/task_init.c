@@ -84,7 +84,7 @@ static inline int task_cmp(const void *t1, const void *t2)
  * the kernel would 'search and copy' the tasks metadata in its own section at boot time.
  * Although, once copied, the table would store the very same content.
  */
-static const task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
+static task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
 #else
 /* UT provided */
 const task_meta_t *ut_get_task_meta_table(void);
@@ -198,10 +198,12 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     }
     /* forge local info, push back current and next afterward */
     task_table[cell].metadata = meta;
+    task_table[cell].handle = meta->handle;
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
-    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset));
+    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
+    task_table[cell].state = JOB_STATE_READY;
     mgr_mm_forge_empty_table(task_table[cell].layout);
     pr_info("[task handle %08x] task local dynamic content set", meta->handle);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
@@ -235,7 +237,8 @@ static inline kstatus_t task_init_map(task_meta_t const * const meta)
         goto err;
     }
     /* configure task data layout content */
-    if ((status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
+    status = task_set_job_layout(meta);
+    if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
     pr_info("[task handle %08x] task memory map forged", meta->handle);
@@ -300,9 +303,9 @@ static inline kstatus_t task_init_add_autotest(void)
     task_table[ctx.numtask].handle = meta->handle;
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
 #ifndef TEST_MODE
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset));
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset), 0);
 #else
-    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)ut_autotest);
+    task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)ut_autotest, 0);
 #endif
     task_table[ctx.numtask].state = JOB_STATE_READY;
 

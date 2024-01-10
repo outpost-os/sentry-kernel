@@ -56,11 +56,8 @@ SECTIONS
 
     .task_list :
     {
-        _task_num = .;
-        *(.task_list.num)
         . = ALIGN(4);
-        _task_list = .;
-        *(.task_list)
+        KEEP(*(.task_list))
         . = ALIGN(4);
         /*
          * hold all the task static metadata (signed, versioned). Can be upgraded alone.
