@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #include <uapi/uapi.h>
 
-extern size_t _s_autotest_svcexchange;
-
 /**
  * log_lexer delivered printf POSIX compliant implementation
  */
@@ -22,7 +20,7 @@ void dbgbuffer_flush(void);
 static inline void dbgbuffer_display(void)
 {
     uint16_t len = log_get_dbgbuf_offset();
-    memcpy(&_s_autotest_svcexchange, log_get_dbgbuf(), len);
+    copy_from_user(log_get_dbgbuf(), len);
     sys_log(len);
 }
 

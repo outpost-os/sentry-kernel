@@ -9,8 +9,6 @@
 #include <inttypes.h>
 #include <uapi/uapi.h>
 
-extern size_t _s_autotest_svcexchange;
-
 uint32_t __stack_chk_guard = 0;
 
 /**
