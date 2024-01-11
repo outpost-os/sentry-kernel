@@ -4,6 +4,7 @@
 #[macro_use]
 mod arch;
 
+pub mod svc_exchange;
 pub mod syscall;
 pub mod uapi;
 
