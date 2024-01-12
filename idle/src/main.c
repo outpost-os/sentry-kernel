@@ -3,7 +3,6 @@
 
 #include <string.h>
 
-extern size_t _s_idle_svcexchange;
 /**
  * @file Sentry task manager init automaton functions
  */
@@ -33,10 +32,10 @@ void __attribute__((no_stack_protector, used, noreturn)) idle(uint32_t label, ui
     /* update SSP value with given seed */
     __stack_chk_guard = seed;
 
-    memcpy(&_s_idle_svcexchange, welcommsg, 20);
+    copy_from_user(welcommsg, 20);
     sys_log(20);
 
-    memcpy(&_s_idle_svcexchange, yieldmsg, 26);
+    copy_from_user(yieldmsg, 26);
     sys_log(26);
     /* TODO: yield() first, to force task scheduling */
     sys_yield();

@@ -1,3 +1,4 @@
+use crate::svc_exchange::*;
 use crate::syscall::*;
 use bitflags::bitflags;
 use core::fmt;
@@ -17,16 +18,12 @@ impl From<ResourceHandleBits> for ResourceHandle {
     }
 }
 
-const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
-static mut SVC_EXCHANGE_AREA: [u8; SVC_EXCH_AREA_LEN] = [0u8; SVC_EXCH_AREA_LEN];
-
 struct DebugPrint;
 
 impl fmt::Write for DebugPrint {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         let max_length = s.len().min(SVC_EXCH_AREA_LEN);
-        let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..max_length] };
-        exch_area.copy_from_slice(&s.as_bytes()[..max_length]);
+        unsafe { copy_from_user(s.as_ptr(), max_length) };
         sys_log(max_length);
         Ok(())
     }

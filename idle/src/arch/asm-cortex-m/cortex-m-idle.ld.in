@@ -114,7 +114,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _s_idle_svcexchange = .;
-        . = . + 128;
+        *(.svcexchange*)
         _e_idle_svcexchange = .;        /* define a global symbol at data end */
     } > {{ idleram_section }}
 
