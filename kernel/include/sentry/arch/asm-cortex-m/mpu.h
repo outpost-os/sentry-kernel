@@ -95,4 +95,30 @@ __STATIC_FORCEINLINE void mpu_fastload(const layout_ressource_t *ressource, uint
     __DSB();
 }
 
+__STATIC_FORCEINLINE kstatus_t mpu_get_free_id(const layout_ressource_t* ressource, uint8_t num_ressources, uint8_t *id)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    for (uint8_t i = 0; i < num_ressources; ++i) {
+        if (ressource->RASR == 0x0UL) {
+            *id = (uint8_t)((ressource->RBAR & MPU_RBAR_REGION_Msk) >> MPU_RBAR_REGION_Pos);
+            status = K_STATUS_OKAY;
+            break;
+        }
+    }
+    return status;
+}
+
+__STATIC_FORCEINLINE kstatus_t mpu_get_id_from_address(const layout_ressource_t* ressource, uint8_t num_ressources, size_t addr, uint8_t *id)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    for (uint8_t i = 0; i < num_ressources; ++i) {
+        if ((ressource->RBAR & MPU_RBAR_ADDR_Msk) == addr) {
+            *id = (uint8_t)((ressource->RBAR & MPU_RBAR_REGION_Msk) >> MPU_RBAR_REGION_Pos);
+            status = K_STATUS_OKAY;
+            break;
+        }
+    }
+    return status;
+}
+
 #endif/*__ARCH_MPU_H*/

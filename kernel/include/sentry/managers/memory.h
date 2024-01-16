@@ -50,6 +50,20 @@ kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab);
 */
 kstatus_t mgr_mm_map_task(taskh_t t);
 
+/**
+ * Map a device into the associated task owner layout
+ *
+ * Do **not** handle I/O nor interrupts neither clock config
+ * (see corresponding managers for this)
+ */
+kstatus_t mgr_mm_map_device(devh_t dev);
+
+/**
+ * unmap a previously mapped device from the associated task owner layout
+ */
+kstatus_t mgr_mm_unmap_device(devh_t dev);
+
+
 kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_ressource_t *ressource);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
