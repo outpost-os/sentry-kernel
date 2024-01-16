@@ -58,6 +58,11 @@ Syscall definition
 .. include:: syscalls/log.rst
 
 .. index::
+  single: sys_map; definition
+  single: sys_map; usage
+.. include:: syscalls/map.rst
+
+.. index::
   single: sys_send_signal; definition
   single: sys_send_signal; usage
 .. include:: syscalls/send_signal.rst
