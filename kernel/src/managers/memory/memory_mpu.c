@@ -24,6 +24,7 @@
 #endif
 
 #include <sentry/managers/debug.h>
+#include <sentry/managers/device.h>
 #include <sentry/managers/task.h>
 #include <uapi/handle.h>
 
@@ -112,7 +113,7 @@ err:
 kstatus_t mgr_mm_map_task(taskh_t t)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    const layout_ressource_t *layout;
+    const layout_resource_t *layout;
     if (unlikely((status = mgr_task_get_layout_from_handle(t, &layout)) != K_STATUS_OKAY)) {
         pr_err("failed to get meta for task handle %x", t);
         goto err;
@@ -123,12 +124,87 @@ err:
     return status;
 }
 
+kstatus_t mgr_mm_unmap_device(devh_t dev)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const devinfo_t *devinfo;
+    taskh_t tsk;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    uint8_t id;
+    if (unlikely((status = mgr_task_get_device_owner(dev, &tsk)) != K_STATUS_OKAY)) {
+        pr_err("failed to get device owner for dev %x", dev);
+        goto err;
+    }
+    if (unlikely((status = mgr_device_get_info(dev, &devinfo)) != K_STATUS_OKAY)) {
+        pr_err("failed to get device meta from dev handle %x", dev);
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        pr_err("failed to get task ressource layout from task handle %x", tsk);
+        goto err;
+    }
+    if (unlikely((status = mpu_get_id_from_address(layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)devinfo->baseaddr, &id)) != K_STATUS_OKAY)) {
+        pr_err("device %x not found in mapped layout", dev);
+        goto err;
+    }
+    status = mgr_task_remove_ressource(tsk, id);
+err:
+    return status;
+}
+
+kstatus_t mgr_mm_map_device(devh_t dev)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const devinfo_t *devinfo;
+    taskh_t tsk;
+    struct mpu_region_desc mpu_cfg;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    if (unlikely((status = mgr_task_get_device_owner(dev, &tsk)) != K_STATUS_OKAY)) {
+        pr_err("failed to get device owner for dev %x", dev);
+        goto err;
+    }
+    if (unlikely((status = mgr_device_get_info(dev, &devinfo)) != K_STATUS_OKAY)) {
+        pr_err("failed to get device meta from dev handle %x", dev);
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        pr_err("failed to get task ressource layout from task handle %x", tsk);
+        goto err;
+    }
+    if (unlikely((status = mpu_get_free_id(layout_tab, TASK_MAX_RESSOURCES_NUM, &mpu_cfg.id)) != K_STATUS_OKAY)) {
+        pr_err("no free slot to map device");
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    mpu_cfg.addr = (uint32_t)devinfo->baseaddr;
+    mpu_cfg.size = mpu_convert_size_to_region(devinfo->size);
+    mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
+    mpu_cfg.access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER;
+    mpu_cfg.mask = 0x0;
+    mpu_cfg.noexec = true;
+    status = mpu_forge_ressource(&mpu_cfg, &layout);
+    /*@ assert status == K_STATUS_OKAY; */
+    if (unlikely((status = mgr_task_add_ressource(tsk, layout)) != K_STATUS_OKAY)) {
+        /* should not happen as already checked when getting free id */
+        /*@ assert false; */
+        pr_err("no free slot to map device");
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    /*@ assert status == K_STATUS_OKAY; */
+err:
+    return status;
+}
+
+
 /**
  * @brief forge an empty task memory layout
  *
  * all task memory regions are set as invalid
  */
-kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
+kstatus_t mgr_mm_forge_empty_table(layout_resource_t *ressource_tab)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(ressource_tab == NULL)) {
@@ -148,7 +224,7 @@ err:
  *
  * all task memory regions are set as invalid
  */
-kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_ressource_t *ressource)
+kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resource_t *ressource)
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     const task_meta_t *meta;

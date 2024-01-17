@@ -411,7 +411,7 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_add_ressource(taskh_t t, layout_ressource_t ressource)
+kstatus_t mgr_task_add_ressource(taskh_t t, layout_resource_t ressource)
 {
     kstatus_t status;
     task_t *cell;
@@ -425,7 +425,7 @@ kstatus_t mgr_task_add_ressource(taskh_t t, layout_ressource_t ressource)
      * userspace ressources, starting at task TXT, is always greater than MM_REGION_TASK_TXT
      */
     ressourceid = mpu_get_id_from_ressource(ressource) - MM_REGION_TASK_TXT;
-    memcpy(&cell->layout[ressourceid], &ressource, sizeof(layout_ressource_t));
+    memcpy(&cell->layout[ressourceid], &ressource, sizeof(layout_resource_t));
     status = K_STATUS_OKAY;
 err:
     return status;
@@ -449,7 +449,7 @@ err:
 }
 
 kstatus_t mgr_task_get_layout_from_handle(taskh_t t,
-                                          const layout_ressource_t **layout)
+                                          const layout_resource_t **layout)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;
