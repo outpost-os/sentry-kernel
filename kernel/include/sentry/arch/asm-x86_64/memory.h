@@ -10,7 +10,7 @@
 #include <sentry/ktypes.h>
 
 /* the opaque is mapped on u64 on x86_64 */
-typedef uint64_t layout_ressource_t;
+typedef uint64_t layout_resource_t;
 
 #define TASK_MAX_RESSOURCES_NUM (6)
 
@@ -33,13 +33,13 @@ struct mpu_region_desc {
  * NOTE: a fully portable kernel should abstract the mpu vs mmu API at task manager level
  */
 
-static inline uint8_t mpu_get_id_from_ressource(const layout_ressource_t ressource __attribute__((unused)))
+static inline uint8_t mpu_get_id_from_ressource(const layout_resource_t ressource __attribute__((unused)))
 {
     /* sample function: fixing region id to 3 here */
     return 3;
 }
 
-static inline kstatus_t mpu_forge_unmapped_ressource(uint8_t id __attribute__((unused)), layout_ressource_t* ressource)
+static inline kstatus_t mpu_forge_unmapped_ressource(uint8_t id __attribute__((unused)), layout_resource_t* ressource)
 {
     if (ressource == NULL) {
         return K_ERROR_INVPARAM;
@@ -48,7 +48,7 @@ static inline kstatus_t mpu_forge_unmapped_ressource(uint8_t id __attribute__((u
 }
 
 static inline kstatus_t mpu_forge_ressource(const struct mpu_region_desc *desc,
-                                                   layout_ressource_t *ressource)
+                                                   layout_resource_t *ressource)
 {
     if ((desc == NULL) || (ressource == NULL)) {
         return K_ERROR_INVPARAM;

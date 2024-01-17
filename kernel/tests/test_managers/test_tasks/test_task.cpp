@@ -109,10 +109,10 @@ extern "C" {
         return *t;
     }
 
-    kstatus_t mgr_mm_forge_empty_table(layout_ressource_t *ressource_tab)
+    kstatus_t mgr_mm_forge_empty_table(layout_resource_t *ressource_tab)
     {
         for (uint8_t i = 0; i < TASK_MAX_RESSOURCES_NUM; i++) {
-            memset(&ressource_tab[i], 0x0, sizeof(layout_ressource_t));
+            memset(&ressource_tab[i], 0x0, sizeof(layout_resource_t));
         }
         return K_STATUS_OKAY;
     }
@@ -127,7 +127,7 @@ extern "C" {
 
     kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type __attribute__((unused)),
                                      taskh_t t __attribute__((unused)),
-                                     layout_ressource_t *ressource __attribute__((unused)))
+                                     layout_resource_t *ressource __attribute__((unused)))
     {
         return K_STATUS_OKAY;
     }
