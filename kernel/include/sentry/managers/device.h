@@ -35,4 +35,6 @@ kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh);
 
 kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo);
 
+kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id);
+
 #endif/*SENTRY_MANAGERS_DEVICE_H*/
