@@ -33,6 +33,14 @@ kstatus_t mgr_device_autotest(void);
 
 kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh);
 
+/**
+ * Iterate over the device list, starting with id==id.
+ * Return the devinfo of the current id increment, or set devinfo to NULL and return K_ERROR_NOENT if
+ * the dev list walk is terminated
+ */
+kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id);
+
+
 kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo);
 
 kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id);

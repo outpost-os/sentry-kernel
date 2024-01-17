@@ -18,6 +18,7 @@
 #endif
 
 #include <sentry/managers/io.h>
+#include <sentry/managers/device.h>
 
 #define IOPIN_FROM_HANDLE
 
@@ -42,15 +43,35 @@ kstatus_t mgr_io_init(void)
         goto err;
     };
 #endif
-    /** XXX: hardcoded, to be set based on dts */
-    gpio_probe(0);
-    gpio_probe(1);
-    gpio_probe(2);
-    gpio_probe(3);
-    gpio_probe(4);
-    gpio_probe(5);
-    gpio_probe(6);
-
+    /*
+     *let's walk over devices to get back I/O port used, in order to probe() them
+     *  at boot. We consider that there are at most 16 GPIO ports
+     */
+    uint8_t port_to_enable[16] = {0};
+    uint8_t iterator = 0;
+    const devinfo_t *devinfo;
+    do {
+        status = mgr_device_walk(&devinfo, iterator);
+        if (status != K_STATUS_OKAY) {
+            break;
+        }
+        if (devinfo->num_ios > 0) {
+            /* device has I/O: associated GPIO port to probe */
+            for (uint8_t io = 0; io < devinfo->num_ios; ++io) {
+                /*@ assert(devinfo->ios[io].ioport < 16); */
+                /* we only flag the port for probing, to avoid multiple probe() of the same port */
+                port_to_enable[devinfo->ios[io].port] = 1;
+            }
+        }
+        ++iterator;
+    } while (status == K_STATUS_OKAY);
+    /* all ports that do have a configured pinmux in device list are flagged to 1 */
+    for (uint8_t i = 0; i < 16; ++i) {
+        if (port_to_enable[i] == 1) {
+            gpio_probe(i);
+        }
+    }
+    status = K_STATUS_OKAY;
 err:
     return status;
 }

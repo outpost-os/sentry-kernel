@@ -177,6 +177,23 @@ end:
     return status;
 }
 
+kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(devinfo == NULL)) {
+        goto end;
+    }
+    if (unlikely(id >= DEVICE_LIST_SIZE)) {
+        *devinfo = NULL;
+        status = K_ERROR_NOENT;
+        goto end;
+    }
+    *devinfo = &devices[id].devinfo;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
 static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint8_t IRQn)
 {
     secure_bool_t res = SECURE_FALSE;
