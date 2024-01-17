@@ -144,7 +144,7 @@ kstatus_t mgr_mm_unmap_device(devh_t dev)
         pr_err("failed to get task ressource layout from task handle %x", tsk);
         goto err;
     }
-    if (unlikely((status = mpu_get_id_from_address(&layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)devinfo->baseaddr, &id)) != K_STATUS_OKAY)) {
+    if (unlikely((status = mpu_get_id_from_address(layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)devinfo->baseaddr, &id)) != K_STATUS_OKAY)) {
         pr_err("device %x not found in mapped layout", dev);
         goto err;
     }

@@ -104,6 +104,7 @@ __STATIC_FORCEINLINE kstatus_t mpu_get_free_id(const layout_ressource_t* ressour
             status = K_STATUS_OKAY;
             break;
         }
+        ressource++;
     }
     return status;
 }
@@ -117,6 +118,7 @@ __STATIC_FORCEINLINE kstatus_t mpu_get_id_from_address(const layout_ressource_t*
             status = K_STATUS_OKAY;
             break;
         }
+        ressource++;
     }
     return status;
 }
