@@ -27,6 +27,13 @@ void     nvic_clear_pendingirq(uint32_t IRQn);
 uint32_t nvic_get_active(uint32_t IRQn);
 void     nvic_systemreset(void);
 
+
+/* arch-generic naming definition, aliased to above (see nvic.c) */
+void     interrupt_enable_irq(uint32_t IRQn);
+void     interrupt_disable_irq(uint32_t IRQn);
+uint32_t interrupt_get_pending_irq(uint32_t IRQn);
+void     interrupt_set_pending_irq(uint32_t IRQn);
+
 /* arch-genric API */
 inline __attribute__((always_inline)) void wait_for_interrupt(void) {
 #ifndef __FRAMAC__
@@ -86,5 +93,8 @@ static inline void interrupt_init(void) {
 static inline void system_reset(void) {
     NVIC_SystemReset();
 }
+
+
+#define NUM_IRQS __NVIC_VECTOR_LEN
 
 #endif/*NVIC_H*/

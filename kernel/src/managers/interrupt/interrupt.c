@@ -48,6 +48,44 @@ kstatus_t mgr_interrupt_init(void)
     return K_STATUS_OKAY;
 }
 
+/**
+ * @brief enable IRQ line associated to given IRQ number
+ *
+ * @param[in] irq IRQ number to enable
+ *
+ * @return K_ERROR_INVPARAM if irq is invalid on the platform, or K_STATUS_OKAY
+ */
+kstatus_t mgr_interrupt_enable_irq(uint32_t irq)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(irq >= NUM_IRQS)) {
+        goto err;
+    }
+    interrupt_enable_irq(irq);
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/**
+ * @brief disable IRQ line associated to given IRQ number
+ *
+ * @param[in] irq IRQ number to disable
+ *
+ * @return K_ERROR_INVPARAM if irq is invalid on the platform, or K_STATUS_OKAY
+ */
+kstatus_t mgr_interrupt_disable_irq(uint32_t irq)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(irq >= NUM_IRQS)) {
+        goto err;
+    }
+    interrupt_disable_irq(irq);
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_interrupt_autotest(void)
 {

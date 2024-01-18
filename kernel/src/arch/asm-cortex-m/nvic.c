@@ -230,3 +230,10 @@ request_data_membarrier();                    /* Ensure all outstanding memory a
     while (1)
         continue;               /* wait until reset */
 }
+
+
+/* arch-generic naming definition */
+void interrupt_enable_irq(uint32_t IRQn) __attribute__((alias("nvic_enableirq")));
+void interrupt_disable_irq(uint32_t IRQn) __attribute__((alias("nvic_disableirq")));
+uint32_t interrupt_get_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_get_pendingirq")));
+void     interrupt_set_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_set_pendingirq")));

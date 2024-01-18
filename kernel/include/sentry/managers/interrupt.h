@@ -23,6 +23,10 @@ static inline kstatus_t mgr_interrupt_early_init(void) {
 
 kstatus_t mgr_interrupt_init(void);
 
+kstatus_t mgr_interrupt_enable_irq(uint32_t irq);
+
+kstatus_t mgr_interrupt_disable_irq(uint32_t irq);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_interrupt_autotest(void);
 #endif
