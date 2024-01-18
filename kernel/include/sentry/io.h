@@ -30,6 +30,8 @@ extern "C" {
 #error "unsupported architecture"
 #endif
 
+#include <sentry/ktypes.h>
+
 #ifndef __cplusplus
 #if defined(__arm__)
 /** @brief Generic iowrite interface that implicitely handle multiple sizes */
@@ -195,6 +197,34 @@ static inline uint32_t ioread32(size_t addr)
 #else
     return __ioread32(addr);
 #endif
+}
+
+/**
+ * @brief poll register until all bits in bitmask are set
+ *
+ * @param addr register address
+ * @param bitmask bitmask to wait for
+ * @param nretry maximum number of try
+ *
+ * @return K_STATUS_OKAY once bitfield is set, K_ERROR_NOTREADY if nretry is reached
+ * without bitfield equality.
+ */
+static inline kstatus_t iopoll32_until_set(size_t addr, uint32_t bitmask, uint32_t nretry)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t count = 0UL;
+    uint32_t bitfield;
+
+    do {
+        bitfield = ioread32(addr) & bitmask;
+        count++;
+    } while ((bitfield != bitmask) && (count < nretry));
+
+    if (unlikely(bitfield != bitmask)) {
+        status = K_ERROR_NOTREADY;
+    }
+
+    return status;
 }
 
 #if defined(__cplusplus)
