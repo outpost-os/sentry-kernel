@@ -25,7 +25,7 @@ schedulable job list, at preemption (or termination, for FIFO scheduler) time.
 
 .. literalinclude:: ../../../kernel/include/sentry/sched.h
   :language: c
-  :lines: 32
+  :lines: 31
   :caption: schedule function API definition
 
 Electing a job
@@ -40,7 +40,7 @@ is responsible for such context switching.
 
 .. literalinclude:: ../../../kernel/include/sentry/sched.h
   :language: c
-  :lines: 43
+  :lines: 42
   :caption: election function API definition
 
 Delaying a job
@@ -50,14 +50,14 @@ A job can be delayed in order to be scheduler later on. This is typically the us
 case of the `sys_sleep()` syscall. In that case, the job is not added to the scheduler
 active queue but instead added to a separated, scheduler agnostic, delayed queue.
 
-The delaying system is responsible for detecting delay timeout, and scheduling the
+The time manager is responsible for detecting delay timeout, and scheduling the
 job afterward. The delayed job is then scheduled, not elected, meaning that it is
 not immediately executed but instead added to the current eligible job list of the
 scheduler.
 
-.. literalinclude:: ../../../kernel/include/sentry/sched.h
+.. literalinclude:: ../../../kernel/include/sentry/managers/time.h
   :language: c
-  :lines: 71
+  :lines: 24
   :caption: delaying function API definition
 
 Scheduling and job events
