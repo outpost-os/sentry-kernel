@@ -148,6 +148,35 @@ end:
     return res;
 }
 
+/**
+ * @brief get back device clock config (bus identifier and clock identifier)
+ *
+ * @param[in] d: device handler, unique to the system
+ * @param[out] clk_id: device clk identifier to set
+ * @param[out] bus_id: device bus identifier to set
+ */
+kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    if (unlikely(clk_id == NULL || bus_id == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    /*@ assert \valid(clk_id); */
+    /*@ assert \valid(bus_id); */
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
+            handle_convert_to_u32(d)) {
+                *clk_id = devices_state[i].device->clk_id;
+                *bus_id = devices_state[i].device->bus_id;
+                status = K_STATUS_OKAY;
+                goto end;
+        }
+    }
+end:
+    return status;
+}
+
 static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint8_t IRQn)
 {
     secure_bool_t res = SECURE_FALSE;
