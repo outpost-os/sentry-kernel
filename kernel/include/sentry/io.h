@@ -8,10 +8,6 @@
 #ifndef IO_H
 #define IO_H
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -31,6 +27,10 @@ extern "C" {
 #endif
 
 #include <sentry/ktypes.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #ifndef __cplusplus
 #if defined(__arm__)

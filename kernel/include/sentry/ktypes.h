@@ -7,8 +7,6 @@
 /**
  * \file sentry kernel generic types
  */
-#include <assert.h>
-#include <inttypes.h>
 
 /*
  * INFO: the way atomics are manipulated is not the same in C (kernel build)
@@ -16,17 +14,24 @@
  * atomic types definitions and model is not the same and thus require to
  * detect the context of this header (c++ ABI vs c ABI)
  */
-#ifdef __cplusplus
+#if defined(__cplusplus)
   #include <atomic>
   using std::atomic_int;
   using std::memory_order;
   using std::memory_order_acquire;
 #else /* not __cplusplus */
   #include <stdatomic.h>
-#endif /* __cplusplus */
+#endif /* defined(__cplusplus) */
+
+#include <assert.h>
+#include <inttypes.h>
 
 #include <stddef.h>
 #include <stdint.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef enum secure_bool {
     SECURE_TRUE   = 0x5aa33FFu,
@@ -167,4 +172,8 @@ typedef enum kstatus {
     K_SECURITY_INTEGRITY,
 } kstatus_t;
 
-#endif/*KTYPES_H*/
+#if defined(__cplusplus)
+} /* extern "C" */
+#endif
+
+#endif /* KTYPES_H */
