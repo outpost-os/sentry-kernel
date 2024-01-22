@@ -100,7 +100,27 @@ config SOC_SUBFAMILY_STM32L47_8x
 	help
 	  "STM32L47x/L48x soc sub family"
 
+config SOC_SUBFAMILY_STM32L49_Ax
+	bool
+	help
+	  "STM32L49x/L4Ax soc sub family"
+
 config SOC_SUBFAMILY_STM32U5
+	bool
+
+config SOC_SUBFAMILY_STM32U535_545
+	bool
+
+config SOC_SUBFAMILY_STM32U535_545
+	bool
+
+config SOC_SUBFAMILY_STM32U575_585
+	bool
+
+config SOC_SUBFAMILY_STM32U59_Ax
+	bool
+
+config SOC_SUBFAMILY_STM32U5F_Gx
 	bool
 
 config SOC_SUBFAMILY_STM32WB
@@ -109,12 +129,9 @@ config SOC_SUBFAMILY_STM32WB
 config ARCH_ARM_CORTEX_NAME
     string
 	default "m4" if ARCH_MCU_STM32WB55
-	default "m4" if ARCH_MCU_STM32F401
-	default "m4" if ARCH_MCU_STM32F439
-	default "m4" if ARCH_MCU_STM32F429
-	default "m4" if ARCH_MCU_STM32F419
-	default "m4" if ARCH_MCU_STM32L476
-	default "m33" if ARCH_MCU_STM32U5
+	default "m4" if SOC_SUBFAMILY_STM32F4
+	default "m4" if SOC_SUBFAMILY_STM32L4
+	default "m33" if SOC_SUBFAMILY_STM32U5
 
 config ARCH_SOCNAME
 	string
@@ -125,25 +142,13 @@ config ARCH_SOCNAME
 	default "STM32F429" if ARCH_MCU_STM32F429
 	default "STM32F439" if ARCH_MCU_STM32F439
 	default "STM32L476" if ARCH_MCU_STM32L476
-	default "STM32U5" if ARCH_MCU_STM32U5
+	default "STM32U5A5" if ARCH_MCU_STM32U5A5
 
 # User-accessible selectors
 
 choice
 	bool "target SoC selection"
 	default ARCH_MCU_STM32F439
-
-config ARCH_MCU_STM32U5
-	bool "STM32U5"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV8M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_FPV5
-	select HAS_RNG
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32U5
 
 config ARCH_MCU_STM32F439
 	bool "STM32F439"
@@ -219,6 +224,19 @@ config ARCH_MCU_STM32L476
 	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32L4
 	select SOC_SUBFAMILY_STM32L47_8x
+
+config ARCH_MCU_STM32U5A5
+	bool "STM32U5A5"
+	select ARCH_ARM_CORTEX_M
+	select ARCH_ARM_ARMV8M
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_FPU
+	select HAS_FPU_FPV5
+	select HAS_RNG
+	select SOC_FAMILY_STM32
+	select SOC_SUBFAMILY_STM32U5
+	select SOC_SUBFAMILY_STM32U59_Ax
 
 endchoice
 
