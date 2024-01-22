@@ -8,17 +8,19 @@
 #error "this header should not be included in SoCs others than STM32F4 family"
 #endif
 
+#include <sentry/ktypes.h>
+
 /**
  * @brief stm32f4xx PLL and clocks range
  * @see: RM0368 Section 6 (stm32f401), RM0090 Section 6 (stm32f42xx/f43xx) & 7 (stm32f405/407/415/417)
  */
 #define RCC_PLL_VCO_DIVIDER_RANGE RANGE(2,63)
 #define RCC_PLL_VCO_INPUT_FREQUENCY_RANGE RANGE(1*MEGA, 2*MEGA)
-#define RCC_PLL_USB_DIVIDER_RANGE RANGE(2,15)
-#define RCC_PLL_SYSCLK_DIVIDER_RANGE RANGE(2,8)
+#define RCC_PLL_Q_DIVIDER_RANGE RANGE(2,15)
+#define RCC_PLL_P_DIVIDER_RANGE RANGE(2,8)
 #define RCC_PLL_AHB_PRESCALER_RANGE RANGE(0,9)
 #define RCC_PLL_APB_PRESCALER_RANGE RANGE(0,4)
-#define RCC_PLL_USB_OUTPUT_FREQUENCY_MAX 48*MEGA
+#define RCC_PLL_Q_OUTPUT_FREQUENCY_MAX 48*MEGA
 
 /*
  * maximum system core clock depends on power scale and/or overdrive
@@ -28,21 +30,21 @@
 #if defined(CONFIG_ARCH_MCU_STM32F401)
 # define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(192,432)
 # define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(192*MEGA,432*MEGA)
-# define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 84*MEGA
+# define RCC_PLL_P_OUTPUT_FREQUENCY_MAX 84*MEGA
 # define RCC_APB1_BUS_FREQUENCY_MAX 42*MEGA
 # define RCC_APB2_BUS_FREQUENCY_MAX 84*MEGA
-# define RCC_SYSCLOCK_FREQUENCY_MAX 60*MEGA
+# define RCC_SYSCLOCK_FREQUENCY_MAX 84*MEGA
 #elif defined(CONFIG_SOC_SUBFAMILY_STM32F4) /* XXX: Other F4 family soc */
 # define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(50,432)
 # define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(100*MEGA,432*MEGA)
 # if defined(SOC_SUBFAMILY_STM32F4x5_7)
-#  define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 180*MEGA
+#  define RCC_PLL_P_OUTPUT_FREQUENCY_MAX 180*MEGA
 #  define RCC_APB1_BUS_FREQUENCY_MAX 45*MEGA
 #  define RCC_APB2_BUS_FREQUENCY_MAX 90*MEGA
 /* 180MHz sysclock need overdrive and pwr domain support */
 #  define RCC_SYSCLOCK_FREQUENCY_MAX 168*MEGA
 # else
-#  define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 168*MEGA
+#  define RCC_PLL_P_OUTPUT_FREQUENCY_MAX 168*MEGA
 #  define RCC_APB1_BUS_FREQUENCY_MAX 42*MEGA
 #  define RCC_APB2_BUS_FREQUENCY_MAX 84*MEGA
 #  define RCC_SYSCLOCK_FREQUENCY_MAX 168*MEGA
@@ -76,6 +78,81 @@
 #define RCC_PLLCFGR_PLLQ_MASK (RCC_PLLCFGR_PLLQ0 | RCC_PLLCFGR_PLLQ1 | \
                             RCC_PLLCFGR_PLLQ2 | RCC_PLLCFGR_PLLQ3)
 
+
+#define RCC_PLLCFG_CLR_MASK ( \
+    RCC_PLLCFGR_PLLQ_MASK | \
+    RCC_PLLCFGR_PLLP_MASK | \
+    RCC_PLLCFGR_PLLM_MASK | \
+    RCC_PLLCFGR_PLLN_MASK | \
+    RCC_PLLCFGR_PLLSRC \
+)
+
+{#- There is only one main PLL for stm32f4xx families #}
+{%- set pll = dts.get_compatible("st,stm32f4xx-pll")[0] %}
+{%- if pll is not none and pll.status == "okay"%}
+
+#define RCC_PLL_STATUS_OKAY
+
+{%- set pll_vco_m_div = pll.vco_m_div %}
+{%- set pll_vco_n_mul = pll.vco_n_mul %}
+{%- set pll_p_div, pll_q_div = pll.pq_div %}
+
+#define RCC_PLL_VCO_DIVIDER     {{ pll_vco_m_div|int }}UL
+#define RCC_PLL_VCO_MULTIPLIER  {{ pll_vco_n_mul|int }}UL
+#define RCC_PLL_P_DIVIDER       {{ pll_p_div|int }}UL
+#define RCC_PLL_Q_DIVIDER       {{ pll_q_div|int }}UL
+
+{%- set pll_clock_source = pll.clocks %}
+{%- if pll_clock_source.label != "clk_hsi" and pll_clock_source.label != "clk_hse" %}
+#error "invalid PLL ({{ pll_clock_source.label }}) source configuration, check project dts file"
+{%- endif %}
+
+{%- set pll_input_freq = pll_clock_source['clock-frequency'] %}
+#define RCC_PLL_INPUT_FREQUENCY  {{ pll_input_freq|int }}UL
+
+{%- set pll_vco_input_frequency = pll_input_freq / pll_vco_m_div %}
+#define RCC_PLL_VCO_IN_FREQUENCY {{ pll_vco_input_frequency|int }}UL
+
+{%- set pll_vco_output_frequency = pll_vco_input_frequency * pll_vco_n_mul %}
+#define RCC_PLL_VCO_OUT_FREQUENCY {{ pll_vco_output_frequency|int }}UL
+
+#define RCC_PLL_P_OUT_FREQUENCY {{ (pll_vco_output_frequency / pll_p_div)|int }}UL
+#define RCC_PLL_Q_OUT_FREQUENCY {{ (pll_vco_output_frequency / pll_q_div)|int }}UL
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_p_factor(void)
+{
+    /* value cannot be out of range as there is static assert on these */
+    uint32_t value = (RCC_PLL_P_DIVIDER >> 1) - 1;
+    return ((value << RCC_PLLCFGR_PLLP_SHIFT) & RCC_PLLCFGR_PLLP_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_q_factor(void)
+{
+    return  ((RCC_PLL_Q_DIVIDER << RCC_PLLCFGR_PLLQ_SHIFT) & RCC_PLLCFGR_PLLQ_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_m_factor(void)
+{
+    return ((RCC_PLL_VCO_DIVIDER << RCC_PLLCFGR_PLLM_SHIFT) & RCC_PLLCFGR_PLLM_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_n_factor(void)
+{
+        return ((RCC_PLL_VCO_MULTIPLIER << RCC_PLLCFGR_PLLN_SHIFT) & RCC_PLLCFGR_PLLN_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_input(void)
+{
+    {%- if pll_clock_source == "clk_hse" %}
+    /* hse as pll source */
+    return  RCC_PLLCFGR_PLLSRC;
+    {%- else %}
+    /* hsi as pll source */
+    return 0UL;
+    {%- endif %}
+}
+
+{%- endif %}
 
 kstatus_t rcc_select_system_clock(void);
 

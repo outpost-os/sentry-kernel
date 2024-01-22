@@ -13,27 +13,168 @@
  * @see: RM0351 Section 6 (stm32l47x and stm32l49x)
  */
 #define RCC_PLL_VCO_DIVIDER_RANGE RANGE(1,8)
+#define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(8,86)
+#define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(64*MEGA,344*MEGA)
 #define RCC_PLL_VCO_INPUT_FREQUENCY_RANGE RANGE(4*MEGA, 16*MEGA)
-#define RCC_PLL_USB_DIVIDER_RANGE RANGE(2,8)
-#define RCC_PLL_SYSCLK_DIVIDER_RANGE RANGE(1,8)
+#define RCC_PLL_Q_DIVIDER_RANGE RANGE(2,8)
+#define RCC_PLL_R_DIVIDER_RANGE RANGE(2,8)
 #define RCC_PLL_AHB_PRESCALER_RANGE RANGE(0,9)
 #define RCC_PLL_APB_PRESCALER_RANGE RANGE(0,4)
-#define RCC_PLL_USB_OUTPUT_FREQUENCY_MAX 48*MEGA
+#define RCC_PLL_P_OUTPUT_FREQUENCY_MAX 80*MEGA
+#define RCC_PLL_Q_OUTPUT_FREQUENCY_MAX 48*MEGA
+#define RCC_PLL_R_OUTPUT_FREQUENCY_MAX 80*MEGA
+#define RCC_APB1_BUS_FREQUENCY_MAX 80*MEGA
+#define RCC_APB2_BUS_FREQUENCY_MAX 80*MEGA
+#define RCC_SYSCLOCK_FREQUENCY_MAX 80*MEGA
 
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L47_8x)
-# define RCC_PLL_VCO_MULTIPLIER_RANGE RANGE(8,86)
-# define RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE RANGE(64*MEGA,344*MEGA)
-# define RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX 80*MEGA
-# define RCC_APB1_BUS_FREQUENCY_MAX 80*MEGA
-# define RCC_APB2_BUS_FREQUENCY_MAX 80*MEGA
-# define RCC_SYSCLOCK_FREQUENCY_MAX 80*MEGA
+/*
+ * XXX:
+ *  [0,1] are special value here, it means 7 or 17, this is hardcoded
+ */
+# define RCC_PLL_P_DIVIDER_RANGE RANGE(0,1)
+#elif defined(CONFIG_SOC_SUBFAMILY_STM32L49_Ax)
+/*
+ * XXX:
+ *  [0,1] are special value here, it means 7 or 17, this is hardcoded
+ *  other value > 1 are the P output divider
+ */
+# define RCC_PLL_P_DIVIDER_RANGE RANGE(0,31)
 #endif
 
+/*
+ * FIXME:
+ *  generate XXXX_SHIFT and XXXX_MASK even for 1 bit wide field
+ */
 #define RCC_PLLCFGR_PLLP_SHIFT (17UL)
 #define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP)
 
-/* in L4 family CIR register is denoted CICR (interrupt clear register)*/
+#define RCC_PLLCFG_CLR_MASK ( \
+    RCC_PLLCFGR_PLLP_MASK | \
+    RCC_PLLCFGR_PLLPDIV_MASK | \
+    RCC_PLLCFGR_PLLQ_MASK | \
+    RCC_PLLCFGR_PLLM_MASK | \
+    RCC_PLLCFGR_PLLN_MASK | \
+    RCC_PLLCFGR_PLLSRC_MASK | \
+    RCC_PLLCFGR_PLLPEN | \
+    RCC_PLLCFGR_PLLQEN | \
+    RCC_PLLCFGR_PLLREN \
+)
+
+/*
+ * TODO:
+ *  For all driver, provide a force inline helper for this, mapping, register, etc. are soc family dependant
+ * in L4 family CIR register is denoted CICR (interrupt clear register) --> there is mistake here
+ */
 #define RCC_CIR_REG RCC_CICR_REG
+
+{#- There is only one main PLL for stm32f4xx families #}
+{%- set pll = dts.get_compatible("st,stm32l4xx-pll")[0] %}
+{%- if pll is not none and pll.status == "okay"%}
+
+#define RCC_PLL_STATUS_OKAY
+
+{%- set pll_vco_m_div = pll.vco_m_div %}
+{%- set pll_vco_n_mul = pll.vco_n_mul %}
+{%- set pll_p_div, pll_q_div, pll_r_div  = pll.pqr_div|map('int')|list %}
+
+{#- Handle special value for p_div in range(0,1) #}
+{%- set pll_p_div_fixup = (pll_p_div == 0)|ternary(7, (pll_p_div == 1)|ternary(17, pll_p_div)) %}
+
+#define RCC_PLL_VCO_DIVIDER     {{ pll_vco_m_div|int }}UL
+#define RCC_PLL_VCO_MULTIPLIER  {{ pll_vco_n_mul|int }}UL
+#define RCC_PLL_P_DIVIDER       {{ pll_p_div|int }}UL
+#define RCC_PLL_Q_DIVIDER       {{ pll_q_div|int }}UL
+#define RCC_PLL_R_DIVIDER       {{ pll_r_div|int }}UL
+
+{%- set pll_clock_source = pll.clocks %}
+{%- if pll_clock_source.label != "clk_hsi" and
+       pll_clock_source.label != "clk_hse" and
+       pll_clock_source.label != "clk_msi"
+%}
+#error "invalid PLL input clock ({{ pll_clock_source.label }}), check project dts file"
+{%- endif %}
+
+{%- set pll_input_freq = pll_clock_source['clock-frequency'] %}
+#define RCC_PLL_INPUT_FREQUENCY  {{ pll_input_freq|int }}UL
+
+{%- set pll_vco_input_frequency = pll_input_freq / pll_vco_m_div %}
+#define RCC_PLL_VCO_IN_FREQUENCY {{ pll_vco_input_frequency|int }}UL
+
+{%- set pll_vco_output_frequency = pll_vco_input_frequency * pll_vco_n_mul %}
+#define RCC_PLL_VCO_OUT_FREQUENCY {{ pll_vco_output_frequency|int }}UL
+
+#define RCC_PLL_P_OUT_FREQUENCY {{ (pll_vco_output_frequency / pll_p_div_fixup)|int }}UL
+#define RCC_PLL_Q_OUT_FREQUENCY {{ (pll_vco_output_frequency / pll_q_div)|int }}UL
+#define RCC_PLL_R_OUT_FREQUENCY {{ (pll_vco_output_frequency / pll_r_div)|int }}UL
+
+/**
+ * @brief return the bits for p and and extra pdiv field for stm32l4xxx serie
+ * @see: RM0351 rev10 reference manual, paragraph 6.4.4, p229/230
+ *
+ * For stm32l47x/48x there is only one bit `PPLP` wich divide by 7 if cleared, 17 if setted
+ * For stm32l49x/4Ax there is an extra bitfield PLLPDIV:
+ *  - PPLPDIV == 0, P output div controlled by PLLP (same as above)
+ *  - PPLPDIV == 1, reserved
+ *  - PLLPDIV ∈ [2,31], P output divisor, PLLP is ignored.
+ */
+__STATIC_INLINE uint32_t stm32x4_pllcfg_p_factor(void)
+{
+    /* value cannot be out of range as there is static assert on these */
+    uint32_t value = RCC_PLL_P_DIVIDER == 1 ? RCC_PLLCFGR_PLLP : 0;
+
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L49_Ax)
+    if (RCC_PLL_P_DIVIDER > 1) {
+        value |= (RCC_PLL_P_DIVIDER << RCC_PLLCFGR_PLLPDIV_SHIFT) & RCC_PLLCFGR_PLLPDIV_MASK;
+    }
+#endif
+
+    return value;
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_q_factor(void)
+{
+    /* value cannot be out of range as there is static assert on these */
+    uint32_t value = (RCC_PLL_Q_DIVIDER >> 1) - 1;
+    return ((value << RCC_PLLCFGR_PLLQ_SHIFT) & RCC_PLLCFGR_PLLQ_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_r_factor(void)
+{
+    /* value cannot be out of range as there is static assert on these */
+    uint32_t value = (RCC_PLL_R_DIVIDER >> 1) - 1;
+    return ((value << RCC_PLLCFGR_PLLR_SHIFT) & RCC_PLLCFGR_PLLR_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_m_factor(void)
+{
+    return ((RCC_PLL_VCO_DIVIDER << RCC_PLLCFGR_PLLM_SHIFT) & RCC_PLLCFGR_PLLM_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_n_factor(void)
+{
+        return ((RCC_PLL_VCO_MULTIPLIER << RCC_PLLCFGR_PLLN_SHIFT) & RCC_PLLCFGR_PLLN_MASK);
+}
+
+__STATIC_INLINE uint32_t stm32x4_pllcfg_input(void)
+{
+    {%- if pll_clock_source.label == "clk_msi" %}
+    /* msi as pll source */
+    return (0b01UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
+    {%- elif pll_clock_source.label == "clk_hsi" %}
+    /* hsi16 as pll source */
+    return (0b10UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
+    {%- elif pll_clock_source.label == "clk_hse" %}
+    /* hse as pll source */
+    return (0b11UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
+    {%- else %}
+    #warning "No PLL input selected, falling back to HSI osc ! check DTS file please"
+    /* hsi16 as pll source by default*/
+    return (0b10UL << RCC_PLLCFGR_PLLSRC_SHIFT) & RCC_PLLCFGR_PLLSRC_MASK;
+    {%- endif %}
+}
+
+{%- endif %}
 
 kstatus_t rcc_select_system_clock(void);
 

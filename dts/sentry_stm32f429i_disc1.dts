@@ -61,13 +61,14 @@
 	status = "okay";
 };
 
+/* TODO: checks binding, this is our very own property for plls */
 &pll {
-	vco_divider = <8>;
-	vco_multiplier = <144>;
-	main_divider = <2>;
-	usb_divider = <6>;
+	vco_m_div = <8>;
+	vco_n_mul = <144>;
+	pq_div = <2>, <6>;
 	clocks = <&clk_hsi>;
 	status = "okay";
+	compatible = "st,stm32f4xx-pll";
 };
 
 &flash {

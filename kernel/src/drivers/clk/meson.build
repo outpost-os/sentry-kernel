@@ -7,6 +7,7 @@
 # this header is dynamically generated for the currently built platform. The driver
 # source (C file) is selected automatically, but all driver sources include the
 # very same header name, generated from corresponding svd
+
 rcc_h = custom_target('gen_rcc',
     input: peripheral_defs_in,
     output: '@0@_defs.h'.format('rcc'),
@@ -31,6 +32,10 @@ stm32_rcc_dt_h = dtsgen.process(stm32_rcc_dt_h_template)
 sentry_private_gen_source_set.add(stm32_rcc_c, stm32_rcc_dt_c)
 sentry_private_gen_header_set.add(stm32_rcc_h, stm32_rcc_dt_h)
 endif
+
+# XXX: there is no OR clause in source set
+sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32x4-pll.c'))
+sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32x4-pll.c'))
 
 # per subfamily RCC additions
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1

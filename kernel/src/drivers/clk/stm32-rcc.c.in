@@ -43,37 +43,6 @@
 {%- endif %}
 /* TODO High Speed External xtal !*/
 
-{%- if dts.clocks.pll.status == "okay" %}
-{%- set pll_clock_source = dts.clocks.pll.clocks %}
-{%- if pll_clock_source.label != "clk_hsi" and pll_clock_source.label != "clk_hse" %}
-#error "invalid PLL ({{ pll_clock_source.label }}) source configuration, check project dts file"
-{%- endif %}
-
-static_assert(IN_RANGE(RCC_PLL_VCO_DIVIDER, RCC_PLL_VCO_DIVIDER_RANGE), "VCO divider out of range");
-static_assert(IN_RANGE(RCC_PLL_VCO_MULTIPLIER, RCC_PLL_VCO_MULTIPLIER_RANGE), "VCO multiplier out of range");
-static_assert(IN_RANGE(RCC_PLL_USB_DIVIDER, RCC_PLL_USB_DIVIDER_RANGE), "invalid pll usb configuration");
-static_assert(IN_RANGE(RCC_PLL_SYSCLK_DIVIDER, RCC_PLL_SYSCLK_DIVIDER_RANGE), "Pll main divider out of range");
-static_assert((RCC_PLL_SYSCLK_DIVIDER % 2) == 0, "Pll main divider must be even");
-
-{%- set pll_input_freq = pll_clock_source['clock-frequency'] %}
-#define RCC_PLL_INPUT_FREQUENCY  {{ pll_input_freq|int }}UL
-
-{%- set pll_vco_input_frequency = pll_input_freq / dts.clocks.pll.vco_divider %}
-#define RCC_PLL_VCO_IN_FREQUENCY {{ pll_vco_input_frequency|int }}UL
-static_assert(IN_RANGE(RCC_PLL_VCO_IN_FREQUENCY, RCC_PLL_VCO_INPUT_FREQUENCY_RANGE), "VCO IN frequency invalid, check configuration");
-
-{%- set pll_vco_output_frequency = pll_vco_input_frequency * dts.clocks.pll.vco_multiplier %}
-#define RCC_PLL_VCO_OUT_FREQUENCY {{ pll_vco_output_frequency|int }}UL
-static_assert(IN_RANGE(RCC_PLL_VCO_OUT_FREQUENCY, RCC_PLL_VCO_OUTPUT_FREQUENCY_RANGE), "VCO OUT frequency, check configuration");
-
-#define RCC_PLLCLK_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.main_divider)|int }}UL
-static_assert(RCC_PLLCLK_FREQUENCY <= RCC_PLL_MAIN_OUTPUT_FREQUENCY_MAX, "PLL output fequency out of range");
-
-#define RCC_PLLUSB_FREQUENCY    {{ (pll_vco_output_frequency / dts.clocks.pll.usb_divider)|int }}UL
-static_assert(RCC_PLLUSB_FREQUENCY <= RCC_PLL_USB_OUTPUT_FREQUENCY_MAX, "PLL USB output fequency out of range");
-{%- endif %} {#- endif dts.clocks.pll.status == "okay" #}
-
-
 {%- if dts.rcc.status == "okay" %}
 #define RCC_SYSTEM_CLOCK_FREQUENCY {{ dts.rcc["clock-frequency"]|int }}UL
 {%- set rcc_clock_source = dts.rcc.clocks %}

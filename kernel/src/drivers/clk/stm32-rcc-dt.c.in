@@ -18,7 +18,7 @@ static const stm32_rcc_desc_t stm32_rcc[] = {
     {} /* sentinel */
 };
 
-const stm32_rcc_desc_t * stm32_rcc_get_desc(void)
+const stm32_rcc_desc_t *stm32_rcc_get_desc(void)
 {
     return &stm32_rcc[0];
 }
