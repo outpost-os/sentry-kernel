@@ -11,6 +11,6 @@ typedef struct stm32_rcc_desc {
     size_t   size;      /**< IP size */
 } stm32_rcc_desc_t;
 
-const stm32_rcc_desc_t * stm32_rcc_get_desc(void);
+const stm32_rcc_desc_t *stm32_rcc_get_desc(void);
 
 #endif /* __STM32_RCC_DT_GENERATED_H */

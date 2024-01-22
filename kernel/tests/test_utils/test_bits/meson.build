@@ -5,7 +5,10 @@ test_bits = executable(
     'test_bits',
     sources: files('test_bits.cpp'),
     include_directories: kernel_inc,
-    cpp_args: '-DTEST_MODE=1',
+    cpp_args: [
+        '-DTEST_MODE=1',
+        '-Wno-pedantic',
+    ],
     c_args: '-DTEST_MODE=1',
     dependencies: [gtest_main ],
     link_language: 'cpp',

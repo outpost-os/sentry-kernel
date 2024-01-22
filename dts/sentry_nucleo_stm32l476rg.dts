@@ -66,12 +66,12 @@
 };
 
 &pll {
-	vco_divider = <2>;
-	vco_multiplier = <8>;
-	main_divider = <2>;
-	usb_divider = <3>;
+	vco_m_div = <2>;
+	vco_n_mul = <36>;
+	pqr_div = <0>, <6>, <4>;
 	clocks = <&clk_hsi>;
 	status = "okay";
+	compatible = "st,stm32l4xx-pll";
 };
 
 &flash {
@@ -87,7 +87,7 @@
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(48)>;
+	clock-frequency = <DT_FREQ_M(72)>;
 	bus-prescalers = <1>, <2>, <2>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";

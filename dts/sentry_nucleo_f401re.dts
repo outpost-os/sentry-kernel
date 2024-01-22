@@ -70,13 +70,14 @@
 	status = "okay";
 };
 
+/* TODO: checks binding, this is our very own property for plls */
 &pll {
-	vco_divider = <10>;
-	vco_multiplier = <225>;
-	main_divider = <6>;
-	usb_divider = <8>;
+	vco_m_div = <10>;
+	vco_n_mul = <210>;
+	pq_div = <4>, <7>;
 	clocks = <&clk_hsi>;
 	status = "okay";
+	compatible = "st,stm32f4xx-pll";
 };
 
 &flash {
@@ -86,7 +87,7 @@
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(60)>;
+	clock-frequency = <DT_FREQ_M(84)>;
 	bus-prescalers = <0>, <1>, <0>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
