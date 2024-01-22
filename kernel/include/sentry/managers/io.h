@@ -10,26 +10,27 @@
 
 #include <sentry/ktypes.h>
 #include <uapi/handle.h>
+#include <uapi/device.h>
 
 kstatus_t mgr_io_init(void);
 
-kstatus_t mgr_io_set(ioh_t ioh);
+kstatus_t mgr_io_set(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_reset(ioh_t ioh);
+kstatus_t mgr_io_reset(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_read(ioh_t ioh, bool *val);
+kstatus_t mgr_io_read(uint8_t ioport, uint8_t iopin, bool *val);
 
-kstatus_t mgr_io_configure(ioh_t ioh);
+kstatus_t mgr_io_configure(io_info_t io);
 
-kstatus_t mgr_io_mask_interrupt(ioh_t ioh);
+kstatus_t mgr_io_mask_interrupt(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_unmask_interrupt(ioh_t ioh);
+kstatus_t mgr_io_unmask_interrupt(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_mask_event(ioh_t ioh);
+kstatus_t mgr_io_mask_event(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_unmask_event(ioh_t ioh);
+kstatus_t mgr_io_unmask_event(uint8_t ioport, uint8_t iopin);
 
-kstatus_t mgr_io_clear_pending_interrupt(ioh_t ioh);
+kstatus_t mgr_io_clear_pending_interrupt(uint8_t ioport, uint8_t iopin);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_io_autotest(void);
