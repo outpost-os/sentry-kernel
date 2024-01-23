@@ -33,35 +33,36 @@ extern __irq_handler_t __vtor_table[];
 */
 stack_frame_t *svc_handler_rs(stack_frame_t *frame);
 
-void dump_frame(stack_frame_t *frame)
+/**
+ * NOTE: the frame dump just do nothing (pr_ are empty macros) in release mode
+ */
+static inline void dump_frame(stack_frame_t *frame)
 {
-#ifndef CONFIG_BUILD_TARGET_RELEASE
     uint32_t msp, psp;
-    pr_debug("== frame info");
-    pr_debug("r0\t\t%08x\t\t%08d", frame->r0, frame->r0);
-    pr_debug("r1\t\t%08x\t\t%08d", frame->r1, frame->r1);
-    pr_debug("r2\t\t%08x\t\t%08d", frame->r2, frame->r2);
-    pr_debug("r3\t\t%08x\t\t%08d", frame->r3, frame->r3);
-    pr_debug("r4\t\t%08x\t\t%08d", frame->r4, frame->r4);
-    pr_debug("r5\t\t%08x\t\t%08d", frame->r5, frame->r5);
-    pr_debug("r6\t\t%08x\t\t%08d", frame->r6, frame->r6);
-    pr_debug("r7\t\t%08x\t\t%08d", frame->r7, frame->r7);
-    pr_debug("r8\t\t%08x\t\t%08d", frame->r8, frame->r8);
-    pr_debug("r9\t\t%08x\t\t%08d", frame->r9, frame->r9);
-    pr_debug("r10\t\t%08x\t\t%08d", frame->r10, frame->r10);
-    pr_debug("r11\t\t%08x\t\t%08d", frame->r11, frame->r11);
-    pr_debug("r12\t\t%08x\t\t%08d", frame->r12, frame->r12);
-    pr_debug("lr\t\t%08x\t\t%08d", frame->lr, frame->lr);
-    pr_debug("pc\t\t%08x\t\t%08d", frame->pc, frame->pc);
-    pr_debug("prev_lr\t%08x\t\t%08d", frame->prev_lr, frame->prev_lr);
-    pr_debug("xpsr\t%08x\t\t%08d", frame->xpsr, frame->xpsr);
+    pr_emerg("== frame info");
+    pr_emerg("r0\t\t%08x\t\t%08d", frame->r0, frame->r0);
+    pr_emerg("r1\t\t%08x\t\t%08d", frame->r1, frame->r1);
+    pr_emerg("r2\t\t%08x\t\t%08d", frame->r2, frame->r2);
+    pr_emerg("r3\t\t%08x\t\t%08d", frame->r3, frame->r3);
+    pr_emerg("r4\t\t%08x\t\t%08d", frame->r4, frame->r4);
+    pr_emerg("r5\t\t%08x\t\t%08d", frame->r5, frame->r5);
+    pr_emerg("r6\t\t%08x\t\t%08d", frame->r6, frame->r6);
+    pr_emerg("r7\t\t%08x\t\t%08d", frame->r7, frame->r7);
+    pr_emerg("r8\t\t%08x\t\t%08d", frame->r8, frame->r8);
+    pr_emerg("r9\t\t%08x\t\t%08d", frame->r9, frame->r9);
+    pr_emerg("r10\t\t%08x\t\t%08d", frame->r10, frame->r10);
+    pr_emerg("r11\t\t%08x\t\t%08d", frame->r11, frame->r11);
+    pr_emerg("r12\t\t%08x\t\t%08d", frame->r12, frame->r12);
+    pr_emerg("lr\t\t%08x\t\t%08d", frame->lr, frame->lr);
+    pr_emerg("pc\t\t%08x\t\t%08d", frame->pc, frame->pc);
+    pr_emerg("prev_lr\t%08x\t\t%08d", frame->prev_lr, frame->prev_lr);
+    pr_emerg("xpsr\t%08x\t\t%08d", frame->xpsr, frame->xpsr);
     asm volatile (
         "mrs %0, msp\r\n"   /* r0 <- MSP */
         "mrs %1, psp\r\n"   /* or r0 <- PSP (process stack) */
     : "=r" (msp), "=r" (psp) ::);
-    pr_debug("msp\t\t%08x\t\t%08d", msp, msp);
-    pr_debug("psp\t\t%08x\t\t%08d", psp, psp);
-#endif
+    pr_emerg("msp\t\t%08x\t\t%08d", msp, msp);
+    pr_emerg("psp\t\t%08x\t\t%08d", psp, psp);
 }
 
 __STATIC_FORCEINLINE secure_bool_t is_userspace_fault(stack_frame_t *frame) {
@@ -98,14 +99,14 @@ extern  __attribute__((noreturn)) void _entrypoint();
 
 __STATIC_FORCEINLINE __attribute__((noreturn)) void hardfault_handler(stack_frame_t *frame)
 {
-    pr_debug("Hardfault!!!");
+    pr_emerg("Hardfault!!!");
     if ((SCB->HFSR) & SCB_HFSR_FORCED_Pos) {
-        pr_debug("hardfault forced (escalation)");
+        pr_emerg("hardfault forced (escalation)");
     } else {
-        pr_debug("direct hardfault, no escalation");
+        pr_emerg("direct hardfault, no escalation");
     }
     if ((SCB->HFSR) & SCB_HFSR_VECTTBL_Pos) {
-        pr_debug("Bus fault during vector table read.");
+        pr_emerg("Bus fault during vector table read.");
     }
 #if defined(CONFIG_BUILD_TARGET_DEBUG)
     #if 0
@@ -123,24 +124,24 @@ __STATIC_FORCEINLINE stack_frame_t *usagefault_handler(stack_frame_t *frame)
 {
     stack_frame_t *newframe = frame;
     size_t cfsr = SCB->CFSR;
-    pr_debug("Usagefault!!!");
+    pr_emerg("Usagefault!!!");
     if (cfsr & SCB_CFSR_UNDEFINSTR_Msk) {
-        pr_debug("Undefined instruction!");
+        pr_emerg("Undefined instruction!");
     }
     if (cfsr & SCB_CFSR_INVSTATE_Msk) {
-        pr_debug("invalid state!");
+        pr_emerg("invalid state!");
     }
     if (cfsr & SCB_CFSR_INVPC_Msk) {
-        pr_debug("invalid PC!");
+        pr_emerg("invalid PC!");
     }
     if (cfsr & SCB_CFSR_NOCP_Msk) {
-        pr_debug("No coprocessor!");
+        pr_emerg("No coprocessor!");
     }
     if (cfsr & SCB_CFSR_UNALIGNED_Msk) {
-        pr_debug("Unaligned memory access!");
+        pr_emerg("Unaligned memory access!");
     }
     if (cfsr & SCB_CFSR_DIVBYZERO_Msk) {
-        pr_debug("Division by 0!");
+        pr_emerg("Division by 0!");
     }
     dump_frame(frame);
     newframe = may_panic(frame);
@@ -156,19 +157,19 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
     size_t cfsr = SCB->CFSR;
     pr_err("Memory fault !!!");
     if (cfsr & SCB_CFSR_IACCVIOL_Msk) {
-        pr_debug("Instruction access violation!");
+        pr_emerg("Instruction access violation!");
     }
     if (cfsr & SCB_CFSR_DACCVIOL_Msk) {
-        pr_debug("Data access violation!");
+        pr_emerg("Data access violation!");
     }
     if (cfsr & SCB_CFSR_MUNSTKERR_Msk) {
-        pr_debug("Fault while unstacking from exception!");
+        pr_emerg("Fault while unstacking from exception!");
     }
     if (cfsr & SCB_CFSR_MSTKERR_Msk) {
-        pr_debug("Fault while stacking for exception entry!");
+        pr_emerg("Fault while stacking for exception entry!");
     }
     if (cfsr & SCB_CFSR_MMARVALID_Msk) {
-        pr_debug("Fault at address %p", SCB->MMFAR);
+        pr_emerg("Fault at address %p", SCB->MMFAR);
     }
     dump_frame(frame);
     newframe = may_panic(frame);
