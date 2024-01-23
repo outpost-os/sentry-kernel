@@ -72,9 +72,9 @@ The lonely difference here is that the signal source is the kernel (source id be
 and the signal value is not a standard signal but one of the autotest specific signals,
 as defined in the UAPI signal header:
 
-.. literalinclude:: ../../../uapi/include/uapi/signal.h
-   :language: c
-   :lines: 24-42
+.. literalinclude:: ../../../uapi/include/uapi/types/types.rs
+   :language: rust
+   :lines: 242-279
    :caption: List of autotest-specific signals
 
 Autotesting kernel components

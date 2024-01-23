@@ -2,6 +2,7 @@
 
 Get_Task_Handle
 """""""""""""""
+.. _uapi_task_handle:
 
 **API definition**:
 

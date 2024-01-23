@@ -39,6 +39,10 @@ The Sentry supported list of signals are defined in :ref:`UAPI model definition 
     If a previously working signal request starts to fail with an invalid return, this
     is typically the consequence of a target respawn or termination
 
+.. note::
+    See :ref:`get_task_handle() <uapi_task_handle>` UAPI specification to learn about how to forge the target
+    variable value
+
 **Required capability**
 
    None.

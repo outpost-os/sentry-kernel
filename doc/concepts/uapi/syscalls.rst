@@ -63,6 +63,11 @@ Syscall definition
 .. include:: syscalls/map.rst
 
 .. index::
+  single: sys_send_ipc; definition
+  single: sys_send_ipc; usage
+.. include:: syscalls/send_ipc.rst
+
+.. index::
   single: sys_send_signal; definition
   single: sys_send_signal; usage
 .. include:: syscalls/send_signal.rst
