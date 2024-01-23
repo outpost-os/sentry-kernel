@@ -15,6 +15,7 @@
 
 /* arch specific API */
 void     nvic_set_prioritygrouping(uint32_t PriorityGroup);
+/* INFO: typo in CMSIS intrinsics.... fixed through asm-generic aliasing */
 uint32_t nvig_get_prioritygrouping(void);
 
 void     nvic_enableirq(uint32_t IRQn);

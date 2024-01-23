@@ -232,8 +232,13 @@ request_data_membarrier();                    /* Ensure all outstanding memory a
 }
 
 
-/* arch-generic naming definition */
-void interrupt_enable_irq(uint32_t IRQn) __attribute__((alias("nvic_enableirq")));
-void interrupt_disable_irq(uint32_t IRQn) __attribute__((alias("nvic_disableirq")));
+/* arch-generic naming definition, aliasing CMSIS intrinsics */
+void     interrupt_enable_irq(uint32_t IRQn) __attribute__((alias("nvic_enableirq")));
+void     interrupt_disable_irq(uint32_t IRQn) __attribute__((alias("nvic_disableirq")));
 uint32_t interrupt_get_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_get_pendingirq")));
 void     interrupt_set_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_set_pendingirq")));
+void     interrupt_clear_pendingirq(uint32_t IRQn) __attribute__((alias("nvic_clear_pendingirq")));
+uint32_t interrupt_get_active(uint32_t IRQn) __attribute__((alias("nvic_get_active")));
+void     interrupt_systemreset(void) __attribute__((alias("nvic_systemreset")));
+void     interrupt_set_prioritygrouping(uint32_t PriorityGroup) __attribute__((alias("nvic_set_prioritygrouping")));
+uint32_t interrupt_get_prioritygrouping(void) __attribute__((alias("nvig_get_prioritygrouping")));
