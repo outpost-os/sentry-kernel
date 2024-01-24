@@ -211,9 +211,9 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     ctx.numtask++;
     /* forge current task layout to task context */
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -317,9 +317,9 @@ static inline kstatus_t task_init_add_autotest(void)
     /* task added to task local task list, needed so that others managers can request it */
     ctx.numtask++;
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }
@@ -360,9 +360,9 @@ static inline kstatus_t task_init_add_idle(void)
     ctx.numtask++;
 
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_ressource(meta->handle, ressource);
+    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     if ((ctx.status = unlikely(task_set_job_layout(meta)) != K_STATUS_OKAY)) {
         goto err;
     }

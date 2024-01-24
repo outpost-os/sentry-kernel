@@ -175,14 +175,22 @@ size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 secure_bool_t mgr_task_is_userspace_spawned(void);
 
 /**
- * Add (map) a mappable ressource to the task current layout
+ * @brief Add (map) a mappable resource to the task current layout
+ *
+ * @param t task handle
+ * @param resource_id resource layout index in task layout table
+ * @param resource resource to add
  */
-kstatus_t mgr_task_add_ressource(taskh_t t, layout_resource_t ressource);
+kstatus_t mgr_task_add_resource(taskh_t t, uint8_t resource_id, layout_resource_t resource);
 
 /**
- * Remove the ressource identified by its id (region id) from the task current layout
+ * @brief Remove the resource identified by its id from the task current layout
+ *
+ * @param t task handle
+ * @param resource_id resource layout index in task layout table
  */
-kstatus_t mgr_task_remove_ressource(taskh_t t, uint8_t id);
+kstatus_t mgr_task_remove_resource(taskh_t t, uint8_t resource_id);
+
 
 kstatus_t mgr_task_get_layout_from_handle(taskh_t t, const layout_resource_t **layout);
 

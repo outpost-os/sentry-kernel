@@ -12,6 +12,7 @@
 /* the opaque is mapped on u64 on x86_64 */
 typedef uint64_t layout_resource_t;
 
+#define TASK_FIRST_REGION_NUMBER 2
 #define TASK_MAX_RESSOURCES_NUM (6)
 
 /**

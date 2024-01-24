@@ -154,6 +154,31 @@ typedef unsigned long long  time_ms_t;
 #define __RANGE(m,M) (m),(M)
 #define RANGE(m,M) __RANGE(m,M)
 
+/**
+ * @brief True if `s` is a power of 2
+ */
+#define IS_POWEROFTWO(s) ((s != 0) && ((s & (s - 1)) == 0))
+
+/**
+ * @brief Round up 'n' to the next 'm' multiple
+ */
+#define ROUND_UP(n, m) (DIV_ROUND_UP(n,m) * (m))
+
+/**
+ * @brief Round up 'n' to the next 'p' multiple, 'p' must be a power of two
+ */
+#define ROUND_UP_POW2(n, p) ( \
+{ \
+  static_assert(IS_POWEROFTWO(p), "ROUND_UP_POW2 must be used w/ power of 2"); \
+  ((((n) - 1) | ((p) - 1)) + 1); \
+} \
+)
+
+/**
+ * @brief round up to the next power of two
+ */
+#define ROUNDUP_TO_POWEROFTWO(s) (1 << (32 - __builtin_clz (s - 1)))
+
 typedef enum kstatus {
     K_STATUS_OKAY,
     K_ERROR_BUSY,

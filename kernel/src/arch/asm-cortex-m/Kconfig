@@ -30,10 +30,13 @@ config HAS_MPU_PMSA_V8
 	bool
 
 config NUM_MPU_REGIONS
-	int
-	default 8 if HAS_MPU_PMSA_V7
-	default 16 if HAS_MPU_PMSA_V8
+	int "number of MPU regions"
+	depends on HAS_MPU
+	default 8
+	help
+	  Number of MPU region, this is vendor defined, 8 by default.
 
+# TODO Add secure MPU feature
 
 config HAS_NVIC
 	bool

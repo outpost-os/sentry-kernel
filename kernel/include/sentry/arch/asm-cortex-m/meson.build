@@ -16,6 +16,9 @@ sentry_header_set.add(files(
     'thread.h',
 ))
 
+sentry_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V7', if_true: files('mpu_pmsa_v7.h'))
+sentry_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V8', if_true: files('mpu_pmsa_v8.h'))
+
 irq_defs_in = files('irq_defs.h.in')
 # generated headers
 irq_def_h = custom_target('gen_irq_defs',

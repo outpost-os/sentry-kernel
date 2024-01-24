@@ -66,11 +66,11 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
-           ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->data_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->bss_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->heap_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->stack_size, __WORDSIZE);
+           ROUND_UP(meta->got_size, __WORDSIZE) + \
+           ROUND_UP(meta->data_size, __WORDSIZE) + \
+           ROUND_UP(meta->bss_size, __WORDSIZE) + \
+           ROUND_UP(meta->heap_size, __WORDSIZE) + \
+           ROUND_UP(meta->stack_size, __WORDSIZE);
 }
 
 /**
@@ -80,7 +80,7 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
-    return ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
+    return ROUND_UP(meta->text_size, __WORDSIZE) + \
            meta->rodata_size;
     /* got and data in flash are excluded (no need) */
 }
@@ -411,38 +411,39 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_add_ressource(taskh_t t, layout_resource_t ressource)
+kstatus_t mgr_task_add_resource(taskh_t t, uint8_t resource_id, layout_resource_t resource)
 {
     kstatus_t status;
     task_t *cell;
-    uint8_t ressourceid;
+
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    /* TODO: adding assertion on ressource region id >= MM_REGION_TASK_TXT */
-    /**
-     * userspace ressources, starting at task TXT, is always greater than MM_REGION_TASK_TXT
-     */
-    ressourceid = mpu_get_id_from_ressource(ressource) - MM_REGION_TASK_TXT;
-    memcpy(&cell->layout[ressourceid], &ressource, sizeof(layout_resource_t));
+
+    if (unlikely(resource_id >= TASK_MAX_RESSOURCES_NUM)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+
+    memcpy(&cell->layout[resource_id], &resource, sizeof(layout_resource_t));
     status = K_STATUS_OKAY;
 err:
     return status;
 }
 
 /**
- * @brief removing a ressource from task context, based on its identifier
- * (typically region identifier)
+ * @brief removing a resource from task context, based on its identifier
+ * @warning this is the layout id, not the region id !
  */
-kstatus_t mgr_task_remove_ressource(taskh_t t, uint8_t id)
+kstatus_t mgr_task_remove_resource(taskh_t t, uint8_t resource_id)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }
-    mpu_forge_unmapped_ressource(id, &cell->layout[id - MM_REGION_TASK_TXT]);
+    mpu_forge_unmapped_ressource(resource_id, &cell->layout[resource_id]);
     status = K_STATUS_OKAY;
 err:
     return status;
