@@ -16,8 +16,10 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/ktypes.h>
+#include <sentry/zlib/math.h>
 
 /** MPU Access Permission no access */
 #define MPU_REGION_PERM_NONE ARM_MPU_AP_NONE
@@ -187,8 +189,8 @@ __STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resou
 __STATIC_FORCEINLINE uint32_t __mpu_region_align_size(uint32_t size)
 {
     /* TODO overflow check here */
-    if (unlikely(!IS_POWEROFTWO(size))) {
-        size = ROUNDUP_TO_POWEROFTWO(size);
+    if (unlikely(!IS_POW2(size))) {
+        size = ALIGN_TO_POW2(size);
     }
 
     return size;

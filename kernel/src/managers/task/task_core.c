@@ -319,7 +319,7 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     /* copy got, if non-null */
     if (likely(meta->got_size)) {
         size_t got_source = meta->s_text + \
-                             ROUND_UP_TO(meta->text_size, __WORDSIZE);
+                             ROUND_UP(meta->text_size, __WORDSIZE);
         size_t got_start  = meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN;
         pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->got_size, got_source, got_start);
@@ -328,11 +328,11 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
-                             ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
-                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
+                             ROUND_UP(meta->text_size, __WORDSIZE) + \
+                             ROUND_UP(meta->got_size, __WORDSIZE);
         size_t data_start =  meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
+                             ROUND_UP(meta->got_size, __WORDSIZE);
         pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
         memcpy((void*)data_start, (void*)data_source, meta->data_size);
     }
@@ -340,8 +340,8 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     if (likely(meta->bss_size)) {
         size_t bss_start =  meta->s_svcexchange + \
                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                            ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
-                            ROUND_UP_TO(meta->data_size, __WORDSIZE);
+                            ROUND_UP(meta->got_size, __WORDSIZE) + \
+                            ROUND_UP(meta->data_size, __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);
     }

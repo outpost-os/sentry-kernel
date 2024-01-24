@@ -86,15 +86,6 @@ static_assert(ATOMIC_BOOL_LOCK_FREE, "Atomic boolean needs to be lock free");
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 /**
- * @def DIV_ROUND_UP(n, d)
- * @brief integer division rounded to the upper integer
- * @param n numerator (a.k.a. dividend)
- * @param d denominator (a.k.a. divisor)
- * @note This is Euclidean division quotient, `+1` if remainder is not null
- */
-#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-
-/**
  * @note volatile usage is deprecated and must limited as much as possible
  * Plus, the assumption of 4 bytes register is false (some IPs got 8 bits registers)
  * consider adding ioreadX/iowriteX functions.
@@ -113,24 +104,6 @@ static_assert(ATOMIC_BOOL_LOCK_FREE, "Atomic boolean needs to be lock free");
  * e.g. the time resolution may be milliseconds
  */
 typedef unsigned long long  time_ms_t;
-
-/**
- * @brief basic generic min scalar comparison macro
- * returned value is one of (the smaller between) a or b
- *
- * @param a scalar value (any numeric value)
- * @param b scalar value (any numeric value)
- */
-#define MIN(a,b) ((a) > (b) ? (b) : (a))
-
-/**
- * @brief basic generic max scalar comparison macro
- * returned value is one of (the bigger between) a or b
- *
- * @param a scalar value (any numeric value)
- * @param b scalar value (any numeric value)
- */
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 /**
  * @brief Helper that checks value range
@@ -153,31 +126,6 @@ typedef unsigned long long  time_ms_t;
 
 #define __RANGE(m,M) (m),(M)
 #define RANGE(m,M) __RANGE(m,M)
-
-/**
- * @brief True if `s` is a power of 2
- */
-#define IS_POWEROFTWO(s) ((s != 0) && ((s & (s - 1)) == 0))
-
-/**
- * @brief Round up 'n' to the next 'm' multiple
- */
-#define ROUND_UP(n, m) (DIV_ROUND_UP(n,m) * (m))
-
-/**
- * @brief Round up 'n' to the next 'p' multiple, 'p' must be a power of two
- */
-#define ROUND_UP_POW2(n, p) ( \
-{ \
-  static_assert(IS_POWEROFTWO(p), "ROUND_UP_POW2 must be used w/ power of 2"); \
-  ((((n) - 1) | ((p) - 1)) + 1); \
-} \
-)
-
-/**
- * @brief round up to the next power of two
- */
-#define ROUNDUP_TO_POWEROFTWO(s) (1 << (32 - __builtin_clz (s - 1)))
 
 typedef enum kstatus {
     K_STATUS_OKAY,
