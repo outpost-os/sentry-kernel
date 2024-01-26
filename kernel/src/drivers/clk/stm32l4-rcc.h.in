@@ -46,8 +46,10 @@
  * FIXME:
  *  generate XXXX_SHIFT and XXXX_MASK even for 1 bit wide field
  */
+#if !defined(RCC_PLLCFGR_PLLP_SHIFT)
 #define RCC_PLLCFGR_PLLP_SHIFT (17UL)
 #define RCC_PLLCFGR_PLLP_MASK (RCC_PLLCFGR_PLLP)
+#endif
 
 #define RCC_PLLCFG_CLR_MASK ( \
     RCC_PLLCFGR_PLLP_MASK | \
