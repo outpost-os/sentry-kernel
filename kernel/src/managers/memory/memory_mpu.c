@@ -183,7 +183,7 @@ kstatus_t mgr_mm_map_device(devh_t dev)
     mpu_cfg.addr = (uint32_t)devinfo->baseaddr;
     mpu_cfg.size = mpu_convert_size_to_region(devinfo->size);
     mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
-    mpu_cfg.access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER;
+    mpu_cfg.access_attrs = MPU_REGION_ATTRS_DEVICE;
     mpu_cfg.mask = 0x0;
     mpu_cfg.noexec = true;
     status = mpu_forge_resource(&mpu_cfg, &layout);
@@ -358,7 +358,7 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len)
             .addr = address,
             .size = mpu_convert_size_to_region(len),
             .access_perm = MPU_REGION_PERM_PRIV,
-            .access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER,
+            .access_attrs = MPU_REGION_ATTRS_DEVICE,
             .mask = 0x0,
             .noexec = true,
         };

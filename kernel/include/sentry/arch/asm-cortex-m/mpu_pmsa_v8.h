@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/ktypes.h>
+#include <sentry/zlib/math.h>
 
 #define _PMSAv8_MEM_ALIGNMENT 32UL
 
