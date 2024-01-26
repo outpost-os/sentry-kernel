@@ -1,0 +1,150 @@
+/*
+ * Copyright (c) 2023,Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <st/u5/stm32u595.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
+
+/{
+    chosen {
+		sentry,kernelram_section = <&kernel_ram>;
+		sentry,idleram_section = <&idle_ram>;
+		sentry,autotestram_section = <&autotest_ram>;
+		sentry,kernelcode_section = <&kernel_code>;
+		sentry,idlecode_section = <&idle_code>;
+		sentry,autotestcode_section = <&autotest_code>;
+		sentry,debug_stdout = <&usart1>;
+	};
+
+    reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		kernel_code: kernel_code@8000000 {
+        	reg = <0x8000000 0x8000>;
+			compatible = "outpost,memory-pool";
+    	};
+		idle_code: idle_code@8008000 {
+			reg = <0x8008000 0x300>;
+			compatible = "outpost,memory-pool";
+    	};
+		autotest_code: autotest_code@800a000 {
+			reg = <0x800a000 0x1000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		kernel_ram: kernel_memory@20000000 {
+        	reg = <0x20000000 0x2000>;
+			compatible = "outpost,memory-pool";
+    	};
+
+    	idle_ram: idle_memory@20004000 {
+        	reg = <0x20004000 0x200>;
+			compatible = "outpost,memory-pool";
+    	};
+		autotest_ram: autotest_memory@20008000 {
+        	reg = <0x20008000 0x1000>;
+			compatible = "outpost,memory-pool";
+    	};
+	};
+};
+
+&flash0 {
+	reg = <0x08000000 DT_SIZE_M(2)>;
+};
+
+&sram0 {
+	reg = <0x20000000 DT_SIZE_K(768)>;
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&clk_msis {
+    status = "okay";
+};
+
+&flash {
+	wait-state = <0>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&clk_msis>;
+	clock-frequency = <DT_FREQ_M(4)>;
+	bus-prescalers = <0>, <0>, <0>, <0>;
+	bus-names = "ahb", "apb1", "apb2", "apb3";
+	status = "okay";
+};
+
+&exti {
+	interrupts = <26>;
+	events = <26>;
+	status = "okay";
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+&gpiof {
+	status = "okay";
+};
+
+&gpiog {
+	status = "okay";
+};
+
+&usart1{
+    status = "okay";
+	pinctrl-0 = <&usart1_tx_pa9>, <&usart1_rx_pa10>;
+};
+
+&pinctrl {
+	usart1_tx_pa9: usart1_tx_pa9  {
+		pinmux = <&gpioa 9 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	usart1_rx_pa10: usart1_tx_pa10  {
+		pinmux = <&gpioa 10 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};
+
+&rng {
+	status = "okay";
+};
+
+&syscfg {
+	status = "okay";
+};
