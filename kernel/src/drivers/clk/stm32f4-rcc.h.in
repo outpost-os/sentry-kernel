@@ -18,8 +18,6 @@
 #define RCC_PLL_VCO_INPUT_FREQUENCY_RANGE RANGE(1*MEGA, 2*MEGA)
 #define RCC_PLL_Q_DIVIDER_RANGE RANGE(2,15)
 #define RCC_PLL_P_DIVIDER_RANGE RANGE(2,8)
-#define RCC_PLL_AHB_PRESCALER_RANGE RANGE(0,9)
-#define RCC_PLL_APB_PRESCALER_RANGE RANGE(0,4)
 #define RCC_PLL_Q_OUTPUT_FREQUENCY_MAX 48*MEGA
 
 /*
@@ -153,6 +151,20 @@ __STATIC_INLINE uint32_t stm32x4_pllcfg_input(void)
 }
 
 {%- endif %}
+
+__STATIC_INLINE void __stm32_rcc_set_peripheral_bus_div(uint32_t hpre, uint32_t ppre1, uint32_t ppre2)
+{
+    union {
+        rcc_cfgr_t cfgr;
+        uint32_t raw;
+    } reg;
+
+    reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+    reg.cfgr.hpre = hpre;
+    reg.cfgr.ppre1 = ppre1;
+    reg.cfgr.ppre2 = ppre2;
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
+}
 
 kstatus_t rcc_select_system_clock(void);
 

@@ -29,7 +29,10 @@
 #include "stm32f4-rcc.h"
 #elif defined(CONFIG_SOC_SUBFAMILY_STM32L4)
 #include "stm32l4-rcc.h"
+#elif defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+#include "stm32u5-rcc.h"
 #endif
+
 #include "stm32-rcc.h"
 
 {%- if dts.clocks.clk_lsi.status == "okay" %}
@@ -52,15 +55,22 @@
 #define RCC_{{ bus_name }}_CLOCK_FREQUENCY (RCC_SYSTEM_CLOCK_FREQUENCY >> RCC_{{ bus_name }}_PRESCALER_POW2)
 {%- endfor %}
 
-static_assert(IN_RANGE(RCC_AHB_PRESCALER_POW2, RCC_PLL_AHB_PRESCALER_RANGE), "AHB prescaler out of range");
-static_assert(RCC_AHB_PRESCALER_POW2 != 5, "32 is an invalid value for STM32xxx AHB prescaler");
-static_assert(IN_RANGE(RCC_APB1_PRESCALER_POW2, RCC_PLL_APB_PRESCALER_RANGE), "APB1 prescaler out of range");
-static_assert(IN_RANGE(RCC_APB2_PRESCALER_POW2, RCC_PLL_APB_PRESCALER_RANGE), "APB2 prescaler out of range");
+static_assert(IN_RANGE(RCC_AHB_PRESCALER_POW2, RCC_AHB_PRESCALER_RANGE), "AHB prescaler out of range");
+static_assert(RCC_AHB_PRESCALER_POW2 != 5, "5 (i.e. 2^5 = 32) is an invalid value for STM32xxx AHB prescaler");
+static_assert(IN_RANGE(RCC_APB1_PRESCALER_POW2, RCC_APB_PRESCALER_RANGE), "APB1 prescaler out of range");
+static_assert(IN_RANGE(RCC_APB2_PRESCALER_POW2, RCC_APB_PRESCALER_RANGE), "APB2 prescaler out of range");
+#if defined(RCC_APB3_PRESCALER_POW2)
+static_assert(IN_RANGE(RCC_APB3_PRESCALER_POW2, RCC_APB_PRESCALER_RANGE), "APB3 prescaler out of range");
+#endif
+
 
 static_assert(RCC_SYSTEM_CLOCK_FREQUENCY <= RCC_SYSCLOCK_FREQUENCY_MAX, "System clock out of range");
-static_assert(RCC_AHB_CLOCK_FREQUENCY <= RCC_SYSTEM_CLOCK_FREQUENCY, "Invalid RCC AHB clock configuration");
+static_assert(RCC_AHB_CLOCK_FREQUENCY <= RCC_AHB_BUS_FREQUENCY_MAX, "Invalid RCC AHB clock configuration");
 static_assert(RCC_APB1_CLOCK_FREQUENCY <= RCC_APB1_BUS_FREQUENCY_MAX, "Invalid RCC APB1 clock configuration");
 static_assert(RCC_APB2_CLOCK_FREQUENCY <= RCC_APB2_BUS_FREQUENCY_MAX, "Invalid RCC APB2 clock configuration");
+#if defined(RCC_APB3_CLOCK_FREQUENCY)
+static_assert(RCC_APB3_CLOCK_FREQUENCY <= RCC_APB3_BUS_FREQUENCY_MAX, "Invalid RCC APB3 clock configuration");
+#endif
 
 kstatus_t rcc_map(void)
 {
@@ -79,25 +89,13 @@ uint32_t rcc_get_core_frequency(void)
 
 __STATIC_INLINE kstatus_t rcc_enable_hsi(void)
 {
-    kstatus_t status = K_STATUS_OKAY;
     uint32_t rcc_cr;
-    uint32_t hsi_ready;
-    uint32_t count = 0UL;
 
     rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
     rcc_cr |= RCC_CR_HSION;
     iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
 
-    do {
-        hsi_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_HSIRDY;
-        count++;
-    } while ((hsi_ready == 0) && (count < HSI_STARTUP_TIMEOUT));
-
-    if (unlikely(hsi_ready == 0)) {
-        status = K_ERROR_NOTREADY;
-    }
-
-    return status;
+    return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSIRDY, HSI_STARTUP_TIMEOUT);
 }
 
 /* TODO handle bypass mode for HSE */
@@ -105,66 +103,49 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     uint32_t rcc_cr;
-    uint32_t hse_ready = 0;
-    uint32_t count = 0UL;
 
     rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
     rcc_cr |= RCC_CR_HSEON;
     iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
 
-    do {
-        hse_ready = ioread32(RCC_BASE_ADDR + RCC_CR_REG) & RCC_CR_HSERDY;
-        count++;
-    } while ((hse_ready == 0) && (count < HSE_STARTUP_TIMEOUT));
-
-    if (unlikely(hse_ready == 0)) {
-        status = K_ERROR_NOTREADY;
-    }
-
-    return status;
+    return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSERDY, HSE_STARTUP_TIMEOUT);
 }
 
-__STATIC_INLINE uint32_t rcc_ahb_busdiv(void)
+__STATIC_INLINE uint32_t __rcc_ahb_div2val(uint32_t div_pow2)
 {
-    uint32_t value;
-    if (RCC_AHB_PRESCALER_POW2 == 0) {
-        value = 0UL;
+    uint32_t value = 0UL;
+
+    if (IN_RANGE(div_pow2, RANGE(1, 4))) {
+        value = 0x8 | (div_pow2 - 1);
     }
-    else if (IN_RANGE(RCC_AHB_PRESCALER_POW2, RANGE(1, 4))) {
-        value = 0x8 | (RCC_AHB_PRESCALER_POW2 - 1);
-    }
-    else if (IN_RANGE(RCC_AHB_PRESCALER_POW2, RANGE(6, 9))) {
-        value = 0x8 | (RCC_AHB_PRESCALER_POW2 - 2);
+    else if (IN_RANGE(div_pow2, RANGE(6, 9))) {
+        value = 0x8 | (div_pow2 - 2);
     }
 
     return value;
 }
 
-__STATIC_INLINE uint32_t rcc_apb_busdiv(uint32_t div_pow2)
+__STATIC_INLINE uint32_t __rcc_apb_div2val(uint32_t div_pow2)
 {
-    uint32_t value;
-    if (div_pow2 == 0) {
-        value = 0UL;
-    }
-    else {
+    uint32_t value = 0UL;
+
+    if (div_pow2 <= RCC_APB_PRESCALER_MAX) {
         value = 0x4 | (div_pow2 - 1);
     }
 
     return value;
 }
 
-__STATIC_INLINE kstatus_t rcc_set_bus_clock(void)
+__STATIC_INLINE kstatus_t rcc_set_peripheral_bus_clock(void)
 {
-    union {
-        rcc_cfgr_t cfgr;
-        uint32_t raw;
-    } reg;
-
-    reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
-    reg.cfgr.hpre = rcc_ahb_busdiv();
-    reg.cfgr.ppre1 = rcc_apb_busdiv(RCC_APB1_PRESCALER_POW2);
-    reg.cfgr.ppre2 = rcc_apb_busdiv(RCC_APB2_PRESCALER_POW2);
-    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
+    __stm32_rcc_set_peripheral_bus_div(
+          __rcc_ahb_div2val(RCC_AHB_PRESCALER_POW2)
+        , __rcc_apb_div2val(RCC_APB1_PRESCALER_POW2)
+        , __rcc_apb_div2val(RCC_APB2_PRESCALER_POW2)
+#if defined(RCC_APB3_PRESCALER_POW2)
+        , __rcc_apb_div2val(RCC_APB3_PRESCALER_POW2)
+#endif
+    );
 
     return K_STATUS_OKAY;
 }
@@ -218,7 +199,7 @@ __STATIC_INLINE kstatus_t rcc_init_system_clk(void)
     {%- endif %}
 
     /* enables bus prescaler before pll */
-    status = rcc_set_bus_clock();
+    status = rcc_set_peripheral_bus_clock();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
@@ -235,16 +216,9 @@ __STATIC_INLINE kstatus_t rcc_init_system_clk(void)
         goto err;
     }
 
-#if 0
-    /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-    write_reg_value(FLASH_ACR, FLASH_ACR_ICEN
-                    | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS);
-#endif
-
 err:
     return status;
 }
-
 
 kstatus_t rcc_probe(void)
 {
@@ -253,6 +227,8 @@ kstatus_t rcc_probe(void)
     if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
         goto err;
     }
+
+#if 0
     /* Reset the RCC clock configuration to the default reset state */
     /* Set HSION bit */
     reg = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
@@ -277,6 +253,7 @@ kstatus_t rcc_probe(void)
 
     /* Reset all interrupts */
     iowrite32(RCC_BASE_ADDR + RCC_CIR_REG, 0x0UL);
+#endif
 
     status = rcc_init_system_clk();
     if (unlikely(status != K_STATUS_OKAY)) {
@@ -398,59 +375,46 @@ __STATIC_INLINE uint32_t rcc_pre2div(uint32_t pre)
 kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    size_t reg;
-    uint32_t pre;
-    uint32_t ahb_div;
-
-    /*
-     * XXX:
-     * Div is initialized in order to shut down a gcc `maybe-uninitialized` warning.
-     * This is a false positive as framaC check this (see contract annotation) but
-     * it make sense to initialize it to its minimal value anyways.
-     * Thus the case for AHBx busses is empty.
-     */
-    uint32_t div = 1UL;
 
     if (unlikely(busclk == NULL)) {
         goto err;
     }
-    if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
-        goto err;
-    }
-    /*
-     * bus clock -->
-     *  - AHB_CLK = SYS_CLK / HPRE
-     *  - APB1_CLK = AHB_CLK / PPRE1
-     *  - APB2_CLK = AHB_CLK / PPRE2
-     */
-    reg = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
 
-    ahb_div = rcc_pre2div((reg & RCC_CFGR_HPRE_MASK) >> RCC_CFGR_HPRE_SHIFT);
+    /*
+     * FIXME: need rework on bus id
+     * As everything is static, use the value compute at build time
+     * Once proper abstraction done on clock tree, fetch the whole tree and prescaler
+     */
 
     /*@ assert \valid(busclk); */
     /*@ assert bus_is_valid(busid); */
     switch (busid) {
         case BUS_APB1:
-            div = rcc_pre2div((reg & RCC_CFGR_PPRE1_MASK) >> RCC_CFGR_PPRE1_SHIFT);
+            *busclk = RCC_APB1_CLOCK_FREQUENCY;
             break;
         case BUS_APB2:
-            div = rcc_pre2div((reg & RCC_CFGR_PPRE2_MASK) >> RCC_CFGR_PPRE2_SHIFT);
+            *busclk = RCC_APB2_CLOCK_FREQUENCY;
             break;
+#if defined(BUS_APB3)
+        case BUS_APB3:
+            *busclk = RCC_APB3_CLOCK_FREQUENCY;
+            break;
+#endif
         case BUS_AHB1:
         case BUS_AHB2:
-#ifndef CONFIG_ARCH_MCU_STM32F401
+#if defined(BUS_AHB3)
         case BUS_AHB3:
 #endif
+            *busclk = RCC_AHB_CLOCK_FREQUENCY;
             break;
         default:
             /* smoke testing: unreachable code */
             /*@ assert \false; */
             break;
-
     }
-    /* return current bus clock */
-    *busclk = ((RCC_SYSTEM_CLOCK_FREQUENCY / ahb_div) / div);
-    status = rcc_unmap();
+
+    status = K_STATUS_OKAY;
+
 err:
     return status;
 }
