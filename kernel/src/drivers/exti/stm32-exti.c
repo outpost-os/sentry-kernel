@@ -24,7 +24,10 @@
 #define EXTI_RTSR_REG EXTI_RTSR1_REG
 #define EXTI_FTSR_REG EXTI_FTSR1_REG
 #define EXTI_SWIER_REG EXTI_SWIER1_REG
+# if !defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+/* XXX: U5 got 2 registers for rising edge pending and falling edge pending */
 #define EXTI_PR_REG EXTI_PR1_REG
+# endif
 #endif
 
 static inline kstatus_t exti_map(void)
@@ -35,6 +38,16 @@ static inline kstatus_t exti_map(void)
 /* for simplicity sake, but unmaping a kernel device is generic */
 static inline kstatus_t exti_unmap(void) {
     return mgr_mm_unmap_kdev();
+}
+
+static inline void __exti_clear_pending(uint32_t mask)
+{
+#if defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+    iowrite32(EXTI_BASE_ADDR + EXTI_RPR1_REG, mask);
+    iowrite32(EXTI_BASE_ADDR + EXTI_FPR1_REG, mask);
+#else
+    iowrite32(EXTI_BASE_ADDR + EXTI_PR_REG, mask);
+#endif
 }
 
 /**
@@ -55,17 +68,25 @@ kstatus_t exti_probe(void)
     if (unlikely((status = exti_map()) != K_STATUS_OKAY)) {
         goto err;
     }
+
+#if !defined(CONFIG_SOC_SUBFAMILY_STM32U5)
     if (unlikely(ioread32(EXTI_BASE_ADDR + EXTI_PR_REG))) {
         /** FIXME: there is some pending interrupts here, action to define */
         /** INFO: the register read had cleared the pending interrupts */
     }
+#endif
     iowrite32(EXTI_BASE_ADDR + EXTI_IMR_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_EMR_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_RTSR_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_FTSR_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_SWIER_REG, 0x0UL);
+
     /* clear pending (rc_w1) */
-    iowrite32(EXTI_BASE_ADDR + EXTI_PR_REG, 0x7fffffUL);
+#if defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+    __exti_clear_pending(0x03ffffffUL);
+#else
+    __exti_clear_pending(0x7fffffUL);
+#endif
 #if CONFIG_SOC_SUBFAMILY_STM32L4
     iowrite32(EXTI_BASE_ADDR + EXTI_IMR2_REG, 0x0UL);
     iowrite32(EXTI_BASE_ADDR + EXTI_EMR2_REG, 0x0UL);
@@ -298,7 +319,7 @@ kstatus_t exti_clear_pending(uint8_t itn)
     }
     if (itn < 32) {
         /* clear pending (rc_w1) */
-        iowrite32(EXTI_BASE_ADDR + EXTI_PR_REG, (0x1UL << itn));
+        __exti_clear_pending(0x1UL << itn);
     }
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
     else {
