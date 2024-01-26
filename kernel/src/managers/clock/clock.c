@@ -11,6 +11,11 @@
 #include <bsp/drivers/flash/flash.h>
 #include "perfo.h"
 
+/*
+ * Fixme:
+ * All of these are tightly coupled and interaction and/or order
+ * may vary from one soc to another.
+ */
 kstatus_t mgr_clock_init(void)
 {
     kstatus_t status;
