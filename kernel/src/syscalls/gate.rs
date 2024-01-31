@@ -314,7 +314,7 @@ fn get_random() -> Result<StackFramePointer, Status> {
     if unsafe { mgr::mgr_security_entropy_generate(&mut rand) } != 0 {
         return Err(Status::Invalid);
     }
-    current_task.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_be_bytes());
+    current_task.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_ne_bytes());
     Ok(None)
 }
 
@@ -331,6 +331,6 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
         Precision::Microseconds => unsafe { mgr::mgr_time_get_microseconds() },
         Precision::Milliseconds => unsafe { mgr::mgr_time_get_milliseconds() },
     };
-    current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_be_bytes());
+    current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_ne_bytes());
     Ok(None)
 }
