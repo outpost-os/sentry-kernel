@@ -7,16 +7,17 @@
 #include <sentry/arch/asm-cortex-m/dwt.h>
 #include <bsp/drivers/clk/rcc.h>
 
-uint64_t cycle_jiffies;
-uint64_t dwt_snap;
+static uint64_t cycle_jiffies;
+static uint64_t dwt_snap;
 
 void systime_init(void)
 {
-    cycle_jiffies = 0ULL;
-    dwt_snap = 0ULL;
-    /* enable cycle precision counting on ARM platform */
-    dwt_enable_cyccnt();
-    dwt_reset_cyccnt();
+    cycle_jiffies = dwt_cyccnt();
+    /*
+     * dwt cyccnt is initialized at early boot
+     * Thus, we can measure boot time precisely.
+     */
+    dwt_snap = cycle_jiffies;
     /* central systime init systick on ARM platform too */
     systick_init();
 }

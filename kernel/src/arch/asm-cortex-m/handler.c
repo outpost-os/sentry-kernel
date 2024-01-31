@@ -4,6 +4,7 @@
 #include <sentry/arch/asm-generic/interrupt.h>
 #include <sentry/arch/asm-cortex-m/soc.h>
 #include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/arch/asm-cortex-m/dwt.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/debug.h>
 #include <sentry/arch/asm-cortex-m/handler.h>
@@ -304,6 +305,10 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     uint32_t *p;
     uint32_t shcsr;
     __disable_irq();
+
+    /* enable dwt cycle counter at the very beginning */
+    dwt_enable_cyccnt();
+    dwt_reset_cyccnt();
 
     /*
      * TODO:
