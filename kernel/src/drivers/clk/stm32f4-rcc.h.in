@@ -49,6 +49,8 @@
 # endif
 #endif
 
+#define RCC_AHB_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
+
 /* STM32F4 family uses bitfield PLL/M/N/Q definition in SVD files */
 #define RCC_PLLCFGR_PLLM_SHIFT 0UL
 #define RCC_PLLCFGR_PLLM_MASK (RCC_PLLCFGR_PLLM0 | \
