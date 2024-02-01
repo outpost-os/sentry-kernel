@@ -50,11 +50,7 @@ uint64_t mgr_time_get_microseconds(void);
 uint64_t mgr_time_get_milliseconds(void);
 
 static inline uint64_t __mgr_time_get_cycle(void) {
-
-    uint64_t ts = systime_get_cycleh();
-    ts <<= 32;
-    ts |= systime_get_cyclel();
-    return ts;
+    return systime_get_cycle();
 }
 
 static inline uint64_t __mgr_time_get_microseconds(void) {
