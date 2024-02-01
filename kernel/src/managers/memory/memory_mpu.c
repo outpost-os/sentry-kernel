@@ -186,6 +186,7 @@ kstatus_t mgr_mm_map_device(devh_t dev)
     mpu_cfg.access_attrs = MPU_REGION_ATTRS_DEVICE;
     mpu_cfg.mask = 0x0;
     mpu_cfg.noexec = true;
+    mpu_cfg.shareable = false;
     status = mpu_forge_resource(&mpu_cfg, &layout);
     /*@ assert status == K_STATUS_OKAY; */
     status = mgr_task_add_resource(tsk, mm_mgr_region_to_layout_id(mpu_cfg.id), layout);
@@ -240,23 +241,25 @@ kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resourc
     }
     switch (reg_type) {
         case MM_REGION_TASK_TXT:
-            mpu_cfg.id = MM_REGION_TASK_TXT,
-            mpu_cfg.addr = (uint32_t)meta->s_text,
-            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_text_region_size(meta)),
-            mpu_cfg.access_perm = MPU_REGION_PERM_RO,
-            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-            mpu_cfg.mask = 0x0,
-            mpu_cfg.noexec = false,
+            mpu_cfg.id = MM_REGION_TASK_TXT;
+            mpu_cfg.addr = (uint32_t)meta->s_text;
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_text_region_size(meta));
+            mpu_cfg.access_perm = MPU_REGION_PERM_RO;
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+            mpu_cfg.mask = 0x0;
+            mpu_cfg.noexec = false;
+            mpu_cfg.shareable = false;
             mpu_forge_resource(&mpu_cfg, ressource);
             break;
         case MM_REGION_TASK_DATA:
-            mpu_cfg.id = MM_REGION_TASK_DATA,
-            mpu_cfg.addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
-            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
-            mpu_cfg.access_perm = MPU_REGION_PERM_FULL,
-            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-            mpu_cfg.mask = 0x0,
-            mpu_cfg.noexec = true,
+            mpu_cfg.id = MM_REGION_TASK_DATA;
+            mpu_cfg.addr = (uint32_t)meta->s_svcexchange; /* To define: where start the task RAM ? .data ? other ? */
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta));   /* FIXME data_size is a concat of all datas sections */
+            mpu_cfg.access_perm = MPU_REGION_PERM_FULL;
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+            mpu_cfg.mask = 0x0;
+            mpu_cfg.noexec = true;
+            mpu_cfg.shareable = false;
             mpu_forge_resource(&mpu_cfg, ressource);
             break;
         case MM_REGION_TASK_RESSOURCE_DEVICE:
@@ -361,6 +364,7 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len)
             .access_attrs = MPU_REGION_ATTRS_DEVICE,
             .mask = 0x0,
             .noexec = true,
+            .shareable = false,
         };
         status = mpu_load_descriptors(&kdev_config, 1);
     }
