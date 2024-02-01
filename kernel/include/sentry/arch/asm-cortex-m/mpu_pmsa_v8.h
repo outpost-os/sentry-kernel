@@ -174,7 +174,7 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
         desc->access_perm,
         desc->noexec ? 1UL : 0UL
     );
-    resource->RLAR = ARM_MPU_RLAR(desc->addr + desc->size, desc->access_attrs);
+    resource->RLAR = ARM_MPU_RLAR(desc->addr + desc->size - 1, desc->access_attrs);
 
     status = K_STATUS_OKAY;
 end:
