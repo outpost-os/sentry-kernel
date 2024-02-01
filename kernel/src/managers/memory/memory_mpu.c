@@ -120,7 +120,7 @@ kstatus_t mgr_mm_map_task(taskh_t t)
         pr_err("failed to get meta for task handle %x", t);
         goto err;
     }
-    mpu_fastload(MM_REGION_TASK_DATA, layout, TASK_MAX_RESSOURCES_NUM);
+    mpu_fastload(MM_REGION_TASK_TXT, layout, TASK_MAX_RESSOURCES_NUM);
     status = K_STATUS_OKAY;
 err:
     return status;
