@@ -159,9 +159,9 @@ static kstatus_t usart_set_baudrate(void)
         goto err;
     }
 
-    usartdiv = DIV_ROUND_UP(uart_clk, 115200);
+    usartdiv = DIV_ROUND_UP((uart_clk << over8), 115200);
     brr = usartdiv & 0xfff0UL;
-    brr |= (usartdiv >> over8) & 0xfUL;
+    brr |= (usartdiv & 0xfUL) >> over8;
 
     iowrite32(usart_base + USART_BRR_REG, brr);
 err:
