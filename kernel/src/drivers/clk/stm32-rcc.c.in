@@ -111,6 +111,24 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
     return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSERDY, HSE_STARTUP_TIMEOUT);
 }
 
+/**
+ * @brief Convert AHB divisor (power of 2) to register value
+ *
+ * @param div_pow2 AHB bus divisor 2^div_pow2
+ * @warning Divided by 32 is not allowed, 5 is a forbidden argument
+ * @note Divisor came from dtsi and thus range are checked at build time
+ *
+ * @return
+ *  0xxx: system clock not divided
+ *  1000: system clock divided by 2
+ *  1001: system clock divided by 4
+ *  1010: system clock divided by 8
+ *  1011: system clock divided by 16
+ *  1100: system clock divided by 64
+ *  1101: system clock divided by 128
+ *  1110: system clock divided by 256
+ *  1111: system clock divided by 512
+ */
 __STATIC_INLINE uint32_t __rcc_ahb_div2val(uint32_t div_pow2)
 {
     uint32_t value = 0UL;
@@ -125,11 +143,24 @@ __STATIC_INLINE uint32_t __rcc_ahb_div2val(uint32_t div_pow2)
     return value;
 }
 
+/**
+ * @brief Convert APB divisor (power of 2) to register value
+ *
+ * @param div_pow2 APB bus divisor 2^div_pow2
+ * @note Divisor came from dtsi and thus range are checked at build time
+ *
+ * @return
+ *  0xx: DCLK clock not divided
+ *  100: DCLK divided by 2
+ *  101: DCLK divided by 4
+ *  110: DCLK divided by 8
+ *  111: DCLK divided by 16
+ */
 __STATIC_INLINE uint32_t __rcc_apb_div2val(uint32_t div_pow2)
 {
     uint32_t value = 0UL;
 
-    if (div_pow2 <= RCC_APB_PRESCALER_MAX) {
+    if (IN_RANGE(div_pow2, RANGE(1, RCC_APB_PRESCALER_MAX))) {
         value = 0x4 | (div_pow2 - 1);
     }
 
