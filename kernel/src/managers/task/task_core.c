@@ -298,7 +298,15 @@ void __attribute__((noreturn)) mgr_task_start(void)
     mgr_mm_map_task(idle_meta->handle);
     /** XXX: there is a race here, if the pr_info() is not printed, a memory fault rise
         it seems that the MPU configuration take a little time before being active */
+
+    /* XXX:
+     *  This log leads to a hard fault during usart transmission
+     *  Do not found anything clear about it.
+     *  To analyze deeply.
+     */
+#if !defined(CONFIG_SOC_SUBFAMILY_STM32U5)
     pr_info("spawning thread, pc=%p, sp=%p", pc, sp);
+#endif
     mgr_task_set_userspace_spawned();
     __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
     __builtin_unreachable();
