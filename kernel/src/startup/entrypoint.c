@@ -61,8 +61,6 @@ __attribute__((noreturn)) void _entrypoint(void)
     /* finishing platform init. platform init flag is set */
     pr_info("Platform initialization done, continuing with upper layers");
     platform_init();
-    /* enable interrupts */
-    interrupt_enable();
 #if CONFIG_BUILD_TARGET_AUTOTEST
     pr_autotest("INFO: init finished");
 #endif
