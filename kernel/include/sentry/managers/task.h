@@ -196,6 +196,27 @@ kstatus_t mgr_task_remove_resource(taskh_t t, uint8_t resource_id);
 
 kstatus_t mgr_task_get_layout_from_handle(taskh_t t, const layout_resource_t **layout);
 
+/**
+ * @brief get back current sysreturn value of a job
+ *
+ * Fails if the syscall return field is set as cleared
+ */
+kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret);
+
+/**
+ * @brief Set the currently called syscall return value of job identified by t
+ *
+ * Can be set synchronously by its own syscall or by another job's syscall
+ */
+kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret);
+
+/**
+ * @brief clear curently set syscall return
+ *
+ * this will make all consecutive call to task_get_sysreturn failing
+ */
+kstatus_t mgr_task_clear_sysreturn(taskh_t t);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_task_autotest(void);
 #endif

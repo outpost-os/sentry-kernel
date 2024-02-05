@@ -4,6 +4,7 @@
 #ifndef TASK_CORE_H
 #define TASK_CORE_H
 
+#include <uapi/uapi.h>
 #include <sentry/managers/task.h>
 #include <sentry/arch/asm-generic/memory.h>
 
@@ -90,6 +91,8 @@ typedef struct  task {
     task_event_t    ints;
 
     job_state_t     state;      /**< current task state */
+    secure_bool_t   sysretassigned; /**< a syscall has assigned a sysreturn */
+    enum Status     sysreturn;  /**< current job syscall return */
 } task_t;
 
 /**

@@ -128,7 +128,7 @@ typedef unsigned long long  time_ms_t;
 #define RANGE(m,M) __RANGE(m,M)
 
 typedef enum kstatus {
-    K_STATUS_OKAY,
+    K_STATUS_OKAY = 0,
     K_ERROR_BUSY,
     K_ERROR_INVPARAM,
     K_ERROR_BADSTATE,

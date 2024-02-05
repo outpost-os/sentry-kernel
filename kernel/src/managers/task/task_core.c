@@ -466,3 +466,79 @@ kstatus_t mgr_task_get_layout_from_handle(taskh_t t,
 err:
     return status;
 }
+
+/** TODO: fix handle management before coding framac_get_handle() */
+/*@
+    behavior badsysret:
+        assumes !\valid(sysret);
+        assigns \nothing;
+        ensures \result == K_ERROR_INVPARAM;
+    behavior badhandle:
+        assumes \valid(sysret);
+        assumes !\valid(framac_get_handle(t));
+        assigns \nothing;
+        ensures \result == K_ERROR_INVPARAM;
+    behavior unvstate:
+        assumes \valid(sysret);
+        assumes \valid(framac_get_handle(t));
+        assumes !framac_sysret_is_set(framac_get_handle(t));
+        assigns \nothing;
+        ensures \result == K_ERROR_INVSTATE;
+    behavior get:
+        assumes \valid(sysret);
+        assumes \valid(framac_get_handle(t));
+        assumes framac_sysret_is_set(framac_get_handle(t));
+        assigns sysret;
+        ensures \result = framac_get_handle(t)->sysreturn;
+
+    complete behaviors;
+    disjoint behaviors;
+*/
+kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely(sysret == NULL)) {
+        goto err;
+    }
+    /*@ assert \valid(status); */
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    *sysret = cell->sysreturn;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_clear_sysreturn(taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    cell->sysretassigned = SECURE_FALSE;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_set_sysreturn(taskh_t t, enum Status sysret)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    cell->sysreturn = sysret;
+    cell->sysretassigned = SECURE_TRUE;
+err:
+    return status;
+}
