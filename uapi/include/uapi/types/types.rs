@@ -105,6 +105,7 @@ macro_rules! mirror_enum {
 /// default one
 #[repr(C)]
 #[cfg_attr(debug_assertions, derive(Debug, PartialEq))]
+#[derive(Copy, Clone)]
 pub enum Status {
     Ok,
     Invalid,

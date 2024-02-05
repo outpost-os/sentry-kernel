@@ -39,7 +39,7 @@ type EnumBinding = i32;
 #[cfg(not(windows))]
 type EnumBinding = u32;
 
-enum Kstatus {
+pub enum Kstatus {
     KStatusOkay,
     KErrorBusy,
     KErrorInvParam,
@@ -191,36 +191,39 @@ impl JobState {
     }
 }
 
-impl Status {
-    fn current() -> Result<Status, Status> {
-        let mut sysret: Status = Status::NoneSense;
-        let mut mgr_ret: Kstatus = Kstatus::K_ERROR_INVPARAM;
-        if unsafe { mgr::mgr_task_get_sysreturn(sched_get_current(), &mut sysret) } != 0 {
-            return Err(Status::Invalid);
-        }
-        sysret.try_into()
-    }
-    fn get(&mut self, job: mgr::taskh_t) -> Result<Status, Status> {
-        let mut sysret: Status = Status::NoneSense;
-        let mut mgr_ret: Kstatus = Kstatus::K_ERROR_INVPARAM;
-        if unsafe { mgr::mgr_task_get_sysreturn(job, &mut sysret) } != 0 {
-            return Err(Status::Invalid);
-        }
-        sysret.try_into()
+
+pub struct StatusStorage(Status);
+
+impl StatusStorage {
+    pub fn new(status: Status) -> Self {
+        StatusStorage(status)
     }
 
-    fn set(&mut self, job: mgr::taskh_t, new_ret: Status) -> Result<Status, Status> {
-        if unsafe { mgr::mgr_task_set_sysreturn(job, new_ret as EnumBinding) } != 0 {
-            return Err(Status::Invalid);
-        }
-        Ok(Status::Ok)
+    pub fn current(&self) -> Status {
+        self.0
     }
 
-    fn clear(&mut self, job: mgr::taskh_t, new_ret: Status) -> Result<Status, Status> {
+    pub fn load(&mut self, job: mgr::taskh_t) -> Result<Status, Kstatus> {
+        let mut local_status = self.0 as EnumBinding;
+        if unsafe { mgr::mgr_task_get_sysreturn(job, &mut local_status) } != 0 {
+            return Err(Kstatus::KErrorInvParam);
+        }
+        self.0 = local_status.into();
+        Ok(self.0)
+    }
+
+    pub fn assign(&mut self, job: mgr::taskh_t) -> Result<Kstatus, Kstatus> {
+        if unsafe { mgr::mgr_task_set_sysreturn(job, self.0 as EnumBinding) } != 0 {
+            return Err(Kstatus::KErrorInvParam);
+        }
+        Ok(Kstatus::KStatusOkay)
+    }
+
+    pub fn clear(&mut self, job: mgr::taskh_t) -> Result<Kstatus, Kstatus> {
         if unsafe { mgr::mgr_task_clear_sysreturn(job) } != 0 {
-            return Err(Status::Invalid);
+            return Err(Kstatus::KErrorInvParam);
         }
-        Ok(Status::Ok)
+        Ok(Kstatus::KStatusOkay)
     }
 }
 
