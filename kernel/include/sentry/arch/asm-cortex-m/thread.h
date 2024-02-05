@@ -17,9 +17,9 @@
  * TODO:
  *  Handle other exception return value
  */
-#if __CORTEX_M == 33U
+#if defined(CONFIG_ARCH_ARM_ARMV8M)
 # define __RETURN_THREAD_MODE (EXC_RETURN_PREFIX | EXC_RETURN_MODE | EXC_RETURN_SPSEL)
-#elif __CORTEX_M == 3U || __CORTEX_M == 4U || __CORTEX_M == 7U
+#elif defined(CONFIG_ARCH_ARM_ARMV7M)
 # define __RETURN_THREAD_MODE EXC_RETURN_THREAD_PSP
 #else
 #error "EXC_RETURN undefined this cortex-m architecture"
