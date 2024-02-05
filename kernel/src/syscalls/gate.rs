@@ -1,6 +1,7 @@
 use crate::arch::*;
 use capabilities::*;
 use managers_bindings as mgr;
+// use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
 pub type StackFramePointer = Option<*mut mgr::stack_frame_t>;
@@ -37,6 +38,49 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
 type EnumBinding = i32;
 #[cfg(not(windows))]
 type EnumBinding = u32;
+
+enum Kstatus {
+    KStatusOkay,
+    KErrorBusy,
+    KErrorInvParam,
+    KErrorBadState,
+    KErrorUnknown,
+    KErrorBadClk,
+    KErrorBadEntropy,
+    KErrorNotReady,
+    KErrorNoEnt,
+    KErrorMemFail,
+    KSecurityInvState,
+    KSecurityCorruption,
+    KSecurityLockdown,
+    KSecurityFIPSCompliance,
+    KSecurityIntegrity
+}
+
+impl TryFrom<EnumBinding> for Kstatus {
+    type Error = Status;
+    fn try_from(status: EnumBinding) -> Result<Kstatus, Self::Error> {
+        let kstatus: Kstatus = match status {
+            mgr::kstatus_K_STATUS_OKAY => Kstatus::KStatusOkay,
+            mgr::kstatus_K_ERROR_BADCLK => Kstatus::KErrorBadClk,
+            mgr::kstatus_K_ERROR_BADENTROPY => Kstatus::KErrorBadEntropy,
+            mgr::kstatus_K_ERROR_BADSTATE => Kstatus::KErrorBadState,
+            mgr::kstatus_K_ERROR_BUSY => Kstatus::KErrorBusy,
+            mgr::kstatus_K_ERROR_INVPARAM => Kstatus::KErrorInvParam,
+            mgr::kstatus_K_ERROR_MEMFAIL => Kstatus::KErrorMemFail,
+            mgr::kstatus_K_ERROR_NOENT => Kstatus::KErrorNoEnt,
+            mgr::kstatus_K_ERROR_NOTREADY => Kstatus::KErrorNotReady,
+            mgr::kstatus_K_ERROR_UNKNOWN => Kstatus::KErrorUnknown,
+            mgr::kstatus_K_SECURITY_CORRUPTION => Kstatus::KSecurityCorruption,
+            mgr::kstatus_K_SECURITY_FIPSCOMPLIANCE => Kstatus::KSecurityFIPSCompliance,
+            mgr::kstatus_K_SECURITY_INTEGRITY => Kstatus::KSecurityIntegrity,
+            mgr::kstatus_K_SECURITY_INVSTATE => Kstatus::KSecurityInvState,
+            mgr::kstatus_K_SECURITY_LOCKDOWN => Kstatus::KSecurityLockdown,
+            _ => return Err(Status::Invalid),
+        };
+        Ok(kstatus)
+    }
+}
 
 enum JobState {
     NotStarted,
@@ -129,6 +173,7 @@ impl<'a> TaskMeta<'a> {
     }
 }
 
+
 impl JobState {
     fn current() -> Result<JobState, Status> {
         let mut taskstate: mgr::job_state_t = 0;
@@ -140,6 +185,39 @@ impl JobState {
 
     fn set(&mut self, new_state: JobState) -> Result<Status, Status> {
         if unsafe { mgr::mgr_task_set_state(sched_get_current(), new_state as EnumBinding) } != 0 {
+            return Err(Status::Invalid);
+        }
+        Ok(Status::Ok)
+    }
+}
+
+impl Status {
+    fn current() -> Result<Status, Status> {
+        let mut sysret: Status = Status::NoneSense;
+        let mut mgr_ret: Kstatus = Kstatus::K_ERROR_INVPARAM;
+        if unsafe { mgr::mgr_task_get_sysreturn(sched_get_current(), &mut sysret) } != 0 {
+            return Err(Status::Invalid);
+        }
+        sysret.try_into()
+    }
+    fn get(&mut self, job: mgr::taskh_t) -> Result<Status, Status> {
+        let mut sysret: Status = Status::NoneSense;
+        let mut mgr_ret: Kstatus = Kstatus::K_ERROR_INVPARAM;
+        if unsafe { mgr::mgr_task_get_sysreturn(job, &mut sysret) } != 0 {
+            return Err(Status::Invalid);
+        }
+        sysret.try_into()
+    }
+
+    fn set(&mut self, job: mgr::taskh_t, new_ret: Status) -> Result<Status, Status> {
+        if unsafe { mgr::mgr_task_set_sysreturn(job, new_ret as EnumBinding) } != 0 {
+            return Err(Status::Invalid);
+        }
+        Ok(Status::Ok)
+    }
+
+    fn clear(&mut self, job: mgr::taskh_t, new_ret: Status) -> Result<Status, Status> {
+        if unsafe { mgr::mgr_task_clear_sysreturn(job) } != 0 {
             return Err(Status::Invalid);
         }
         Ok(Status::Ok)
