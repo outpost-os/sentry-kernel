@@ -252,8 +252,6 @@ kstatus_t usart_tx(const uint8_t *data, size_t data_len)
     /* transmission loop */
     do {
         usart_wait_for_tx_empty(usart_desc);
-        usart_wait_for_tx_empty(usart_desc);
-        usart_wait_for_tx_empty(usart_desc);
         iowrite8(usart_base + USART_DR_REG, data[emitted]);
         emitted++;
     } while (emitted < data_len);
