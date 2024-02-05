@@ -137,7 +137,7 @@ __STATIC_FORCEINLINE void __mpu_initialize(void)
         /** MPU Access attribute for non cached normal memory */
         ARM_MPU_ATTR(ARM_MPU_ATTR_NON_CACHEABLE, ARM_MPU_ATTR_NON_CACHEABLE),
         /** MPU Access attribute for cached normal memory w/ write back and read allocate cache policy */
-        ARM_MPU_ATTR(_MPU_ATTR_CACHE_WB_RA, _MPU_ATTR_CACHE_WB_RA),
+        ARM_MPU_ATTR(ARM_MPU_ATTR_NON_CACHEABLE, ARM_MPU_ATTR_NON_CACHEABLE),
     };
     static_assert(ARRAY_SIZE(_mpu_attrs) <= 8, "PMSAv8 MPU attribute array size too big");
 

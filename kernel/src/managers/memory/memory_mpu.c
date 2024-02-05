@@ -61,6 +61,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = false,
+        .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_txt_config, 1);
     return status;
@@ -77,6 +78,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = true,
+        .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_data_config, 1);
     return status;
@@ -104,6 +106,7 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = true,
+        .shareable = false,
     };
     status = mpu_load_descriptors(&user_data_config, 1);
 err:
