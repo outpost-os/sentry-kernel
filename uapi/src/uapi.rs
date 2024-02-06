@@ -52,8 +52,9 @@ pub fn get_random() -> Result<u32, Status> {
         Status::Ok => (),
         any_err => return Err(any_err),
     };
+    // FIXME: we might use copy_to_user here
     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
-    let result = u32::from_be_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
+    let result = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
     Ok(result)
 }
 
@@ -62,8 +63,9 @@ pub fn get_cycles() -> Result<u64, Status> {
         Status::Ok => (),
         any_err => return Err(any_err),
     };
+    // FIXME: we might use copy_to_user here
     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..8] };
-    let result = u64::from_be_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
+    let result = u64::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
     Ok(result)
 }
 
