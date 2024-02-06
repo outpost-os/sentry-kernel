@@ -58,6 +58,19 @@ task_t *task_get_table(void)
     return &task_table[0];
 }
 
+task_t *task_get_cell(taskh_t th)
+{
+    task_t *cell = NULL;
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        task_t *t = &task_table[i];
+        if (handle_convert_to_u32(t->handle) == handle_convert_to_u32(th)) {
+            cell = t;
+            break;
+        }
+    }
+    return cell;
+}
+
 /**
  * TODO: this calculation may be done once for a task at boot time and stord
  * in task dyn data. This though required a fast taskh to task info accessor
