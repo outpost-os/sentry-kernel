@@ -13,6 +13,19 @@
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/managers/security.h>
 
+/*
+ * TODO:
+ *  Handle other exception return value
+ */
+#if defined(CONFIG_ARCH_ARM_ARMV8M)
+# define __RETURN_THREAD_MODE (EXC_RETURN_PREFIX | EXC_RETURN_MODE | EXC_RETURN_SPSEL)
+#elif defined(CONFIG_ARCH_ARM_ARMV7M)
+# define __RETURN_THREAD_MODE EXC_RETURN_THREAD_PSP
+#else
+#error "EXC_RETURN undefined this cortex-m architecture"
+#endif
+
+
 /* the firmware bare default handler save the overall missing registers (i.e.
  * not saved by the NVIC) on the stack, generating a stack frame with a full
  * registers backup (see startup.s file).
@@ -51,13 +64,8 @@ static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t 
     frame->r12 = 0x0;
     frame->pc = (pc | 0x1); /* thumb2 mode */
     frame->xpsr = 0x21000200UL;
-#if defined(CONFIG_FPU_HARDFP_ABI)
-    frame->lr = EXC_RETURN_THREAD_PSP_FPU;
-    frame->prev_lr = EXC_RETURN_THREAD_PSP_FPU; /* _start LR */
-#else
-    frame->lr = EXC_RETURN_THREAD_PSP;
-    frame->prev_lr = EXC_RETURN_THREAD_PSP; /* _start LR */
-#endif
+    frame->lr = __RETURN_THREAD_MODE;
+    frame->prev_lr = __RETURN_THREAD_MODE; /* _start LR */
     return frame;
 }
 

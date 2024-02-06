@@ -35,6 +35,8 @@ extern uint32_t _ram_start;
 
 static secure_bool_t mm_configured;
 
+
+
 static inline secure_bool_t mgr_mm_configured(void)
 {
     if (mm_configured == SECURE_TRUE) {
@@ -59,8 +61,9 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = false,
+        .shareable = false,
     };
-    status = mpu_load_configuration(&kernel_txt_config, 1);
+    status = mpu_load_descriptors(&kernel_txt_config, 1);
     return status;
 }
 
@@ -75,8 +78,9 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = true,
+        .shareable = false,
     };
-    status = mpu_load_configuration(&kernel_data_config, 1);
+    status = mpu_load_descriptors(&kernel_data_config, 1);
     return status;
 }
 
@@ -102,8 +106,9 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target)
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = true,
+        .shareable = false,
     };
-    status = mpu_load_configuration(&user_data_config, 1);
+    status = mpu_load_descriptors(&user_data_config, 1);
 err:
     return status;
 }
@@ -118,7 +123,7 @@ kstatus_t mgr_mm_map_task(taskh_t t)
         pr_err("failed to get meta for task handle %x", t);
         goto err;
     }
-    mpu_fastload(layout, TASK_MAX_RESSOURCES_NUM);
+    mpu_fastload(MM_REGION_TASK_TXT, layout, TASK_MAX_RESSOURCES_NUM);
     status = K_STATUS_OKAY;
 err:
     return status;
@@ -148,7 +153,7 @@ kstatus_t mgr_mm_unmap_device(devh_t dev)
         pr_err("device %x not found in mapped layout", dev);
         goto err;
     }
-    status = mgr_task_remove_ressource(tsk, id);
+    status = mgr_task_remove_resource(tsk, mm_mgr_region_to_layout_id(id));
 err:
     return status;
 }
@@ -181,12 +186,14 @@ kstatus_t mgr_mm_map_device(devh_t dev)
     mpu_cfg.addr = (uint32_t)devinfo->baseaddr;
     mpu_cfg.size = mpu_convert_size_to_region(devinfo->size);
     mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
-    mpu_cfg.access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER;
+    mpu_cfg.access_attrs = MPU_REGION_ATTRS_DEVICE;
     mpu_cfg.mask = 0x0;
     mpu_cfg.noexec = true;
-    status = mpu_forge_ressource(&mpu_cfg, &layout);
+    mpu_cfg.shareable = false;
+    status = mpu_forge_resource(&mpu_cfg, &layout);
     /*@ assert status == K_STATUS_OKAY; */
-    if (unlikely((status = mgr_task_add_ressource(tsk, layout)) != K_STATUS_OKAY)) {
+    status = mgr_task_add_resource(tsk, mm_mgr_region_to_layout_id(mpu_cfg.id), layout);
+    if (unlikely(status != K_STATUS_OKAY)) {
         /* should not happen as already checked when getting free id */
         /*@ assert false; */
         pr_err("no free slot to map device");
@@ -211,7 +218,7 @@ kstatus_t mgr_mm_forge_empty_table(layout_resource_t *ressource_tab)
         goto err;
     }
     for (uint8_t i = 0; i < TASK_MAX_RESSOURCES_NUM;++i) {
-        mpu_forge_unmapped_ressource(i + MM_REGION_TASK_TXT, ressource_tab);
+        mpu_forge_unmapped_ressource(i, ressource_tab);
         ressource_tab++;
     }
     status = K_STATUS_OKAY;
@@ -237,24 +244,26 @@ kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resourc
     }
     switch (reg_type) {
         case MM_REGION_TASK_TXT:
-            mpu_cfg.id = MM_REGION_TASK_TXT,
-            mpu_cfg.addr = (uint32_t)meta->s_text,
-            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_text_region_size(meta)),
-            mpu_cfg.access_perm = MPU_REGION_PERM_RO,
-            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-            mpu_cfg.mask = 0x0,
-            mpu_cfg.noexec = false,
-            mpu_forge_ressource(&mpu_cfg, ressource);
+            mpu_cfg.id = MM_REGION_TASK_TXT;
+            mpu_cfg.addr = (uint32_t)meta->s_text;
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_text_region_size(meta));
+            mpu_cfg.access_perm = MPU_REGION_PERM_RO;
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+            mpu_cfg.mask = 0x0;
+            mpu_cfg.noexec = false;
+            mpu_cfg.shareable = false;
+            mpu_forge_resource(&mpu_cfg, ressource);
             break;
         case MM_REGION_TASK_DATA:
-            mpu_cfg.id = MM_REGION_TASK_DATA,
-            mpu_cfg.addr = (uint32_t)meta->s_svcexchange, /* To define: where start the task RAM ? .data ? other ? */
-            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta)),   /* FIXME data_size is a concat of all datas sections */
-            mpu_cfg.access_perm = MPU_REGION_PERM_FULL,
-            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
-            mpu_cfg.mask = 0x0,
-            mpu_cfg.noexec = true,
-            mpu_forge_ressource(&mpu_cfg, ressource);
+            mpu_cfg.id = MM_REGION_TASK_DATA;
+            mpu_cfg.addr = (uint32_t)meta->s_svcexchange; /* To define: where start the task RAM ? .data ? other ? */
+            mpu_cfg.size = mpu_convert_size_to_region(mgr_task_get_data_region_size(meta));   /* FIXME data_size is a concat of all datas sections */
+            mpu_cfg.access_perm = MPU_REGION_PERM_FULL;
+            mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+            mpu_cfg.mask = 0x0;
+            mpu_cfg.noexec = true;
+            mpu_cfg.shareable = false;
+            mpu_forge_resource(&mpu_cfg, ressource);
             break;
         case MM_REGION_TASK_RESSOURCE_DEVICE:
             /* TODO for other ressources */
@@ -355,11 +364,12 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len)
             .addr = address,
             .size = mpu_convert_size_to_region(len),
             .access_perm = MPU_REGION_PERM_PRIV,
-            .access_attrs = MPU_REGION_ATTRS_STRONGLY_ORDER,
+            .access_attrs = MPU_REGION_ATTRS_DEVICE,
             .mask = 0x0,
             .noexec = true,
+            .shareable = false,
         };
-        status = mpu_load_configuration(&kdev_config, 1);
+        status = mpu_load_descriptors(&kdev_config, 1);
     }
     return status;
 }

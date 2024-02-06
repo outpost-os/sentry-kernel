@@ -16,8 +16,10 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/ktypes.h>
+#include <sentry/zlib/math.h>
 
 /** MPU Access Permission no access */
 #define MPU_REGION_PERM_NONE ARM_MPU_AP_NONE
@@ -31,9 +33,9 @@
 #define MPU_REGION_PERM_PRIV_RO ARM_MPU_AP_PRO
 /** MPU Access Permission privileged/unprivileged read-only access */
 #define MPU_REGION_PERM_RO ARM_MPU_AP_RO
+
 /** MPU Access attribute for strongly ordered memory */
 #define MPU_REGION_ATTRS_STRONGLY_ORDER ARM_MPU_ACCESS_ORDERED
-
 /** MPU Access attribute for device memory */
 #define MPU_REGION_ATTRS_DEVICE ARM_MPU_ACCESS_DEVICE(0UL)
 
@@ -106,84 +108,122 @@
 /** MPU Region Size 4 GBytes */
 #define MPU_REGION_SIZE_4GB ARM_MPU_REGION_SIZE_4GB
 
-#define IS_POWEROFTWO(s) ((s != 0) && ((s & (s - 1)) == 0))
+__STATIC_FORCEINLINE void __mpu_initialize(void)
+{
+    /* Nothing to do for PMSAv7 */
+}
 
-#define ROUNDUP_TO_POWEROFTWO(s) (1 << (32 - __builtin_clz (s - 1)))
-
-static inline uint8_t mpu_convert_size_to_region(uint32_t size) {
-    if (unlikely(size < 32)) {
-        size = 32; /* rounding to minimum MPU size supported */
+__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_resource_t* ressource)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(ressource == NULL)) {
+        goto end;
     }
+    ressource->RBAR = ARM_MPU_RBAR(id + TASK_FIRST_REGION_NUMBER, 0x0UL);
+    ressource->RASR = 0x0UL;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+__STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *desc,
+                                                   layout_resource_t *resource)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    uint32_t rbar;
+    uint32_t rasr;
+
+    if (unlikely((desc == NULL) || (resource == NULL))) {
+        goto end;
+    }
+    resource->RBAR = ARM_MPU_RBAR(desc->id, desc->addr);
+    resource->RASR = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
+                           desc->access_perm,
+                           desc->access_attrs,
+                           desc->mask,
+                           desc->size);
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
+ * @brief PMSAv7 MPU region fastload
+ *
+ * @param first_region_number MPU region number for the first region to be loaded
+ * @param resource resource layout table
+ * @param num_resources number of resources to (fast) load
+ *
+ * @note for PMSAv7, resource ID is encoded in RBAR register,
+ * thus, first_region_number is unused.
+ */
+__STATIC_FORCEINLINE void __mpu_fastload(
+    uint32_t first_region_number __attribute__((unused)),
+    const layout_resource_t *resource,
+    uint8_t num_resources
+){
+    ARM_MPU_Load(resource, num_resources);
+}
+
+__STATIC_FORCEINLINE secure_bool_t __mpu_is_resource_free(const layout_resource_t* resource)
+{
+    secure_bool_t is_free = SECURE_FALSE;
+
+    if (resource->RASR == 0x0UL) {
+        is_free = SECURE_TRUE;
+    }
+
+    return is_free;
+}
+
+__STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resource_t *resource)
+{
+    return resource->RBAR & MPU_RBAR_ADDR_Msk;
+}
+
+/**
+ * @brief PMSAv7 MPU region size alignment
+ * @param size memory size to map
+ * @return size aligned the next power of 2 boundary if unaligned
+ */
+__STATIC_FORCEINLINE uint32_t __mpu_region_align_size(uint32_t size)
+{
     /* TODO overflow check here */
-    if (unlikely(!IS_POWEROFTWO(size))) {
-        size = ROUNDUP_TO_POWEROFTWO(size);
+    if (unlikely(!IS_POW2(size))) {
+        size = ALIGN_TO_POW2(size);
     }
-    /* get back the number of preceding 0 before '1' (shift calculation) */
+
+    return size;
+}
+
+/**
+ * @brief convert size in PMSAv7 format
+ *
+ * @param size region size (must be aligned to power of 2)
+ *
+ * Size configuration in RASR is 2^(N+1)
+ * This function computes N from an already aligned size.
+ *
+ * @return the value to write into the RASR
+ */
+__STATIC_FORCEINLINE uint32_t __mpu_size_to_region(uint32_t size)
+{
     uint8_t shift = __builtin_ffsl(size) - 1;
     /*
      * MPU region size is correlated to the shift value, starting with 32B=0x4.
      * 32 is encoded with 0b100000 (shift == 5). We only have to return shift - 1
      * to get the correct result
      */
-    return shift -1;
+    return shift - 1;
 }
 
-/**
- * Enable PMSAv7 MPU
- */
-#define mpu_enable(x) ARM_MPU_Enable(MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_HFNMIENA_Msk)
 
-/**
- * Disable PMSAv7 MPU
- */
-#define mpu_disable ARM_MPU_Disable
-
-/**
- * Clear (and disable) MPU region configuration
- */
-#define mpu_clear_region(rnr) ARM_MPU_ClrRegion((rnr))
-
-/**
- * Number of supported region in current MPU
- */
-#define MPU_REGION_NUMBER ((MPU->TYPE & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos)
-
-/**
- * Max number of batch configuration of region on current MPU
- */
-#define mpu_get_maxbatch() MPU_TYPE_RALIASES
-
-/**
- * Load memory regions description table in MPU
- */
-__STATIC_FORCEINLINE kstatus_t mpu_load_configuration(const struct mpu_region_desc *region_descs,
-                            size_t count)
+__STATIC_FORCEINLINE void __mpu_set_region(
+    uint32_t region_id __attribute__((unused)),
+    const layout_resource_t *resource
+)
 {
-    kstatus_t status = K_ERROR_INVPARAM;
-    uint32_t rbar;
-    uint32_t rasr;
-    const struct mpu_region_desc *desc = NULL;
-
-    if (region_descs == NULL) {
-        goto end;
-    }
-
-    for (size_t i = 0UL; i < count; i++) {
-        desc = region_descs + i;
-#ifndef __FRAMAC__
-        rbar = ARM_MPU_RBAR(desc->id, desc->addr);
-        rasr = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
-                               desc->access_perm,
-                               desc->access_attrs,
-                               desc->mask,
-                               desc->size);
-        ARM_MPU_SetRegion(rbar, rasr);
-#endif
-    }
-    status = K_STATUS_OKAY;
-end:
-    return status;
+    ARM_MPU_SetRegion(resource->RBAR, resource->RASR);
 }
-
 
 #endif /* __ARCH_ARM_PMSA_V7_H */

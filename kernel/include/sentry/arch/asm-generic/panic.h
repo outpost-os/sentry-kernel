@@ -79,6 +79,8 @@ panic(panic_event_t ev) {
 # endif
 
 #else
+    /* ugly warning shutdown for unittest */
+    (void)ev;
     /* INFO: clang auto purge protection:
         when a loop with no external impact and with a constant
         loop trigger is implemented, clang just drop it */

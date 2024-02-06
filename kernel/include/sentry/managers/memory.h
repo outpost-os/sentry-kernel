@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#include <sentry/arch/asm-generic/memory.h>
+#include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/task.h>
 
 /**
@@ -20,8 +22,8 @@ extern "C" {
  *      of them
  */
 typedef enum mm_region {
-    MM_REGION_TASK_TXT = 2, /* starting point of userspace ressources */
-    MM_REGION_TASK_DATA = 3,
+    MM_REGION_TASK_TXT = TASK_FIRST_REGION_NUMBER, /* starting point of userspace ressources */
+    MM_REGION_TASK_DATA = TASK_FIRST_REGION_NUMBER + 1,
     MM_REGION_TASK_RESSOURCE_DEVICE, /* starting at 4, no fixed order */
     MM_REGION_TASK_RESSOURCE_SHM,
 } mm_region_t;
@@ -65,6 +67,35 @@ kstatus_t mgr_mm_unmap_device(devh_t dev);
 
 
 kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resource_t *ressource);
+
+/*
+ * XXX:
+ *  In order to restore task mpu config w/ fast loading, region configuration
+ *  in task layout must be ordered **and** contiguous. So, use these helper
+ *  as this is not related to mpu driver but memory management.
+ */
+
+/**
+ * @brief convert a MPU region ID to a task layout region ID
+ *
+ * @param  region_id MPU region id
+ * @return The associated id in task layout table.
+ */
+static inline uint8_t mm_mgr_region_to_layout_id(uint8_t region_id)
+{
+    if (unlikely(region_id >= CONFIG_NUM_MPU_REGIONS)) {
+        panic(PANIC_HARDWARE_INVALID_STATE); /* TODO: do we add a BUG panic event as in linux ? */
+    }
+    return region_id - TASK_FIRST_REGION_NUMBER;
+}
+
+static inline uint8_t mm_mgr_layout_to_region_id(uint8_t layout_id)
+{
+    if (unlikely(layout_id >= TASK_MAX_RESSOURCES_NUM)) {
+        panic(PANIC_HARDWARE_INVALID_STATE); /* TODO: do we add a BUG panic event as in linux ? */
+    }
+    return layout_id + TASK_FIRST_REGION_NUMBER;
+}
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_mm_autotest(void);

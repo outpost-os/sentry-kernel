@@ -63,7 +63,16 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
   if (flag == THREAD_MODE_KERNEL) {
     runlevel = 2; /* privileged, PSP */
   }
-	asm volatile
+
+  /*
+   * Once interrupt enable in Kernel Thread Mode, make sure that any further statement
+   * and function call are preemptible. This is not the case for instance in kernel
+   * drivers, if an irq use a mappable device, the previously used device is not mapped
+   * anymore.
+   */
+  interrupt_enable();
+
+  asm volatile
        ("mov r0, %[SP]      \n\t"   \
         "msr psp, r0        \n\t"   \
         "mov r0, %[LVL]     \n\t"   \
@@ -78,7 +87,7 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
           [LVL] "r" (runlevel),
           [THREADID] "r" (runlevel),
           [SEED] "r" (seed)
-        : "r0", "r1", "r5");
+        : "r0", "r1", "r5", "memory");
         __builtin_unreachable();
 }
 

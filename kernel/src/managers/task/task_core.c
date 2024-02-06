@@ -66,11 +66,11 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
     return CONFIG_SVC_EXCHANGE_AREA_LEN + \
-           ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->data_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->bss_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->heap_size, __WORDSIZE) + \
-           ROUND_UP_TO(meta->stack_size, __WORDSIZE);
+           ROUND_UP(meta->got_size, __WORDSIZE) + \
+           ROUND_UP(meta->data_size, __WORDSIZE) + \
+           ROUND_UP(meta->bss_size, __WORDSIZE) + \
+           ROUND_UP(meta->heap_size, __WORDSIZE) + \
+           ROUND_UP(meta->stack_size, __WORDSIZE);
 }
 
 /**
@@ -80,7 +80,7 @@ size_t mgr_task_get_data_region_size(const task_meta_t *meta)
 size_t mgr_task_get_text_region_size(const task_meta_t *meta)
 {
     /*@ assert \valid_read(meta); */
-    return ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
+    return ROUND_UP(meta->text_size, __WORDSIZE) + \
            meta->rodata_size;
     /* got and data in flash are excluded (no need) */
 }
@@ -294,10 +294,8 @@ void __attribute__((noreturn)) mgr_task_start(void)
         goto err;
     };
     pc = (size_t)(idle_meta->s_text + idle_meta->entrypoint_offset);
-    /* at startupt, sched return idle */
+    /* at startup, sched return idle */
     mgr_mm_map_task(idle_meta->handle);
-    /** XXX: there is a race here, if the pr_info() is not printed, a memory fault rise
-        it seems that the MPU configuration take a little time before being active */
     pr_info("spawning thread, pc=%p, sp=%p", pc, sp);
     mgr_task_set_userspace_spawned();
     __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
@@ -319,7 +317,7 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     /* copy got, if non-null */
     if (likely(meta->got_size)) {
         size_t got_source = meta->s_text + \
-                             ROUND_UP_TO(meta->text_size, __WORDSIZE);
+                             ROUND_UP(meta->text_size, __WORDSIZE);
         size_t got_start  = meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN;
         pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->got_size, got_source, got_start);
@@ -328,11 +326,11 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
         size_t data_source = meta->s_text + \
-                             ROUND_UP_TO(meta->text_size, __WORDSIZE) + \
-                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
+                             ROUND_UP(meta->text_size, __WORDSIZE) + \
+                             ROUND_UP(meta->got_size, __WORDSIZE);
         size_t data_start =  meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                             ROUND_UP_TO(meta->got_size, __WORDSIZE);
+                             ROUND_UP(meta->got_size, __WORDSIZE);
         pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
         memcpy((void*)data_start, (void*)data_source, meta->data_size);
     }
@@ -340,8 +338,8 @@ kstatus_t task_set_job_layout(task_meta_t const * const meta)
     if (likely(meta->bss_size)) {
         size_t bss_start =  meta->s_svcexchange + \
                             CONFIG_SVC_EXCHANGE_AREA_LEN + \
-                            ROUND_UP_TO(meta->got_size, __WORDSIZE) + \
-                            ROUND_UP_TO(meta->data_size, __WORDSIZE);
+                            ROUND_UP(meta->got_size, __WORDSIZE) + \
+                            ROUND_UP(meta->data_size, __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
         memset((void*)bss_start, 0x0, meta->bss_size);
     }
@@ -411,38 +409,39 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_add_ressource(taskh_t t, layout_resource_t ressource)
+kstatus_t mgr_task_add_resource(taskh_t t, uint8_t resource_id, layout_resource_t resource)
 {
     kstatus_t status;
     task_t *cell;
-    uint8_t ressourceid;
+
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
-    /* TODO: adding assertion on ressource region id >= MM_REGION_TASK_TXT */
-    /**
-     * userspace ressources, starting at task TXT, is always greater than MM_REGION_TASK_TXT
-     */
-    ressourceid = mpu_get_id_from_ressource(ressource) - MM_REGION_TASK_TXT;
-    memcpy(&cell->layout[ressourceid], &ressource, sizeof(layout_resource_t));
+
+    if (unlikely(resource_id >= TASK_MAX_RESSOURCES_NUM)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+
+    memcpy(&cell->layout[resource_id], &resource, sizeof(layout_resource_t));
     status = K_STATUS_OKAY;
 err:
     return status;
 }
 
 /**
- * @brief removing a ressource from task context, based on its identifier
- * (typically region identifier)
+ * @brief removing a resource from task context, based on its identifier
+ * @warning this is the layout id, not the region id !
  */
-kstatus_t mgr_task_remove_ressource(taskh_t t, uint8_t id)
+kstatus_t mgr_task_remove_resource(taskh_t t, uint8_t resource_id)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }
-    mpu_forge_unmapped_ressource(id, &cell->layout[id - MM_REGION_TASK_TXT]);
+    mpu_forge_unmapped_ressource(resource_id, &cell->layout[resource_id]);
     status = K_STATUS_OKAY;
 err:
     return status;
