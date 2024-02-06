@@ -227,6 +227,12 @@ impl StatusStorage {
     }
 }
 
+pub fn set_syscall_status(val: Status) -> Result<Kstatus, Kstatus> {
+    let mut status = StatusStorage(val);
+    status.assign(unsafe { mgr::sched_get_current() })?;
+    Ok(Kstatus::KStatusOkay)
+}
+
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
     TaskMeta::current()?.can(Capability::SYS_POWER)?;
 
@@ -305,12 +311,22 @@ pub fn r#yield() -> Result<StackFramePointer, Status> {
 }
 
 pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Status> {
-    let mode = match SleepMode::try_from(sleep_mode)? {
-        SleepMode::Shallow => JobState::Sleeping,
-        SleepMode::Deep => JobState::DeepSleeping,
+    let mode = match SleepMode::try_from(sleep_mode) {
+        Ok(SleepMode::Shallow) => JobState::Sleeping,
+        Ok(SleepMode::Deep) => JobState::DeepSleeping,
+        Err(err) => { let _ = set_syscall_status(err); JobState::Ready },
     };
-    JobState::current()?.set(mode)?;
-    time_delay_add_job(sched_get_current(), duration_ms)?;
+    match JobState::current()?.set(mode) {
+        Ok(_) => Status::Ok,
+        Err(err) => { let _ = set_syscall_status(err); err },
+    };
+
+    match time_delay_add_job(sched_get_current(), duration_ms) {
+        Ok(_) => Status::Ok,
+        Err(err) => { let _ = set_syscall_status(err); err },
+    };
+    // sleep return code must be set asynchronously by delay manager
+    let _ = set_syscall_status(Status::NonSense);
     task_get_sp(sched_elect())
 }
 
