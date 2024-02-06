@@ -30,7 +30,7 @@ void task_autotest_init(void)
     autotest_meta.flags.start_mode = JOB_FLAG_START_AUTO;
     autotest_meta.flags.exit_mode = JOB_FLAG_EXIT_RESET;
     autotest_meta.s_text = (size_t)&_sautotest;
-    autotest_meta.text_size = ((size_t)&_eautotest - (size_t)&_sautotest);
+    autotest_meta.text_size = {{ "%#08xUL"|format(text["size"]) }};
     autotest_meta.entrypoint_offset = 0x1UL;
     autotest_meta.finalize_offset = 0x0UL; /* TBD for idle */
     autotest_meta.rodata_size = 0UL; /* fusionned in .text by now */
