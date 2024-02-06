@@ -201,7 +201,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     task_table[cell].handle = meta->handle;
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
-    size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
+    size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
     task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
     task_table[cell].state = JOB_STATE_READY;
     mgr_mm_forge_empty_table(task_table[cell].layout);
@@ -301,7 +301,7 @@ static inline kstatus_t task_init_add_autotest(void)
     /* should we though forge a HMAC for idle metadata here ? */
     task_table[ctx.numtask].metadata = meta;
     task_table[ctx.numtask].handle = meta->handle;
-    size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
+    size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
 #ifndef TEST_MODE
     task_table[ctx.numtask].sp = mgr_task_initialize_sp((uint32_t)meta->handle.rerun, autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset), 0);
 #else
@@ -346,7 +346,7 @@ static inline kstatus_t task_init_add_idle(void)
     /* should we though forge a HMAC for idle metadata here ? */
     task_table[ctx.numtask].metadata = meta;
     task_table[ctx.numtask].handle = meta->handle;
-    size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta);
+    size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
     /* Idle special case, as we directly execute idle at boot, there is no stack_frame_t saved on stack */
 #if 1
     task_table[ctx.numtask].sp = (stack_frame_t*)idle_sp;
