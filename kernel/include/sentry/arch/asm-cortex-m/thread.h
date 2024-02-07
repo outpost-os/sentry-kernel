@@ -16,9 +16,15 @@
 /*
  * TODO:
  *  Handle other exception return value
+ *
+ *  By now, we only start apps in user, non secure, thread mode with psp stack
+ *  and w/o initial FPU context.
+ *
+ *  TODO: If hardfp is enabled at kernel level, we may create an initial FPU context for user task
+ *  even if task do not use FPU nor hard-fp ABI.
  */
 #if defined(CONFIG_ARCH_ARM_ARMV8M)
-# define __RETURN_THREAD_MODE (EXC_RETURN_PREFIX | EXC_RETURN_MODE | EXC_RETURN_SPSEL)
+# define __RETURN_THREAD_MODE (EXC_RETURN_PREFIX | EXC_RETURN_FTYPE | EXC_RETURN_MODE | EXC_RETURN_SPSEL)
 #elif defined(CONFIG_ARCH_ARM_ARMV7M)
 # define __RETURN_THREAD_MODE EXC_RETURN_THREAD_PSP
 #else
