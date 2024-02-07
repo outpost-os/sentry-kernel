@@ -377,6 +377,7 @@ __STATIC_FORCEINLINE void save_context(void)
     "ite     eq\r\n"        /* if equal 0 */
     "msreq   msp, r0\r\n"   /* MSP <- r0 */
     "msrne   psp, r0\r\n"   /* PSP <- r0 */
+    "isb \r\n"
     ::: "memory" );
 }
 
@@ -388,7 +389,7 @@ __STATIC_FORCEINLINE void restore_context(void)
     "ite     eq\r\n"        /* if equal 0 */
     "msreq   msp, r0\r\n"   /* MSP <- r0 */
     "msrne   psp, r0\r\n"   /* PSP <- r0 */
-    "dsb\r\n"
+    "isb\r\n"
     "cpsie   i\r\n"
     "dsb \r\n"
     "isb \r\n"
