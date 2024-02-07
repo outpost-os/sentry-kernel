@@ -362,6 +362,13 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     /*@ assert \false; */
 }
 
+/**
+ * XXX:
+ *  We do not support privileged, FPU context saving, nor secure thread by now.
+ *  But we should save `control` on task frame at exception entry and restore
+ *  privilege and FPU context at exception return.
+ */
+
 __STATIC_FORCEINLINE void save_context(void)
 {
     asm volatile (
