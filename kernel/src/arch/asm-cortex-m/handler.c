@@ -41,29 +41,29 @@ static inline void dump_frame(stack_frame_t *frame)
 {
     uint32_t msp, psp;
     pr_emerg("== frame info");
-    pr_emerg("r0\t\t%08x\t\t%08d", frame->r0, frame->r0);
-    pr_emerg("r1\t\t%08x\t\t%08d", frame->r1, frame->r1);
-    pr_emerg("r2\t\t%08x\t\t%08d", frame->r2, frame->r2);
-    pr_emerg("r3\t\t%08x\t\t%08d", frame->r3, frame->r3);
-    pr_emerg("r4\t\t%08x\t\t%08d", frame->r4, frame->r4);
-    pr_emerg("r5\t\t%08x\t\t%08d", frame->r5, frame->r5);
-    pr_emerg("r6\t\t%08x\t\t%08d", frame->r6, frame->r6);
-    pr_emerg("r7\t\t%08x\t\t%08d", frame->r7, frame->r7);
-    pr_emerg("r8\t\t%08x\t\t%08d", frame->r8, frame->r8);
-    pr_emerg("r9\t\t%08x\t\t%08d", frame->r9, frame->r9);
-    pr_emerg("r10\t\t%08x\t\t%08d", frame->r10, frame->r10);
-    pr_emerg("r11\t\t%08x\t\t%08d", frame->r11, frame->r11);
-    pr_emerg("r12\t\t%08x\t\t%08d", frame->r12, frame->r12);
-    pr_emerg("lr\t\t%08x\t\t%08d", frame->lr, frame->lr);
-    pr_emerg("pc\t\t%08x\t\t%08d", frame->pc, frame->pc);
-    pr_emerg("prev_lr\t%08x\t\t%08d", frame->prev_lr, frame->prev_lr);
-    pr_emerg("xpsr\t%08x\t\t%08d", frame->xpsr, frame->xpsr);
     asm volatile (
         "mrs %0, msp\r\n"   /* r0 <- MSP */
         "mrs %1, psp\r\n"   /* or r0 <- PSP (process stack) */
     : "=r" (msp), "=r" (psp) ::);
-    pr_emerg("msp\t\t%08x\t\t%08d", msp, msp);
-    pr_emerg("psp\t\t%08x\t\t%08d", psp, psp);
+    pr_emerg("msp\t\t\t%08x\t%08d", msp, msp);
+    pr_emerg("psp\t\t\t%08x\t%08d", psp, psp);
+    pr_emerg("[%08x] r4\t\t%08x\t%08d", &frame->r4, frame->r4, frame->r4);
+    pr_emerg("[%08x] r5\t\t%08x\t%08d", &frame->r5, frame->r5, frame->r5);
+    pr_emerg("[%08x] r6\t\t%08x\t%08d", &frame->r6, frame->r6, frame->r6);
+    pr_emerg("[%08x] r7\t\t%08x\t%08d", &frame->r7, frame->r7, frame->r7);
+    pr_emerg("[%08x] r8\t\t%08x\t%08d", &frame->r8, frame->r8, frame->r8);
+    pr_emerg("[%08x] r9\t\t%08x\t%08d", &frame->r9, frame->r9, frame->r9);
+    pr_emerg("[%08x] r10\t\t%08x\t%08d", &frame->r10, frame->r10, frame->r10);
+    pr_emerg("[%08x] r11\t\t%08x\t%08d", &frame->r11, frame->r11, frame->r11);
+    pr_emerg("[%08x] lr\t\t%08x\t%08d", &frame->lr, frame->lr, frame->lr);
+    pr_emerg("[%08x] r0\t\t%08x\t%08d", &frame->r0, frame->r0, frame->r0);
+    pr_emerg("[%08x] r1\t\t%08x\t%08d", &frame->r1, frame->r1, frame->r1);
+    pr_emerg("[%08x] r2\t\t%08x\t%08d", &frame->r2, frame->r2, frame->r2);
+    pr_emerg("[%08x] r3\t\t%08x\t%08d", &frame->r3, frame->r3, frame->r3);
+    pr_emerg("[%08x] r12\t\t%08x\t%08d", &frame->r12, frame->r12, frame->r12);
+    pr_emerg("[%08x] prev_lr\t%08x\t%08d", &frame->prev_lr, frame->prev_lr, frame->prev_lr);
+    pr_emerg("[%08x] pc\t\t%08x\t%08d", &frame->pc, frame->pc, frame->pc);
+    pr_emerg("[%08x] xpsr\t\t%08x\t%08d", &frame->xpsr, frame->xpsr, frame->xpsr);
 }
 
 __STATIC_FORCEINLINE secure_bool_t is_userspace_fault(stack_frame_t *frame) {
