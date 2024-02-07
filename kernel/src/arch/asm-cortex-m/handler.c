@@ -366,6 +366,8 @@ __STATIC_FORCEINLINE void save_context(void)
 {
     asm volatile (
     "cpsid   i\r\n"         /* Disable all interrupts */
+    "dsb \r\n"
+    "isb \r\n"
     "tst     lr, #4\r\n"    /* bit 2: (0) MSP (1) PSP stack */
     "ite     eq\r\n"        /* if equal 0 */
     "mrseq   r0, msp\r\n"   /* r0 <- MSP */
@@ -375,7 +377,7 @@ __STATIC_FORCEINLINE void save_context(void)
     "ite     eq\r\n"        /* if equal 0 */
     "msreq   msp, r0\r\n"   /* MSP <- r0 */
     "msrne   psp, r0\r\n"   /* PSP <- r0 */
-    );
+    ::: "memory" );
 }
 
 __STATIC_FORCEINLINE void restore_context(void)
@@ -383,20 +385,15 @@ __STATIC_FORCEINLINE void restore_context(void)
     asm volatile (
     "ldmfd   r0!, {r4-r11, lr}\r\n"
     "tst     lr, #4\r\n"    /* bit 2: (0) MSP (1) PSP stack      */
-    "bne     100f\r\n"      /* if not equal 0, moving back to PSP context */
-    "msr     msp, r0\r\n"   /* msp-use then: going back to MSP context */
-    "isb\r\n"
+    "ite     eq\r\n"        /* if equal 0 */
+    "msreq   msp, r0\r\n"   /* MSP <- r0 */
+    "msrne   psp, r0\r\n"   /* PSP <- r0 */
+    "dsb\r\n"
     "cpsie   i\r\n"
+    "dsb \r\n"
+    "isb \r\n"
     "bx      lr\r\n"
-    "100:\r\n"
-    "msr     psp, r0\r\n"   /* PSP <- r0 */
-    "mov r0, #2\r\n"
-    "cmp r1, #1\r\n"
-    "adc r0, r0, #0\r\n"
-    "msr     control, r0\r\n"
-    "isb\r\n"
-    "cpsie   i\r\n"
-    "bx      lr\r\n");
+    ::: "memory");
 }
 
 /**
@@ -406,11 +403,11 @@ __STATIC_FORCEINLINE void restore_context(void)
  * avoid redundancy. By now, some others handlers are missing, (hardfault, svc....)
  * that will require some generic handler entry/leave asm code
  */
-__attribute__((naked)) __attribute__((used)) void Default_Handler(void)
+__attribute__((naked, used)) void Default_Handler(void)
 {
     save_context();
     asm volatile (
-        "bl Default_SubHandler"
+        "bl Default_SubHandler" ::: "memory"
     );
     restore_context();
 }
