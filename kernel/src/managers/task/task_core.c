@@ -523,6 +523,7 @@ kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
         goto err;
     }
     *sysret = cell->sysreturn;
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
