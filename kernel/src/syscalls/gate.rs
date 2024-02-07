@@ -54,7 +54,7 @@ pub enum Kstatus {
     KSecurityCorruption,
     KSecurityLockdown,
     KSecurityFIPSCompliance,
-    KSecurityIntegrity
+    KSecurityIntegrity,
 }
 
 impl TryFrom<EnumBinding> for Kstatus {
@@ -173,7 +173,6 @@ impl<'a> TaskMeta<'a> {
     }
 }
 
-
 impl JobState {
     fn current() -> Result<JobState, Status> {
         let mut taskstate: mgr::job_state_t = 0;
@@ -190,7 +189,6 @@ impl JobState {
         Ok(Status::Ok)
     }
 }
-
 
 pub struct StatusStorage(Status);
 
@@ -301,9 +299,11 @@ pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
     }) {
         Ok(_) => task_get_sp(sched_elect()),
         // exit should not fail though. This is the set() failure case
-        Err(err) => { let _ = set_syscall_status(err); task_get_sp(sched_get_current()) },
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            task_get_sp(sched_get_current())
+        }
     }
-
 }
 
 pub fn get_process_handle(_process: u32) -> Result<StackFramePointer, Status> {
@@ -321,16 +321,25 @@ pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Sta
     let mode = match SleepMode::try_from(sleep_mode) {
         Ok(SleepMode::Shallow) => JobState::Sleeping,
         Ok(SleepMode::Deep) => JobState::DeepSleeping,
-        Err(err) => { let _ = set_syscall_status(err); JobState::Ready },
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            JobState::Ready
+        }
     };
     match JobState::current()?.set(mode) {
         Ok(_) => Status::Ok,
-        Err(err) => { let _ = set_syscall_status(err); err },
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            err
+        }
     };
 
     match time_delay_add_job(sched_get_current(), duration_ms) {
         Ok(_) => Status::Ok,
-        Err(err) => { let _ = set_syscall_status(err); err },
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            err
+        }
     };
     // sleep return code must be set asynchronously by delay manager
     let _ = set_syscall_status(Status::NonSense);
@@ -438,7 +447,10 @@ fn get_random() -> Result<StackFramePointer, Status> {
     let current_task = TaskMeta::current()?.can(Capability::CryKRNG);
     match current_task {
         Ok(_) => Status::Ok,
-        Err(err) => { let _ = set_syscall_status(err); err },
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            err
+        }
     };
     let mut rand = 0u32;
     if unsafe { mgr::mgr_security_entropy_generate(&mut rand) } != 0 {
@@ -447,7 +459,7 @@ fn get_random() -> Result<StackFramePointer, Status> {
     };
     match current_task {
         Ok(mut tsk) => tsk.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_ne_bytes()),
-        Err(_) => todo!()
+        Err(_) => todo!(),
     };
     Ok(None)
 }
@@ -455,33 +467,37 @@ fn get_random() -> Result<StackFramePointer, Status> {
 fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
     let mut current_task = TaskMeta::current()?;
     let precision = Precision::try_from(precision);
-    if let Err(err) = precision {  // destructurer le cas d'erreur, faire un early exit
+    if let Err(err) = precision {
         let _ = set_syscall_status(err);
         return Err(err);
     }
     let cycles = match precision {
-        Err(_) => { let _ = set_syscall_status(Status::Invalid); 0 },
-        Ok(Precision::Cycle) => {
-                match current_task.can(Capability::TimHPChrono) {
-                    Ok(_) => {
-                        let _ = set_syscall_status(Status::Ok);
-                        unsafe { mgr::mgr_time_get_cycle() }
-                    },
-                    Err(err) => { let _ = set_syscall_status(err); 0 },
-                }
+        Err(_) => {
+            let _ = set_syscall_status(Status::Invalid);
+            0
         }
+        Ok(Precision::Cycle) => match current_task.can(Capability::TimHPChrono) {
+            Ok(_) => {
+                let _ = set_syscall_status(Status::Ok);
+                unsafe { mgr::mgr_time_get_cycle() }
+            }
+            Err(err) => {
+                let _ = set_syscall_status(err);
+                0
+            }
+        },
         Ok(Precision::Nanoseconds) => {
             let _ = set_syscall_status(Status::Ok);
             unsafe { mgr::mgr_time_get_nanoseconds() }
-        },
+        }
         Ok(Precision::Microseconds) => {
             let _ = set_syscall_status(Status::Ok);
             unsafe { mgr::mgr_time_get_microseconds() }
-        },
+        }
         Ok(Precision::Milliseconds) => {
             let _ = set_syscall_status(Status::Ok);
             unsafe { mgr::mgr_time_get_milliseconds() }
-        },
+        }
     };
     current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_ne_bytes());
     Ok(None)
