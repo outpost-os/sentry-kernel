@@ -298,7 +298,10 @@ void __attribute__((noreturn)) mgr_task_start(void)
     mgr_mm_map_task(idle_meta->handle);
     pr_info("spawning thread, pc=%p, sp=%p", pc, sp);
     mgr_task_set_userspace_spawned();
-    __platform_spawn_thread(pc, sp, THREAD_MODE_USER);
+    /*
+     * idle thread is started as privileged thread and drop right to user immediately at entry point
+     */
+    __platform_spawn_thread(pc, sp, THREAD_MODE_KERNEL);
     __builtin_unreachable();
 err:
     panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
