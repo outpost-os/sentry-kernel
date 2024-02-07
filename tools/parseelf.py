@@ -14,8 +14,11 @@ if __name__ == '__main__':
 
     for section in binary.sections:
         if section.name == '.text':
-            bindict['text']['vaddr'] = section.virtual_address
-            bindict['text']['size'] = section.size
+            bindict['text']['vaddr'] += section.virtual_address
+            bindict['text']['size'] += section.size
+        if section.name == '.ARM':
+            bindict['text']['vaddr'] += section.virtual_address
+            bindict['text']['size'] += section.size
         if section.name == '.data':
             bindict['data']['vaddr'] = section.virtual_address
             bindict['data']['laddr'] = binary.get_symbol('_sidata').value
