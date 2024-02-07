@@ -77,7 +77,8 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
         "msr psp, r0        \n\t"   \
         "mov r0, %[LVL]     \n\t"   \
         "msr control, r0    \n\t"   \
-        "mov r0, %[THREADID] \n\t"   \
+        "isb                \n\t"   \
+        "mov r0, %[THREADID] \n\t"  \
         "mov r1, %[SEED]    \n\t"   \
 	      "mov r5, %[PC]      \n\t"   \
 	      "bx r5              \n\t"   \
