@@ -18,7 +18,7 @@ test_printk = executable(
         '-DCONFIG_BUILD_TARGET_DEBUG=1',
         '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
     ],
-    dependencies: [gtest_main ],
+    dependencies: [gtest_main, sentry_c_uapi_headers_dep],
     link_language: 'cpp',
     native: true,
 )

@@ -1,0 +1,9 @@
+language = "C"
+pragma_once = true
+include_guard = "capability_h"
+
+[export.rename]
+"Capability" = "sentry_capability_t"
+
+[macro_expansion]
+bitflags = true

@@ -1,4 +1,5 @@
 use crate::arch::*;
+use capabilities::*;
 use managers_bindings as mgr;
 use systypes::*;
 
@@ -35,51 +36,6 @@ type EnumBinding = i32;
 #[cfg(not(windows))]
 type EnumBinding = u32;
 
-enum Capability {
-    DevBuses,
-    DevIO,
-    DevDMA,
-    DevAnalog,
-    DevTimer,
-    DevStorage,
-    DevCrypto,
-    DevClock,
-    SysUpgrade,
-    SysPower,
-    SysProcStart,
-    MemSHMOwn,
-    MemSHMUse,
-    MemSHMTransfer,
-    TimHPChrono,
-    CryKRNG,
-}
-
-impl TryFrom<EnumBinding> for Capability {
-    type Error = Status;
-    fn try_from(cap: EnumBinding) -> Result<Capability, Self::Error> {
-        let capability = match cap {
-            mgr::sentry_capability_CAP_DEV_BUSES => Capability::DevBuses,
-            mgr::sentry_capability_CAP_DEV_IO => Capability::DevIO,
-            mgr::sentry_capability_CAP_DEV_DMA => Capability::DevDMA,
-            mgr::sentry_capability_CAP_DEV_ANALOG => Capability::DevAnalog,
-            mgr::sentry_capability_CAP_DEV_TIMER => Capability::DevTimer,
-            mgr::sentry_capability_CAP_DEV_STORAGE => Capability::DevStorage,
-            mgr::sentry_capability_CAP_DEV_CRYPTO => Capability::DevCrypto,
-            mgr::sentry_capability_CAP_DEV_CLOCK => Capability::DevClock,
-            mgr::sentry_capability_CAP_SYS_UPGRADE => Capability::SysUpgrade,
-            mgr::sentry_capability_CAP_SYS_POWER => Capability::SysPower,
-            mgr::sentry_capability_CAP_SYS_PROCSTART => Capability::SysProcStart,
-            mgr::sentry_capability_CAP_MEM_SHM_OWN => Capability::MemSHMOwn,
-            mgr::sentry_capability_CAP_MEM_SHM_USE => Capability::MemSHMUse,
-            mgr::sentry_capability_CAP_MEM_SHM_TRANSFER => Capability::MemSHMTransfer,
-            mgr::sentry_capability_CAP_TIM_HP_CHRONO => Capability::TimHPChrono,
-            mgr::sentry_capability_CAP_CRY_KRNG => Capability::CryKRNG,
-            _ => return Err(Status::Invalid),
-        };
-        Ok(capability)
-    }
-}
-
 enum JobState {
     NotStarted,
     Ready,
@@ -113,19 +69,18 @@ impl TryFrom<EnumBinding> for JobState {
     }
 }
 
-#[derive(Clone, Copy)]
-struct TaskMeta {
-    meta: mgr::task_meta_t,
+struct TaskMeta<'a> {
+    meta: &'a mgr::task_meta_t,
 }
 
-impl TaskMeta {
-    fn current() -> Result<TaskMeta, Status> {
+impl<'a> TaskMeta<'a> {
+    fn current() -> Result<TaskMeta<'a>, Status> {
         let mut taskmeta: *const mgr::task_meta = core::ptr::null();
         if unsafe { mgr::mgr_task_get_metadata(sched_get_current(), &mut taskmeta) } != 0 {
             return Err(Status::Invalid);
         }
         Ok(TaskMeta {
-            meta: unsafe { *taskmeta },
+            meta: unsafe { &*taskmeta },
         })
     }
 
@@ -147,8 +102,8 @@ impl TaskMeta {
         }
     }
 
-    fn can(self, capability: Capability) -> Result<TaskMeta, Status> {
-        if self.meta.capabilities & capability as u32 == 0 {
+    fn can(self, capability: Capability) -> Result<TaskMeta<'a>, Status> {
+        if !Capability::from(self.meta.capabilities).contains(capability) {
             return Err(Status::Denied);
         }
         Ok(self)
@@ -173,7 +128,7 @@ impl JobState {
 }
 
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
-    TaskMeta::current()?.can(Capability::SysPower)?;
+    TaskMeta::current()?.can(Capability::SYS_POWER)?;
 
     match CPUSleep::try_from(mode_in)? {
         CPUSleep::AllowSleep => (),
@@ -196,17 +151,17 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
-fn sched_get_current() -> mgr::task_handle {
+fn sched_get_current() -> handles::taskh_t {
     unsafe { mgr::sched_get_current() }
 }
 
 // Thin wrapper over `sched_elect`. This function never fails
-fn sched_elect() -> mgr::task_handle {
+fn sched_elect() -> handles::taskh_t {
     unsafe { mgr::sched_elect() }
 }
 
 // Safe wrapper over `mgr_task_get_sp`
-fn task_get_sp(taskh: mgr::task_handle) -> Result<StackFramePointer, Status> {
+fn task_get_sp(taskh: handles::taskh_t) -> Result<StackFramePointer, Status> {
     let mut sp: *mut mgr::stack_frame_t = core::ptr::null_mut();
     if unsafe { mgr::mgr_task_get_sp(taskh, &mut sp) } != 0 {
         return Err(Status::Invalid);
@@ -215,9 +170,9 @@ fn task_get_sp(taskh: mgr::task_handle) -> Result<StackFramePointer, Status> {
 }
 
 fn time_delay_add_signal(
-    taskh: mgr::task_handle,
+    taskh: handles::taskh_t,
     delay_ms: u32,
-    signal: mgr::sigh_t,
+    signal: handles::sigh_t,
 ) -> Result<Status, Status> {
     if unsafe { mgr::mgr_time_delay_add_signal(taskh, delay_ms, signal) } != 0 {
         return Err(Status::Busy);
@@ -225,7 +180,7 @@ fn time_delay_add_signal(
     Ok(Status::Ok)
 }
 
-fn time_delay_add_job(taskh: mgr::task_handle, duration_ms: u32) -> Result<Status, Status> {
+fn time_delay_add_job(taskh: handles::taskh_t, duration_ms: u32) -> Result<Status, Status> {
     if unsafe { mgr::mgr_time_delay_add_job(taskh, duration_ms) } != 0 {
         return Err(Status::Busy);
     }
@@ -298,17 +253,17 @@ pub fn wait_for_event(
 pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
     let current_job = sched_get_current();
 
-    let mut signal = mgr::sigh_t::default();
+    let mut signal = handles::sigh_t::default();
     signal.set_id(Signal::Alarm as u32);
     signal.set_family(mgr::HANDLE_SIGNAL);
-    signal.set_source(current_job.id());
+    signal.set_source(current_job.get_id());
 
     time_delay_add_signal(current_job, timeout_ms, signal)?;
     Ok(None)
 }
 
 fn get_random() -> Result<StackFramePointer, Status> {
-    let mut current_task = TaskMeta::current()?.can(Capability::CryKRNG)?;
+    let mut current_task = TaskMeta::current()?.can(Capability::CRY_KRNG)?;
 
     let mut rand = 0u32;
     if unsafe { mgr::mgr_security_entropy_generate(&mut rand) } != 0 {
@@ -324,7 +279,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
 
     let cycles = match precision {
         Precision::Cycle => {
-            current_task = current_task.can(Capability::TimHPChrono)?;
+            current_task = current_task.can(Capability::TIM_HP_CHRONO)?;
             unsafe { mgr::mgr_time_get_cycle() }
         }
         Precision::Nanoseconds => unsafe { mgr::mgr_time_get_nanoseconds() },

@@ -5,6 +5,7 @@
 #define ARCH_MEMORY_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 #include <sentry/ktypes.h>

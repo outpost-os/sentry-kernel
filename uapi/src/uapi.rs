@@ -1,22 +1,7 @@
 use crate::svc_exchange::*;
 use crate::syscall::*;
-use bitflags::bitflags;
 use core::fmt;
 use systypes::*;
-
-bitflags! {
-    pub struct ResourceHandleBits: u32 {
-        const RESOURCE_TYPE = 0b0000_0000_0000_0000_0000_0000_1111;
-        const TASK_NS       = 0b0000_0000_0000_1111_1111_1111_0000;
-        const RESOURCE_ID   = 0b1111_1111_1111_0000_0000_0000_0000;
-    }
-}
-
-impl From<ResourceHandleBits> for ResourceHandle {
-    fn from(rh: ResourceHandleBits) -> ResourceHandle {
-        rh.bits()
-    }
-}
 
 struct DebugPrint;
 
@@ -73,9 +58,10 @@ pub fn get_cycles() -> Result<u64, Status> {
 mod tests {
     use super::*;
     use core::mem::transmute;
+    use handles::*;
     use sysgate::mocks::*;
 
-    const FAKE_TASK_HANDLE: task_handle = unsafe { transmute(0) };
+    const FAKE_TASK_HANDLE: taskh_t = unsafe { transmute(0) };
     static mut FAKE_TASK_META: task_meta = task_meta {
         magic: 0xc2ab,
         version: 0,
@@ -108,7 +94,7 @@ mod tests {
     };
 
     struct FakeTask {
-        _handle: task_handle,
+        _handle: taskh_t,
         _metadata: &'static task_meta,
         #[cfg(windows)]
         state: i32,
@@ -123,13 +109,13 @@ mod tests {
     };
 
     #[no_mangle]
-    extern "C" fn sched_get_current() -> task_handle {
+    extern "C" fn sched_get_current() -> taskh_t {
         FAKE_TASK_HANDLE
     }
 
     #[no_mangle]
     extern "C" fn mgr_task_get_metadata(
-        _task_handle: task_handle,
+        _task_handle: taskh_t,
         taskm: *mut *const task_meta,
     ) -> kstatus_t {
         // force task_meta's parameters
@@ -141,15 +127,12 @@ mod tests {
     }
 
     #[no_mangle]
-    extern "C" fn mgr_task_get_state(
-        _task_handle: task_handle,
-        _state: *mut job_state_t,
-    ) -> kstatus_t {
+    extern "C" fn mgr_task_get_state(_task_handle: taskh_t, _state: *mut job_state_t) -> kstatus_t {
         0
     }
 
     #[no_mangle]
-    extern "C" fn mgr_task_set_state(_task_handle: task_handle, state: job_state_t) -> kstatus_t {
+    extern "C" fn mgr_task_set_state(_task_handle: taskh_t, state: job_state_t) -> kstatus_t {
         unsafe {
             FAKE_TASK.state = state;
         }
@@ -158,20 +141,20 @@ mod tests {
 
     #[no_mangle]
     extern "C" fn mgr_task_get_sp(
-        _task_handle: task_handle,
+        _task_handle: taskh_t,
         _stack_frame: *mut *mut stack_frame_t,
     ) -> kstatus_t {
         0
     }
 
     #[no_mangle]
-    extern "C" fn sched_elect() -> task_handle {
+    extern "C" fn sched_elect() -> taskh_t {
         FAKE_TASK_HANDLE
     }
 
     #[no_mangle]
     extern "C" fn mgr_time_delay_add_signal(
-        _job: task_handle,
+        _job: taskh_t,
         _delay_ms: u32,
         _sig: sigh_t,
     ) -> kstatus_t {
@@ -179,7 +162,7 @@ mod tests {
     }
 
     #[no_mangle]
-    extern "C" fn mgr_time_delay_add_job(_job: task_handle, _duration_ms: u32) -> kstatus_t {
+    extern "C" fn mgr_time_delay_add_job(_job: taskh_t, _duration_ms: u32) -> kstatus_t {
         0
     }
 

@@ -1,6 +1,4 @@
-pub use managers_bindings::{
-    devh_t, job_state_t, kstatus_t, sigh_t, stack_frame_t, task_handle, task_meta,
-};
+pub use managers_bindings::{job_state_t, kstatus_t, stack_frame_t, task_meta};
 
 extern crate std;
 

@@ -1,0 +1,10 @@
+language = "C"
+pragma_once = true
+include_guard = "handles_h"
+
+[layout]
+packed = "__attribute__((packed))"
+
+[parse.expand]
+crates = ["handles"]
+features = ["cbindgen"]

@@ -1,5 +1,6 @@
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
+use handles::*;
 use systypes::*;
 
 /// Exiting the process.
@@ -58,7 +59,7 @@ pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
 /// - for SHM : shmget(2) (key == handle)
 #[no_mangle]
 pub extern "C" fn sys_map(resource: ResourceHandle) -> Status {
-    syscall!(Syscall::Map, resource).into()
+    syscall!(Syscall::Map, resource.bits()).into()
 }
 
 /// Unmap a mapped ressource.
@@ -70,7 +71,7 @@ pub extern "C" fn sys_map(resource: ResourceHandle) -> Status {
 /// for SHM : TBD
 #[no_mangle]
 pub extern "C" fn sys_unmap(resource: ResourceHandle) -> Status {
-    syscall!(Syscall::Unmap, resource).into()
+    syscall!(Syscall::Unmap, resource.bits()).into()
 }
 
 /// Set SHM permissions. shm_open() is considered automatic as declared in dtsi, handle is generated.
@@ -82,7 +83,13 @@ pub extern "C" fn sys_shm_set_credential(
     id: ProcessID,
     shm_perm: SHMPermission,
 ) -> Status {
-    syscall!(Syscall::SHMSetCredential, resource, id, u32::from(shm_perm)).into()
+    syscall!(
+        Syscall::SHMSetCredential,
+        resource.bits(),
+        id,
+        u32::from(shm_perm)
+    )
+    .into()
 }
 
 /// Send events to another process
@@ -126,7 +133,7 @@ pub extern "C" fn sys_wait_for_event(
     syscall!(
         Syscall::WaitForEvent,
         u32::from(event_type_mask),
-        resource_handle,
+        resource_handle.bits(),
         timeout
     )
     .into()

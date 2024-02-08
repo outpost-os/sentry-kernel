@@ -3,7 +3,7 @@ subdir('managers_bindings')
 sysgate_lib = static_library(
     'sysgate',
     sources : ['lib.rs'],
-    dependencies: [systypes_dep, managers_bindings_dep],
+    dependencies: [systypes_dep, handles_dep, capabilities_dep, managers_bindings_dep],
     rust_abi: 'c',
     rust_args: global_rust_build_args,
 )

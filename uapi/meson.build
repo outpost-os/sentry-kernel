@@ -3,6 +3,9 @@
 pkg_config = import('pkgconfig')
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('src/lib.rs')
+uapi_cbindgen_toml = files('cbindgen_uapi.toml')
+
+cbindgen = find_program('cbindgen')
 
 subdir('include/uapi')
 subdir('src')

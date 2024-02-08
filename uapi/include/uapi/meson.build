@@ -1,14 +1,38 @@
+subdir('capabilities')
+subdir('handles')
+subdir('types')
 
-cbindgen = find_program('cbindgen')
-
-uapi_headers = files([
-    'capability.h',
-    'device.h',
-    'handle_defs.h',
-    'handle.h',
+sentry_c_uapi_headers_dep = []
+cbindgen_configs = files([
+    'capabilities/capability.h.toml',
+    'handles/handle.h.toml',
+    'types/types.h.toml',
 ])
 
-subdir('types')
+foreach cfg: cbindgen_configs
+    sentry_c_uapi_headers_dep += declare_dependency(
+        sources:
+            custom_target(
+                input: cfg,
+                output: '@BASENAME@',
+                depfile: '@BASENAME@.dep',
+                command: [cbindgen, meson.project_source_root() / fs.parent(cfg),
+                '-c', '@INPUT@',
+                '--depfile', '@DEPFILE@',
+                '-o', '@OUTPUT@'],
+                install: true,
+                install_dir: get_option('includedir'),
+                install_tag: 'devel',
+            )
+    )
+endforeach
+
+uapi_cargo_toml = files('Cargo.toml')
+uapi_headers = files([
+    'device.h',
+    'handle_defs.h',
+    'handle_toolkit.h',
+])
 
 foreach header: uapi_headers
     install_headers(fs.relative_to(header, meson.current_source_dir()),
@@ -17,11 +41,8 @@ foreach header: uapi_headers
     )
 endforeach
 
+
 userspace_uapi_include_dir = include_directories('.')
-
-uapi_cbindgen_toml = files('cbindgen.toml')
-uapi_cargo_toml = files('Cargo.toml')
-
 uapi_h = custom_target('uapi_header',
     input: uapi_cbindgen_toml,
     output: 'uapi.h',
@@ -37,8 +58,5 @@ uapi_h = custom_target('uapi_header',
     install_tag: 'devel',
 )
 
-sentry_c_uapi_headers_dep = declare_dependency(
-    sources: [ uapi_h ],
-)
-
+sentry_c_uapi_headers_dep += declare_dependency(sources: [ uapi_h ])
 external_deps += sentry_c_uapi_headers_dep

@@ -21,7 +21,7 @@ test_bsp_exti = executable(
         global_build_args,
         '-DTEST_MODE=1',
     ],
-    dependencies: [ gtest_main, cmsis_dep ],
+    dependencies: [ gtest_main, cmsis_dep, sentry_c_uapi_headers_dep ],
     link_language: 'cpp',
     native: true,
 )

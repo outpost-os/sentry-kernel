@@ -1,13 +1,16 @@
 [package]
-name = "systypes"
+name = "handles"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-path = "types.rs"
+path = "handles.rs"
 
 [features]
 cbindgen = []
+
+[dependencies]
+paste = "1.0.14"
 
 [build-dependencies]
 cbindgen = "0.26.0"

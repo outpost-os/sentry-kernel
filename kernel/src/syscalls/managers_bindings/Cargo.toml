@@ -7,6 +7,15 @@ edition = "2021"
 path = "lib.rs"
 test = false
 
+[dependencies]
+capabilities = { path = "../../../../uapi/include/uapi/capabilities" }
+handles = { path = "../../../../uapi/include/uapi/handles" }
+systypes = { path = "../../../../uapi/include/uapi/types" }
+
 [build-dependencies]
 bindgen = "0.69.1"
+capabilities = { path = "../../../../uapi/include/uapi/capabilities" }
+handles = { path = "../../../../uapi/include/uapi/handles" }
+systypes = { path = "../../../../uapi/include/uapi/types" }
+
 

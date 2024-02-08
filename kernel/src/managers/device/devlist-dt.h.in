@@ -76,7 +76,7 @@ static const device_t devices[] = {
         so that it will be set in the capability field
     -#}
     {% if ns.device_type == 'gpio' -%}
-    {% set capa = 'CAP_DEV_IO' -%}
+    {% set capa = 'sentry_capability_t_DEV_IO' -%}
     {% elif ns.device_type == 'uart' or
             ns.device_type == 'lpuart' or
             ns.device_type == 'usart' or
@@ -92,42 +92,42 @@ static const device_t devices[] = {
             ns.device_type == 'fdcan' or
             ns.device_type == 'mipi-dsi'
     -%}
-    {% set capa = 'CAP_DEV_BUSES' -%}
+    {% set capa = 'sentry_capability_t_DEV_BUSES' -%}
     {% elif ns.device_type == 'dma' or
             ns.device_type == 'bdma' or
             ns.device_type == 'dmamux'
     -%}
-    {% set capa = 'CAP_DEV_DMA' -%}
+    {% set capa = 'sentry_capability_t_DEV_DMA' -%}
     {% elif ns.device_type == 'adc' or
             ns.device_type == 'dac' or
             ns.device_type == 'pwm'
     -%}
-    {% set capa = 'CAP_DEV_ANALOG' -%}
+    {% set capa = 'sentry_capability_t_DEV_ANALOG' -%}
     {% elif ns.device_type == 'timers' or
             ns.device_type == 'timer' or
             ns.device_type == 'lptim' or
             ns.device_type == 'rtc' or
             ns.device_type == 'watchdog'
     -%}
-    {% set capa = 'CAP_DEV_TIMER' -%}
+    {% set capa = 'sentry_capability_t_DEV_TIMER' -%}
     {% elif ns.device_type == 'flash' or
             ns.device_type == 'fmc' or
             ns.device_type == 'sdmmc'
     -%}
-    {% set capa = 'CAP_DEV_STORAGE' -%}
+    {% set capa = 'sentry_capability_t_DEV_STORAGE' -%}
     {% elif ns.device_type == 'aes' or
             ns.device_type == 'cryp' or
             ns.device_type == 'rng'
     -%}
-    {% set capa = 'CAP_DEV_CRYPTO' -%}
+    {% set capa = 'sentry_capability_t_DEV_CRYPTO' -%}
     {% elif ns.device_type == 'ucpd' -%}
-    {% set capa = 'CAP_DEV_POWER' -%}
+    {% set capa = 'sentry_capability_t_DEV_POWER' -%}
     {% else -%}
     {#
       fallbacking on capa==0 which is invalid for user devices (only some
       kernel devices such as nvic do not have capability at all).
     -#}
-    {% set capa = '0' -%}
+    {% set capa = '{0}' -%}
     {% endif -%}
     {
         /* device {{ device.label }} declaration */

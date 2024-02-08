@@ -59,7 +59,8 @@ pub enum Syscall {
     Yield,
     Sleep,
     Start,
-    Map,
+    MapDev,
+    MapShm,
     Unmap,
     SHMSetCredential,
     SendIPC,
@@ -151,27 +152,6 @@ pub enum ResourceType {
     Device = 2,
     SHM = 4,
     DMA = 8,
-}
-
-/// Any of the above resource can be acceded only through a handle. This handle is unique and
-/// must be used as an opaque in userspace implementation.
-/// This allows fully-portable and reusable implementation of tasks, libraries, drivers so
-/// avoiding any hard-coded content. All SoC specific content is manipulated by device-trees
-/// exclusively, generating the overall handles.
-#[cfg(not(feature = "cbindgen"))]
-pub type ResourceHandle = u32;
-#[cfg(feature = "cbindgen")]
-#[repr(C)]
-pub struct ResourceHandle {
-    /// cbindgen:bitfield=4
-    /// forged from dtsi, matches resource type
-    resource_type: u32,
-    /// cbindgen:bitfield=12
-    /// task namespace, matches task label, forged at build time
-    task_ns: u32,
-    /// cbindgen:bitfield=12
-    /// forged from dtsi if not a process, or at process startup
-    resource_id: u32,
 }
 
 #[repr(C)]
@@ -372,4 +352,21 @@ mirror_enum! {
         Microseconds,
         Milliseconds,
     }
+}
+
+#[cfg(feature = "cbindgen")]
+#[no_mangle]
+extern "C" fn types_keep_me(
+    a: Syscall,
+    b: Status,
+    c: ProcessLabel,
+    d: ResourceType,
+    e: SHMPermission,
+    f: Signal,
+    g: ProcessID,
+    h: SleepDuration,
+    i: SleepMode,
+    j: CPUSleep,
+    k: Precision,
+) {
 }
