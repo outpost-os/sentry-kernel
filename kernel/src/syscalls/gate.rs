@@ -12,7 +12,8 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Yield => r#yield(),
         Syscall::Sleep => sleep(args[0], args[1]),
         Syscall::Start => start(args[0]),
-        Syscall::Map => map(args[0]),
+        Syscall::MapDev => map(Resource::Dev(args[0])),
+        Syscall::MapShm => map(Resource::Shm(args[0])),
         Syscall::Unmap => unmap(args[0]),
         Syscall::SHMSetCredential => shm_set_credential(args[0], args[1], args[2]),
         Syscall::SendIPC => send_ipc(args[0], args[1] as u8),
@@ -218,7 +219,27 @@ pub fn start(_process: u32) -> Result<StackFramePointer, Status> {
     Ok(None)
 }
 
-pub fn map(_resource: u32) -> Result<StackFramePointer, Status> {
+pub enum Resource {
+    Dev(u32),
+    Shm(u32),
+}
+
+pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
+    match resource {
+        Resource::Dev(devu) => {
+            let dev = handles::devh_t::from(devu);
+            if unsafe { mgr::mgr_mm_map_device(dev) } != 0 {
+                return Err(Status::Invalid);
+            }
+        }
+        Resource::Shm(_shmu) => {
+            return Err(Status::Invalid);
+            // let shm = shmh_t::from(shmu);
+            // if unsafe { mgr::mgr_mm_map_shm(shm) } != 0 {
+            //     return Err(Status::Invalid);
+            // }
+        }
+    }
     Ok(None)
 }
 

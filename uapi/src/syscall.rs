@@ -58,8 +58,13 @@ pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
 ///   * prot, offset and flags are ignored for now
 /// - for SHM : shmget(2) (key == handle)
 #[no_mangle]
-pub extern "C" fn sys_map(resource: ResourceHandle) -> Status {
-    syscall!(Syscall::Map, resource.bits()).into()
+pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
+    syscall!(Syscall::MapDev, dev.bits()).into()
+}
+
+#[no_mangle]
+pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
+    syscall!(Syscall::MapShm, shm.bits()).into()
 }
 
 /// Unmap a mapped ressource.
