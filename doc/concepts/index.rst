@@ -10,6 +10,7 @@ Welcome to Sentry documentation!
    :caption: Contents:
 
    concepts/index.rst
+   uapi/index.rst
    build_system/index.rst
    sw_architecture/index.rst
    tests/index.rst
