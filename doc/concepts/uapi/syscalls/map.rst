@@ -6,7 +6,9 @@ Map
 .. code-block:: rust
    :caption: Rust UAPI for map syscall
 
-   fn uapi::map(devh: dev_handle) -> Status
+   mod uapi {
+      fn map(devh: dev_handle) -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for map syscall

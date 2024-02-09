@@ -7,12 +7,14 @@ Get_Task_Handle
 **API definition**:
 
 .. code-block:: rust
-   :caption: Rust UAPI for get_random syscall
+   :caption: Rust UAPI for get_task_handle syscall
 
-   fn uapi::get_task_handle(label: u32) -> Status
+   mod uapi {
+      fn get_task_handle(label: u32) -> Status
+   }
 
 .. code-block:: c
-   :caption: C UAPI for get_random syscall
+   :caption: C UAPI for get_task_handle syscall
 
    enum Status sys_get_task_handle(uint32_t label);
 

@@ -6,7 +6,9 @@ Get_Random
 .. code-block:: rust
    :caption: Rust UAPI for get_random syscall
 
-   fn uapi::get_random() -> Status
+   mod uapi {
+      fn get_random() -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for get_random syscall

@@ -6,7 +6,9 @@ Log
 .. code-block:: rust
    :caption: Rust UAPI for log syscall
 
-   fn uapi::log(length: usize) -> Status
+   mod uapi {
+      fn log(length: usize) -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for log syscall

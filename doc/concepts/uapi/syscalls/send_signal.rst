@@ -6,7 +6,9 @@ Send_Signal
 .. code-block:: rust
    :caption: Rust UAPI for send_signal syscall
 
-   fn uapi::send_signal(target: taskh_t, signal: uapi::Signal) -> Status
+   mod uapi {
+      fn send_signal(target: taskh_t, signal: uapi::Signal) -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for send_signal syscall

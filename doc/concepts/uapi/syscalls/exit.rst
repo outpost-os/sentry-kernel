@@ -6,7 +6,9 @@ Exit
 .. code-block:: rust
    :caption: Rust UAPI for exit syscall
 
-   fn uapi::exit(status: u32) -> Status
+   mod uapi {
+      fn exit(status: u32) -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for exit syscall

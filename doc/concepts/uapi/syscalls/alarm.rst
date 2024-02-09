@@ -6,7 +6,9 @@ Alarm
 .. code-block:: rust
    :caption: Rust UAPI for alarm syscall
 
-   fn uapi::alarm(timeout_ms: u32) -> Status
+   mod uapi {
+      fn alarm(timeout_ms: u32) -> Status
+   }
 
 .. code-block:: c
    :caption: C UAPI for alarm syscall
