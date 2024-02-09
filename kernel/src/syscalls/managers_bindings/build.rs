@@ -15,6 +15,7 @@ fn main() {
             "-DCONFIG_MAX_DEV_PER_TASK=1",
             "-DCONFIG_MAX_DMA_STREAMS_PER_TASK=1",
             "-DCONFIG_BUILD_TARGET_DEBUG=1",
+            "-DCONFIG_NUM_MPU_REGIONS=8",
         ])
         .raw_line("use handles::*;")
         .blocklist_type("([a-z]+h_t)")
