@@ -8,6 +8,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <uapi/uapi.h>
+#include <testlib/assert.h>
 
 uint32_t __stack_chk_guard = 0;
 
@@ -39,7 +40,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
         SleepDuration duration;
         duration.tag = SLEEP_DURATION_ARBITRARY_MS;
         duration.arbitrary_ms = sleep_time;
-        sys_sleep(duration, SLEEP_MODE_DEEP);
+        ASSERT_EQ(sys_sleep(duration, SLEEP_MODE_DEEP), STATUS_OK);
         /* Let's test */
     } while (!test_finished);
    //sys_exit(0);
