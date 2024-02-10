@@ -36,8 +36,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     printf(welcommsg);
     printf(testmsg);
 
-    test_sleep_return();
-    test_sleep_duration();
+    test_sleep();
 
     /* all tests finished, leaving */
     sys_exit(0);

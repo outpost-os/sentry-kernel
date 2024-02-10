@@ -11,43 +11,53 @@ extern "C" {
 #include <uapi/uapi.h>
 
 #define USER_AUTOTEST "[AT]"
-#define USER_AUTOTEST_EXEC    "[       ]"
-#define USER_AUTOTEST_START   "[RUN    ]"
-#define USER_AUTOTEST_END     "[END    ]"
-#define USER_AUTOTEST_FAIL    "[KO     ]"
-#define USER_AUTOTEST_SUCCESS "[SUCCESS]"
+#define USER_AUTOTEST_EXEC    "[EXE       ]"
+#define USER_AUTOTEST_START   "[START     ]"
+#define USER_AUTOTEST_END     "[END       ]"
+#define USER_AUTOTEST_FAIL    "[KO        ]"
+#define USER_AUTOTEST_SUCCESS "[SUCCESS   ]"
+#define USER_AUTOTEST_START_SUITE   "[STARTSUITE]"
+#define USER_AUTOTEST_END_SUITE     "[ENDSUITE  ]"
 
-#define pr_autotest_fmt(func, fmt) "%s: " fmt "\n", func
+#define pr_autotest_fmt(func, line, fmt) "%s:%d: " fmt "\n", func, line
 
 /**
  * @def autotest messages
  */
-#define pr_autotest(type, func, fmt, ...) \
-	printf(USER_AUTOTEST type " " pr_autotest_fmt(func, fmt), ##__VA_ARGS__)
+#define pr_autotest(type, func, line, fmt, ...) \
+	printf(USER_AUTOTEST type " " pr_autotest_fmt(func, line, fmt), ##__VA_ARGS__)
 
 #define TEST_START() do { \
-    pr_autotest(USER_AUTOTEST_START, __func__, "start"); \
+    pr_autotest(USER_AUTOTEST_START, __func__, __LINE__, ""); \
 } while (0)
 
 #define TEST_END() do { \
-    pr_autotest(USER_AUTOTEST_END, __func__, "end"); \
+    pr_autotest(USER_AUTOTEST_END, __func__, __LINE__, ""); \
+} while (0)
+
+#define TEST_SUITE_START(suitename) do { \
+    pr_autotest(USER_AUTOTEST_START_SUITE, __func__, __LINE__, suitename); \
+} while (0)
+
+#define TEST_SUITE_END(suitename) do { \
+    pr_autotest(USER_AUTOTEST_END_SUITE, __func__, __LINE__, suitename); \
 } while (0)
 
 
 static inline void failure_u32(const char *func, int line, const char*failure, uint32_t a, uint32_t b) {
-    pr_autotest(USER_AUTOTEST_FAIL, func, ": %lu %s %lu", a, failure, b);
+    pr_autotest(USER_AUTOTEST_FAIL, func, line, "%lu %s %lu", a, failure, b);
 }
 
 static inline void success_u32(const char *func, int line, const char*success, uint32_t a, uint32_t b) {
-    pr_autotest(USER_AUTOTEST_SUCCESS, func, ": %lu %s %lu", a, success, b);
+    pr_autotest(USER_AUTOTEST_SUCCESS, func, line, "%lu %s %lu", a, success, b);
 }
 
 static inline void failure_int(const char *func, int line, const char*failure, int a, int b) {
-    pr_autotest(USER_AUTOTEST_FAIL, func, ": %d %s %d", a, failure, b);
+    pr_autotest(USER_AUTOTEST_FAIL, func, line, "%d %s %d", a, failure, b);
 }
 
 static inline void success_int(const char *func, int line, const char*success, int a, int b) {
-    pr_autotest(USER_AUTOTEST_SUCCESS, func, ": %d %s %d", a, success, b);
+    pr_autotest(USER_AUTOTEST_SUCCESS, func, line, "%d %s %d", a, success, b);
 }
 
 

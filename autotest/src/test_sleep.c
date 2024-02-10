@@ -4,6 +4,14 @@
 #include <uapi/uapi.h>
 #include "test_sleep.h"
 
+void test_sleep(void)
+{
+    TEST_SUITE_START("sys_sleep");
+    test_sleep_return();
+    test_sleep_duration();
+    TEST_SUITE_END("sys_sleep");
+}
+
 void test_sleep_return(void)
 {
     SleepDuration duration;
