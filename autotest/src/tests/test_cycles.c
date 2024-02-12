@@ -40,7 +40,7 @@ void test_cycles_duration(void)
     LOG("average get_cycle+copy cost: %lu", (uint32_t)((stop - start) / idx));
 
 
-    TEST_START();
+    TEST_END();
 }
 
 void test_cycles_precision(void)

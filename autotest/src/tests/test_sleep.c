@@ -52,7 +52,7 @@ void test_sleep_duration(void)
         ASSERT_EQ(cycle_start_st, STATUS_OK);
         ASSERT_EQ(sleep_st, STATUS_OK);
         ASSERT_EQ(cycle_end_st, STATUS_OK);
-        ASSERT_GE((uint32_t)(stop - start), duration_vector[subtest]);
+        ASSERT_IN_RANGE((uint32_t)(stop - start), duration_vector[subtest], duration_vector[subtest]+1);
         TEST_END();
     }
 

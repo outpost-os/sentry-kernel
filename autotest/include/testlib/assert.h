@@ -17,6 +17,8 @@ extern "C" {
 #include <stdio.h>
 #include <testlib/log.h>
 
+#define __IN_RANGE(x, m, M) (((x) >= m) && ((x) <= M))
+
 /**
  * @def ASSERT
  *
@@ -32,6 +34,7 @@ extern "C" {
     else                                                \
         success(__func__, __LINE__, successcmp, a, b);  \
 } while (0);})
+
 
 /**
  * @def ASSERT_EQ
@@ -80,6 +83,14 @@ extern "C" {
  * and numerical. Multiple types are supported (u32, u64, int, Status...)
  */
 #define ASSERT_LE(a,b) (ASSERT((a) <= (b), ">", "<=", a, (typeof(a))b))
+
+#define ASSERT_IN_RANGE(a,b,B) ({          \
+ do {                                      \
+    LOG("Range assertion");                \
+    ASSERT((a) >= (b), "<", ">=", a, b);   \
+    ASSERT((a) <=  (B), ">", "<=", a, B);  \
+ } while (0);                              \
+ })
 
 #ifdef __cplusplus
 }
