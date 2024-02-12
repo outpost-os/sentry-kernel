@@ -345,6 +345,11 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                         fs_prop.numeric_mode = FS_NUM_LONGLONG;
                         fs_prop.consumed++;
                     }
+                    if (fmt[fs_prop.consumed + 1] == 'x') {
+                        /* TODO: by now only %lx supported, not llx (needs more enumerates) */
+                        fs_prop.numeric_mode = FS_NUM_HEX;
+                        fs_prop.consumed++;
+                    }
                     /* detecting long (long) unsigned */
                     if (fmt[fs_prop.consumed + 1] == 'u') {
                         if (fs_prop.numeric_mode == FS_NUM_LONG) {
@@ -358,6 +363,10 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                         case FS_NUM_LONG:
                             lval = va_arg(*args, long);
                             len = dbgbuffer_get_number_len(lval, 10);
+                            break;
+                        case FS_NUM_HEX:
+                            luval = va_arg(*args, unsigned long);
+                            len = dbgbuffer_get_number_len(luval, 16);
                             break;
                         case FS_NUM_LONGLONG:
                             llval = va_arg(*args, long long);
@@ -387,6 +396,9 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                     switch (fs_prop.numeric_mode) {
                         case FS_NUM_LONG:
                             dbgbuffer_write_u32(lval, 10);
+                            break;
+                        case FS_NUM_HEX:
+                            dbgbuffer_write_u32(luval, 16);
                             break;
                         case FS_NUM_LONGLONG:
                             dbgbuffer_write_u64(llval, 10);
