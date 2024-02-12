@@ -43,13 +43,23 @@ void test_sleep_duration(void)
         uint32_t sleep_time = duration_vector[subtest];
         uint64_t calculated;
         uint64_t start, stop;
+        Status   cycle_start_st, sleep_st, cycle_end_st;
         duration.arbitrary_ms = sleep_time;
         TEST_START();
-        ASSERT_EQ(sys_get_cycle(PRECISION_MILLISECONDS), STATUS_OK);
+
+        /* as svc exchange is zeroified by sys_log usage,
+         * and because logging is impacting the duration, we first
+         * get all the values, and then assert them
+         */
+        cycle_start_st = sys_get_cycle(PRECISION_MILLISECONDS);
         copy_to_user((uint8_t*)&start, sizeof(uint64_t));
-        ASSERT_EQ(sys_sleep(duration, SLEEP_MODE_DEEP), STATUS_OK);
-        ASSERT_EQ(sys_get_cycle(PRECISION_MILLISECONDS), STATUS_OK);
+        sleep_st = sys_sleep(duration, SLEEP_MODE_DEEP);
+        cycle_end_st = sys_get_cycle(PRECISION_MILLISECONDS);
         copy_to_user((uint8_t*)&stop, sizeof(uint64_t));
+
+        ASSERT_EQ(cycle_start_st, STATUS_OK);
+        ASSERT_EQ(sleep_st, STATUS_OK);
+        ASSERT_EQ(cycle_end_st, STATUS_OK);
         ASSERT_GE((uint32_t)(stop - start), duration_vector[subtest]);
         TEST_END();
     }
