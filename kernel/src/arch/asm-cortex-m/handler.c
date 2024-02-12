@@ -237,6 +237,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
      */
     it-= 16;
 
+    /* sync task ctx SP with current frame, always required */
+    mgr_task_set_sp(current, (stack_frame_t*)__get_PSP());
+
     /* distatching here */
     switch (it) {
         case HARDFAULT_IRQ:
@@ -273,9 +276,6 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
         /* context switching here, saving previous context (frame) to task
          * ctx before leaving.
          */
-        if (unlikely(mgr_task_set_sp(current, (stack_frame_t*)__get_PSP()) != K_STATUS_OKAY)) {
-             __do_panic();
-        }
         /**
          * and then map next task memory
          */

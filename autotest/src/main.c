@@ -8,6 +8,11 @@
 #include <string.h>
 #include <inttypes.h>
 #include <uapi/uapi.h>
+#include <testlib/assert.h>
+#include "tests/test_sleep.h"
+#include "tests/test_cycles.h"
+#include "tests/test_yield.h"
+#include "tests/test_random.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -29,20 +34,16 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     __stack_chk_guard = seed;
     const char *welcommsg="hello this is autotest!\n";
     const char *testmsg="starting test suite...\n";
-    uint32_t sleep_time = 1000UL;
-    uint32_t count = 0;
+
     printf(welcommsg);
     printf(testmsg);
-    printf("executing loop of %lu ms\n", sleep_time);
-    do {
-        printf("executing loop %lu\n", count++);
-        SleepDuration duration;
-        duration.tag = SLEEP_DURATION_ARBITRARY_MS;
-        duration.arbitrary_ms = sleep_time;
-        sys_sleep(duration, SLEEP_MODE_DEEP);
-        /* Let's test */
-    } while (!test_finished);
-   //sys_exit(0);
-   do {asm volatile("nop");} while (1);
-   __builtin_unreachable();
+
+    test_yield();
+    test_random();
+    test_cycles();
+    test_sleep();
+
+    /* all tests finished, leaving */
+    sys_exit(0);
+    __builtin_unreachable();
 }
