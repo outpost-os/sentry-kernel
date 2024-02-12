@@ -26,6 +26,10 @@ void task_autotest_init(void)
     autotest_meta.handle.family = HANDLE_TASKID;
     autotest_meta.quantum = 10;
     autotest_meta.priority = 1;
+    /* for its own usage, by now, autotest needs some capa. Later version will
+     * support autotest syscall-based assignation
+     */
+    autotest_meta.capabilities = CAP_CRY_KRNG | CAP_CRY_KRNG;
     autotest_meta.magic = CONFIG_TASK_MAGIC_VALUE;
     autotest_meta.flags.start_mode = JOB_FLAG_START_AUTO;
     autotest_meta.flags.exit_mode = JOB_FLAG_EXIT_RESET;
