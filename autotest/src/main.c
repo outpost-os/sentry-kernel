@@ -9,9 +9,10 @@
 #include <inttypes.h>
 #include <uapi/uapi.h>
 #include <testlib/assert.h>
-#include <testlib/core.h>
 #include "tests/test_sleep.h"
 #include "tests/test_cycles.h"
+#include "tests/test_yield.h"
+#include "tests/test_random.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -38,6 +39,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     printf(testmsg);
 
     test_yield();
+    test_random();
     test_cycles();
     test_sleep();
 
