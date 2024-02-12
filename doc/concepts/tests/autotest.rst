@@ -233,6 +233,8 @@ Boolean expressions assertion is supported:
    ASSERT_GT(a,b);
    /* check that a is smaller than b */
    ASSERT_LT(a,b);
+   /* check that a is in [b,B] range (b <= a <= B) */
+   ASSERT_IN_RANGE(a,b,B);
 
 Generic helpers for test and test suites declaration are defined
 
