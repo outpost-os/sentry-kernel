@@ -7,6 +7,7 @@ autotest_sources = files(
   'main.c',
   'printf.c',
   'ssp.c',
-  'test_sleep.c',
+  'tests/test_sleep.c',
+  'tests/test_cycles.c',
   '../../kernel/src/managers/debug/log_lexer.c',
 )

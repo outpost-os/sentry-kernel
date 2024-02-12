@@ -52,9 +52,18 @@ static inline void success_u32(const char *func, int line, const char*success, u
     pr_autotest(USER_AUTOTEST_SUCCESS, func, line, "%lu %s %lu", a, success, b);
 }
 
+static inline void failure_u64(const char *func, int line, const char*failure, uint64_t a, uint64_t b) {
+    pr_autotest(USER_AUTOTEST_FAIL, func, line, "%llu %s %llu", a, failure, b);
+}
+
+static inline void success_u64(const char *func, int line, const char*success, uint64_t a, uint64_t b) {
+    pr_autotest(USER_AUTOTEST_SUCCESS, func, line, "%llu %s %llu", a, success, b);
+}
+
 static inline void failure_int(const char *func, int line, const char*failure, int a, int b) {
     pr_autotest(USER_AUTOTEST_FAIL, func, line, "%d %s %d", a, failure, b);
 }
+
 
 static inline void success_int(const char *func, int line, const char*success, int a, int b) {
     pr_autotest(USER_AUTOTEST_SUCCESS, func, line, "%d %s %d", a, success, b);
@@ -64,10 +73,17 @@ static inline void success_int(const char *func, int line, const char*success, i
 #define success(f, l, msg, T,U) _Generic((T),   \
     uint32_t: _Generic((U),                     \
         uint32_t: success_u32,                  \
+        uint64_t: success_u64,                  \
         Status: success_u32                     \
+    )(f,l,msg,T,U),                             \
+    uint64_t: _Generic((U),                     \
+        uint32_t: success_u64,                  \
+        uint64_t: success_u64,                  \
+        Status: success_u64                     \
     )(f,l,msg,T,U),                             \
     Status: _Generic((U),                       \
         uint32_t: success_u32,                  \
+        uint64_t: success_u64,                  \
         Status: success_u32                     \
     )(f,l,msg,T,U)                              \
 )
@@ -75,10 +91,17 @@ static inline void success_int(const char *func, int line, const char*success, i
 #define failure(f, l, msg, T,U) _Generic((T),   \
     uint32_t: _Generic((U),                     \
         uint32_t: failure_u32,                  \
+        uint64_t: failure_u64,                  \
         Status: failure_u32                     \
+    )(f,l,msg,T,U),                             \
+    uint64_t: _Generic((U),                     \
+        uint32_t: failure_u64,                  \
+        uint64_t: failure_u64,                  \
+        Status: failure_u64                     \
     )(f,l,msg,T,U),                             \
     Status: _Generic((U),                       \
         uint32_t: failure_u32,                  \
+        uint64_t: failure_u64,                  \
         Status: failure_u32                     \
     )(f,l,msg,T,U)                              \
 )

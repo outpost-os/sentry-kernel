@@ -10,7 +10,8 @@
 #include <uapi/uapi.h>
 #include <testlib/assert.h>
 #include <testlib/core.h>
-#include "test_sleep.h"
+#include "tests/test_sleep.h"
+#include "tests/test_cycles.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -36,6 +37,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     printf(welcommsg);
     printf(testmsg);
 
+    test_cycles();
     test_sleep();
 
     /* all tests finished, leaving */
