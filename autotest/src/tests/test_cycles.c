@@ -15,7 +15,7 @@ void test_cycles_duration(void)
      * get all the values, and then assert them
      */
     /* rearm quantum first */
-    //sys_yield();
+    sys_yield();
     sys_get_cycle(PRECISION_MICROSECONDS);
     copy_to_user((uint8_t*)&start, sizeof(uint64_t));
     for (idx = 0; idx <= 1000; ++idx) {
@@ -27,7 +27,7 @@ void test_cycles_duration(void)
     LOG("average get_cycle cost: %lu", (uint32_t)((stop - start) / idx));
 
     /* rearm quantum first */
-    //sys_yield();
+    sys_yield();
     sys_get_cycle(PRECISION_MICROSECONDS);
     copy_to_user((uint8_t*)&start, sizeof(uint64_t));
     for (idx = 0; idx <= 1000; ++idx) {

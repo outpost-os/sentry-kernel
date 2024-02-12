@@ -9,5 +9,6 @@ autotest_sources = files(
   'ssp.c',
   'tests/test_sleep.c',
   'tests/test_cycles.c',
+  'tests/test_yield.c',
   '../../kernel/src/managers/debug/log_lexer.c',
 )
