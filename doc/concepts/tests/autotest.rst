@@ -164,3 +164,105 @@ With such an API, test output formatting is automatically generated.
 
   The Sentry kernel logging is voluntary IRQless and can be called in handler mode. Although,
   it should not be used in the middle of performances measurement loop without impacting it
+
+Autotest application
+^^^^^^^^^^^^^^^^^^^^
+
+Autotest application is a dedicated application that is made to check the overall kernel UAPI.
+Autotest app hold a dedicated, small footprint test suite mechanism using a test library
+based on multiple macros so that an efficient pretty printing is delivered to the kernel log
+in order to be CD-compliant
+
+.. note::
+
+  A typical usage of the autotest mechanism is through a continuous delivey targetting a test farm
+  representative of the supported SoC(s), in which all the kernel UAPI is checked and the check
+  report retreived
+
+Autotest application check successively each syscall, and get back multiple informations on it,
+including performances, effective security check tests (capability checking, etc.), and
+resulted value analysis.
+
+Autotest ``testlib`` is built to support the notion of:
+
+   * test suite: a set of tests that check the same subcomponent
+   * test: one or multiple calls that correspond to a given test
+
+All tests and tests suites are executed consecutively. autotest do not stop on error, but instead
+delivers all informational messages for both successful and failing tests.
+
+Defining a test
+"""""""""""""""
+
+A typical basic test looks like the following the following:
+
+.. code-block:: C
+
+    TEST_START();
+
+    micro_st = sys_get_cycle(PRECISION_MICROSECONDS);
+    copy_to_user((uint8_t*)&micro, sizeof(uint64_t));;
+
+    ASSERT_EQ(micro_st, STATUS_OK);
+    ASSERT_GT((int)micro, 0);
+
+    TEST_END()
+
+Multiple assertion macros and logging tooling has been defined as testbed helpers.
+
+Testlib for autotest
+^^^^^^^^^^^^^^^^^^^^
+
+Testlib is a small footprint testing library that aim to be executed on-target.
+A small set of usual test helper functions and macros are defined.
+
+Boolean expressions assertion is supported:
+
+.. code-block:: c
+   :caption: testlib assertion API
+
+   /* check that numeric values are equal */
+   ASSERT_EQ(a,b);
+   /* check that numeric values are different */
+   ASSERT_NE(a,b);
+   /* check that a is bigger or equal to b */
+   ASSERT_GE(a,b);
+   /* check that a is smaller or equal to b */
+   ASSERT_LE(a,b);
+   /* check that a is bigger than b */
+   ASSERT_GT(a,b);
+   /* check that a is smaller than b */
+   ASSERT_LT(a,b);
+
+Generic helpers for test and test suites declaration are defined
+
+.. code-block:: c
+   :caption: testlib generic test API
+
+   /* starting a test. The current function name is used as identifier */
+   TEST_START()
+   /* stoping a test. The current function name is used as identifier */
+   TEST_END()
+   /* starting a test suite. The suite name is the given string argument */
+   TEST_SUITE_START("mysuite")
+   /* stoping a test suite */
+   TEST_SUITE_END("mysuite")
+
+Some generic API for pretty printing and complementary information delivery is supported:
+
+.. code-block:: c
+   :caption: testlib informational API
+
+   /*log the given printf fmt-formatted arguments (printf compatible) */
+   LOG("hello %lu", myvalue);
+
+About tests and capabilities
+""""""""""""""""""""""""""""
+
+By now, autotest capabilities is build-time fixed. The goal is to use the autotest-dedicated
+syscall in order to support dynamic capabilities in autotest mode only, in order to test
+capability checks with multiple capability set successively.
+
+.. note::
+
+  The dynamic capability check is not yet supported
