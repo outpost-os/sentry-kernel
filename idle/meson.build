@@ -39,7 +39,7 @@ idle_elf = executable(
     name_suffix: 'elf',
     sources: [idle_sources ],
     include_directories: uapi_inc,
-    dependencies: [ sentry_c_uapi_dep, sentry_c_uapi_headers_dep ],
+    dependencies: [ sentry_c_uapi_dep ],
     c_args: [ target_arch_args, global_build_args, userspace_args ],
     link_args: [ '-lgcc', target_arch_args, idle_linker_args, '-Wl,-Map=@0@'.format(idle_map_file)],
     link_language: 'c',

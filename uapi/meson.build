@@ -19,6 +19,7 @@ if with_uapi_opt
 sentry_c_uapi_dep = declare_dependency(
     link_with: uapi_rs_lib,
     sources: [ uapi_h ],
+    dependencies: sentry_c_uapi_headers_dep,
     compile_args: [ global_build_args, target_arch_args ],
     include_directories: [ userspace_uapi_include_dir ],
 )
