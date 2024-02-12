@@ -11,6 +11,7 @@ extern "C" {
 #include <uapi/uapi.h>
 
 #define USER_AUTOTEST "[AT]"
+#define USER_AUTOTEST_INFO    "[INFO      ]"
 #define USER_AUTOTEST_EXEC    "[EXE       ]"
 #define USER_AUTOTEST_START   "[START     ]"
 #define USER_AUTOTEST_END     "[END       ]"
@@ -73,17 +74,26 @@ static inline void success_int(const char *func, int line, const char*success, i
 #define success(f, l, msg, T,U) _Generic((T),   \
     uint32_t: _Generic((U),                     \
         uint32_t: success_u32,                  \
+        int: success_u32,                       \
         uint64_t: success_u64,                  \
         Status: success_u32                     \
     )(f,l,msg,T,U),                             \
     uint64_t: _Generic((U),                     \
         uint32_t: success_u64,                  \
         uint64_t: success_u64,                  \
-        Status: success_u64                     \
+        Status: success_u64,                    \
+        int: success_u64                        \
+    )(f,l,msg,T,U),                             \
+    int: _Generic((U),                          \
+        int: success_int,                       \
+        uint32_t: failure_u64,                  \
+        uint64_t: failure_u64,                  \
+        Status: success_int                     \
     )(f,l,msg,T,U),                             \
     Status: _Generic((U),                       \
         uint32_t: success_u32,                  \
         uint64_t: success_u64,                  \
+        int: success_u32,                       \
         Status: success_u32                     \
     )(f,l,msg,T,U)                              \
 )
@@ -92,19 +102,31 @@ static inline void success_int(const char *func, int line, const char*success, i
     uint32_t: _Generic((U),                     \
         uint32_t: failure_u32,                  \
         uint64_t: failure_u64,                  \
-        Status: failure_u32                     \
+        Status: failure_u32,                    \
+        int: success_u32                        \
     )(f,l,msg,T,U),                             \
     uint64_t: _Generic((U),                     \
         uint32_t: failure_u64,                  \
         uint64_t: failure_u64,                  \
-        Status: failure_u64                     \
+        Status: failure_u64,                    \
+        int: success_u64                        \
+    )(f,l,msg,T,U),                             \
+    int: _Generic((U),                          \
+        uint32_t: failure_u32,                  \
+        uint64_t: failure_u64,                  \
+        int: success_int,                       \
+        Status: success_int                     \
     )(f,l,msg,T,U),                             \
     Status: _Generic((U),                       \
         uint32_t: failure_u32,                  \
         uint64_t: failure_u64,                  \
+        int: success_u32,                       \
         Status: failure_u32                     \
     )(f,l,msg,T,U)                              \
 )
+
+#define LOG(fmt, ...) \
+    printf(USER_AUTOTEST USER_AUTOTEST_INFO " " pr_autotest_fmt(__func__, __LINE__, fmt), ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

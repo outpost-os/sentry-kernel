@@ -11,9 +11,9 @@ extern "C" {
 
 #define ASSERT(expr,failcmp, successcmp, a, b) ({do {   \
     if (!(expr))                                        \
-        failure(__func__, __LINE__, failcmp, a, b);          \
+        failure(__func__, __LINE__, failcmp, a, b);     \
     else                                                \
-        success(__func__, __LINE__, successcmp, a, b);          \
+        success(__func__, __LINE__, successcmp, a, b);  \
 } while (0);})
 
 /**
