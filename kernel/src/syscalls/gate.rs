@@ -323,14 +323,14 @@ pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Sta
         Ok(SleepMode::Deep) => JobState::DeepSleeping,
         Err(err) => {
             let _ = set_syscall_status(err);
-            JobState::Ready
+            return Err(err);
         }
     };
     match JobState::current()?.set(mode) {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);
-            err
+            return Err(err);
         }
     };
 
@@ -338,7 +338,7 @@ pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Sta
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);
-            err
+            return Err(err);
         }
     };
     // sleep return code must be set asynchronously by delay manager
@@ -449,7 +449,7 @@ fn get_random() -> Result<StackFramePointer, Status> {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);
-            err
+            return Err(err);
         }
     };
     let mut rand = 0u32;
@@ -483,7 +483,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
             }
             Err(err) => {
                 let _ = set_syscall_status(err);
-                0
+                return Err(err);
             }
         },
         Ok(Precision::Nanoseconds) => {
