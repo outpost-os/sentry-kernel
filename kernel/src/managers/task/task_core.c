@@ -58,6 +58,19 @@ task_t *task_get_table(void)
     return &task_table[0];
 }
 
+task_t *task_get_cell(taskh_t th)
+{
+    task_t *cell = NULL;
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        task_t *t = &task_table[i];
+        if (handle_convert_to_u32(t->handle) == handle_convert_to_u32(th)) {
+            cell = t;
+            break;
+        }
+    }
+    return cell;
+}
+
 /**
  * TODO: this calculation may be done once for a task at boot time and stord
  * in task dyn data. This though required a fast taskh to task info accessor
@@ -463,6 +476,83 @@ kstatus_t mgr_task_get_layout_from_handle(taskh_t t,
     }
     *layout = &cell->layout[0];
     status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+/** TODO: fix handle management before coding framac_get_handle() */
+/*@
+    behavior badsysret:
+        assumes !\valid(sysret);
+        assigns \nothing;
+        ensures \result == K_ERROR_INVPARAM;
+    behavior badhandle:
+        assumes \valid(sysret);
+        assumes !\valid(framac_get_handle(t));
+        assigns \nothing;
+        ensures \result == K_ERROR_INVPARAM;
+    behavior unvstate:
+        assumes \valid(sysret);
+        assumes \valid(framac_get_handle(t));
+        assumes !framac_sysret_is_set(framac_get_handle(t));
+        assigns \nothing;
+        ensures \result == K_ERROR_INVSTATE;
+    behavior get:
+        assumes \valid(sysret);
+        assumes \valid(framac_get_handle(t));
+        assumes framac_sysret_is_set(framac_get_handle(t));
+        assigns sysret;
+        ensures \result = framac_get_handle(t)->sysreturn;
+
+    complete behaviors;
+    disjoint behaviors;
+*/
+kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely(sysret == NULL)) {
+        goto err;
+    }
+    /*@ assert \valid(status); */
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    *sysret = cell->sysreturn;
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_clear_sysreturn(taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    cell->sysretassigned = SECURE_FALSE;
+err:
+    return status;
+}
+
+kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+        goto err;
+    }
+    cell->sysreturn = sysret;
+    cell->sysretassigned = SECURE_TRUE;
 err:
     return status;
 }

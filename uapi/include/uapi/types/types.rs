@@ -98,8 +98,14 @@ macro_rules! mirror_enum {
 }
 
 /// Sentry syscall return values
+/// NonSense must never be returned, as it means that an
+/// asynchronously updated return value.... has not been updated at all
+/// This must raise a security exception. All syscalls that can't set
+/// they return code synchronously (e.g. IPC), MUST use this value as
+/// default one
 #[repr(C)]
 #[cfg_attr(debug_assertions, derive(Debug, PartialEq))]
+#[derive(Copy, Clone)]
 pub enum Status {
     Ok,
     Invalid,
@@ -109,6 +115,7 @@ pub enum Status {
     AlreadyMapped,
     TimeOut,
     Critical,
+    NonSense,
 }
 
 impl From<u32> for Status {

@@ -1,6 +1,7 @@
 use crate::arch::*;
 use capabilities::*;
 use managers_bindings as mgr;
+// use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
 pub type StackFramePointer = Option<*mut mgr::stack_frame_t>;
@@ -37,6 +38,49 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
 type EnumBinding = i32;
 #[cfg(not(windows))]
 type EnumBinding = u32;
+
+pub enum Kstatus {
+    KStatusOkay,
+    KErrorBusy,
+    KErrorInvParam,
+    KErrorBadState,
+    KErrorUnknown,
+    KErrorBadClk,
+    KErrorBadEntropy,
+    KErrorNotReady,
+    KErrorNoEnt,
+    KErrorMemFail,
+    KSecurityInvState,
+    KSecurityCorruption,
+    KSecurityLockdown,
+    KSecurityFIPSCompliance,
+    KSecurityIntegrity,
+}
+
+impl TryFrom<EnumBinding> for Kstatus {
+    type Error = Status;
+    fn try_from(status: EnumBinding) -> Result<Kstatus, Self::Error> {
+        let kstatus: Kstatus = match status {
+            mgr::kstatus_K_STATUS_OKAY => Kstatus::KStatusOkay,
+            mgr::kstatus_K_ERROR_BADCLK => Kstatus::KErrorBadClk,
+            mgr::kstatus_K_ERROR_BADENTROPY => Kstatus::KErrorBadEntropy,
+            mgr::kstatus_K_ERROR_BADSTATE => Kstatus::KErrorBadState,
+            mgr::kstatus_K_ERROR_BUSY => Kstatus::KErrorBusy,
+            mgr::kstatus_K_ERROR_INVPARAM => Kstatus::KErrorInvParam,
+            mgr::kstatus_K_ERROR_MEMFAIL => Kstatus::KErrorMemFail,
+            mgr::kstatus_K_ERROR_NOENT => Kstatus::KErrorNoEnt,
+            mgr::kstatus_K_ERROR_NOTREADY => Kstatus::KErrorNotReady,
+            mgr::kstatus_K_ERROR_UNKNOWN => Kstatus::KErrorUnknown,
+            mgr::kstatus_K_SECURITY_CORRUPTION => Kstatus::KSecurityCorruption,
+            mgr::kstatus_K_SECURITY_FIPSCOMPLIANCE => Kstatus::KSecurityFIPSCompliance,
+            mgr::kstatus_K_SECURITY_INTEGRITY => Kstatus::KSecurityIntegrity,
+            mgr::kstatus_K_SECURITY_INVSTATE => Kstatus::KSecurityInvState,
+            mgr::kstatus_K_SECURITY_LOCKDOWN => Kstatus::KSecurityLockdown,
+            _ => return Err(Status::Invalid),
+        };
+        Ok(kstatus)
+    }
+}
 
 enum JobState {
     NotStarted,
@@ -146,6 +190,47 @@ impl JobState {
     }
 }
 
+pub struct StatusStorage(Status);
+
+impl StatusStorage {
+    pub fn new(status: Status) -> Self {
+        StatusStorage(status)
+    }
+
+    pub fn current(&self) -> Status {
+        self.0
+    }
+
+    pub fn load(&mut self, job: handles::taskh_t) -> Result<Status, Kstatus> {
+        let mut local_status = self.0 as EnumBinding;
+        if unsafe { mgr::mgr_task_get_sysreturn(job, &mut local_status) } != 0 {
+            return Err(Kstatus::KErrorInvParam);
+        }
+        self.0 = local_status.into();
+        Ok(self.0)
+    }
+
+    pub fn assign(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
+        if unsafe { mgr::mgr_task_set_sysreturn(job, self.0 as EnumBinding) } != 0 {
+            return Err(Kstatus::KErrorInvParam);
+        }
+        Ok(Kstatus::KStatusOkay)
+    }
+
+    pub fn clear(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
+        if unsafe { mgr::mgr_task_clear_sysreturn(job) } != 0 {
+            return Err(Kstatus::KErrorInvParam);
+        }
+        Ok(Kstatus::KStatusOkay)
+    }
+}
+
+pub fn set_syscall_status(val: Status) -> Result<Kstatus, Kstatus> {
+    let mut status = StatusStorage(val);
+    status.assign(unsafe { mgr::sched_get_current() })?;
+    Ok(Kstatus::KStatusOkay)
+}
+
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
     TaskMeta::current()?.can(Capability::SYS_POWER)?;
 
@@ -207,33 +292,62 @@ fn time_delay_add_job(taskh: handles::taskh_t, duration_ms: u32) -> Result<Statu
 }
 
 pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
-    JobState::current()?.set(if Status::from(status as u32) == Status::Ok {
+    match JobState::current()?.set(if Status::from(status as u32) == Status::Ok {
         JobState::Finished
     } else {
         JobState::Aborting
-    })?;
-    task_get_sp(sched_elect())
+    }) {
+        Ok(_) => task_get_sp(sched_elect()),
+        // exit should not fail though. This is the set() failure case
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            task_get_sp(sched_get_current())
+        }
+    }
 }
 
 pub fn get_process_handle(_process: u32) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
 pub fn r#yield() -> Result<StackFramePointer, Status> {
+    // A Yield never fails
+    let _ = set_syscall_status(Status::Ok);
     task_get_sp(sched_elect())
 }
 
 pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Status> {
-    let mode = match SleepMode::try_from(sleep_mode)? {
-        SleepMode::Shallow => JobState::Sleeping,
-        SleepMode::Deep => JobState::DeepSleeping,
+    let mode = match SleepMode::try_from(sleep_mode) {
+        Ok(SleepMode::Shallow) => JobState::Sleeping,
+        Ok(SleepMode::Deep) => JobState::DeepSleeping,
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            return Err(err);
+        }
     };
-    JobState::current()?.set(mode)?;
-    time_delay_add_job(sched_get_current(), duration_ms)?;
+    match JobState::current()?.set(mode) {
+        Ok(_) => Status::Ok,
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            return Err(err);
+        }
+    };
+
+    match time_delay_add_job(sched_get_current(), duration_ms) {
+        Ok(_) => Status::Ok,
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            return Err(err);
+        }
+    };
+    // sleep return code must be set asynchronously by delay manager
+    let _ = set_syscall_status(Status::NonSense);
     task_get_sp(sched_elect())
 }
 
 pub fn start(_process: u32) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
@@ -254,6 +368,7 @@ pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
 
             // FIXME: check whether device is already mapped
             if unsafe { mgr::mgr_mm_map_device(dev) } != 0 {
+                let _ = set_syscall_status(Status::Invalid);
                 return Err(Status::Invalid);
             }
         }
@@ -266,6 +381,7 @@ pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
             todo!()
         }
     }
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
@@ -274,13 +390,16 @@ pub fn unmap(resource: Resource) -> Result<StackFramePointer, Status> {
         Resource::Dev(devu) => {
             let dev = handles::devh_t::from(devu);
             if unsafe { mgr::mgr_mm_unmap_device(dev) } != 0 {
+                let _ = set_syscall_status(Status::Invalid);
                 return Err(Status::Invalid);
             }
         }
         Resource::Shm(_shmu) => {
+            let _ = set_syscall_status(Status::Invalid);
             return Err(Status::Invalid);
         }
     }
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
@@ -289,14 +408,17 @@ pub fn shm_set_credential(
     _id: u32,
     _shm_perm: u32,
 ) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
 pub fn send_ipc(_resource_type: u32, _length: u8) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
 pub fn send_signal(_resource_type: u32, _signal_type: u32) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
@@ -305,6 +427,7 @@ pub fn wait_for_event(
     _resoucer_handle: u32,
     _timeout: u32,
 ) -> Result<StackFramePointer, Status> {
+    let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
 
@@ -321,13 +444,23 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
 }
 
 fn get_random() -> Result<StackFramePointer, Status> {
-    let mut current_task = TaskMeta::current()?.can(Capability::CRY_KRNG)?;
-
+    let current_task = TaskMeta::current()?.can(Capability::CRY_KRNG);
+    match current_task {
+        Ok(_) => Status::Ok,
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            return Err(err);
+        }
+    };
     let mut rand = 0u32;
     if unsafe { mgr::mgr_security_entropy_generate(&mut rand) } != 0 {
+        let _ = set_syscall_status(Status::Invalid);
         return Err(Status::Invalid);
-    }
-    current_task.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_ne_bytes());
+    };
+    match current_task {
+        Ok(mut tsk) => tsk.get_exchange_bytes_mut()[..4].copy_from_slice(&rand.to_ne_bytes()),
+        Err(_) => todo!(),
+    };
     Ok(None)
 }
 
@@ -337,6 +470,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
 
     let cycles = match precision {
         Precision::Cycle => {
+            let _ = set_syscall_status(Status::Denied);
             current_task = current_task.can(Capability::TIM_HP_CHRONO)?;
             unsafe { mgr::mgr_time_get_cycle() }
         }
@@ -344,6 +478,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
         Precision::Microseconds => unsafe { mgr::mgr_time_get_microseconds() },
         Precision::Milliseconds => unsafe { mgr::mgr_time_get_milliseconds() },
     };
+    let _ = set_syscall_status(Status::Ok);
     current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_ne_bytes());
     Ok(None)
 }

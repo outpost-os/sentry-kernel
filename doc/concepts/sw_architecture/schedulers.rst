@@ -169,3 +169,42 @@ Scheduling a new job is a simple `push` to the FIFO, in the last position.
 .. warning::
 
     With FIFO scheduler there is no priority consideration for jobs
+
+Scheduling and syscalls
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Syscalls may be generate a job preemption. This is typically the case of
+``ipc_send()``, ``sleep``, ``yield`` and any others syscall that imply a new job election.
+Most of these syscalls do not know the effective return code synchronously, and may have
+their return code being updated by various external events.
+
+A typical example is the IPC model: A job sending an IPC to another job is immediately preempted,
+and will be awoken later. There are multiple awakening event sources:
+
+   * the targetted job has read the emitted IPC. In that case, the return code would be Ok
+   * the targetted job has terminated (whatever the reason is) without reading the IPC content. In that later case,
+     the syscall return code is a SIGPIPE status. In that last case, the status code is the consequence of the target job
+     termination, and is updated by the other job's exit syscall or by the fault manager in case of abnormal termination.
+
+To support such a mechanism, Sentry syscall are implemented with the following model:
+
+   1. the syscall handler set the synchronous return code to the current job context, and update the job syscall automaton
+      so that future election of this very job will be informed that the current job was preempted during a syscall
+   2. If any asynchronous event update the job return value, this value is updated. This can be done only if the job syscall
+      automaton is in preempted syscall mode
+   3. when the job is reelected, the ISR handler check the job syscall automaton. If the job is in preempted syscall mode,
+      the ISR handler read back the syscall return value from the job context, and clear the job syscall automaton back to
+      a non-syscall mode. The value is pushed to the job current frame as effective return code, and the job is reexecuted
+
+Some syscalls may not know the effective return value synchronously. In that case, the syscall voluntary set an invalid
+return value. This allows to requires a value update before the next job election. If this value is still invalid at
+election time, it is considered as a fault.
+
+.. figure:: ../_static/figures/syscallret.png
+  :width: 100%
+  :alt: Syscall return code asynchronous management
+  :align: center
+
+.. note::
+
+  To avoid differenciation between fully synchronous and asynchronous syscalls, all of them use this very same pattern

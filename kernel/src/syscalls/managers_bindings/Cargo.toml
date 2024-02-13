@@ -17,5 +17,4 @@ bindgen = "0.69.1"
 capabilities = { path = "../../../../uapi/include/uapi/capabilities" }
 handles = { path = "../../../../uapi/include/uapi/handles" }
 systypes = { path = "../../../../uapi/include/uapi/types" }
-
-
+uapi = { path = "../../../../uapi/include/uapi" }

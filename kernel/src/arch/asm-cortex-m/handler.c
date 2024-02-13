@@ -273,13 +273,30 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     /* the next job may not be the previous one */
     next = sched_get_current();
     if (unlikely(handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next))) {
-        /* context switching here, saving previous context (frame) to task
-         * ctx before leaving.
-         */
-        /**
-         * and then map next task memory
+        Status statuscode;
+        /*
+         * map next task memory
          */
         mgr_mm_map_task(next);
+        /*
+         * get back target syscall return code, if in comming back to a previously preempted syscall
+         */
+        if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
+            /* a syscall return code as been previously set in this context and not cleared
+             * by the handler. This means that the next job has been preempted during a syscall,
+             * whatever the reason is. We then get back the current syscall value now and update it
+             *
+             * It is to note here that a statuscode of type STATUS_NON_SENSE must not happend as it
+             * means that a syscall that do not know synchronously its own return code has not seen
+             * its return value being updated in the meantime **before** coming back to the job
+             */
+            if (unlikely(statuscode == STATUS_NON_SENSE)) {
+                __do_panic();
+            }
+            newframe->r0 = statuscode;
+            /* clearing the sysreturn. next job is no more syscall-preempted */
+            mgr_task_clear_sysreturn(next);
+        }
     } else {
         /* when no context switch happen (i.e. the same task is elected or no election),
            we may need to fallback to previous frame, as elect() may return an invalid frame
