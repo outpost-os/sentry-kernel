@@ -274,14 +274,11 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     next = sched_get_current();
     if (unlikely(handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next))) {
         Status statuscode;
-        /* context switching here, saving previous context (frame) to task
-         * ctx before leaving.
-         */
-        /**
-         * and then map next task memory
+        /*
+         * map next task memory
          */
         mgr_mm_map_task(next);
-        /**
+        /*
          * get back target syscall return code, if in comming back to a previously preempted syscall
          */
         if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
