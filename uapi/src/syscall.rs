@@ -49,34 +49,41 @@ pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
     syscall!(Syscall::Start, u32::from(process)).into()
 }
 
-///  Map a mappable ressource.
+///  Map a mappable device.
 ///
-/// POSIX upper layer(s):
-/// - for devices: mmap(2)
+/// POSIX upper layer(s): mmap(2)
 ///   * addr can be null or set to ressource addr
 ///   * fd must be equal to ressource handle
 ///   * prot, offset and flags are ignored for now
-/// - for SHM : shmget(2) (key == handle)
 #[no_mangle]
 pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
     syscall!(Syscall::MapDev, dev.bits()).into()
 }
 
+///  Map a mappable SHM.
+///
+/// POSIX upper layer(s): shmget(2) (key == handle)
 #[no_mangle]
 pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
     syscall!(Syscall::MapShm, shm.bits()).into()
 }
 
-/// Unmap a mapped ressource.
+/// Unmap a mapped device.
 ///
-/// POSIX upper layer(s):
-/// for devices: munmap(2)
+/// POSIX upper layer(s): munmap(2)
 ///   addr must match the ressource addr (ressource handle to be found in userspace from the addr?)
 ///   length must match the ressource size
-/// for SHM : TBD
 #[no_mangle]
-pub extern "C" fn sys_unmap(resource: ResourceHandle) -> Status {
-    syscall!(Syscall::Unmap, resource.bits()).into()
+pub extern "C" fn sys_unmap_dev(dev: devh_t) -> Status {
+    syscall!(Syscall::UnmapDev, dev.bits()).into()
+}
+
+/// Unmap a mapped device.
+///
+/// POSIX upper layer(s): TBD
+#[no_mangle]
+pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
+    syscall!(Syscall::UnmapShm, shm.bits()).into()
 }
 
 /// Set SHM permissions. shm_open() is considered automatic as declared in dtsi, handle is generated.

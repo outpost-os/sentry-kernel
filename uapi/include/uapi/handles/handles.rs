@@ -4,7 +4,7 @@
 #[cfg(not(feature = "cbindgen"))]
 macro_rules! make_member {
     { $name:ident ($place:expr) {$($body:tt)*} } => {
-        #[derive(Default, Clone, Copy)]
+        #[derive(Default, Clone, Copy, PartialEq)]
         #[repr(transparent)]
         pub struct $name(u32);
 

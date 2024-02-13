@@ -180,6 +180,11 @@ mod tests {
     }
 
     #[no_mangle]
+    extern "C" fn mgr_mm_unmap_device(_devh: devh_t) -> kstatus_t {
+        0
+    }
+
+    #[no_mangle]
     extern "C" fn mgr_time_get_cycle() -> u64 {
         111
     }

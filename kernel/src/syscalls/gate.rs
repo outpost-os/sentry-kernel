@@ -14,7 +14,8 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Start => start(args[0]),
         Syscall::MapDev => map(Resource::Dev(args[0])),
         Syscall::MapShm => map(Resource::Shm(args[0])),
-        Syscall::Unmap => unmap(args[0]),
+        Syscall::UnmapDev => unmap(Resource::Dev(args[0])),
+        Syscall::UnmapShm => unmap(Resource::Shm(args[0])),
         Syscall::SHMSetCredential => shm_set_credential(args[0], args[1], args[2]),
         Syscall::SendIPC => send_ipc(args[0], args[1] as u8),
         Syscall::SendSignal => send_signal(args[0], args[1]),
@@ -103,8 +104,25 @@ impl<'a> TaskMeta<'a> {
         }
     }
 
+    /// Verify that a task possess a given capability
     fn can(self, capability: Capability) -> Result<TaskMeta<'a>, Status> {
         if !Capability::from(self.meta.capabilities).contains(capability) {
+            return Err(Status::Denied);
+        }
+        Ok(self)
+    }
+
+    fn has_dev(self, dev: handles::devh_t) -> Result<TaskMeta<'a>, Status> {
+        let declared_devs = &self.meta.devs[..self.meta.num_devs as usize];
+        if !declared_devs.contains(&dev) {
+            return Err(Status::Denied);
+        }
+        Ok(self)
+    }
+
+    fn has_shm(self, shm: handles::shmh_t) -> Result<TaskMeta<'a>, Status> {
+        let declared_shms = &self.meta.shms[..self.meta.num_shm as usize];
+        if !declared_shms.contains(&shm) {
             return Err(Status::Denied);
         }
         Ok(self)
@@ -225,25 +243,44 @@ pub enum Resource {
 }
 
 pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
+    let meta = TaskMeta::current()?;
+    // Check:
+    // - the requested device/shm was declared in the current task
+    // - the device/shm's capabilities match the current task's capabilities
     match resource {
         Resource::Dev(devu) => {
             let dev = handles::devh_t::from(devu);
+            meta.has_dev(dev)?.can(dev.get_dev_cap().into())?;
+
+            // FIXME: check whether device is already mapped
             if unsafe { mgr::mgr_mm_map_device(dev) } != 0 {
                 return Err(Status::Invalid);
             }
         }
-        Resource::Shm(_shmu) => {
-            return Err(Status::Invalid);
-            // let shm = shmh_t::from(shmu);
+        Resource::Shm(shmu) => {
+            let shm = handles::shmh_t::from(shmu);
+            meta.has_shm(shm)?.can(Capability::MEM_SHM_USE)?;
             // if unsafe { mgr::mgr_mm_map_shm(shm) } != 0 {
             //     return Err(Status::Invalid);
             // }
+            todo!()
         }
     }
     Ok(None)
 }
 
-pub fn unmap(_resource: u32) -> Result<StackFramePointer, Status> {
+pub fn unmap(resource: Resource) -> Result<StackFramePointer, Status> {
+    match resource {
+        Resource::Dev(devu) => {
+            let dev = handles::devh_t::from(devu);
+            if unsafe { mgr::mgr_mm_unmap_device(dev) } != 0 {
+                return Err(Status::Invalid);
+            }
+        }
+        Resource::Shm(_shmu) => {
+            return Err(Status::Invalid);
+        }
+    }
     Ok(None)
 }
 
