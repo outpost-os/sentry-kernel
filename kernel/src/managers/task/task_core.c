@@ -544,7 +544,7 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_set_sysreturn(taskh_t t, enum Status sysret)
+kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;

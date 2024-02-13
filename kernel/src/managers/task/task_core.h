@@ -92,7 +92,7 @@ typedef struct  task {
 
     job_state_t     state;      /**< current task state */
     secure_bool_t   sysretassigned; /**< a syscall has assigned a sysreturn */
-    enum Status     sysreturn;  /**< current job syscall return */
+    Status          sysreturn;  /**< current job syscall return */
 } task_t;
 
 /**

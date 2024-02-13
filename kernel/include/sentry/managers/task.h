@@ -10,6 +10,7 @@ extern "C" {
 #include <inttypes.h>
 #include <stddef.h>
 
+#include <uapi/uapi.h>
 #include <uapi/handle_defs.h>
 #include <uapi/handle.h>
 #include <uapi/handle_toolkit.h>
