@@ -98,7 +98,7 @@ macro_rules! mirror_enum {
 }
 
 /// Sentry syscall return values
-/// NonSence must never be returned, as it means that an
+/// NonSense must never be returned, as it means that an
 /// asynchronously updated return value.... has not been updated at all
 /// This must raise a security exception. All syscalls that can't set
 /// they return code synchronously (e.g. IPC), MUST use this value as
