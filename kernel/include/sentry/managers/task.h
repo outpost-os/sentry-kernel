@@ -10,7 +10,9 @@ extern "C" {
 #include <inttypes.h>
 #include <stddef.h>
 
+#include <uapi/handle_defs.h>
 #include <uapi/handle.h>
+#include <uapi/handle_toolkit.h>
 #include <uapi/capability.h>
 #include <sentry/managers/device.h>
 #include <sentry/dma.h>

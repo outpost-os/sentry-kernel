@@ -8,7 +8,12 @@ path = "../../src/lib.rs"
 
 [dependencies]
 systypes = { path = "types" }
-bitflags = { version = "2.4.0" }
+handles = { path = "handles" }
+
+[build-dependencies]
+systypes = { path = "types" } # we need systypes to produce some C headers beforehand
+handles = { path = "handles" }
+cbindgen = "0.26.0"
 
 [dev-dependencies]
 sysgate = { path = "../../../kernel/src/syscalls", features = ['mock'] }

@@ -1,4 +1,5 @@
 #include <sentry/managers/debug.h>
+#include <sentry/managers/memory.h>
 #include <sentry/managers/security.h>
 #include <sentry/managers/time.h>
 #include <sentry/sched.h>

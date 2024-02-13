@@ -1,0 +1,24 @@
+---
+ meson.build   | 11 +++++++++++
+ meson.odtions |  1 +
+ 1 files changed, 11 insertions(+)
+ create mode 100644 meson.build
+
+diff --git a/meson.build b/meson.build
+new file mode 100644
+index 0000000..b9190c0
+--- /dev/null
++++ b/meson.build
+@@ -0,0 +1,11 @@
++project('paste-rs', 'rust',
++  version : '1.0.14',
++  meson_version : '>= 1.3.0',
++)
++
++rustmod = import('rust')
++
++paste = rustmod.proc_macro('paste', 'src/lib.rs')
++
++paste_dep = declare_dependency(link_with: paste)
++meson.override_dependency('paste-rs', paste_dep)
+--
