@@ -201,7 +201,7 @@ impl StatusStorage {
         self.0
     }
 
-    pub fn load(&mut self, job: mgr::taskh_t) -> Result<Status, Kstatus> {
+    pub fn load(&mut self, job: handles::taskh_t) -> Result<Status, Kstatus> {
         let mut local_status = self.0 as EnumBinding;
         if unsafe { mgr::mgr_task_get_sysreturn(job, &mut local_status) } != 0 {
             return Err(Kstatus::KErrorInvParam);
@@ -210,14 +210,14 @@ impl StatusStorage {
         Ok(self.0)
     }
 
-    pub fn assign(&mut self, job: mgr::taskh_t) -> Result<Kstatus, Kstatus> {
+    pub fn assign(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
         if unsafe { mgr::mgr_task_set_sysreturn(job, self.0 as EnumBinding) } != 0 {
             return Err(Kstatus::KErrorInvParam);
         }
         Ok(Kstatus::KStatusOkay)
     }
 
-    pub fn clear(&mut self, job: mgr::taskh_t) -> Result<Kstatus, Kstatus> {
+    pub fn clear(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
         if unsafe { mgr::mgr_task_clear_sysreturn(job) } != 0 {
             return Err(Kstatus::KErrorInvParam);
         }
@@ -444,7 +444,7 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
 }
 
 fn get_random() -> Result<StackFramePointer, Status> {
-    let current_task = TaskMeta::current()?.can(Capability::CryKRNG);
+    let current_task = TaskMeta::current()?.can(Capability::CRY_KRNG);
     match current_task {
         Ok(_) => Status::Ok,
         Err(err) => {
@@ -466,39 +466,19 @@ fn get_random() -> Result<StackFramePointer, Status> {
 
 fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
     let mut current_task = TaskMeta::current()?;
-    let precision = Precision::try_from(precision);
-    if let Err(err) = precision {
-        let _ = set_syscall_status(err);
-        return Err(err);
-    }
+    let precision = Precision::try_from(precision)?;
+
     let cycles = match precision {
-        Err(_) => {
-            let _ = set_syscall_status(Status::Invalid);
-            0
+        Precision::Cycle => {
+            let _ = set_syscall_status(Status::Denied);
+            current_task = current_task.can(Capability::TIM_HP_CHRONO)?;
+            unsafe { mgr::mgr_time_get_cycle() }
         }
-        Ok(Precision::Cycle) => match current_task.can(Capability::TimHPChrono) {
-            Ok(_) => {
-                let _ = set_syscall_status(Status::Ok);
-                unsafe { mgr::mgr_time_get_cycle() }
-            }
-            Err(err) => {
-                let _ = set_syscall_status(err);
-                return Err(err);
-            }
-        },
-        Ok(Precision::Nanoseconds) => {
-            let _ = set_syscall_status(Status::Ok);
-            unsafe { mgr::mgr_time_get_nanoseconds() }
-        }
-        Ok(Precision::Microseconds) => {
-            let _ = set_syscall_status(Status::Ok);
-            unsafe { mgr::mgr_time_get_microseconds() }
-        }
-        Ok(Precision::Milliseconds) => {
-            let _ = set_syscall_status(Status::Ok);
-            unsafe { mgr::mgr_time_get_milliseconds() }
-        }
+        Precision::Nanoseconds => unsafe { mgr::mgr_time_get_nanoseconds() },
+        Precision::Microseconds => unsafe { mgr::mgr_time_get_microseconds() },
+        Precision::Milliseconds => unsafe { mgr::mgr_time_get_milliseconds() },
     };
+    let _ = set_syscall_status(Status::Ok);
     current_task.get_exchange_bytes_mut()[..8].copy_from_slice(&cycles.to_ne_bytes());
     Ok(None)
 }
