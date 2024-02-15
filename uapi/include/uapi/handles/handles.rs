@@ -151,20 +151,7 @@ bitfield_u32! {
     }
 }
 
-
 pub type taskh_t = u32;
-
-//bitfield_u32! {
-//    /// Task handle
-//    pub struct taskh_t {
-//        /// current spawn id (start with 1)
-//        rerun : 13,
-//        /// unique id for current handle (current device, task, etc)
-//        id : 16,
-//        family : 3,
-//    }
-//}
-
 
 bitfield_u32! {
     /// io_handle

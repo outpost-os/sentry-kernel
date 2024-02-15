@@ -45,7 +45,7 @@ void panic_print_event(panic_event_t ev) {
 /**
  * @brief emitting signal to autotest task corresponding to current panic event
  */
-kstatus_t panic_emit_signal(panic_event_t ev __attribute__((unused)))
+kstatus_t panic_emit_signal(panic_event_t ev)
 {
     sigh_t signal = {
         .source = 0, /* kernel */

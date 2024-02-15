@@ -333,7 +333,8 @@ static inline kstatus_t task_init_add_autotest(void)
     mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
     mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
-    if ((ctx.status = unlikely(task_set_job_layout(task_ctx)) != K_STATUS_OKAY)) {
+    ctx.status = task_set_job_layout(task_ctx);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_err("failed to set job layout!");
         goto err;
     }
@@ -381,7 +382,9 @@ static inline kstatus_t task_init_add_idle(void)
     mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
     mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
-    if ((ctx.status = unlikely(task_set_job_layout(task_ctx)) != K_STATUS_OKAY)) {
+    ctx.status = task_set_job_layout(task_ctx);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
+        pr_err("failed to set job layout!");
         goto err;
     }
 

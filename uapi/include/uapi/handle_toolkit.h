@@ -57,12 +57,6 @@ static inline uint32_t handle_convert_ioh_to_u32(ioh_t h) {
                (h.ioport & 0x3fUL));
 }
 
-//static inline uint32_t handle_convert_taskh_to_u32(taskh_t h) {
-//    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-//               ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
-//               (h.rerun & 0x1fffUL));
-//}
-
 static inline uint32_t handle_convert_shmh_to_u32(shmh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
                ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
