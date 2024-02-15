@@ -82,7 +82,7 @@ __STATIC_FORCEINLINE stack_frame_t *may_panic(stack_frame_t *frame) {
          *  1. set task as faulted
          *  2. elect another task
          */
-        pr_debug("[%d] Userspace Oops!", handle_convert_taskh_to_u32(tsk));
+        pr_debug("[%lx] Userspace Oops!", tsk);
         mgr_task_set_state(tsk, JOB_STATE_FAULT);
         tsk = sched_elect();
         mgr_task_get_sp(tsk, &newframe);
@@ -272,7 +272,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
 
     /* the next job may not be the previous one */
     next = sched_get_current();
-    if (unlikely(handle_convert_taskh_to_u32(current) != handle_convert_taskh_to_u32(next))) {
+    if (unlikely(current != next)) {
         Status statuscode;
         /*
          * map next task memory

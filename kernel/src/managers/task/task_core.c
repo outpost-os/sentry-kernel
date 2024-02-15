@@ -58,19 +58,6 @@ task_t *task_get_table(void)
     return &task_table[0];
 }
 
-task_t *task_get_cell(taskh_t th)
-{
-    task_t *cell = NULL;
-    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
-        task_t *t = &task_table[i];
-        if (handle_convert_to_u32(t->handle) == handle_convert_to_u32(th)) {
-            cell = t;
-            break;
-        }
-    }
-    return cell;
-}
-
 /**
  * TODO: this calculation may be done once for a task at boot time and stord
  * in task dyn data. This though required a fast taskh to task info accessor
@@ -104,7 +91,7 @@ void task_dump_table(void)
     /* dump all tasks including idle */
     for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
         task_t *t = &task_table[i];
-        uint32_t label = t->metadata->handle.id;
+        uint32_t label = t->handle.id;
         pr_debug("=== Task labeled '%02x' metainformations:", label);
         pr_debug("[%02x] --- scheduling and permissions", label);
         pr_debug("[%02x] task priority:\t\t\t%u", label, t->metadata->priority);
@@ -124,19 +111,6 @@ void task_dump_table(void)
 #endif
 }
 
-static inline task_t *task_get_from_handle(taskh_t h)
-{
-    task_t *tsk = NULL;
-    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
-        if (handle_convert_to_u32(task_table[i].handle) == handle_convert_to_u32(h)) {
-            tsk = &task_table[i];
-            goto end;
-        }
-    }
-end:
-    return tsk;
-}
-
 secure_bool_t mgr_task_handle_exists(taskh_t h)
 {
     secure_bool_t res = SECURE_FALSE;
@@ -147,6 +121,21 @@ secure_bool_t mgr_task_handle_exists(taskh_t h)
 end:
     return res;
 }
+
+task_t *task_get_from_handle(taskh_t h)
+{
+    task_t *tsk = NULL;
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        const taskh_t *current_h = ktaskh_to_taskh(&task_table[i].handle);
+        if (h == *current_h) {
+            tsk = &task_table[i];
+            goto end;
+        }
+    }
+end:
+    return tsk;
+}
+
 
 /**
  * @fn given a task handler, return the corresponding stack frame pointer
@@ -218,13 +207,42 @@ end:
     return status;
 }
 
-secure_bool_t mgr_task_is_idletask(taskh_t t)
+secure_bool_t mgr_task_is_idletask(const taskh_t t)
 {
     secure_bool_t res = SECURE_FALSE;
-    if (t.id == SCHED_IDLE_TASK_LABEL) {
+    const ktaskh_t *kt = taskh_to_ktaskh(&t);
+    /*@ assert \valid_read(kt); */
+
+    if (kt->id == SCHED_IDLE_TASK_LABEL) {
         res = SECURE_TRUE;
     }
     return res;
+}
+
+#ifdef CONFIG_BUILD_TARGET_AUTOTEST
+taskh_t mgr_task_get_autotest(void)
+{
+    ktaskh_t kt = {
+        .rerun = 0,
+        .id = SCHED_AUTOTEST_TASK_LABEL,
+        .family = HANDLE_TASKID,
+    };
+    const taskh_t *h = ktaskh_to_taskh(&kt);
+    /*@ assert \valid(h); */
+    return *h;
+}
+#endif
+
+taskh_t mgr_task_get_idle(void)
+{
+    ktaskh_t kt = {
+        .rerun = 0,
+        .id = SCHED_IDLE_TASK_LABEL,
+        .family = HANDLE_TASKID,
+    };
+    const taskh_t *h = ktaskh_to_taskh(&kt);
+    /*@ assert \valid(h); */
+    return *h;
 }
 
 /**
@@ -321,12 +339,18 @@ err:
     __builtin_unreachable();
 }
 
-
-kstatus_t task_set_job_layout(task_meta_t const * const meta)
+/*
+ * TODO: adding requires tsk in [ task_t vector ];
+ */
+kstatus_t task_set_job_layout(task_t * const tsk)
 {
     kstatus_t status;
+    /*@ assert \valid_read(tsk); */
+    task_meta_t const * meta = tsk->metadata;
      /* mapping task data region first */
-    if (unlikely(mgr_mm_map_task(meta->handle) != K_STATUS_OKAY)) {
+    const taskh_t *t = ktaskh_to_taskh(&tsk->handle);
+    /*@ assert \valid_read(kt); */
+    if (unlikely(mgr_mm_map_task(*t) != K_STATUS_OKAY)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -373,6 +397,8 @@ err:
 kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    const ktaskh_t *kt = taskh_to_ktaskh(&t);
+    /*@ assert \valid_read(kt); */
     task_t * tsk = task_get_from_handle(t);
     job_state_t state;
     task_enqueue_event(handle_convert_to_u32(ev), &tsk->ints);
@@ -412,6 +438,7 @@ kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t)
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(t);
     job_state_t state;
+
     task_enqueue_event(handle_convert_to_u32(ev), &tsk->sigs);
     if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
         goto err;
@@ -515,7 +542,7 @@ kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
         goto err;
     }
     /*@ assert \valid(status); */
-    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }
     if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
@@ -532,7 +559,7 @@ kstatus_t mgr_task_clear_sysreturn(taskh_t t)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;
-    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }
     if (unlikely(cell->sysretassigned == SECURE_FALSE)) {
@@ -548,7 +575,7 @@ kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t *cell;
-    if (unlikely((cell = task_get_cell(t)) == NULL)) {
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }
     cell->sysreturn = sysret;

@@ -4,7 +4,7 @@
 #ifndef HANDLE_DEFS_H
 #define HANDLE_DEFS_H
 
-#define HANDLE_TASKID 0UL
+
 #define HANDLE_DEVICE 1UL
 #define HANDLE_IO     2UL
 #define HANDLE_IRQ    3UL

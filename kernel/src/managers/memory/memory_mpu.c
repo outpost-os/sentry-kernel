@@ -94,8 +94,7 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target)
     task_meta_t const * meta;
     if (unlikely((status = mgr_task_get_metadata(target, &meta)) == K_ERROR_INVPARAM)) {
         /* invalid task handle */
-        pr_err("failed to get metadata for task %08x",
-        handle_convert_to_u32(target));
+        pr_err("failed to get metadata for task %08x", target);
         goto err;
     }
     struct mpu_region_desc user_data_config = {
@@ -238,8 +237,7 @@ kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resourc
     struct mpu_region_desc mpu_cfg;
     if (unlikely((status = mgr_task_get_metadata(t, &meta)) == K_ERROR_INVPARAM)) {
         /* invalid task handle */
-        pr_err("failed to get metadata for task %08x",
-        handle_convert_to_u32(t));
+        pr_err("failed to get metadata for task %08x", t);
         goto err;
     }
     switch (reg_type) {

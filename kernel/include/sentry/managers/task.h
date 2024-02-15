@@ -177,6 +177,8 @@ size_t mgr_task_get_text_region_size(const task_meta_t *meta);
 
 secure_bool_t mgr_task_is_userspace_spawned(void);
 
+taskh_t mgr_task_get_idle(void);
+
 /**
  * @brief Add (map) a mappable resource to the task current layout
  *
@@ -219,6 +221,8 @@ kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret);
 kstatus_t mgr_task_clear_sysreturn(taskh_t t);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
+taskh_t mgr_task_get_autotest(void);
+
 kstatus_t mgr_task_autotest(void);
 #endif
 
