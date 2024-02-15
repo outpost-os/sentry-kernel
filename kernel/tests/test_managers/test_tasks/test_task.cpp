@@ -63,7 +63,7 @@ protected:
             if (tab[i+1].metadata == NULL) {
                 break;
             }
-            if (tab[i].metadata->handle.id > tab[i+1].metadata->handle.id) {
+            if (tab[i].handle.id > tab[i+1].handle.id) {
                 res = false;
             }
         }
