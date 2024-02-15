@@ -54,36 +54,17 @@
           "description"
         ]
       },
-      "handle": {
+      "label": {
         "type": "object",
         "properties": {
           "c_type": {
-            "type": "string"
+            "type": "uint32_t"
           },
           "rust_type": {
-            "type": "string"
+            "type": "u32"
           },
           "value": {
-            "type": "object",
-            "properties": {
-              "taskid": {
-                "type": "number",
-                "minimum": 1
-              },
-              "family": {
-                "enum":[xstr(HANDLE_TASKID)]
-              },
-              "rerun": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 0
-              }
-            },
-            "required": [
-              "taskid",
-              "family",
-              "rerun"
-            ]
+            "type": "number",
           },
           "description": {
             "type": "string"

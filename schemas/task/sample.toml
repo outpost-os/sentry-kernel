@@ -10,15 +10,11 @@ rust_type = "u32"
 value = 123_456
 description = "structure version, may vary based on SDK version"
 
-[handle]
-c_type = "taskh_t"
-rust_type = "TaskHandle"
-description = "task identifier (see handle.h, set with rerun=0)"
-
-  [handle.value]
-  taskid = 1_234
-  family = "0UL"
-  rerun = 0
+[label]
+c_type = "uint32_t"
+rust_type = "u32"
+value = 0xbabe
+description = "task unique identifier (32 bits label)"
 
 [priority]
 c_type = "uint8_t"
