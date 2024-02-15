@@ -437,7 +437,7 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
     let mut signal = handles::sigh_t::default();
     signal.set_id(Signal::Alarm as u32);
     signal.set_family(mgr::HANDLE_SIGNAL);
-    signal.set_source(current_job.get_id());
+    signal.set_source(current_job);
 
     time_delay_add_signal(current_job, timeout_ms, signal)?;
     Ok(None)

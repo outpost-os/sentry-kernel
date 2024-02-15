@@ -45,7 +45,7 @@ void panic_print_event(panic_event_t ev) {
 /**
  * @brief emitting signal to autotest task corresponding to current panic event
  */
-kstatus_t panic_emit_signal(panic_event_t ev)
+kstatus_t panic_emit_signal(panic_event_t ev __attribute__((unused)))
 {
     sigh_t signal = {
         .source = 0, /* kernel */
@@ -55,11 +55,8 @@ kstatus_t panic_emit_signal(panic_event_t ev)
         .id = ev + SIGNAL_USR2 + 1,
         .family = HANDLE_SIGNAL,
     };
-    taskh_t autotest = {
-        .rerun = 0, /* kernel */
-        .id = 0xbabe,
-        .family = HANDLE_TASKID,
-    };
+
+    taskh_t autotest = mgr_task_get_autotest();
     return mgr_task_push_event(signal, autotest);
 }
 #endif

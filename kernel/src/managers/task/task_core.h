@@ -4,11 +4,51 @@
 #ifndef TASK_CORE_H
 #define TASK_CORE_H
 
+/**
+ * @file task core functions private API for task manager internal
+ */
+
 #include <uapi/uapi.h>
 #include <sentry/managers/task.h>
 #include <sentry/arch/asm-generic/memory.h>
 
 #define TASK_EVENT_QUEUE_DEPTH 16
+
+#define HANDLE_TASKID 0x0UL
+
+typedef struct __attribute__((packed)) ktaskh  {
+    uint32_t rerun : 13;
+    uint32_t id : 16;
+    uint32_t family : 3;
+} ktaskh_t;
+
+static_assert(sizeof(ktaskh_t) == sizeof(taskh_t), "taskh_t opaque model failure!");
+
+static inline const ktaskh_t *taskh_to_ktaskh(const taskh_t * const th) {
+    /*@ assert \valid(th); */
+    union uth {
+        const uint32_t *th;
+        const ktaskh_t *kth;
+    };
+
+    union uth converter = {
+        .th = th
+    };
+    return converter.kth;
+}
+
+static inline const taskh_t *ktaskh_to_taskh(const ktaskh_t * const kth) {
+    /*@ assert \valid(kth); */
+    union uth {
+        const uint32_t *th;
+        const ktaskh_t *kth;
+    };
+
+    union uth converter = {
+        .kth = kth
+    };
+    return converter.th;
+}
 
 /* this structure is 32bits multiple ensured */
 typedef struct __attribute__((packed)) task_event {
@@ -53,8 +93,6 @@ err:
     return status;
 }
 
-kstatus_t task_set_job_layout(task_meta_t const * const meta);
-
 typedef struct  task {
     /* about task layouting */
     /** a task hold at most TASK_MAX_RESSOURCES_NUM regions (see memory.h backend)
@@ -71,7 +109,7 @@ typedef struct  task {
      * such model (quantum-based).
      */
 
-    taskh_t         handle;     /**< current job handle (with rerun updated) */
+    ktaskh_t        handle;     /**< current job handle (with rerun updated) */
     stack_frame_t   *sp;        /**< current process lonely thread stack context */
 
     /* about events */
@@ -95,13 +133,12 @@ typedef struct  task {
     Status          sysreturn;  /**< current job syscall return */
 } task_t;
 
-/**
- * @file task core functions private API for task manager internal
- */
+
+kstatus_t task_set_job_layout(task_t * const tsk);
 
 task_t *task_get_table(void);
 
-task_t *task_get_cell(taskh_t t);
+task_t *task_get_from_handle(taskh_t h);
 
 void task_dump_table(void);
 

@@ -120,7 +120,7 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
         }
     }
     if (unlikely((status = mgr_task_get_metadata(t, &meta)) != K_STATUS_OKAY)) {
-        pr_err("failed to get metadata for task %p", t.id);
+        pr_err("failed to get metadata for task %lx", t);
         goto err;
     }
     jobset->joblist[cell].handler = t;
@@ -157,11 +157,7 @@ kstatus_t sched_rrmq_schedule(taskh_t t)
 taskh_t sched_rrmq_elect(void)
 {
     /* defaulting on idle */
-    taskh_t tsk = {
-        .rerun = 0,
-        .id = SCHED_IDLE_TASK_LABEL,
-        .family = HANDLE_TASKID,
-    };
+    taskh_t tsk = mgr_task_get_idle();
     job_state_t state;
     if (unlikely(sched_rrmq_ctx.current_job == NULL)) {
         /* this case happen only when elect() is called by idle while there is
@@ -172,7 +168,7 @@ taskh_t sched_rrmq_elect(void)
     }
     if (unlikely(mgr_task_get_state(sched_rrmq_ctx.current_job->handler, &state) != K_STATUS_OKAY)) {
         pr_err("failed to get task state for task %x !",
-           sched_rrmq_ctx.current_job->handler.id);
+           sched_rrmq_ctx.current_job->handler);
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     if (state == JOB_STATE_READY) {
@@ -224,11 +220,7 @@ end:
 
 taskh_t sched_rrmq_get_current(void)
 {
-    taskh_t tsk = {
-        .family = HANDLE_TASKID,
-        .id = SCHED_IDLE_TASK_LABEL,
-        .rerun = 0,
-    };
+    taskh_t tsk = mgr_task_get_idle();
     if (likely(sched_rrmq_ctx.current_job != NULL)) {
         tsk = sched_rrmq_ctx.current_job->handler;
     }
