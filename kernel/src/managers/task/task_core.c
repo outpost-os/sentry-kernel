@@ -125,14 +125,23 @@ end:
 task_t *task_get_from_handle(taskh_t h)
 {
     task_t *tsk = NULL;
-    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
-        const taskh_t *current_h = ktaskh_to_taskh(&task_table[i].handle);
-        if (h == *current_h) {
-            tsk = &task_table[i];
-            goto end;
-        }
+    const taskh_t *cell_handle;
+    const ktaskh_t *kh = taskh_to_ktaskh(&h);
+    /* check that handle identifier exists first */
+    if (kh->id >= mgr_task_get_num()) {
+        pr_err("invalid handle identifier!");
+        /* this id is invalid */
+        goto err;
     }
-end:
+    /* execute handle matching on u32 */
+    cell_handle = ktaskh_to_taskh(kh);
+    if (unlikely(*cell_handle != h)) {
+        /* handle do not match */
+        pr_err("handle do not match!");
+        goto err;
+    }
+    tsk = &task_table[kh->id];
+err:
     return tsk;
 }
 
@@ -210,10 +219,9 @@ end:
 secure_bool_t mgr_task_is_idletask(const taskh_t t)
 {
     secure_bool_t res = SECURE_FALSE;
-    const ktaskh_t *kt = taskh_to_ktaskh(&t);
-    /*@ assert \valid_read(kt); */
+    task_t * tsk = task_get_from_handle(t);
 
-    if (kt->id == SCHED_IDLE_TASK_LABEL) {
+    if (tsk->metadata->label == SCHED_IDLE_TASK_LABEL) {
         res = SECURE_TRUE;
     }
     return res;
@@ -222,11 +230,8 @@ secure_bool_t mgr_task_is_idletask(const taskh_t t)
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 taskh_t mgr_task_get_autotest(void)
 {
-    ktaskh_t kt = {
-        .rerun = 0,
-        .id = SCHED_AUTOTEST_TASK_LABEL,
-        .family = HANDLE_TASKID,
-    };
+    /* idle is always the first one */
+    ktaskh_t kt = task_table[0].handle;
     const taskh_t *h = ktaskh_to_taskh(&kt);
     /*@ assert \valid(h); */
     return *h;
@@ -235,11 +240,8 @@ taskh_t mgr_task_get_autotest(void)
 
 taskh_t mgr_task_get_idle(void)
 {
-    ktaskh_t kt = {
-        .rerun = 0,
-        .id = SCHED_IDLE_TASK_LABEL,
-        .family = HANDLE_TASKID,
-    };
+    /* idle is always the last one */
+    ktaskh_t kt = task_table[mgr_task_get_num() - 1].handle;
     const taskh_t *h = ktaskh_to_taskh(&kt);
     /*@ assert \valid(h); */
     return *h;
@@ -297,10 +299,10 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
             if (handle_convert_to_u32(task_table[i].metadata->devs[dev]) ==
                 handle_convert_to_u32(d)) {
                     /* task metadata hold the same dev handle as requested */
-                    memcpy(t, &task_table[i].metadata->handle, sizeof(taskh_t));
+                    memcpy(t, &task_table[i].handle, sizeof(taskh_t));
                     status = K_STATUS_OKAY;
                     goto end;
-                }
+            }
         }
     }
 end:
@@ -318,15 +320,17 @@ end:
 void __attribute__((noreturn)) mgr_task_start(void)
 {
     stack_frame_t * sp;
+    const taskh_t *idleh;
     size_t pc = 0;
     const task_meta_t *idle_meta = task_idle_get_meta();
-    if (unlikely(mgr_task_get_sp(idle_meta->handle, &sp) != K_STATUS_OKAY)) {
+    idleh = ktaskh_to_taskh(&task_table[mgr_task_get_num() - 1].handle);
+    if (unlikely(mgr_task_get_sp(*idleh, &sp) != K_STATUS_OKAY)) {
         pr_err("failed to get idle function handle!");
         goto err;
     };
     pc = (size_t)(idle_meta->s_text + idle_meta->entrypoint_offset);
     /* at startup, sched return idle */
-    mgr_mm_map_task(idle_meta->handle);
+    mgr_mm_map_task(*idleh);
     pr_info("spawning thread, pc=%p, sp=%p", pc, sp);
     mgr_task_set_userspace_spawned();
     /*
