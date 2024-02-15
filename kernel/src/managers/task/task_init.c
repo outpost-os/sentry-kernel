@@ -54,11 +54,6 @@ struct task_mgr_ctx {
 
 static struct task_mgr_ctx ctx;
 
-static inline int task_cmp(const void *t1, const void *t2)
-{
-    return ((task_t*)t1)->handle.id - ((task_t*)t2)->handle.id;
-}
-
 #ifndef TEST_MODE
 /**
  * @def the task table store all the tasks metadata, forged by the build system
@@ -115,7 +110,7 @@ static inline kstatus_t task_init_discover_sanitation(task_meta_t const * const 
         status = K_ERROR_NOENT;
         goto end;
     }
-    pr_info("[task handle %08x] sanitation ok", meta->handle);
+    pr_info("[task %08x] sanitation ok", meta->label);
     /* TODO version handling */
     ctx.state = TASK_MANAGER_STATE_CHECK_META_INTEGRITY;
     status = K_STATUS_OKAY;
@@ -141,7 +136,7 @@ static inline kstatus_t task_init_check_meta_integrity(task_meta_t const * const
     }
     /* FIXME: call the hmac service in order to validate metadata integrity,
        and return the result */
-    pr_info("[task handle %08x] metadata integrity ok", meta->handle);
+    pr_info("[task %08x] metadata integrity ok", meta->label);
     ctx.state = TASK_MANAGER_STATE_CHECK_TSK_INTEGRITY;
     status = K_STATUS_OKAY;
 end:
@@ -166,7 +161,7 @@ static inline kstatus_t task_init_check_tsk_integrity(task_meta_t const * const 
     }
     /* FIXME: call the hmac service in order to validate metadata integrity,
        and return the result */
-    pr_info("[task handle %08x] task code+data integrity ok", meta->handle);
+    pr_info("[task %08x] task code+data integrity ok", meta->label);
     ctx.state = TASK_MANAGER_STATE_INIT_LOCALINFO;
     status = K_STATUS_OKAY;
 end:
@@ -184,9 +179,11 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
 {
     kstatus_t status = K_SECURITY_INTEGRITY;
     task_t * task_table = task_get_table();
-    const ktaskh_t *kh;
+    task_t * task_ctx;
     uint16_t cell = ctx.numtask;
     layout_resource_t ressource;
+    uint32_t rerun_entropy;
+    const taskh_t *handle;
 
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_INIT_LOCALINFO)) {
@@ -198,27 +195,35 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
         ctx.state = TASK_MANAGER_STATE_ERROR_SECURITY;
         goto end;
     }
-    kh = taskh_to_ktaskh(&meta->handle);
+    task_ctx = &task_table[cell];
     /* forge local info, push back current and next afterward */
-    task_table[cell].metadata = meta;
-    task_table[cell].handle = *kh;
+    task_ctx->metadata = meta;
+    ctx.status = mgr_security_entropy_generate(&rerun_entropy);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
+        pr_emerg("failed to get back entropy for task rerun field");
+        goto end;
+    }
+    task_ctx->handle.rerun = rerun_entropy;
+    task_ctx->handle.id = ctx.numtask;
+    task_ctx->handle.family = HANDLE_TASKID;
+    handle = ktaskh_to_taskh(&task_ctx->handle);
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
-    task_table[cell].sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
-    task_table[cell].state = JOB_STATE_READY;
-    task_table[cell].sysretassigned = SECURE_FALSE;
+    task_ctx->sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
+    task_ctx->state = JOB_STATE_READY;
+    task_ctx->sysretassigned = SECURE_FALSE;
     mgr_mm_forge_empty_table(task_table[cell].layout);
-    pr_info("[task handle %08x] task local dynamic content set", meta->handle);
+    pr_info("[task %08x] task local dynamic content set", meta->label);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */
     ctx.state = TASK_MANAGER_STATE_TSK_MAP;
-    *tsk = &task_table[cell];
+    *tsk = task_ctx;
     ctx.numtask++;
     /* forge current task layout to task context */
-    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
-    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -246,7 +251,7 @@ static inline kstatus_t task_init_map(task_t * tsk)
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
-    pr_info("[task handle %08x] task memory map forged", tsk->metadata->handle);
+    pr_info("[task %08x] task memory map forged", tsk->metadata->label);
     ctx.state = TASK_MANAGER_STATE_TSK_SCHEDULE;
     status = K_STATUS_OKAY;
 err:
@@ -265,6 +270,7 @@ err:
 static inline kstatus_t task_init_schedule(task_t const * const tsk)
 {
     kstatus_t status = K_STATUS_OKAY;
+    const taskh_t *handle;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_TSK_SCHEDULE)) {
         pr_err("invalid state!");
@@ -272,7 +278,9 @@ static inline kstatus_t task_init_schedule(task_t const * const tsk)
         goto end;
     }
     if (tsk->metadata->flags.start_mode == JOB_FLAG_START_AUTO) {
-        status = sched_schedule(tsk->metadata->handle);
+
+        handle = ktaskh_to_taskh(&tsk->handle);
+        status = sched_schedule(*handle);
         if (unlikely(status != K_STATUS_OKAY)) {
             ctx.state = TASK_MANAGER_STATE_ERROR_RUNTIME;
             goto end;
@@ -296,10 +304,11 @@ static inline kstatus_t task_init_add_autotest(void)
 {
     task_t * task_table = task_get_table();
     task_t * task_ctx;
-    const ktaskh_t *kt;
+    const taskh_t *handle;
     /* adding idle task to list */
     task_meta_t *meta = task_autotest_get_meta();
     layout_resource_t ressource;
+    uint32_t rerun_entropy;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
         pr_err("invalid state!");
@@ -309,10 +318,16 @@ static inline kstatus_t task_init_add_autotest(void)
     task_ctx = &task_table[ctx.numtask];
     /* should we though forge a HMAC for idle metadata here ? */
     task_ctx->metadata = meta;
-
-    kt = taskh_to_ktaskh(&meta->handle);
     /*@ assert valid_read(kt); */
-    task_ctx->handle = *kt;
+    ctx.status = mgr_security_entropy_generate(&rerun_entropy);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
+        pr_emerg("failed to get back entropy for task rerun field");
+        goto err;
+    }
+    task_ctx->handle.rerun = rerun_entropy;
+    task_ctx->handle.id = ctx.numtask;
+    task_ctx->handle.family = HANDLE_TASKID;
+    handle = ktaskh_to_taskh(&task_ctx->handle);
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
     task_ctx->sp =
     mgr_task_initialize_sp(task_ctx->handle.rerun,
@@ -320,7 +335,7 @@ static inline kstatus_t task_init_add_autotest(void)
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
 
-    pr_info("[task handle {%04x|%04x|%03x}] autotest task forged",
+    pr_info("[task handle {%x|%02x|%03x}] autotest task forged",
     (uint32_t)task_ctx->handle.rerun,
     (uint32_t)task_ctx->handle.id,
     (uint32_t)task_ctx->handle.family);
@@ -329,17 +344,17 @@ static inline kstatus_t task_init_add_autotest(void)
     request_data_membarrier();
     /* task added to task local task list, needed so that others managers can request it */
     ctx.numtask++;
-    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
-    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     ctx.status = task_set_job_layout(task_ctx);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_err("failed to set job layout!");
         goto err;
     }
     /* and schedule it */
-    sched_schedule(meta->handle);
+    sched_schedule(*handle);
     ctx.status = K_STATUS_OKAY;
 err:
     return ctx.status;
@@ -350,9 +365,10 @@ static inline kstatus_t task_init_add_idle(void)
 {
     task_t * task_table = task_get_table();
     task_t * task_ctx;
+    uint32_t rerun_entropy;
+    const taskh_t *handle;
     /* adding idle task to list */
     task_meta_t *meta = task_idle_get_meta();
-    const ktaskh_t *kt;
     layout_resource_t ressource;
     /* entering state check */
     if (unlikely(ctx.state != TASK_MANAGER_STATE_FINALIZE)) {
@@ -360,28 +376,33 @@ static inline kstatus_t task_init_add_idle(void)
         ctx.status = K_SECURITY_INTEGRITY;
         goto err;
     }
-    kt = taskh_to_ktaskh(&meta->handle);
-    /*@ assert valid_read(kt); */
     task_ctx = &task_table[ctx.numtask];
-    task_ctx->handle = *kt;
+    ctx.status = mgr_security_entropy_generate(&rerun_entropy);
+    if (unlikely(ctx.status != K_STATUS_OKAY)) {
+        pr_emerg("failed to get back entropy for task rerun field");
+        goto err;
+    }
+    task_ctx->handle.rerun = rerun_entropy;
+    task_ctx->handle.id = ctx.numtask;
+    task_ctx->handle.family = HANDLE_TASKID;
+    handle = ktaskh_to_taskh(&task_ctx->handle);
     /* should we though forge a HMAC for idle metadata here ? */
     task_ctx->metadata = meta;
-    task_ctx->handle = *kt;
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
     /* Idle special case, as we directly execute idle at boot, there is no stack_frame_t saved on stack */
     task_ctx->sp = (stack_frame_t*)idle_sp;
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
     mgr_mm_forge_empty_table(task_table[ctx.numtask].layout);
-    pr_info("[task handle {%04x|%04x|%03x}] idle task forged",
+    pr_info("[task handle {%x|%02x|%03x}] idle task forged",
         task_ctx->handle.rerun,
         task_ctx->handle.id,
         task_ctx->handle.family);
     ctx.numtask++;
-    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
-    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, meta->handle, &ressource);
-    mgr_task_add_resource(meta->handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
+    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     ctx.status = task_set_job_layout(task_ctx);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_err("failed to set job layout!");
@@ -408,21 +429,18 @@ static inline kstatus_t task_init_finalize(void)
         goto err;
     }
     #ifdef CONFIG_BUILD_TARGET_AUTOTEST
-    /* in autotest mode  */
+    /* in autotest mode, autotest is the lonely one  */
     if (unlikely(task_init_add_autotest() != K_STATUS_OKAY)) {
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     #endif
+    /* idle is always the last */
     if (unlikely(task_init_add_idle() != K_STATUS_OKAY)) {
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* idle is not scheduled, it is instead a fallback of all schedulers, using its handler
      * at election time only
      */
-    /* finishing with sorting task_table based on task label value */
-    ctx.status = bubble_sort(task_table, mgr_task_get_num(), sizeof(task_table[0]),
-                             task_cmp, NULL);
-    pr_info("task list ordered based on label");
     pr_info("found a total of %u tasks, including idle", ctx.numtask);
     ctx.status = K_STATUS_OKAY;
     ctx.state = TASK_MANAGER_STATE_READY;

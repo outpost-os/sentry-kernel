@@ -8,7 +8,6 @@
 #include <string.h>
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
-#include "task_core.h"
 #include "task_init.h"
 #include "task_idle.h"
 
@@ -24,14 +23,8 @@ static task_meta_t idle_meta;
 void task_idle_init(void)
 {
     memset((void*)&idle_meta, 0x0, sizeof(task_meta_t));
-    ktaskh_t kt = {
-        .rerun = 0,
-        .id = SCHED_IDLE_TASK_LABEL,
-        .family = HANDLE_TASKID,
-    };
-    const taskh_t *tsk = ktaskh_to_taskh(&kt);
-    /*@ assert \valid_read(tsk); */
-    idle_meta.handle = *tsk;
+
+    idle_meta.label = SCHED_IDLE_TASK_LABEL;
     idle_meta.magic = CONFIG_TASK_MAGIC_VALUE;
     idle_meta.flags.start_mode = JOB_FLAG_START_NOAUTO;
     idle_meta.flags.exit_mode = JOB_FLAG_EXIT_PANIC;

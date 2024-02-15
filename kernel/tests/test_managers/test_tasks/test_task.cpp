@@ -54,21 +54,8 @@ protected:
         uint16_t max = std::numeric_limits<uint16_t>::max();
 
         std::uniform_int_distribution<> distrib(1, max);
-        return (uint32_t)(distrib(gen) << 13UL);
+        return (uint32_t)(distrib(gen));
     };
-
-    bool is_ordered(task_t *tab) {
-        bool res = true;
-        for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
-            if (tab[i+1].metadata == NULL) {
-                break;
-            }
-            if (tab[i].handle.id > tab[i+1].handle.id) {
-                res = false;
-            }
-        }
-        return res;
-    }
 };
 
 
@@ -122,6 +109,12 @@ extern "C" {
 */
     kstatus_t mgr_mm_map_task(taskh_t t __attribute__((unused)))
     {
+        return K_STATUS_OKAY;
+    }
+
+    kstatus_t mgr_security_entropy_generate(uint32_t*rng)
+    {
+        *rng = 0x1e51UL;
         return K_STATUS_OKAY;
     }
 
@@ -200,7 +193,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
     memset(task_full_context, 0x0, sizeof(task_full_context));
     uint16_t base_id = 0x1000;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
-        task_full_context[i].handle = (uint32_t)(base_id << 13);
+        task_full_context[i].label = (uint32_t)(base_id << 13);
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
@@ -220,7 +213,6 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
 #endif
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
-    ASSERT_EQ(is_ordered(task_table), true);
 }
 
 /*
@@ -232,7 +224,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
 
     memset(task_full_context, 0x0, sizeof(task_full_context));
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
-        task_full_context[i].handle = gen_label();
+        task_full_context[i].label = gen_label();
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
@@ -252,5 +244,4 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
 #endif
     res = mgr_task_init();
     ASSERT_EQ(res, K_STATUS_OKAY);
-    ASSERT_EQ(is_ordered(task_table), true);
 }

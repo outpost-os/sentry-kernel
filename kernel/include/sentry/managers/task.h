@@ -72,7 +72,7 @@ typedef struct task_meta {
     /**
      * Task identification and generic configuration part
      */
-    taskh_t         handle;        /**< task identifier (see handle.h, starting with rerun=0) */
+    uint32_t        label;         /**< task unique identifier (32 bits label) */
     uint8_t         priority;      /**< task priority */
     uint8_t         quantum;       /**< task configured quantum */
     uint32_t        capabilities;  /**< task capabilities mask */

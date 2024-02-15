@@ -17,8 +17,8 @@
 #define HANDLE_TASKID 0x0UL
 
 typedef struct __attribute__((packed)) ktaskh  {
-    uint32_t rerun : 13;
-    uint32_t id : 16;
+    uint32_t rerun : 20;
+    uint32_t id : 8;
     uint32_t family : 3;
 } ktaskh_t;
 
