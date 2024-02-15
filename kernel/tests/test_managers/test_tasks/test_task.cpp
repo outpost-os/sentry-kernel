@@ -48,13 +48,13 @@ protected:
     void assign(task_meta_t* ctx) {
         taskCtx = std::make_unique<task_meta_t*>(ctx);
     }
-    uint16_t gen_label(void) {
+    uint32_t gen_label(void) {
         std::random_device rd;
         std::mt19937 gen(rd());
         uint16_t max = std::numeric_limits<uint16_t>::max();
 
         std::uniform_int_distribution<> distrib(1, max);
-        return distrib(gen);
+        return (uint32_t)(distrib(gen) << 13UL);
     };
 
     bool is_ordered(task_t *tab) {
@@ -200,8 +200,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
     memset(task_full_context, 0x0, sizeof(task_full_context));
     uint16_t base_id = 0x1000;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
-        task_full_context[i].handle.id = base_id++;
-        task_full_context[i].handle.family = HANDLE_TASKID;
+        task_full_context[i].handle = (uint32_t)(base_id << 13);
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
@@ -233,8 +232,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
 
     memset(task_full_context, 0x0, sizeof(task_full_context));
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
-        task_full_context[i].handle.id = gen_label();
-        task_full_context[i].handle.family = HANDLE_TASKID;
+        task_full_context[i].handle = gen_label();
         task_full_context[i].magic = CONFIG_TASK_MAGIC_VALUE;
         task_full_context[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_full_context[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
