@@ -1,6 +1,6 @@
 language = "C"
 pragma_once = true
-include_guard = "capability_h"
+include_guard = "__SENTRY_UAPI_CBINDGEN_CAPABILITY_H"
 
 [export.rename]
 "Capability" = "sentry_capability_t"

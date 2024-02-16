@@ -16,7 +16,7 @@ foreach cfg: cbindgen_configs
                 input: cfg,
                 output: '@BASENAME@',
                 depfile: '@BASENAME@.dep',
-                command: [cbindgen, meson.project_source_root() / fs.parent(cfg),
+                command: [cbindgen, meson.global_source_root() / fs.parent(cfg),
                 '-c', '@INPUT@',
                 '--depfile', '@DEPFILE@',
                 '-o', '@OUTPUT@'],

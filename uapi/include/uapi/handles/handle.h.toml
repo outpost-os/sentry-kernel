@@ -1,6 +1,6 @@
 language = "C"
 pragma_once = true
-include_guard = "handles_h"
+include_guard = "__SENTRY_UAPI_CBINDGEN_HANDLE_H"
 
 [layout]
 packed = "__attribute__((packed))"
