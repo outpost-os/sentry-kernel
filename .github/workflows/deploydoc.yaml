@@ -116,5 +116,10 @@ jobs:
         name: commit new sentry doc
         run: |
           git add components/sentry
-          git commit -am "CI: update sentry component"
-          git push origin main
+          set +e
+          git diff-index --quiet HEAD
+          if [ $? -ne 0 ]; then
+            set -e
+            git commit -am "CI: update sentry component"
+            git push origin main
+          endif
