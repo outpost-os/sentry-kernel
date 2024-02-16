@@ -31,27 +31,11 @@ Micro-kernel design: handles
 
 Sentry API is build in order to use as much as possible the build system, reducing
 runtime complexity.
-Based on this concept, all the Operating System objects have a formally specified identifier
+Based on this concept, all the Operating System ressources have a formally specified identifier
 denoted *handle*. These handles are opaques that are shared between userspace and kernelspace
 in order to identify a ressource. Handles are forged at build time.
 
 In Sentry, the following ressource handles exist:
-
-   * **irqh_t: interrupt handle**: Identify an interrupt line, from any interrupt controller. This
-     include, for example, both NVIC interrupts ad external GPIO triggered interrupts lines.
-
-   * **sigh_t: signal handle**: Identify a signal and its source. A signal is a typed data-less event
-     that can be emitted by a job or the kernel itself. It does not hold any data other that the
-     signal type itself and the signal source.
-     Signal source correspond to the task label only, meaning that the job id is not transmitted.
-     When the source is equal to 0, this means that the kernel is the source of the signal.
-
-   * **ioh_t: I/O line**: Identify a SoC I/O line. Typically a GPIO pin/port couple, associated to
-     a given configuration (direction, speed...).
-
-   * **ipch_t: IPC handle**: Identify an IPC that have been received by the current job. This handle
-     only exist for the current job and hold informations such as the IPC message and source. This
-     handle is ephemeral and is used only for message reception.
 
    * **devh_t: device**: Identify a (memory-mapped) device. All other informations, generated from
      device tree, are forged in the userspace device driver build system and the device manager
@@ -62,7 +46,7 @@ In Sentry, the following ressource handles exist:
      handles in IPC communication will naturally generate errors in case of peer respawn as the job
      identifier as changed.
 
-   * **shmh_t: task**: Identify Shared memory. A shared memory is a memory region declared at built time that
+   * **shmh_t: shared memory**: Identify Shared memory. A shared memory is a memory region declared at built time that
      has a `taskh_t` owner. A SHM can be shared with another `taskh_t` and have dedicted associated permissions
      set only the SHM owner can define.
      In terms of mapping, SHM are under the control of the memory manager (see below).
@@ -81,6 +65,28 @@ In Sentry, the following ressource handles exist:
 
 .. index::
    single: svc_exchange; model
+
+Micro-kernel design: events
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _events:
+
+Sentry API support three types of events that are targetting a given job:
+
+   * IRQ: an IRQ event is emitted when a hardware interrupt associated to a userspace driver happen.
+     In that case, the owning job receive an IRQ event. When executing the event reception at job level,
+     one or more IRQs can be delivered to the job, allowing burst receive when multiple interrupts have
+     risen since the last call to the receive syscall.
+
+   * IPC: an IPC event is emitted when a job as emitted an Inter-Process Communication data toward a
+     given job. The targetted job is awoken (except for some specific cases, ``see sys_ipc_send``
+      UAPI definition). IPC are single-copy mechanism to allow easy data transmissions between jobs. emitting
+      an IPC is a blocking event until the target reads it.
+
+   * Signals: signals are typed event with no data, that can be emitted by any job or the kernel itself.
+     Signals are non-blocking events, allowing asynchronous execution of jobs without requiring a blocking
+     point.
+
 
 Other userspace/kernelspace communication concepts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,12 +187,12 @@ There are multiple managers in Sentry:
      job when needed, and store locally all the task metainformation.
      The task manager is responsible for all job boostrapping, termination, and scheduling.
 
-   * **io manager**: This manager is responsible for I/O configuration, using `ioh_t` as typical
+   * **io manager**: This manager is responsible for I/O configuration, using `pin/port` as typical
      argument. It is responsible for probbing and (re)configuring the underlaying I/O controller,
-     setting the I/O pins and ports accordingly and authenticating the `ioh_t` handle and owner.
+     setting the I/O pins and ports accordingly after ownership check.
 
    * **interrupt manager**: This manager is responsible for interrupts (except core interrupts).
-     This manager is using `irqh_t` as typical argument and is responsible for manipulating the
+     This manager is using the IRQ number as typical argument and is responsible for manipulating the
      corresponding interrupt line (being an internal or external line, in interaction with the
      I/O manager in this later case).
 
