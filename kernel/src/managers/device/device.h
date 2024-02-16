@@ -44,6 +44,12 @@ union udh {
  * FramaC compliant. To define if we aim to use a FramaC sprcific code for proof model
  * (meaning that these very API is out of the proof) or using a FramaC compliant API,
  * requiring a copy of the value instead of a local trans-typing
+ * XXX: such usage is an UB in C++, meaning that it will be problematic in that case
+ * these API are strictly dedicated to device internals and as such should not be included in
+ * A C++ based test. A possibility is to add something like:
+ * #ifdef __cplusplus
+ * #error "Incompatible with C++ direct usage"
+ * #endif
  */
 
  /**
