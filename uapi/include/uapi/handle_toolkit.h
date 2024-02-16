@@ -63,12 +63,6 @@ static inline uint32_t handle_convert_shmh_to_u32(shmh_t h) {
                (h.reserved & 0xfff1UL));
 }
 
-static inline uint32_t handle_convert_devh_to_u32(devh_t h) {
-    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-               ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
-               (h.dev_cap & 0xfffUL));
-}
-
 static inline uint32_t handle_convert_dmah_to_u32(dmah_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
                ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK));
@@ -83,7 +77,6 @@ static inline uint32_t handle_convert_ipch_to_u32(ipch_t h) {
 #define handle_convert_to_u32(T) _Generic((T),  \
               irqh_t:  handle_convert_irqh_to_u32,   \
               ioh_t:   handle_convert_ioh_to_u32,    \
-              devh_t:  handle_convert_devh_to_u32,   \
               shmh_t:  handle_convert_shmh_to_u32,   \
               dmah_t:  handle_convert_dmah_to_u32,   \
               sigh_t:  handle_convert_sigh_to_u32,   \

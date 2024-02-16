@@ -253,6 +253,10 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     }
     Ok(None)
 }
+// Thin wrapper over `mgr_device_get_capa`. This function never fails
+fn device_get_capa(dev: u32) -> Capability {
+    unsafe { Capability::from_bits_retain(mgr::mgr_device_get_capa(dev)) }
+}
 
 // Thin wrapper over `sched_get_current`. This function never fails
 fn sched_get_current() -> handles::taskh_t {
@@ -364,7 +368,8 @@ pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
     match resource {
         Resource::Dev(devu) => {
             let dev = handles::devh_t::from(devu);
-            meta.has_dev(dev)?.can(dev.get_dev_cap().into())?;
+            let capa = device_get_capa(devu);
+            meta.has_dev(dev)?.can(capa)?;
 
             // FIXME: check whether device is already mapped
             if unsafe { mgr::mgr_mm_map_device(dev) } != 0 {
