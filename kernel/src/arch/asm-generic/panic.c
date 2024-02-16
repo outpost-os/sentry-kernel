@@ -47,16 +47,7 @@ void panic_print_event(panic_event_t ev) {
  */
 kstatus_t panic_emit_signal(panic_event_t ev)
 {
-    sigh_t signal = {
-        .source = 0, /* kernel */
-        /* offset based panic signal calculation, from panic event value
-         * (order is kept)
-         */
-        .id = ev + SIGNAL_USR2 + 1,
-        .family = HANDLE_SIGNAL,
-    };
-
     taskh_t autotest = mgr_task_get_autotest();
-    return mgr_task_push_event(signal, autotest);
+    return mgr_task_push_sig_event((uint32_t)(ev + SIGNAL_USR2 + 1), 0UL, autotest);
 }
 #endif

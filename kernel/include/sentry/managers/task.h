@@ -227,23 +227,9 @@ kstatus_t mgr_task_autotest(void);
 #endif
 
 /* specialized event pushing API, do not use directly but instead Generic below */
-kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t);
-kstatus_t mgr_task_push_ipch_event(ipch_t ev, taskh_t t);
-kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t);
-
-/**
- * @def generic task manager event pushing API
- *
- * pushing interrupts (inth_t), IPC (ipch_t) or signals (sigh_t) to a job through
- * its taskh_t identifier.
- * If the target task is waiting for an event, the task is set ready again and
- * readded to the scheduler.
- */
-#define mgr_task_push_event(T, t) _Generic((T),  \
-              irqh_t:  mgr_task_push_inth_event, \
-              ipch_t:  mgr_task_push_ipch_event, \
-              sigh_t:  mgr_task_push_sigh_event  \
-        ) (T, t)
+kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest);
+kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest);
+kstatus_t mgr_task_push_sig_event(uint32_t sig, taskh_t source, taskh_t dest);
 
 #ifdef __cplusplus
 }
