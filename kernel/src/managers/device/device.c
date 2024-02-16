@@ -40,7 +40,8 @@ static inline const device_t *mgr_device_get_device(devh_t d)
      * (i.e. full opaque check)
      */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
-        if (handle_convert_to_u32(devices[i].devinfo.handle) == handle_convert_to_u32(d)) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
             dev = &devices[i];
             break;
         }
@@ -71,7 +72,8 @@ kstatus_t mgr_device_init(void)
         devices_state[i].device = &devices[i];
         devices_state[i].mapped = SECURE_FALSE;
         if (devices[i].kernel_owned == SECURE_FALSE) {
-            if (unlikely((status = mgr_task_get_device_owner(devices[i].devinfo.handle, &devices_state[i].owner)) != K_STATUS_OKAY)) {
+            const devh_t handle = forge_devh(devices_state[i].device);
+            if (unlikely((status = mgr_task_get_device_owner(handle, &devices_state[i].owner)) != K_STATUS_OKAY)) {
                 /* this should not happen as a userspace device must be declared
                  * by at least one task
                  */
@@ -113,12 +115,13 @@ secure_bool_t mgr_device_exists(devh_t d)
 kstatus_t mgr_device_get_info(devh_t d, const devinfo_t **devinfo)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+
     if (unlikely(devinfo == NULL)) {
         goto end;
     }
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
-        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
-            handle_convert_to_u32(d)) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
                 *devinfo = &devices_state[i].device->devinfo;
                 status = K_STATUS_OKAY;
                 goto end;
@@ -135,9 +138,10 @@ end:
 secure_bool_t mgr_device_is_kernel(devh_t d)
 {
     secure_bool_t res = SECURE_TRUE;
+
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
-        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
-            handle_convert_to_u32(d)) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
                 if (devices_state[i].device->kernel_owned == SECURE_FALSE) {
                     res = SECURE_FALSE;
                 }
@@ -158,6 +162,7 @@ end:
 kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id)
 {
     kstatus_t status = K_ERROR_NOENT;
+
     if (unlikely(clk_id == NULL || bus_id == NULL)) {
         status = K_ERROR_INVPARAM;
         goto end;
@@ -165,8 +170,8 @@ kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t
     /*@ assert \valid(clk_id); */
     /*@ assert \valid(bus_id); */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
-        if (handle_convert_to_u32(devices_state[i].device->devinfo.handle) ==
-            handle_convert_to_u32(d)) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
                 *clk_id = devices_state[i].device->clk_id;
                 *bus_id = devices_state[i].device->bus_id;
                 status = K_STATUS_OKAY;
@@ -177,9 +182,25 @@ end:
     return status;
 }
 
+uint32_t mgr_device_get_capa(devh_t d)
+{
+    uint32_t capa = 0;
+
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
+                capa =  devices_state[i].device->capability.bits;
+                goto end;
+        }
+    }
+end:
+    return capa;
+}
+
 kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+
     if (unlikely(devinfo == NULL)) {
         goto end;
     }
@@ -197,6 +218,7 @@ end:
 static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint8_t IRQn)
 {
     secure_bool_t res = SECURE_FALSE;
+
     if (unlikely(devinfo->num_interrupt == 0)) {
         goto end;
     }
@@ -213,12 +235,14 @@ end:
 kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+
     if (unlikely(devh == NULL)) {
         goto end;
     }
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         if (dev_has_interrupt(&devices_state[i].device->devinfo, IRQn) == SECURE_TRUE) {
-            memcpy(devh, &devices_state[i].device->devinfo.handle, sizeof(devh_t));
+            const devh_t handle = forge_devh(devices_state[i].device);
+            *devh = handle;
             status = K_STATUS_OKAY;
             goto end;
         }

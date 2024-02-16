@@ -36,10 +36,10 @@ typedef struct io_info {
  * In Outpost is device is
  */
 typedef struct devinfo {
-    devh_t handle;
-    bool   mappable;        /**< mappable device. Direct-IO (LED...) are not */
-    size_t baseaddr;        /**< for mappable devices, base address */
-    size_t size;            /**< for mappable devices, mapped size */
+    uint32_t id;
+    bool     mappable;        /**< mappable device. Direct-IO (LED...) are not */
+    size_t   baseaddr;        /**< for mappable devices, base address */
+    size_t   size;            /**< for mappable devices, mapped size */
     /**<
      *  number of device's interrupt.
      *  Can be EXTI (button) or NVIC interrupts (SoC device)

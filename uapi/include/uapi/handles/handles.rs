@@ -139,18 +139,7 @@ bitfield_u32! {
     }
 }
 
-bitfield_u32! {
-    /// Device handle
-    pub struct devh_t {
-        /// device required dev-capabilities (mask)
-        dev_cap : 12,
-        reserved : 1,
-        /// unique id for current handle (current device, task, etc)
-        id : 16,
-        family : 3,
-    }
-}
-
+pub type devh_t = u32;
 pub type taskh_t = u32;
 
 bitfield_u32! {

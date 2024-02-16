@@ -57,7 +57,7 @@ pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
 ///   * prot, offset and flags are ignored for now
 #[no_mangle]
 pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
-    syscall!(Syscall::MapDev, dev.bits()).into()
+    syscall!(Syscall::MapDev, dev).into()
 }
 
 ///  Map a mappable SHM.
@@ -75,7 +75,7 @@ pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
 ///   length must match the ressource size
 #[no_mangle]
 pub extern "C" fn sys_unmap_dev(dev: devh_t) -> Status {
-    syscall!(Syscall::UnmapDev, dev.bits()).into()
+    syscall!(Syscall::UnmapDev, dev).into()
 }
 
 /// Unmap a mapped device.
