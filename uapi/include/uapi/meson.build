@@ -30,8 +30,6 @@ endforeach
 uapi_cargo_toml = files('Cargo.toml')
 uapi_headers = files([
     'device.h',
-    'handle_defs.h',
-    'handle_toolkit.h',
 ])
 
 foreach header: uapi_headers
