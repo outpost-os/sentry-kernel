@@ -142,21 +142,6 @@ bitfield_u32! {
 pub type devh_t = u32;
 pub type taskh_t = u32;
 
-bitfield_u32! {
-    /// io_handle
-    #[align(4)]
-    pub struct ioh_t {
-        /// 0=A, 1=B...
-        ioport   : 6,
-        /// 0=0, 1=1, ...
-        iopin    : 6,
-        /// this part if fixed
-        reserved : 1,
-        /// unique id for current handle (current device, task, etc)
-        id       : 16,
-        family  : 3,
-    }
-}
 
 bitfield_u32! {
     /// irq_handle
@@ -199,7 +184,6 @@ pub extern "C" fn handles_keep_me(
     b: ipch_t,
     c: devh_t,
     d: taskh_t,
-    e: ioh_t,
     f: irqh_t,
     g: shmh_t,
     h: dmah_t,
