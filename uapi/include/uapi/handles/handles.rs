@@ -181,7 +181,6 @@ bitfield_u32! {
 #[no_mangle]
 pub extern "C" fn handles_keep_me(
     a: sigh_t,
-    b: ipch_t,
     c: devh_t,
     d: taskh_t,
     f: irqh_t,

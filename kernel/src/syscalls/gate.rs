@@ -280,7 +280,7 @@ fn task_get_sp(taskh: handles::taskh_t) -> Result<StackFramePointer, Status> {
 fn time_delay_add_signal(
     taskh: handles::taskh_t,
     delay_ms: u32,
-    signal: handles::sigh_t,
+    signal: u32,
 ) -> Result<Status, Status> {
     if unsafe { mgr::mgr_time_delay_add_signal(taskh, delay_ms, signal) } != 0 {
         return Err(Status::Busy);
@@ -439,10 +439,7 @@ pub fn wait_for_event(
 pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
     let current_job = sched_get_current();
 
-    let mut signal = handles::sigh_t::default();
-    signal.set_id(Signal::Alarm as u32);
-    signal.set_family(mgr::HANDLE_SIGNAL);
-    signal.set_source(current_job);
+    let signal: u32 = Signal::Alarm as u32;
 
     time_delay_add_signal(current_job, timeout_ms, signal)?;
     Ok(None)

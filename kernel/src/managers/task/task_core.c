@@ -397,20 +397,25 @@ err:
 /**
  * About events manipulation in tasks
  */
-kstatus_t mgr_task_push_inth_event(irqh_t ev, taskh_t t)
+kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    const ktaskh_t *kt = taskh_to_ktaskh(&t);
+    const ktaskh_t *kt = taskh_to_ktaskh(&dest);
     /*@ assert \valid_read(kt); */
-    task_t * tsk = task_get_from_handle(t);
+    task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
-    task_enqueue_event(handle_convert_to_u32(ev), &tsk->ints);
-    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+    if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    tsk->ints[tsk->num_ints] = IRQn;
+    tsk->num_ints++;
+    if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
     }
     if (likely(state == JOB_STATE_WAITFOREVENT)) {
-        mgr_task_set_state(t, JOB_STATE_READY);
-        sched_schedule(t);
+        mgr_task_set_state(dest, JOB_STATE_READY);
+        sched_schedule(dest);
     }
     status = K_STATUS_OKAY;
 err:
@@ -418,37 +423,39 @@ err:
 }
 
 
-kstatus_t mgr_task_push_ipch_event(ipch_t ev, taskh_t t)
+kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    task_t * tsk = task_get_from_handle(t);
+    task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
-    task_enqueue_event(handle_convert_to_u32(ev), &tsk->ipcs);
-    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+    const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
+    tsk->ipcs[kdesth->id] = len;
+    if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
     }
     if (likely(state == JOB_STATE_WAITFOREVENT)) {
-        mgr_task_set_state(t, JOB_STATE_READY);
-        sched_schedule(t);
+        mgr_task_set_state(dest, JOB_STATE_READY);
+        sched_schedule(dest);
     }
     status = K_STATUS_OKAY;
 err:
     return status;
 }
 
-kstatus_t mgr_task_push_sigh_event(sigh_t ev, taskh_t t)
+kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    task_t * tsk = task_get_from_handle(t);
+    task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
 
-    task_enqueue_event(handle_convert_to_u32(ev), &tsk->sigs);
-    if (likely(mgr_task_get_state(t, &state) != K_STATUS_OKAY)) {
+    const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
+    tsk->sigs[kdesth->id] = signal;
+    if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
     }
     if (likely(state == JOB_STATE_WAITFOREVENT)) {
-        mgr_task_set_state(t, JOB_STATE_READY);
-        sched_schedule(t);
+        mgr_task_set_state(dest, JOB_STATE_READY);
+        sched_schedule(dest);
     }
     status = K_STATUS_OKAY;
 err:

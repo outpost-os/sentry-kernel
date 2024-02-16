@@ -38,18 +38,6 @@
 #define HANDLE_FAMILY_SHIFT    29UL
 #define HANDLE_FAMILY_MASK     0xe0000000UL
 
-static inline uint32_t handle_convert_irqh_to_u32(irqh_t h) {
-    return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
-               ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
-               (h.irqn & 0xffUL));
-}
-
-static inline uint32_t handle_convert_sigh_to_u32(sigh_t h) {
-    return (uint32_t)(((h.id << 16) & 0x1fff0000) |
-               ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
-               (h.source & 0xffffUL));
-}
-
 static inline uint32_t handle_convert_shmh_to_u32(shmh_t h) {
     return (uint32_t)(((h.id << HANDLE_ID_SHIFT) & HANDLE_ID_MASK) |
                ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
@@ -61,18 +49,10 @@ static inline uint32_t handle_convert_dmah_to_u32(dmah_t h) {
                ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK));
 }
 
-static inline uint32_t handle_convert_ipch_to_u32(ipch_t h) {
-    return (uint32_t)(((h.len << 16) & 0x1fff0000) |
-               ((h.family << HANDLE_FAMILY_SHIFT) & HANDLE_FAMILY_MASK) |
-               (h.source & 0xffffUL));
-}
 
 #define handle_convert_to_u32(T) _Generic((T),  \
-              irqh_t:  handle_convert_irqh_to_u32,   \
               shmh_t:  handle_convert_shmh_to_u32,   \
               dmah_t:  handle_convert_dmah_to_u32,   \
-              sigh_t:  handle_convert_sigh_to_u32,   \
-              ipch_t:  handle_convert_ipch_to_u32    \
         ) (T)
 
 #endif/*!HANDLE_DEFS_H*/

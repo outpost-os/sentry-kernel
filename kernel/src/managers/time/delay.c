@@ -18,7 +18,7 @@
  */
 typedef struct task_delay_state {
     taskh_t           handler;
-    sigh_t            sig;
+    uint32_t          sig;
     uint32_t          wait_time_ms;
     bool              active;
 } task_delay_state_t;
@@ -77,7 +77,7 @@ end:
  * - K_STATUS_OKAY on success
  * - K_ERROR_BUSY if no remaining space found
  */
-kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, sigh_t sig)
+kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, uint32_t sig)
 {
     kstatus_t status;
     for (uint8_t i = 0; i < CONFIG_MAX_DELAYED_EVENTS; ++i) {
@@ -123,7 +123,7 @@ void mgr_time_delay_tick(void)
                 delay_ctx.evlist[i].wait_time_ms -= num_ms;
             } else {
                 delay_ctx.evlist[i].wait_time_ms = 0;
-                mgr_task_push_event(delay_ctx.evlist[i].sig, delay_ctx.evlist[i].handler);
+                mgr_task_push_sig_event(delay_ctx.evlist[i].sig, delay_ctx.evlist[i].handler, delay_ctx.evlist[i].handler);
                 delay_ctx.evlist[i].active = false;
             }
         }
