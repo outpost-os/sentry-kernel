@@ -127,28 +127,19 @@
       "c_type": "shmh_t",
       "rust_type": "SHMHandle",
       "description": "shared memory handler identifier",
-      "value": {
-        "family": "6UL",
-        "id": 12
-      }
+      "value": 141
     },
     {
       "c_type": "shmh_t",
       "rust_type": "SHMHandle",
       "description": "shared memory handler identifier",
-      "value": {
-        "family": "6UL",
-        "id": 4
-      }
+      "value": 155
     },
     {
       "c_type": "shmh_t",
       "rust_type": "SHMHandle",
       "description": "empty slot",
-      "value": {
-        "family": "6UL",
-        "id": 0
-      }
+      "value": 234
     }
   ],
   "num_dev": {
@@ -162,10 +153,7 @@
       "c_type": "devh_t",
       "rust_type": "DEVHandle",
       "description": "device handler identifier",
-      "value": {
-        "family": "1UL",
-        "id": 42
-      }
+      "value": 10220
     }
   ],
   "num_dma": {

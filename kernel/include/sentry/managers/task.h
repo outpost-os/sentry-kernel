@@ -11,9 +11,7 @@ extern "C" {
 #include <stddef.h>
 
 #include <uapi/uapi.h>
-#include <uapi/handle_defs.h>
 #include <uapi/handle.h>
-#include <uapi/handle_toolkit.h>
 #include <uapi/capability.h>
 #include <sentry/managers/device.h>
 #include <sentry/dma.h>

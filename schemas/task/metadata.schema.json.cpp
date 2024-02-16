@@ -1,6 +1,5 @@
 #define xstr(s) str(s)
 #define str(s) #s
-#include <uapi/handle_defs.h>
 #include <sentry/job.h>
 
 {
@@ -502,19 +501,7 @@
                 "enum":["SHMHandle"]
             },
             "value": {
-              "type": "object",
-              "properties": {
-                "family": {
-                  "enum":[xstr(HANDLE_SHM)]
-                },
-                "id": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "family",
-                "id"
-              ]
+              "type": "number",
             },
             "description": {
               "type": "string"
@@ -558,7 +545,7 @@
       "devs": {
         "type": "array",
         "items": {
-          "type": "object",
+          "type": "number",
           "properties": {
             "c_type": {
                 "enum":["devh_t"]
@@ -567,19 +554,7 @@
                 "enum":["DEVHandle"]
               },
             "value": {
-              "type": "object",
-              "properties": {
-                "family": {
-                  "enum":[xstr(HANDLE_DEVICE)]
-                },
-                "id": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "family",
-                "id"
-              ]
+              "type": "number",
             },
             "description": {
               "type": "string"
@@ -632,19 +607,7 @@
                 "enum":["DMAHandle"]
               },
             "value": {
-              "type": "object",
-              "properties": {
-                "family": {
-                  "enum":[xstr(HANDLE_DMA)]
-                },
-                "id": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "family",
-                "id"
-              ]
+              "type": "number",
             },
             "description": {
               "type": "string"
