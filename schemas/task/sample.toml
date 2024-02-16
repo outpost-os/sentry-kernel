@@ -125,28 +125,20 @@ description = "number of task shared memorie(s)"
 c_type = "shmh_t"
 rust_type = "SHMHandle"
 description = "shared memory handler identifier"
+value = 0x4410
 
-  [shms.value]
-  family = "6UL"
-  id = 12
 
 [[shms]]
 c_type = "shmh_t"
 rust_type = "SHMHandle"
 description = "shared memory handler identifier"
-
-  [shms.value]
-  family = "6UL"
-  id = 4
+value = 0x32320
 
 [[shms]]
 c_type = "shmh_t"
 rust_type = "SHMHandle"
 description = "empty slot"
-
-  [shms.value]
-  family = "6UL"
-  id = 0
+value = 0x4212
 
 [num_dev]
 c_type = "uint8_t"
@@ -158,10 +150,7 @@ description = "number of task device(s)"
 c_type = "devh_t"
 rust_type = "DEVHandle"
 description = "device handler identifier"
-
-  [devs.value]
-  family = "1UL"
-  id = 42
+value = 0x12001
 
 [num_dma]
 c_type = "uint8_t"

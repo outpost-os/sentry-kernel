@@ -65,7 +65,7 @@ pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
 /// POSIX upper layer(s): shmget(2) (key == handle)
 #[no_mangle]
 pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
-    syscall!(Syscall::MapShm, shm.bits()).into()
+    syscall!(Syscall::MapShm, shm).into()
 }
 
 /// Unmap a mapped device.
@@ -83,7 +83,7 @@ pub extern "C" fn sys_unmap_dev(dev: devh_t) -> Status {
 /// POSIX upper layer(s): TBD
 #[no_mangle]
 pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
-    syscall!(Syscall::UnmapShm, shm.bits()).into()
+    syscall!(Syscall::UnmapShm, shm).into()
 }
 
 /// Set SHM permissions. shm_open() is considered automatic as declared in dtsi, handle is generated.
@@ -91,13 +91,13 @@ pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
 /// POSIX upper layer(s): shmctl(3),
 #[no_mangle]
 pub extern "C" fn sys_shm_set_credential(
-    resource: ResourceHandle,
+    resource: u32,
     id: ProcessID,
     shm_perm: SHMPermission,
 ) -> Status {
     syscall!(
         Syscall::SHMSetCredential,
-        resource.bits(),
+        resource,
         id,
         u32::from(shm_perm)
     )
@@ -139,13 +139,13 @@ pub extern "C" fn sys_send_signal(resource_type: ResourceType, signal_type: Sign
 #[no_mangle]
 pub extern "C" fn sys_wait_for_event(
     event_type_mask: u8,
-    resource_handle: ResourceHandle,
+    resource_handle: u32,
     timeout: u32,
 ) -> Status {
     syscall!(
         Syscall::WaitForEvent,
         u32::from(event_type_mask),
-        resource_handle.bits(),
+        resource_handle,
         timeout
     )
     .into()
