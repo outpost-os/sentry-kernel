@@ -27,7 +27,7 @@ sentry_c_uapi_dep = declare_dependency(
 pkg_config.generate(
     uapi_rs_lib,
     filebase: 'uapi',
-    extra_cflags: [ global_build_args, target_arch_args ]
+    extra_cflags: [ global_build_args, target_arch_args ],
 )
 
 endif

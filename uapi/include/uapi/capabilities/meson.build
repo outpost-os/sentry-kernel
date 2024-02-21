@@ -12,6 +12,6 @@ capabilities_lib = static_library(
     dependencies : [bitflags_dep],
     rust_args: global_rust_build_args,
     override_options: [ uapi_rust_std ],
-    install: true,
+    install: false,
 )
-capabilities_dep = declare_dependency(link_whole : capabilities_lib, dependencies : [bitflags_dep])
+capabilities_dep = declare_dependency(link_with : capabilities_lib, dependencies : [bitflags_dep])
