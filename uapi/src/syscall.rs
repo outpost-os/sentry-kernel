@@ -95,13 +95,7 @@ pub extern "C" fn sys_shm_set_credential(
     id: ProcessID,
     shm_perm: SHMPermission,
 ) -> Status {
-    syscall!(
-        Syscall::SHMSetCredential,
-        resource,
-        id,
-        u32::from(shm_perm)
-    )
-    .into()
+    syscall!(Syscall::SHMSetCredential, resource, id, u32::from(shm_perm)).into()
 }
 
 /// Send events to another process
