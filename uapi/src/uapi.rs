@@ -154,11 +154,7 @@ mod tests {
     }
 
     #[no_mangle]
-    extern "C" fn mgr_time_delay_add_signal(
-        _job: taskh_t,
-        _delay_ms: u32,
-        _sig: u32,
-    ) -> kstatus_t {
+    extern "C" fn mgr_time_delay_add_signal(_job: taskh_t, _delay_ms: u32, _sig: u32) -> kstatus_t {
         0
     }
 
