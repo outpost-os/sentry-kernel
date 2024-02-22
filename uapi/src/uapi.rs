@@ -62,10 +62,11 @@ mod tests {
     use sysgate::mocks::*;
 
     const FAKE_TASK_HANDLE: taskh_t = unsafe { transmute(0) };
+    const FAKE_TASK_LABEL: u32 = unsafe { transmute(0) };
     static mut FAKE_TASK_META: task_meta = task_meta {
         magic: 0xc2ab,
         version: 0,
-        handle: FAKE_TASK_HANDLE,
+        label: FAKE_TASK_LABEL,
         priority: 0,
         quantum: 0,
         capabilities: 0xffffffff,
@@ -153,11 +154,7 @@ mod tests {
     }
 
     #[no_mangle]
-    extern "C" fn mgr_time_delay_add_signal(
-        _job: taskh_t,
-        _delay_ms: u32,
-        _sig: sigh_t,
-    ) -> kstatus_t {
+    extern "C" fn mgr_time_delay_add_signal(_job: taskh_t, _delay_ms: u32, _sig: u32) -> kstatus_t {
         0
     }
 
@@ -202,6 +199,16 @@ mod tests {
     #[no_mangle]
     extern "C" fn mgr_time_get_milliseconds() -> u64 {
         444
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_device_get_capa(_d: devh_t) -> u32 {
+        0
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_task_set_sysreturn(_t: taskh_t, _sysret: Status) -> kstatus_t {
+        0
     }
 
     #[test]

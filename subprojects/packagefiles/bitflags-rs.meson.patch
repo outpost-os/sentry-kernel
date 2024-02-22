@@ -28,9 +28,9 @@ index 0000000..b9190c0
 +       '--target=@0@'.format(get_option('target')),
 +    ], language: 'rust', native: false)
 +
-+bitflags = static_library('bitflags', 'src/lib.rs', install: true)
++bitflags = static_library('bitflags', 'src/lib.rs', install: false)
 +
-+bitflags_dep = declare_dependency(link_whole : bitflags)
++bitflags_dep = declare_dependency(link_with : bitflags)
 +meson.override_dependency('bitflags-rs', bitflags_dep)
 +
 diff --git a/meson.options b/meson.options
