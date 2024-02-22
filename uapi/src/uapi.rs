@@ -62,10 +62,11 @@ mod tests {
     use sysgate::mocks::*;
 
     const FAKE_TASK_HANDLE: taskh_t = unsafe { transmute(0) };
+    const FAKE_TASK_LABEL: u32 = unsafe { transmute(0) };
     static mut FAKE_TASK_META: task_meta = task_meta {
         magic: 0xc2ab,
         version: 0,
-        handle: FAKE_TASK_HANDLE,
+        label: FAKE_TASK_LABEL,
         priority: 0,
         quantum: 0,
         capabilities: 0xffffffff,
@@ -156,7 +157,7 @@ mod tests {
     extern "C" fn mgr_time_delay_add_signal(
         _job: taskh_t,
         _delay_ms: u32,
-        _sig: sigh_t,
+        _sig: u32,
     ) -> kstatus_t {
         0
     }
