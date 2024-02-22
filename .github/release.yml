@@ -1,0 +1,30 @@
+changelog:
+  categories:
+    - title: Breaking Changes
+      labels:
+        - abi-evolution
+    - title: Bugfixes
+      labels:
+        - bug
+    - title: Tests and autotesting framework
+      labels:
+        - autotest
+        - test
+    - title: New target support
+      labels:
+        - new-soc
+        - new-arch
+    - title: Formal proof and correctness
+      labels:
+        - framac:contract
+        - framac:norte
+    - title: Build system
+      labels:
+        - build-system
+        - code-architecture
+    - title: CI/CD evolutions and fixes
+      labels:
+        - ci-cd
+    - title: Other Changes
+      labels:
+        - "*"
