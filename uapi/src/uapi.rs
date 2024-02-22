@@ -205,6 +205,16 @@ mod tests {
         444
     }
 
+    #[no_mangle]
+    extern "C" fn mgr_device_get_capa(_d: devh_t) -> u32 {
+        0
+    }
+
+    #[no_mangle]
+    extern "C" fn mgr_task_set_sysreturn(_t: taskh_t, _sysret: Status) -> kstatus_t {
+        0
+    }
+
     #[test]
     fn logging() {
         let text = "plorp";
