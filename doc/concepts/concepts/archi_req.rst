@@ -80,8 +80,8 @@ Sentry API support three types of events that are targetting a given job:
 
    * IPC: an IPC event is emitted when a job as emitted an Inter-Process Communication data toward a
      given job. The targetted job is awoken (except for some specific cases, ``see sys_ipc_send``
-      UAPI definition). IPC are single-copy mechanism to allow easy data transmissions between jobs. emitting
-      an IPC is a blocking event until the target reads it.
+     UAPI definition). IPC are single-copy mechanism to allow easy data transmissions between jobs. emitting
+     an IPC is a blocking event until the target reads it.
 
    * Signals: signals are typed event with no data, that can be emitted by any job or the kernel itself.
      Signals are non-blocking events, allowing asynchronous execution of jobs without requiring a blocking
