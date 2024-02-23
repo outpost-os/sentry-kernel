@@ -5,6 +5,7 @@ pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined val
 /// This SVC exchange area is always defined for all apps, so it is declared
 /// here in UAPI.rs. `copy_from_user` and `copy_to_user` functions are provided
 /// for easy access to this area.
+#[cfg_attr(test, no_mangle)]
 #[link_section = ".svcexchange"]
 pub static mut SVC_EXCHANGE_AREA: [u8; SVC_EXCH_AREA_LEN] = [0u8; SVC_EXCH_AREA_LEN];
 
