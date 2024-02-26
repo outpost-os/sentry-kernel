@@ -14,7 +14,10 @@
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+#include <sentry/syscalls.h>
 #include <sentry/io.h>
+
+#include <uapi/types.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -179,9 +182,31 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
 }
 
 
+#define __GET_SVCNUM(syscallnum) ({ \
+    asm volatile ("ldrh  r1, [lr,#-2]\n\t" \
+                  "bic   %0, r1, #0xFF00\r\t" \
+                  : "=r" (syscallnum) :: "r1" ); })
+
 __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
 {
-    return svc_handler_rs(frame);
+    /* C implementation first */
+    uint8_t syscall_num;
+    stack_frame_t *next_frame = frame;
+
+    __GET_SVCNUM(syscall_num);
+    switch (syscall_num) {
+        case SYSCALL_SEND_IPC:
+            taskh_t target = frame->r0;
+            uint32_t len = frame->r1;
+            gate_send_ipc(frame, target, len);
+            break;
+        case SYSCALL_WAIT_FOR_EVENT:
+            break;
+        default:
+            next_frame = svc_handler_rs(frame);
+            break;
+    }
+    return next_frame;
 }
 
 #define __GET_IPSR(intr) ({ \
