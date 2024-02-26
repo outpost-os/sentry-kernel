@@ -3,12 +3,14 @@ use std::path::PathBuf;
 
 fn main() {
     let outdir_include = format!("-I{}/../../", env::var("OUT_DIR").unwrap());
+    let outdir_uapi_include = format!("-I{}/../../uapi/", env::var("OUT_DIR").unwrap());
     let bindings = bindgen::Builder::default()
         .header("managers_meta.h")
         .clang_args([
             "-I../../../../uapi/include/",
             "-I../../../include/",
             outdir_include.as_str(),
+            outdir_uapi_include.as_str(),
         ])
         .clang_args([
             "-DCONFIG_MAX_SHM_PER_TASK=1",
