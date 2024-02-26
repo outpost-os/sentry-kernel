@@ -7,6 +7,7 @@ managers_bindings = rust.bindgen(
         '../../../include',
         '../../../include/sentry/arch/asm-cortex-m',
         '../../../../uapi/include',
+        '../../../../uapi/include/uapi',
     ),
     args : ['--use-core',
             '--raw-line', '#![no_std]',

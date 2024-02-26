@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stddef.h>
-#include <uapi/handle.h>
+#include "handle.h"
 
 
 /** device information UAPI types. Variables are jinja-generated from dts */
