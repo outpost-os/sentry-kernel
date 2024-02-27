@@ -137,18 +137,7 @@ impl From<u32> for Status {
 /// A process label is a development-time fixed identifier that can be used hardcoded
 ///  in the source code. This can be used in order to get back remote process effective
 /// identifier from label at any time in order to communicate
-#[repr(C)]
-pub enum ProcessLabel {
-    Label0,
-}
-
-impl From<ProcessLabel> for u32 {
-    fn from(pl: ProcessLabel) -> u32 {
-        match pl {
-            ProcessLabel::Label0 => 0,
-        }
-    }
-}
+pub type ProcessLabel = u32;
 
 /// List of Sentry resource types
 ///

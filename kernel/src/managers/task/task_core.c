@@ -91,12 +91,13 @@ void task_dump_table(void)
     /* dump all tasks including idle */
     for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
         task_t *t = &task_table[i];
-        uint32_t label = t->handle.id;
-        pr_debug("=== Task labeled '%02x' metainformations:", label);
+        uint32_t label = t->metadata->label;
+        pr_debug("=== Task labeled '%lx' metainformations:", label);
         pr_debug("[%02x] --- scheduling and permissions", label);
         pr_debug("[%02x] task priority:\t\t\t%u", label, t->metadata->priority);
         pr_debug("[%02x] task quantum:\t\t\t%u", label, t->metadata->quantum);
         pr_debug("[%02x] task capabilities:\t\t\t%08x", label, t->metadata->capabilities);
+        pr_debug("[%02x] task handle value:\t\t\t%08x", label, t->handle);
         pr_debug("[%02x] --- mapping", label);
         pr_debug("[%02x] task svc_exchange section start:\t%p", label, t->metadata->s_svcexchange);
         pr_debug("[%02x] task text section start:\t\t%p", label, t->metadata->s_text);
@@ -143,6 +144,24 @@ task_t *task_get_from_handle(taskh_t h)
     tsk = &task_table[kh->id];
 err:
     return tsk;
+}
+
+kstatus_t mgr_task_get_handle(uint32_t label, taskh_t *handle)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const taskh_t *cell_handle;
+    for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        task_t *t = &task_table[i];
+        uint32_t cell_label = t->metadata->label;
+        if (cell_label == label) {
+            cell_handle = ktaskh_to_taskh(&t->handle);
+            memcpy(handle, cell_handle, sizeof(taskh_t));
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+end:
+    return status;
 }
 
 
