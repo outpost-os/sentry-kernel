@@ -249,6 +249,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     stack_frame_t *newframe = frame;
     taskh_t current = sched_get_current();
     taskh_t next;
+    Status statuscode;
 
 
     /* get back interrupt name */
@@ -300,43 +301,27 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
 
     /* the next job may not be the previous one */
     next = sched_get_current();
-    if (unlikely(current != next)) {
-        Status statuscode;
-        /*
-         * map next task memory
-         */
+    if (likely(mgr_task_is_userspace_spawned())) {
         mgr_mm_map_task(next);
-        /*
-         * get back target syscall return code, if in comming back to a previously preempted syscall
+    }
+    /*
+     * get back target syscall return code, if in comming back to a previously preempted syscall
+     */
+    if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
+        /* a syscall return code as been previously set in this context and not cleared
+         * by the handler. This means that the next job has been preempted during a syscall,
+         * whatever the reason is. We then get back the current syscall value now and update it
+         *
+         * It is to note here that a statuscode of type STATUS_NON_SENSE must not happend as it
+         * means that a syscall that do not know synchronously its own return code has not seen
+         * its return value being updated in the meantime **before** coming back to the job
          */
-        if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
-            /* a syscall return code as been previously set in this context and not cleared
-             * by the handler. This means that the next job has been preempted during a syscall,
-             * whatever the reason is. We then get back the current syscall value now and update it
-             *
-             * It is to note here that a statuscode of type STATUS_NON_SENSE must not happend as it
-             * means that a syscall that do not know synchronously its own return code has not seen
-             * its return value being updated in the meantime **before** coming back to the job
-             */
-            if (unlikely(statuscode == STATUS_NON_SENSE)) {
-                __do_panic();
-            }
-            newframe->r0 = statuscode;
-            /* clearing the sysreturn. next job is no more syscall-preempted */
-            mgr_task_clear_sysreturn(next);
+        if (unlikely(statuscode == STATUS_NON_SENSE)) {
+            __do_panic();
         }
-    } else {
-        /* when no context switch happen (i.e. the same task is elected or no election),
-           we may need to fallback to previous frame, as elect() may return an invalid frame
-           (i.e. without the current saving). This is the case when the very same job is
-           elected.
-           when there is no election, this code as no effect (newframe == frame).
-         */
-        newframe = frame;
-        /* reallowing task data before leaving handler mode, only if userspace is started */
-        if (likely(mgr_task_is_userspace_spawned())) {
-            mgr_mm_map_task(next);
-        }
+        newframe->r0 = statuscode;
+        /* clearing the sysreturn. next job is no more syscall-preempted */
+        mgr_task_clear_sysreturn(next);
     }
     return newframe;
 }
