@@ -1,7 +1,7 @@
 #ifndef SYSCALLS_H
 #define SYSCALLS_H
 
-#include <uapi/handles.h>
+#include <uapi/handle.h>
 #include <sentry/arch/asm-generic/thread.h>
 
 stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len);
