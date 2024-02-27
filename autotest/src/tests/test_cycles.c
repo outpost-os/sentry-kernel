@@ -68,13 +68,13 @@ void test_cycles_precision(void)
 
 
     ASSERT_EQ(milli_st, STATUS_OK);
-    ASSERT_GT((int)milli, 0);
+    ASSERT_GT((uint32_t)milli, 0);
 
     ASSERT_EQ(micro_st, STATUS_OK);
-    ASSERT_GT((int)((micro*1000ULL) - milli), 0);
+    ASSERT_GT((uint32_t)((micro*1000ULL) - milli), 0);
 
     ASSERT_EQ(nano_st, STATUS_OK);
-    ASSERT_GT((int)((nano*1000ULL) - micro), 0);
+    ASSERT_GT((uint32_t)((nano*1000ULL) - micro), 0);
 
     ASSERT_EQ(cycle_st, STATUS_DENIED);
 
