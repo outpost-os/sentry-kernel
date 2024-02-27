@@ -33,7 +33,7 @@
 			compatible = "outpost,memory-pool";
     	};
 		autotest_code: autotest_code@800a000 {
-			reg = <0x800a000 0x2000>;
+			reg = <0x800a000 0x4000>;
 			compatible = "outpost,memory-pool";
 		};
 
