@@ -135,7 +135,7 @@ task_t *task_get_from_handle(taskh_t h)
         goto err;
     }
     /* execute handle matching on u32 */
-    cell_handle = ktaskh_to_taskh(kh);
+    cell_handle = ktaskh_to_taskh(&task_table[kh->id].handle);
     if (unlikely(*cell_handle != h)) {
         /* handle do not match */
         pr_err("handle do not match!");
