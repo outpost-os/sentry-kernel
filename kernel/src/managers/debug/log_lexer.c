@@ -133,14 +133,14 @@ static inline void dbgbuffer_write_u64(uint64_t value, const uint32_t base)
     }
 
     for (; (value / base) != 0; value /= base) {
-        number[index++] = value % base;
+        number[index++] = (uint8_t)(value % base);
         if (index >= 64) {
             goto end;
         }
     }
 
     /* finishing with most significant unit */
-    number[index] = value % base;
+    number[index] = (uint8_t)(value % base);
 
     /* now we can print out, starting with the most significant unit */
     for (; ; index--) {
@@ -172,7 +172,7 @@ static inline void dbgbuffer_write_u16(uint16_t value, const uint32_t base)
  * Return the number of digits of the given number, considering
  * the base in which the number is encoded.
  */
-static uint8_t dbgbuffer_get_number_len(unsigned long value, uint8_t base)
+static uint8_t dbgbuffer_get_number_len(uint64_t value, uint8_t base)
 {
     /* at least, if value is 0, its lenght is 1 digit */
     uint8_t len = 1;
@@ -209,6 +209,22 @@ typedef struct {
     uint8_t consumed;
     uint32_t strlen;
 } fs_properties_t;
+
+
+static inline uint32_t abs_int(int val) {
+    return (uint32_t)(val < 0 ? -val : val);
+}
+
+static inline uint64_t abs_ll(long long val) {
+    return (uint64_t)(val < 0 ? -val : val);
+}
+
+#define abs(T) _Generic((T),      \
+              short int: abs_int, \
+              int: abs_int,       \
+              long int: abs_int,  \
+              long long: abs_ll   \
+        ) (T)
 
 
 /*
@@ -281,8 +297,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                            (fmt[fs_prop.consumed + 1] <= '9')) {
                         /* getting back the size. Here only decimal values are handled */
                         fs_prop.size =
-                            (fs_prop.size * 10) +
-			    (fmt[fs_prop.consumed + 1] - '0');
+                            (uint8_t)((fs_prop.size * 10UL) + (fmt[fs_prop.consumed + 1] - '0'));
                         fs_prop.consumed++;
                     }
                     /* if digits have been found after the 0len format string, attr_size is
@@ -304,7 +319,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                     }
                     fs_prop.numeric_mode = FS_NUM_DECIMAL;
                     int     val = va_arg(*args, int);
-                    uint8_t len = dbgbuffer_get_number_len(val, 10);
+                    uint8_t len = dbgbuffer_get_number_len(abs(val), 10);
 
                     if (val < 0 ) {
                         dbgbuffer_write_char('-');
@@ -362,7 +377,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                     switch (fs_prop.numeric_mode) {
                         case FS_NUM_LONG:
                             lval = va_arg(*args, long);
-                            len = dbgbuffer_get_number_len(lval, 10);
+                            len = dbgbuffer_get_number_len(abs(lval), 10);
                             break;
                         case FS_NUM_HEX:
                             luval = va_arg(*args, unsigned long);
@@ -370,7 +385,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                             break;
                         case FS_NUM_LONGLONG:
                             llval = va_arg(*args, long long);
-                            len = dbgbuffer_get_number_len(llval, 10);
+                            len = dbgbuffer_get_number_len(abs(llval), 10);
                             break;
                         case FS_NUM_UNSIGNEDLONG:
                             luval = va_arg(*args, unsigned long);
@@ -395,13 +410,13 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                     /* now we can print the number in argument */
                     switch (fs_prop.numeric_mode) {
                         case FS_NUM_LONG:
-                            dbgbuffer_write_u32(lval, 10);
+                            dbgbuffer_write_u32(abs(lval), 10);
                             break;
                         case FS_NUM_HEX:
                             dbgbuffer_write_u32(luval, 16);
                             break;
                         case FS_NUM_LONGLONG:
-                            dbgbuffer_write_u64(llval, 10);
+                            dbgbuffer_write_u64(abs(llval), 10);
                             break;
                         case FS_NUM_UNSIGNEDLONG:
                             dbgbuffer_write_u32(luval, 10);
@@ -438,7 +453,7 @@ static uint8_t print_handle_format_string(const char *fmt, va_list *args,
                     if (fs_prop.numeric_mode == FS_NUM_SHORT) {
                         s_val = (short) va_arg(*args, int);
 
-                        len = dbgbuffer_get_number_len(s_val, 10);
+                        len = dbgbuffer_get_number_len(abs(s_val), 10);
                     } else {
                         uc_val = (unsigned char) va_arg(*args, int);
 
