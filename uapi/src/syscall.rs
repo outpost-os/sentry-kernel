@@ -100,8 +100,8 @@ pub extern "C" fn sys_shm_set_credential(
 
 /// Send events to another process
 #[no_mangle]
-pub extern "C" fn sys_send_ipc(resource_type: ResourceType, length: u8) -> Status {
-    syscall!(Syscall::SendIPC, resource_type as u32, length as u32).into()
+pub extern "C" fn sys_send_ipc(resource: u32, length: u8) -> Status {
+    syscall!(Syscall::SendIPC, resource, length as u32).into()
 }
 
 /// Send a signal to another process
