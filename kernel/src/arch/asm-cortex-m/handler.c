@@ -183,7 +183,7 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
 
 
 #define __GET_SVCNUM(syscallnum) ({ \
-    asm volatile ("ldrh  r1, [lr,#-2]\n\t" \
+    asm volatile ("ldrh  r1, [pc,#-2]\n\t" \
                   "bic   %0, r1, #0xFF00\r\t" \
                   : "=r" (syscallnum) :: "r1" ); })
 
