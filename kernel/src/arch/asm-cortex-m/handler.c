@@ -182,23 +182,26 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
 }
 
 
-#define __GET_SVCNUM(syscallnum) ({ \
-    asm volatile ("ldrh  r1, [pc,#-2]\n\t" \
-                  "bic   %0, r1, #0xFF00\r\t" \
-                  : "=r" (syscallnum) :: "r1" ); })
+#define __GET_SVCNUM(pc, syscallnum) ({ \
+    asm volatile ("ldrh  r1, [%0,#-2]\n\t"    \
+                  "bic   %1, r1, #0xFF00\r\t" \
+                  : "=r" (syscallnum)         \
+                  : "r" (pc)                  \
+                  : "r1"                      \
+                  );})
 
 __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
 {
     /* C implementation first */
-    uint8_t syscall_num;
+    uint8_t syscall_num = 0;
     stack_frame_t *next_frame = frame;
 
-    __GET_SVCNUM(syscall_num);
+    __GET_SVCNUM(frame->pc, syscall_num);
     switch (syscall_num) {
         case SYSCALL_SEND_IPC:
             taskh_t target = frame->r0;
             uint32_t len = frame->r1;
-            gate_send_ipc(frame, target, len);
+            next_frame = gate_send_ipc(frame, target, len);
             break;
         case SYSCALL_WAIT_FOR_EVENT:
             break;
