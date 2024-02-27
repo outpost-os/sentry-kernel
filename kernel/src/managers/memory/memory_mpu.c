@@ -128,6 +128,34 @@ err:
     return status;
 }
 
+/**
+ * Map the svc exchange area of a given task, using the kernel dev slot
+ */
+kstatus_t mgr_mm_map_svcexchange(taskh_t t)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (mgr_mm_configured() == SECURE_TRUE) {
+        const task_meta_t *meta;
+        if (unlikely(mgr_task_get_metadata(t, &meta) != K_STATUS_OKAY)) {
+            goto err;
+        }
+        struct mpu_region_desc svcexch_config = {
+            .id = MM_REGION_KERNEL_DEVICE,
+            .addr = meta->s_svcexchange,
+            .size = mpu_convert_size_to_region(CONFIG_SVC_EXCHANGE_AREA_LEN),
+            .access_perm = MPU_REGION_PERM_PRIV,
+            .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
+            .mask = 0x0,
+            .noexec = true,
+            .shareable = false,
+        };
+        pr_info("mapping %x, size %u", meta->s_svcexchange, CONFIG_SVC_EXCHANGE_AREA_LEN);
+        status = mpu_load_descriptors(&svcexch_config, 1);
+    }
+err:
+    return status;
+}
+
 kstatus_t mgr_mm_unmap_device(devh_t dev)
 {
     kstatus_t status = K_ERROR_INVPARAM;

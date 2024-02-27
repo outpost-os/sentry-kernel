@@ -9,7 +9,7 @@ stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len)
     taskh_t current = sched_get_current();
     taskh_t next;
     job_state_t dest_state;
-    if (unlikely(len > CONFIG_SVC_EXCHANGE_AREA_LEN)) {
+    if (unlikely(len > (CONFIG_SVC_EXCHANGE_AREA_LEN - sizeof(exchange_event_t)))) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto err;
     }

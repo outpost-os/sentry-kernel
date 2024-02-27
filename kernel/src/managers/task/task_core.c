@@ -441,12 +441,22 @@ err:
     return status;
 }
 
+kstatus_t mgr_task_load_int_event(taskh_t context)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    return status;
+}
+
 
 kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
+
+    if (unlikely(tsk == NULL)) {
+        goto err;
+    }
     const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
     tsk->ipcs[kdesth->id] = len;
     if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
@@ -461,13 +471,77 @@ err:
     return status;
 }
 
+#if CONFIG_BUILD_TARGET_AUTOTEST
+static uint8_t autotest_exchangebuf[CONFIG_SVC_EXCHANGE_AREA_LEN];
+#endif
+
+kstatus_t mgr_task_load_ipc_event(taskh_t context)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    task_t * current = task_get_from_handle(context);
+
+    for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
+        uint8_t len = current->ipcs[idx];
+        if (len > 0) {
+            task_t *source = &task_table[idx];
+            const taskh_t *source_handle = ktaskh_to_taskh(&source->handle);
+            /* get source and dest exchange area address (metadata) */
+            uint8_t *source_svcexch = (uint8_t*)source->metadata->s_svcexchange;
+            exchange_event_t *dest_svcexch = (exchange_event_t *)current->metadata->s_svcexchange;
+
+#if CONFIG_BUILD_TARGET_AUTOTEST
+            /* in the very specific case of autotest, when sending to ourself
+             * we can't execute a single-copy between the very same buffer
+             * No need to map here as source & dest are equal and dest svc_exhange
+             * is already mapped.
+             * Note: In armv8m, double map would even lead to HardFault
+             */
+            if ((size_t)source_svcexch == (size_t)dest_svcexch) {
+                memcpy(&autotest_exchangebuf[0], source_svcexch, CONFIG_SVC_EXCHANGE_AREA_LEN);
+                source_svcexch = autotest_exchangebuf;
+            }
+#else
+            /* mapping source svc exhvange area */
+            if (unlikely((status = mgr_mm_map_svcexchange(*source_handle)) != K_STATUS_OKAY)) {
+                goto end;
+
+            }
+#endif
+            /* set T,L values from TLV */
+            dest_svcexch->type = EVENT_TYPE_IPC;
+            dest_svcexch->length = len;
+            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+            memcpy(dest_svcexch->data, source_svcexch, len);
+            /* handle scheduling, awake source */
+            mgr_task_set_sysreturn(*source_handle, STATUS_OK);
+            mgr_task_set_state(*source_handle, JOB_STATE_READY);
+            sched_schedule(*source_handle);
+            /* clear local cache */
+            current->ipcs[idx] = 0;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+end:
+    return status;
+}
+
 kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
 
+    if (unlikely(tsk == NULL)) {
+        goto err;
+    }
+    /* now we are sure that dest exists and is valid */
     const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
+    if (tsk->sigs[kdesth->id] != 0) {
+        /* a previous signal already exist */
+        status = K_ERROR_BUSY;
+        goto err;
+    }
     tsk->sigs[kdesth->id] = signal;
     if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
@@ -478,6 +552,42 @@ kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
     }
     status = K_STATUS_OKAY;
 err:
+    return status;
+}
+
+kstatus_t mgr_task_load_sig_event(taskh_t context)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    task_t * current = task_get_from_handle(context);
+
+    for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
+        uint8_t signal = current->sigs[idx];
+        if (signal > 0) {
+            task_t *source = &task_table[idx];
+            job_state_t state;
+            const taskh_t *source_handle = ktaskh_to_taskh(&source->handle);
+            /* get source and dest exchange area address (metadata) */
+            exchange_event_t *dest_svcexch = (exchange_event_t *)current->metadata->s_svcexchange;
+            /* set T,L values from TLV */
+            dest_svcexch->type = EVENT_TYPE_SIGNAL;
+            dest_svcexch->length = 2*(sizeof(uint32_t));
+            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+            uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
+            sigdata[0] = *source_handle;
+            sigdata[1] = signal;
+            /* handle scheduling, awake source */
+            mgr_task_get_state(*source_handle, &state);
+            if (state != JOB_STATE_IPC_SEND_BLOCKED) {
+                mgr_task_set_state(*source_handle, JOB_STATE_READY);
+                sched_schedule(*source_handle);
+            }
+            /* clear local cache */
+            current->sigs[idx] = 0;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+end:
     return status;
 }
 

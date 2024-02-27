@@ -198,13 +198,24 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
 
     __GET_SVCNUM(frame->pc, syscall_num);
     switch (syscall_num) {
-        case SYSCALL_SEND_IPC:
+        case SYSCALL_SEND_IPC: {
             taskh_t target = frame->r0;
             uint32_t len = frame->r1;
             next_frame = gate_send_ipc(frame, target, len);
             break;
-        case SYSCALL_WAIT_FOR_EVENT:
+        }
+        case SYSCALL_SEND_SIGNAL: {
+            taskh_t target = frame->r0;
+            uint32_t signal = frame->r1;
+            next_frame = gate_send_signal(frame, target, signal);
             break;
+        }
+        case SYSCALL_WAIT_FOR_EVENT: {
+            uint8_t event_mask = frame->r0;
+            uint32_t timeout = frame->r1;
+            next_frame = gate_waitforevent(frame, event_mask, timeout);
+            break;
+        }
         default:
             next_frame = svc_handler_rs(frame);
             break;

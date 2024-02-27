@@ -152,6 +152,28 @@ pub enum ResourceType {
 }
 
 #[repr(C)]
+pub enum EventType {
+    None = 0,
+    Ipc = 1,
+    Signal = 2,
+    Irq = 4,
+    All = 7,
+}
+
+
+impl From<EventType> for u32 {
+    fn from(event: EventType) -> u32 {
+        match event {
+            EventType::None => 0x0,
+            EventType::Ipc => 0x1,
+            EventType::Signal => 0x2,
+            EventType::Irq => 0x4,
+            EventType::All => 0x7,
+        }
+    }
+}
+
+#[repr(C)]
 pub enum SHMPermission {
     /// allows target process to map the SHM. No read nor write though
     Map,
@@ -181,7 +203,7 @@ impl From<SHMPermission> for u32 {
 #[repr(C)]
 pub enum Signal {
     /// Abort signal
-    Abort,
+    Abort = 1,
 
     /// Timer (from alarm)
     Alarm,
@@ -365,5 +387,6 @@ extern "C" fn types_keep_me(
     i: SleepMode,
     j: CPUSleep,
     k: Precision,
+    l: EventType,
 ) {
 }

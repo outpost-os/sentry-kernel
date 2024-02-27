@@ -45,6 +45,11 @@ kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
 
+/* kernel case only: map another task than current svc echange area to
+ * allow single-copy of exchange data between tasks
+ */
+kstatus_t mgr_mm_map_svcexchange(taskh_t t);
+
 kstatus_t mgr_mm_forge_empty_table(layout_resource_t *ressource_tab);
 
 /* fast implementation of task mapping.

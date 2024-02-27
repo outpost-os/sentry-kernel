@@ -8,6 +8,7 @@ autotest_sources = files(
   'printf.c',
   'ssp.c',
   'tests/test_ipc.c',
+  'tests/test_signal.c',
   'tests/test_handle.c',
   'tests/test_sleep.c',
   'tests/test_cycles.c',

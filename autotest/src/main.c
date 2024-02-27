@@ -15,6 +15,7 @@
 #include "tests/test_random.h"
 #include "tests/test_ipc.h"
 #include "tests/test_handle.h"
+#include "tests/test_signal.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -43,6 +44,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     test_yield();
     test_handle();
     test_ipc();
+    test_signal();
     test_random();
     test_cycles();
     test_sleep();
