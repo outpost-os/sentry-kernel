@@ -513,7 +513,8 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
             dest_svcexch->type = EVENT_TYPE_IPC;
             dest_svcexch->length = len;
             dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
-            memcpy(dest_svcexch->data, source_svcexch, len);
+            memcpy(dest_svcexch->data, source_handle, len);
+            memcpy(&dest_svcexch->data[4], source_svcexch, len);
             /* handle scheduling, awake source */
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
             /* in autotest, no need to schedule again ourself, as already ready */
