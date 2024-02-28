@@ -100,16 +100,16 @@ pub extern "C" fn sys_shm_set_credential(
 
 /// Send events to another process
 #[no_mangle]
-pub extern "C" fn sys_send_ipc(resource_type: ResourceType, length: u8) -> Status {
-    syscall!(Syscall::SendIPC, resource_type as u32, length as u32).into()
+pub extern "C" fn sys_send_ipc(resource: u32, length: u8) -> Status {
+    syscall!(Syscall::SendIPC, resource, length as u32).into()
 }
 
 /// Send a signal to another process
 #[no_mangle]
-pub extern "C" fn sys_send_signal(resource_type: ResourceType, signal_type: Signal) -> Status {
+pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status {
     syscall!(
         Syscall::SendSignal,
-        resource_type as u32,
+        resource,
         signal_type as u32
     )
     .into()
@@ -132,14 +132,12 @@ pub extern "C" fn sys_send_signal(resource_type: ResourceType, signal_type: Sign
 /// POSIX upper layer(s): select(2), poll(2)
 #[no_mangle]
 pub extern "C" fn sys_wait_for_event(
-    event_type_mask: u8,
-    resource_handle: u32,
+    mask: u8,
     timeout: u32,
 ) -> Status {
     syscall!(
         Syscall::WaitForEvent,
-        u32::from(event_type_mask),
-        resource_handle,
+        u32::from(mask),
         timeout
     )
     .into()

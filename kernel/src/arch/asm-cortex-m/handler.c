@@ -14,7 +14,10 @@
 #include <sentry/managers/interrupt.h>
 #include <sentry/managers/debug.h>
 #include <sentry/sched.h>
+#include <sentry/syscalls.h>
 #include <sentry/io.h>
+
+#include <uapi/types.h>
 
 /**
  * @file ARM Cortex-M generic handlers
@@ -179,9 +182,45 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
 }
 
 
+#define __GET_SVCNUM(pc, syscallnum) ({ \
+    asm volatile ("ldrh  r1, [%0,#-2]\n\t"    \
+                  "bic   %1, r1, #0xFF00\r\t" \
+                  : "=r" (syscallnum)         \
+                  : "r" (pc)                  \
+                  : "r1", "memory"            \
+                  );})
+
 __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
 {
-    return svc_handler_rs(frame);
+    /* C implementation first */
+    uint8_t syscall_num = 0;
+    stack_frame_t *next_frame = frame;
+
+    __GET_SVCNUM(frame->pc, syscall_num);
+    switch (syscall_num) {
+        case SYSCALL_SEND_IPC: {
+            taskh_t target = frame->r0;
+            uint32_t len = frame->r1;
+            next_frame = gate_send_ipc(frame, target, len);
+            break;
+        }
+        case SYSCALL_SEND_SIGNAL: {
+            taskh_t target = frame->r0;
+            uint32_t signal = frame->r1;
+            next_frame = gate_send_signal(frame, target, signal);
+            break;
+        }
+        case SYSCALL_WAIT_FOR_EVENT: {
+            uint8_t event_mask = frame->r0;
+            uint32_t timeout = frame->r1;
+            next_frame = gate_waitforevent(frame, event_mask, timeout);
+            break;
+        }
+        default:
+            next_frame = svc_handler_rs(frame);
+            break;
+    }
+    return next_frame;
 }
 
 #define __GET_IPSR(intr) ({ \
@@ -221,6 +260,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     stack_frame_t *newframe = frame;
     taskh_t current = sched_get_current();
     taskh_t next;
+    Status statuscode;
 
 
     /* get back interrupt name */
@@ -272,43 +312,27 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
 
     /* the next job may not be the previous one */
     next = sched_get_current();
-    if (unlikely(current != next)) {
-        Status statuscode;
-        /*
-         * map next task memory
-         */
+    if (likely(mgr_task_is_userspace_spawned())) {
         mgr_mm_map_task(next);
-        /*
-         * get back target syscall return code, if in comming back to a previously preempted syscall
+    }
+    /*
+     * get back target syscall return code, if in comming back to a previously preempted syscall
+     */
+    if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
+        /* a syscall return code as been previously set in this context and not cleared
+         * by the handler. This means that the next job has been preempted during a syscall,
+         * whatever the reason is. We then get back the current syscall value now and update it
+         *
+         * It is to note here that a statuscode of type STATUS_NON_SENSE must not happend as it
+         * means that a syscall that do not know synchronously its own return code has not seen
+         * its return value being updated in the meantime **before** coming back to the job
          */
-        if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
-            /* a syscall return code as been previously set in this context and not cleared
-             * by the handler. This means that the next job has been preempted during a syscall,
-             * whatever the reason is. We then get back the current syscall value now and update it
-             *
-             * It is to note here that a statuscode of type STATUS_NON_SENSE must not happend as it
-             * means that a syscall that do not know synchronously its own return code has not seen
-             * its return value being updated in the meantime **before** coming back to the job
-             */
-            if (unlikely(statuscode == STATUS_NON_SENSE)) {
-                __do_panic();
-            }
-            newframe->r0 = statuscode;
-            /* clearing the sysreturn. next job is no more syscall-preempted */
-            mgr_task_clear_sysreturn(next);
-        }
-    } else {
-        /* when no context switch happen (i.e. the same task is elected or no election),
-           we may need to fallback to previous frame, as elect() may return an invalid frame
-           (i.e. without the current saving). This is the case when the very same job is
-           elected.
-           when there is no election, this code as no effect (newframe == frame).
-         */
-        newframe = frame;
-        /* reallowing task data before leaving handler mode, only if userspace is started */
-        if (likely(mgr_task_is_userspace_spawned())) {
-            mgr_mm_map_task(next);
-        }
+        //if (unlikely(statuscode == STATUS_NON_SENSE)) {
+        //    __do_panic();
+        //}
+        newframe->r0 = statuscode;
+        /* clearing the sysreturn. next job is no more syscall-preempted */
+        mgr_task_clear_sysreturn(next);
     }
     return newframe;
 }

@@ -10,4 +10,12 @@ sysgate_lib = static_library(
 )
 sysgate_dep = declare_dependency(link_with: sysgate_lib)
 
+csyscalls = files(
+    'sysgate_send_ipc.c',
+    'sysgate_send_signal.c',
+    'sysgate_waitforevent.c',
+)
+
+sentry_source_set.add(csyscalls)
+
 external_deps += sysgate_dep

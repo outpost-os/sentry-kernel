@@ -9,6 +9,7 @@ autotest_task_name = 'autotest'
 
 userspace_args = [
     '-fstack-protector-strong',
+    '-Wconversion',
 ]
 
 # populated in src

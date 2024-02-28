@@ -1,5 +1,6 @@
 use crate::arch::*;
 use capabilities::*;
+use handles::*;
 use managers_bindings as mgr;
 // use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
@@ -310,7 +311,24 @@ pub fn exit(status: i32) -> Result<StackFramePointer, Status> {
     }
 }
 
-pub fn get_process_handle(_process: u32) -> Result<StackFramePointer, Status> {
+pub fn get_process_handle(process: u32) -> Result<StackFramePointer, Status> {
+    let mut handle: taskh_t = 0;
+    let current_task = TaskMeta::current();
+    if unsafe { mgr::mgr_task_get_handle(process, &mut handle) } != 0 {
+        let _ = set_syscall_status(Status::Invalid);
+        return Err(Status::Invalid);
+    }
+    match current_task {
+        Ok(mut tsk) => {
+            let svcexch = tsk.get_exchange_bytes_mut();
+            //let length = svcexch.len().min(handle.len());
+            svcexch[0..=3].copy_from_slice(&handle.to_ne_bytes()[0..=3]);
+        }
+        Err(err) => {
+            let _ = set_syscall_status(err);
+            return Err(err)
+        }
+     }
     let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
@@ -330,15 +348,14 @@ pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Sta
             return Err(err);
         }
     };
-    match JobState::current()?.set(mode) {
+    match time_delay_add_job(sched_get_current(), duration_ms) {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);
             return Err(err);
         }
     };
-
-    match time_delay_add_job(sched_get_current(), duration_ms) {
+    match JobState::current()?.set(mode) {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);

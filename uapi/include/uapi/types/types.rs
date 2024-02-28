@@ -137,18 +137,7 @@ impl From<u32> for Status {
 /// A process label is a development-time fixed identifier that can be used hardcoded
 ///  in the source code. This can be used in order to get back remote process effective
 /// identifier from label at any time in order to communicate
-#[repr(C)]
-pub enum ProcessLabel {
-    Label0,
-}
-
-impl From<ProcessLabel> for u32 {
-    fn from(pl: ProcessLabel) -> u32 {
-        match pl {
-            ProcessLabel::Label0 => 0,
-        }
-    }
-}
+pub type ProcessLabel = u32;
 
 /// List of Sentry resource types
 ///
@@ -160,6 +149,28 @@ pub enum ResourceType {
     Device = 2,
     SHM = 4,
     DMA = 8,
+}
+
+#[repr(C)]
+pub enum EventType {
+    None = 0,
+    Ipc = 1,
+    Signal = 2,
+    Irq = 4,
+    All = 7,
+}
+
+
+impl From<EventType> for u32 {
+    fn from(event: EventType) -> u32 {
+        match event {
+            EventType::None => 0x0,
+            EventType::Ipc => 0x1,
+            EventType::Signal => 0x2,
+            EventType::Irq => 0x4,
+            EventType::All => 0x7,
+        }
+    }
 }
 
 #[repr(C)]
@@ -192,7 +203,7 @@ impl From<SHMPermission> for u32 {
 #[repr(C)]
 pub enum Signal {
     /// Abort signal
-    Abort,
+    Abort = 1,
 
     /// Timer (from alarm)
     Alarm,
@@ -376,5 +387,6 @@ extern "C" fn types_keep_me(
     i: SleepMode,
     j: CPUSleep,
     k: Precision,
+    l: EventType,
 ) {
 }
