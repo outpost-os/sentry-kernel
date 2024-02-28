@@ -480,6 +480,11 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
     kstatus_t status = K_ERROR_NOENT;
     task_t * current = task_get_from_handle(context);
 
+    if (unlikely(current == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+
     for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
         uint8_t len = current->ipcs[idx];
         if (len > 0) {
@@ -496,15 +501,12 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
              * is already mapped.
              * Note: In armv8m, double map would even lead to HardFault
              */
-            if ((size_t)source_svcexch == (size_t)dest_svcexch) {
-                memcpy(&autotest_exchangebuf[0], source_svcexch, CONFIG_SVC_EXCHANGE_AREA_LEN);
-                source_svcexch = autotest_exchangebuf;
-            }
+            memcpy(&autotest_exchangebuf[0], source_svcexch, CONFIG_SVC_EXCHANGE_AREA_LEN);
+            source_svcexch = autotest_exchangebuf;
 #else
             /* mapping source svc exhvange area */
             if (unlikely((status = mgr_mm_map_svcexchange(*source_handle)) != K_STATUS_OKAY)) {
                 goto end;
-
             }
 #endif
             /* set T,L values from TLV */
@@ -513,9 +515,12 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
             dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
             memcpy(dest_svcexch->data, source_svcexch, len);
             /* handle scheduling, awake source */
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
+            /* in autotest, no need to schedule again ourself, as already ready */
             mgr_task_set_sysreturn(*source_handle, STATUS_OK);
             mgr_task_set_state(*source_handle, JOB_STATE_READY);
             sched_schedule(*source_handle);
+#endif
             /* clear local cache */
             current->ipcs[idx] = 0;
             status = K_STATUS_OKAY;
@@ -560,6 +565,11 @@ kstatus_t mgr_task_load_sig_event(taskh_t context)
     kstatus_t status = K_ERROR_NOENT;
     task_t * current = task_get_from_handle(context);
 
+    if (unlikely(current == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+
     for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
         uint8_t signal = current->sigs[idx];
         if (signal > 0) {
@@ -575,12 +585,6 @@ kstatus_t mgr_task_load_sig_event(taskh_t context)
             uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
             sigdata[0] = *source_handle;
             sigdata[1] = signal;
-            /* handle scheduling, awake source */
-            mgr_task_get_state(*source_handle, &state);
-            if (state != JOB_STATE_IPC_SEND_BLOCKED) {
-                mgr_task_set_state(*source_handle, JOB_STATE_READY);
-                sched_schedule(*source_handle);
-            }
             /* clear local cache */
             current->sigs[idx] = 0;
             status = K_STATUS_OKAY;

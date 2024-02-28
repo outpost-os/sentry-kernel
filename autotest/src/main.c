@@ -43,11 +43,12 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 
     test_yield();
     test_handle();
-    test_ipc();
     test_signal();
+    test_ipc();
     test_random();
     test_cycles();
     test_sleep();
+
 
     /* all tests finished, leaving */
     sys_exit(0);

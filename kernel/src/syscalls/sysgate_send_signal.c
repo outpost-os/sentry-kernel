@@ -21,12 +21,12 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
         goto end;
     }
     status = mgr_task_push_sig_event(signal, current, target);
-    if (unlikely(status != K_ERROR_INVPARAM)) {
+    if (unlikely(status == K_ERROR_INVPARAM)) {
         /* target not found */
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    if (unlikely(status != K_ERROR_BUSY)) {
+    if (unlikely(status == K_ERROR_BUSY)) {
         /* target signal slot for us is already fullfill */
         mgr_task_set_sysreturn(current, STATUS_BUSY);
         goto end;

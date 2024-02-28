@@ -348,15 +348,14 @@ pub fn sleep(duration_ms: u32, sleep_mode: u32) -> Result<StackFramePointer, Sta
             return Err(err);
         }
     };
-    match JobState::current()?.set(mode) {
+    match time_delay_add_job(sched_get_current(), duration_ms) {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);
             return Err(err);
         }
     };
-
-    match time_delay_add_job(sched_get_current(), duration_ms) {
+    match JobState::current()?.set(mode) {
         Ok(_) => Status::Ok,
         Err(err) => {
             let _ = set_syscall_status(err);

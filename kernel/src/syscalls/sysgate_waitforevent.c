@@ -1,5 +1,6 @@
 #include <sentry/syscalls.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/time.h>
 #include <sentry/sched.h>
 #include <uapi/types.h>
 
@@ -18,7 +19,6 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
-        goto end;
     }
     /* and then irq... */
     if (mask & EVENT_TYPE_IRQ) {
@@ -33,10 +33,13 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
-        goto end;
     }
-    /* no event at all... schedule */
+    /* no event at all... delaying if timeout, and schedule */
     mgr_task_set_state(current, JOB_STATE_WAITFOREVENT);
+    mgr_task_set_sysreturn(current, STATUS_NON_SENSE);
+    if (timeout != 0) {
+        mgr_time_delay_add_job(current, timeout);
+    }
     next = sched_elect();
     mgr_task_get_sp(next, &next_frame);
 end:

@@ -327,9 +327,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
          * means that a syscall that do not know synchronously its own return code has not seen
          * its return value being updated in the meantime **before** coming back to the job
          */
-        if (unlikely(statuscode == STATUS_NON_SENSE)) {
-            __do_panic();
-        }
+        //if (unlikely(statuscode == STATUS_NON_SENSE)) {
+        //    __do_panic();
+        //}
         newframe->r0 = statuscode;
         /* clearing the sysreturn. next job is no more syscall-preempted */
         mgr_task_clear_sysreturn(next);

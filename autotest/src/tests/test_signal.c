@@ -20,12 +20,14 @@ void test_signal_sendrecv(void)
     for (sig = SIGNAL_ABORT; sig <= SIGNAL_USR2; ++sig) {
         LOG("sending signal %u to myself", sig);
         ret = sys_send_signal(handle, sig);
+    #if 1
         ret = sys_wait_for_event(EVENT_TYPE_SIGNAL, timeout);
         copy_to_user(data, 12);
         taskh_t *source = (taskh_t*)&data[4];
         uint32_t *signal = (uint32_t*)&data[8];
         LOG("%x:%u:%x%x: source=%lx, signal=%lu", data[0], data[1], data[2], data[3], *source, *signal);
         ASSERT_EQ(ret, STATUS_OK);
+    #endif
     }
     TEST_END();
 }

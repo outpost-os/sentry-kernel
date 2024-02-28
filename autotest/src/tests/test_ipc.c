@@ -48,10 +48,12 @@ void test_ipc_sendrecv(void)
     LOG("sending IPC to myself");
     copy_from_user(msg, 20);
     ret = sys_send_ipc(handle, 20);
+#if 1
     ret = sys_wait_for_event(EVENT_TYPE_IPC, timeout);
     copy_to_user(data, 24);
     LOG("%x:%u:%x%x: %s", data[0], data[1], data[2], data[3], &data[4]);
     ASSERT_EQ(ret, STATUS_OK);
+#endif
     TEST_END();
 }
 
