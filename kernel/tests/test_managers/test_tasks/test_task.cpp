@@ -103,6 +103,10 @@ extern "C" {
         }
         return K_STATUS_OKAY;
     }
+    kstatus_t mgr_mm_map_svcexchange(taskh_t t)
+    {
+        return K_STATUS_OKAY;
+    }
 
 /* fast implementation of task mapping.
    map all task currently mapped ressources. all empty user regions are cleared
