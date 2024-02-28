@@ -187,7 +187,7 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
                   "bic   %1, r1, #0xFF00\r\t" \
                   : "=r" (syscallnum)         \
                   : "r" (pc)                  \
-                  : "r1"                      \
+                  : "r1", "memory"            \
                   );})
 
 __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
