@@ -76,6 +76,7 @@ pub enum Syscall {
     GpioSet,
     GpioReset,
     GpioToggle,
+    GpioConfigure,
 }
 }
 

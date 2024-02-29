@@ -30,6 +30,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::GpioSet => Ok(None), // C implementation
         Syscall::GpioReset => Ok(None), // C implementation
         Syscall::GpioToggle => Ok(None), // C implementation
+        Syscall::GpioConfigure => Ok(None), // C implementation
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),

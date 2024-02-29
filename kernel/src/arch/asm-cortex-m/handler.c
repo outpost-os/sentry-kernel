@@ -241,6 +241,12 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
             next_frame = gate_gpio_toggle(frame, device, io);
             break;
         }
+        case SYSCALL_GPIO_CONFIGURE: {
+            taskh_t device = frame->r0;
+            uint8_t io = frame->r1;
+            next_frame = gate_gpio_configure(frame, device, io);
+            break;
+        }
         default:
             next_frame = svc_handler_rs(frame);
             break;

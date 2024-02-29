@@ -1,5 +1,8 @@
 autotest_inc = include_directories('.')
 
+devices_template_h = files(['devices-dt.h.in'])
+devices_dtsgen_h = dtsgen.process(devices_template_h)
+
 autotest_headers = files(
     'testlib/assert.h',
     'testlib/log.h',
