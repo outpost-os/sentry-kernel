@@ -26,6 +26,11 @@ scheduling impact.
 The signal management is an asynchronous communication mechanism, meaning that
 the syscall returns **before** that the target do actually receive the signal.
 
+.. warning::
+   Only one signal at a time is supported by a peer for a given source. If a source
+   send a new signal to a peer that did not already received the previous one, the
+   send_signal syscall will return a STATUS_BUSY flag
+
 The Sentry supported list of signals are defined in :ref:`UAPI model definition <signals>`.
 
 .. code-block:: C

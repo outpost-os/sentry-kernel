@@ -53,6 +53,26 @@ Syscall definition
 .. include:: syscalls/get_task_handle.rst
 
 .. index::
+  single: sys_gpio_get; definition
+  single: sys_gpio_get; usage
+.. include:: syscalls/gpio_get.rst
+
+.. index::
+  single: sys_gpio_reset; definition
+  single: sys_gpio_reset; usage
+.. include:: syscalls/gpio_reset.rst
+
+.. index::
+  single: sys_gpio_set; definition
+  single: sys_gpio_set; usage
+.. include:: syscalls/gpio_set.rst
+
+.. index::
+  single: sys_gpio_toggle; definition
+  single: sys_gpio_toggle; usage
+.. include:: syscalls/gpio_toggle.rst
+
+.. index::
   single: sys_log; definition
   single: sys_log; usage
 .. include:: syscalls/log.rst
