@@ -22,7 +22,7 @@ typedef struct device {
     sentry_capability_t capability;   /**< device associated capability */
     uint32_t            clk_id;       /**< clock identifier, as defined in dts */
     uint32_t            bus_id;       /**< bus identifier, as defined in dts */
-    secure_bool_t       kernel_owned; /**< is device owned by kernel ? */
+    uint32_t            owner;        /**< label of the owner. To be fullfill by app using the outpost,owner dts flag */
 } device_t;
 
 typedef struct kdevh {

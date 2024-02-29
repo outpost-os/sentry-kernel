@@ -29,20 +29,15 @@ static const device_t devices[] = {
     {#
         For all mappable devices (i.e. having a declared memory region)
     -#}
-    {% for device in dts.get_mappable() -%}
+    {% for device in dts.get_active_nodes() -%}
     {# defining defaults: kernel owned and of type rcc (no capa) -#}
     {% set ns.device_type = 'rcc' -%}
-    {% set ns.kernel_owned = 'SECURE_TRUE' -%}
     {#
         only declared devices are generated for size optimization.
         This is based on the project dts file, any other is ignored and
         considered as a security violation (whitelist model)
     -#}
-    {% if device.status and device.status == 'okay' -%}
     {% set ns.total_devices = ns.total_devices + 1 -%}
-    {% if device.owner and device.owner == 'user' -%}
-    {% set ns.kernel_owned = 'SECURE_FALSE' -%}
-    {% endif -%}
     {#
         generating the device capability. This is based on the
         standard 'compatible' field of the device.
@@ -56,6 +51,9 @@ static const device_t devices[] = {
         Sometimes, compatible is a list of strings, sometime not
         Normalize it as a list, in all cases
     -#}
+    {% if not device.compatible -%}
+    {% set capa = 'sentry_capability_t_DEV_IO' -%}
+    {% else -%}
     {% if device.compatible is not string -%}
         {% set compat = device.compatible -%}
     {% else -%}
@@ -131,12 +129,18 @@ static const device_t devices[] = {
     -#}
     {% set capa = '{0}' -%}
     {% endif -%}
+    {% endif -%}
     {
         /* device {{ device.label }} declaration */
         .devinfo = {
             .id = {{ "0x%xUL"|format(loop.index) }},
+            {% if device.reg -%}
             .baseaddr = {{ "0x%08x"|format(device.reg[0]) }},
             .size = {{ "0x%08x"|format(device.reg[1]) }},
+            {% else -%}
+            .baseaddr = 0UL,
+            .size = 0UL,
+            {% endif -%}
             {% if device.interrupts -%}
             .num_interrupt = 1,
             .its = {
@@ -207,9 +211,12 @@ static const device_t devices[] = {
         .clk_id = 0x0UL,
         .bus_id = 0x0UL,
         {% endif -%}
-        .kernel_owned = {{ ns.kernel_owned }},
+        {% if device["outpost,owner"] -%}
+        .owner = {{ "%#8xUL"|format(device["outpost,owner"]) }},
+        {% else -%}
+        .owner = 0UL, /* owned by kernel */
+        {% endif -%}
     },
-    {% endif -%}
     {% endfor %}
 };
 #define DEVICE_LIST_SIZE {{ "%uUL"|format(ns.total_devices) }}
