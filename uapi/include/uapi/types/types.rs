@@ -72,6 +72,10 @@ pub enum Syscall {
     Alarm,
     GetRandom,
     GetCycle,
+    GpioGet,
+    GpioSet,
+    GpioReset,
+    GpioToggle,
 }
 }
 
