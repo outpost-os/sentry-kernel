@@ -212,6 +212,35 @@ end:
 }
 
 /**
+ * @brief return the device handle (devh_t) for given device
+ *
+ * @param[in] dev_label: device identifier, shared with userspace
+ * @param[out] devhandle: the effective device handle
+ *
+ * @returns
+ *   K_ERROR_INVPARAM if devhandle is NULL
+ *   K_STATUS_OK if the device handle has been forged and returned
+ */
+kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle)
+{
+    kstatus_t status = K_ERROR_NOENT;
+
+    if (unlikely(devhandle == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    /*@ assert \valid(devhandle); */
+    if (unlikely(dev_label >= DEVICE_LIST_SIZE)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    *devhandle = forge_devh(devices_state[dev_label].device);
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
  * @brief get back device clock config (bus identifier and clock identifier)
  *
  * @param[in] d: device handler, unique to the system

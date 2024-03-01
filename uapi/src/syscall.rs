@@ -145,6 +145,12 @@ pub extern "C" fn sys_gpio_configure(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioConfigure, resource, io as u32).into()
 }
 
+/// configure value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_get_device_handle(devlabel: u8) -> Status {
+    syscall!(Syscall::GetDeviceHandle, devlabel as u32).into()
+}
+
 
 /// Wait for input event. Single active blocking syscall.
 ///

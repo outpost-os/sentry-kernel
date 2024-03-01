@@ -56,6 +56,7 @@ syscall_list! {
 pub enum Syscall {
     Exit,
     GetProcessHandle,
+    GetDeviceHandle,
     Yield,
     Sleep,
     Start,

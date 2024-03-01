@@ -27,34 +27,39 @@ static inline secure_bool_t do_own_dev(taskh_t owner, devh_t dev) {
 }
 
 
-stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t device, uint8_t io, bool val)
+stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t devhandle, uint8_t io, bool val)
 {
     stack_frame_t *next_frame = frame;
     taskh_t current = sched_get_current();
     const devinfo_t *devinfo = NULL;
 
-    if (unlikely(mgr_device_get_info(device, &devinfo) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
+        pr_err("b");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
     /* disable ownership test in autotet only */
-    if (unlikely(do_own_dev(current, device) == SECURE_FALSE)) {
+    if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
+        pr_err("c");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
+        pr_err("d");
         goto end;
     }
     /* TODO: disallow setting GPIO not set in OUTPUT MODE */
     /* XXX: the dt header should abstract the stm32 prefix */
     if (val) {
         if (unlikely(mgr_io_set(devinfo->ios[io].port, devinfo->ios[io].pin) != K_STATUS_OKAY)) {
+            pr_err("e");
             mgr_task_set_sysreturn(current, STATUS_INVALID);
             goto end;
         }
     } else {
         if (unlikely(mgr_io_reset(devinfo->ios[io].port, devinfo->ios[io].pin) != K_STATUS_OKAY)) {
+            pr_err("f");
             mgr_task_set_sysreturn(current, STATUS_INVALID);
             goto end;
         }
@@ -64,7 +69,7 @@ end:
     return next_frame;
 }
 
-stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t device, uint8_t io)
+stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
 {
     stack_frame_t *next_frame = frame;
     taskh_t current = sched_get_current();
@@ -73,11 +78,12 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t device, uint8_t io)
     const task_meta_t *meta;
     uint8_t *svcexch = NULL;
 
-    if (unlikely(mgr_device_get_info(device, &devinfo) != K_STATUS_OKAY)) {
+
+    if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    if (unlikely(do_own_dev(current, device) == SECURE_FALSE)) {
+    if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -103,17 +109,17 @@ end:
     return next_frame;
 }
 
-stack_frame_t *gate_gpio_reset(stack_frame_t *frame, devh_t device, uint8_t io)
+stack_frame_t *gate_gpio_reset(stack_frame_t *frame, devh_t devhandle, uint8_t io)
 {
     stack_frame_t *next_frame = frame;
     taskh_t current = sched_get_current();
     const devinfo_t *devinfo = NULL;
 
-    if (unlikely(mgr_device_get_info(device, &devinfo) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    if (unlikely(do_own_dev(current, device) == SECURE_FALSE)) {
+    if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -131,18 +137,18 @@ end:
     return next_frame;
 }
 
-stack_frame_t *gate_gpio_toggle(stack_frame_t *frame, devh_t device, uint8_t io)
+stack_frame_t *gate_gpio_toggle(stack_frame_t *frame, devh_t devhandle, uint8_t io)
 {
     stack_frame_t *next_frame = frame;
     taskh_t current = sched_get_current();
     const devinfo_t *devinfo = NULL;
     bool val;
 
-    if (unlikely(mgr_device_get_info(device, &devinfo) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    if (unlikely(do_own_dev(current, device) == SECURE_FALSE)) {
+    if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -171,18 +177,18 @@ end:
     return next_frame;
 }
 
-stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t device, uint8_t io)
+stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t devhandle, uint8_t io)
 {
      stack_frame_t *next_frame = frame;
     taskh_t current = sched_get_current();
     const devinfo_t *devinfo = NULL;
     bool val;
 
-    if (unlikely(mgr_device_get_info(device, &devinfo) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    if (unlikely(do_own_dev(current, device) == SECURE_FALSE)) {
+    if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }

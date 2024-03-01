@@ -15,6 +15,7 @@ csyscalls = files(
     'sysgate_send_signal.c',
     'sysgate_waitforevent.c',
     'sysgate_gpio.c',
+    'sysgate_get_devhandle.c',
 )
 
 sentry_source_set.add(csyscalls)

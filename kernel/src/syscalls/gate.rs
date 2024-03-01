@@ -11,6 +11,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
     match Syscall::try_from(syscall_number)? {
         Syscall::Exit => exit(args[0] as i32),
         Syscall::GetProcessHandle => get_process_handle(args[0]),
+        Syscall::GetDeviceHandle => Ok(None), // C implementation
         Syscall::Yield => r#yield(),
         Syscall::Sleep => sleep(args[0], args[1]),
         Syscall::Start => start(args[0]),

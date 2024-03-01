@@ -217,34 +217,39 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
             break;
         }
         case SYSCALL_GPIO_SET: {
-            taskh_t device = frame->r0;
+            devh_t device = frame->r0;
             uint8_t io = frame->r1;
             bool val = frame->r2;
             next_frame = gate_gpio_set(frame, device, io, val);
             break;
         }
         case SYSCALL_GPIO_GET: {
-            taskh_t device = frame->r0;
+            devh_t device = frame->r0;
             uint8_t io = frame->r1;
             next_frame = gate_gpio_get(frame, device, io);
             break;
         }
         case SYSCALL_GPIO_RESET: {
-            taskh_t device = frame->r0;
+            devh_t device = frame->r0;
             uint8_t io = frame->r1;
             next_frame = gate_gpio_reset(frame, device, io);
             break;
         }
         case SYSCALL_GPIO_TOGGLE: {
-            taskh_t device = frame->r0;
+            devh_t device = frame->r0;
             uint8_t io = frame->r1;
             next_frame = gate_gpio_toggle(frame, device, io);
             break;
         }
         case SYSCALL_GPIO_CONFIGURE: {
-            taskh_t device = frame->r0;
+            devh_t device = frame->r0;
             uint8_t io = frame->r1;
             next_frame = gate_gpio_configure(frame, device, io);
+            break;
+        }
+        case SYSCALL_GET_DEVICE_HANDLE: {
+            uint8_t devid = frame->r0;
+            next_frame = gate_get_devhandle(frame, devid);
             break;
         }
         default:

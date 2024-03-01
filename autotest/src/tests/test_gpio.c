@@ -6,40 +6,16 @@
 #include <devices-dt.h>
 #include "test_gpio.h"
 
-/* FIXME: we need an uapi way to gen devh from dev id */
-typedef struct kdevh {
-    uint32_t dev_cap : 12; /**< device capability (unique capa per device) */
-    uint32_t reserved : 1; /**< reserved field */
-    uint32_t id : 16;      /**< device unique identifier on the system */
-    uint32_t family : 3;   /**< handle familly */
-} kdevh_t;
-
-
-static inline devh_t forge_devh(uint32_t id)
-{
-    /*@ assert \valid_read(device); */
-    union udh {
-        const devh_t *dh;
-        const kdevh_t *kdh;
-    };
-    kdevh_t kdevh = {
-        .dev_cap = 0, //sentry_capability_t_DEV_IO.bits,
-        .reserved = 0,
-        .id = (uint32_t)id,
-        .family = 1UL,
-    };
-    union udh udh;
-    udh.kdh = &kdevh;
-    LOG("handle is %lx", *udh.dh);
-    return *udh.dh;
-}
-
 
 void test_gpio_on(void)
 {
     Status res;
+    devh_t dev;
     TEST_START();
-    devh_t dev = forge_devh(devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[0].id);
+    copy_to_user((uint8_t*)&dev, sizeof(devh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    LOG("handle is %lx", dev);
     res = sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
     res = sys_gpio_set(dev, 0, 1);
@@ -50,8 +26,13 @@ void test_gpio_on(void)
 void test_gpio_off(void)
 {
     Status res;
+    devh_t dev;
+
     TEST_START();
-    devh_t dev = forge_devh(devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[0].id);
+    copy_to_user((uint8_t*)&dev, sizeof(devh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    LOG("handle is %lx", dev);
     res = sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
     res = sys_gpio_set(dev, 0, 0);
@@ -63,10 +44,13 @@ void test_gpio_toggle(void)
 {
     Status res;
     SleepDuration duration;
+    devh_t dev;
+
     duration.tag = SLEEP_DURATION_ARBITRARY_MS;
     duration.arbitrary_ms = 250; /* 250 ms*/
     TEST_START();
-    devh_t dev = forge_devh(devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[0].id);
+    copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     res = sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
     for (uint8_t i = 0; i < 10; ++i) {
@@ -80,8 +64,11 @@ void test_gpio_toggle(void)
 void test_gpio_invalid_io(void)
 {
     Status res;
+    devh_t dev;
+
     TEST_START();
-    devh_t dev = forge_devh(devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[0].id);
+    copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     res = sys_gpio_configure(dev, 4);
     ASSERT_EQ(res, STATUS_INVALID);
     res = sys_gpio_configure(dev, 8);
@@ -94,8 +81,9 @@ void test_gpio_invalid_io(void)
 void test_gpio_invalid_devh(void)
 {
     Status res;
-    TEST_START();
     devh_t dev = 1;
+
+    TEST_START();
     res = sys_gpio_configure(dev, 1);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();

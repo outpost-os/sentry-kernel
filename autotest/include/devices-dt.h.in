@@ -25,7 +25,7 @@ static const devinfo_t devices[] = {
     {% if device["outpost,owner"] == 0xbabe -%}
     {% set ns.total_devices = ns.total_devices + 1 -%}
     {
-        .id = {{ "0x%xUL"|format(loop.index) }},
+        .id = {{ "0x%xUL"|format(loop.index - 1) }},
         {% if device.reg -%}
         .baseaddr = {{ "0x%08x"|format(device.reg[0]) }},
         .size = {{ "0x%08x"|format(device.reg[1]) }},
