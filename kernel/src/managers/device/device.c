@@ -206,7 +206,7 @@ kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner)
                 goto end;
         }
     }
-    /*@ assert(result == K_ERROR_NOENT); */
+    /*@ assert(status == K_ERROR_NOENT); */
 end:
     return status;
 }
