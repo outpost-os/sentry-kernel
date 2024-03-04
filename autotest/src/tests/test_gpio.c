@@ -11,7 +11,7 @@ void test_gpio_on(void)
     Status res;
     devh_t dev;
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", dev);
@@ -28,7 +28,7 @@ void test_gpio_off(void)
     devh_t dev;
 
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", dev);
@@ -48,7 +48,7 @@ void test_gpio_toggle(void)
     duration.tag = SLEEP_DURATION_ARBITRARY_MS;
     duration.arbitrary_ms = 250; /* 250 ms*/
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     res = sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
@@ -66,7 +66,7 @@ void test_gpio_invalid_io(void)
     devh_t dev;
 
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[0].id);
+    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     res = sys_gpio_configure(dev, 4);
     ASSERT_EQ(res, STATUS_INVALID);
