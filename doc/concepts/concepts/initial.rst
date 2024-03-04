@@ -232,6 +232,15 @@ The capabilities have been defined based on the security impact on the associate
 resource access. When developing an application, the user should easily know
 what resource is required by its own application using this hierarchy.
 
+.. note::
+   There is no way, in userspace, to get back forged capabilities other than
+   through the usage of task CONFIG_ build time definitions of capabilities
+
+.. note::
+   the capabitility check is fully controlled by the security manager, using
+   the task metadatas
+
+
 Spawning mode
 """""""""""""
 
