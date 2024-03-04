@@ -21,7 +21,7 @@ pub extern "C" fn sys_exit(status: i32) -> Status {
 /// POSIX upper layer(s): N/A
 #[no_mangle]
 pub extern "C" fn sys_get_process_handle(process: ProcessLabel) -> Status {
-    syscall!(Syscall::GetProcessHandle, u32::from(process)).into()
+    syscall!(Syscall::GetProcessHandle, process).into()
 }
 
 /// Release the processor before the end of the current quantum.
@@ -46,7 +46,7 @@ pub extern "C" fn sys_sleep(duration_ms: SleepDuration, mode: SleepMode) -> Stat
 /// - POSIX upper layer(s): execv()
 #[no_mangle]
 pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
-    syscall!(Syscall::Start, u32::from(process)).into()
+    syscall!(Syscall::Start, process).into()
 }
 
 ///  Map a mappable device.
@@ -107,12 +107,7 @@ pub extern "C" fn sys_send_ipc(resource: u32, length: u8) -> Status {
 /// Send a signal to another process
 #[no_mangle]
 pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status {
-    syscall!(
-        Syscall::SendSignal,
-        resource,
-        signal_type as u32
-    )
-    .into()
+    syscall!(Syscall::SendSignal, resource, signal_type as u32).into()
 }
 
 /// get value of given GPIO associated to given  device ressource
@@ -173,16 +168,8 @@ pub extern "C" fn sys_irq_acknowledge(irq: u16) -> Status {
 ///
 /// POSIX upper layer(s): select(2), poll(2)
 #[no_mangle]
-pub extern "C" fn sys_wait_for_event(
-    mask: u8,
-    timeout: u32,
-) -> Status {
-    syscall!(
-        Syscall::WaitForEvent,
-        u32::from(mask),
-        timeout
-    )
-    .into()
+pub extern "C" fn sys_wait_for_event(mask: u8, timeout: u32) -> Status {
+    syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into()
 }
 
 /// Configure the CPU's sleep behaviour.

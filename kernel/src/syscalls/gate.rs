@@ -1,7 +1,10 @@
 use crate::arch::*;
 use handles::*;
 use managers_bindings as mgr;
-use mgr::{secure_bool_SECURE_TRUE, capability_CAP_DEV_POWER, capability_CAP_MEM_SHM_USE, capability_CAP_TIM_HP_CHRONO, capability_CAP_CRY_KRNG};
+use mgr::{
+    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER, capability_CAP_MEM_SHM_USE,
+    capability_CAP_TIM_HP_CHRONO, secure_bool_SECURE_TRUE,
+};
 // use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
@@ -27,11 +30,11 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Alarm => alarm(args[0]),
         Syscall::GetRandom => get_random(),
         Syscall::GetCycle => get_cycle(args[0]),
-        Syscall::GpioGet => Ok(None), // C implementation
-        Syscall::GpioSet => Ok(None), // C implementation
-        Syscall::GpioReset => Ok(None), // C implementation
-        Syscall::GpioToggle => Ok(None), // C implementation
-        Syscall::GpioConfigure => Ok(None), // C implementation
+        Syscall::GpioGet => Ok(None),        // C implementation
+        Syscall::GpioSet => Ok(None),        // C implementation
+        Syscall::GpioReset => Ok(None),      // C implementation
+        Syscall::GpioToggle => Ok(None),     // C implementation
+        Syscall::GpioConfigure => Ok(None),  // C implementation
         Syscall::IrqAcknowledge => Ok(None), // C implementation
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
@@ -159,8 +162,9 @@ impl<'a> TaskMeta<'a> {
     /// Verify that a task possess a given capability
     fn can(self, capability: u32) -> Result<TaskMeta<'a>, Status> {
         if unsafe {
-                mgr::mgr_security_has_capa(sched_get_current(), capability as u32) != secure_bool_SECURE_TRUE }
-        {
+            mgr::mgr_security_has_capa(sched_get_current(), capability)
+                != secure_bool_SECURE_TRUE
+        } {
             return Err(Status::Denied);
         }
 
@@ -266,7 +270,7 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
 }
 // Thin wrapper over `mgr_device_get_capa`. This function never fails
 fn device_get_capa(dev: u32) -> u32 {
-    unsafe { mgr::mgr_device_get_capa(dev)}
+    unsafe { mgr::mgr_device_get_capa(dev) }
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
@@ -336,9 +340,9 @@ pub fn get_process_handle(process: u32) -> Result<StackFramePointer, Status> {
         }
         Err(err) => {
             let _ = set_syscall_status(err);
-            return Err(err)
+            return Err(err);
         }
-     }
+    }
     let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
