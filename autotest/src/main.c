@@ -16,6 +16,7 @@
 #include "tests/test_ipc.h"
 #include "tests/test_handle.h"
 #include "tests/test_signal.h"
+#include "tests/test_gpio.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -40,7 +41,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 
     printf(welcommsg);
     printf(testmsg);
-
+    LOG("AUTOTEST START");
     test_yield();
     test_handle();
     test_signal();
@@ -48,6 +49,8 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     test_random();
     test_cycles();
     test_sleep();
+    test_gpio();
+    LOG("AUTOTEST END");
 
 
     /* all tests finished, leaving */

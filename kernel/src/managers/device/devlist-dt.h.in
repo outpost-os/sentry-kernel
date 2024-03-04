@@ -23,120 +23,104 @@
 /* as -dt generated file, the target dir is not the source dir. Using src/ relative path */
 #include "managers/device/device.h"
 
-{% set ns = namespace() -%}
-{% set ns.total_devices=0 -%}
-static const device_t devices[] = {
-    {#
-        For all mappable devices (i.e. having a declared memory region)
-    -#}
-    {% for device in dts.get_mappable() -%}
-    {# defining defaults: kernel owned and of type rcc (no capa) -#}
-    {% set ns.device_type = 'rcc' -%}
-    {% set ns.kernel_owned = 'SECURE_TRUE' -%}
-    {#
-        only declared devices are generated for size optimization.
-        This is based on the project dts file, any other is ignored and
-        considered as a security violation (whitelist model)
-    -#}
-    {% if device.status and device.status == 'okay' -%}
-    {% set ns.total_devices = ns.total_devices + 1 -%}
-    {% if device.owner and device.owner == 'user' -%}
-    {% set ns.kernel_owned = 'SECURE_FALSE' -%}
-    {% endif -%}
-    {#
-        generating the device capability. This is based on the
-        standard 'compatible' field of the device.
-        This field must hold at least one '.*-(usart|gpio|spi|otgfs|...)'
-        field that define its nature, and thus the associated capability.
-        If the field is not found, the device capa is not set, and
-        kept kernel owned (not manipulable in userspace). Although, clean
-        dtsi files should always have this field set.
-    -#}
-    {#
-        Sometimes, compatible is a list of strings, sometime not
-        Normalize it as a list, in all cases
-    -#}
-    {% if device.compatible is not string -%}
-        {% set compat = device.compatible -%}
-    {% else -%}
-        {% set compat = [ device.compatible|join('') ] -%}
-    {% endif -%}
-    {#
-      Let's find the -<device_type> suffix in the compatible field, and
-      extract the device_type value
-    -#}
-    {% for compat_string in compat -%}
-    {% set compat_sublist = compat_string.split('-') -%}
-    {% if compat_sublist|length > 2 -%}
-        {% set ns.device_type = "%s-%s"|format(compat_sublist[1],compat_sublist[2]) -%}
-    {% elif compat_sublist|length > 1 -%}
-        {% set ns.device_type = compat_sublist[1] -%}
-    {% endif -%}
-    {% endfor -%}
-    {#
-        foreach device type, associate the corresponding capability
-        so that it will be set in the capability field
-    -#}
-    {% if ns.device_type == 'gpio' -%}
+{# get the 'compatible' field as a string table -#}
+{%- macro device_get_compatible(device) -%}
+    {% if device.compatible is string %}
+        {{ device.compatible|join('') }}
+    {% else %}
+    {{ device.compatible }}
+    {% endif %}
+{%- endmacro -%}
+
+
+{# get the device type from compatible, as a single string -#}
+{%- macro device_get_type(device) -%}
+    {{ "%s"|format(device.compatible|join('')) }}
+{%- endmacro -%}
+
+{# get the device capa from the device type, using susbtr search -#}
+{% macro device_get_capa(device_type) -%}
+    {% if 'gpio' in device_type or
+          'leds' in device_type -%}
     {% set capa = 'sentry_capability_t_DEV_IO' -%}
-    {% elif ns.device_type == 'uart' or
-            ns.device_type == 'lpuart' or
-            ns.device_type == 'usart' or
-            ns.device_type == 'ethernet' or
-            ns.device_type == 'i2c' or
-            ns.device_type == 'i2s' or
-            ns.device_type == 'otgfs' or
-            ns.device_type == 'otghs' or
-            ns.device_type == 'ospi' or
-            ns.device_type == 'qspi' or
-            ns.device_type == 'spi' or
-            ns.device_type == 'bxcan' or
-            ns.device_type == 'fdcan' or
-            ns.device_type == 'mipi-dsi'
+    {% elif 'usart' in device_type or
+            'lpuart' in device_type or
+            'usart' in device_type or
+            'ethernet' in device_type or
+            'i2c' in device_type or
+            'i2s' in device_type or
+            'otgfs' in device_type or
+            'otghs' in device_type or
+            'ospi' in device_type or
+            'qspi' in device_type or
+            'spi' in device_type or
+            'bxcan' in device_type or
+            'fdcan' in device_type or
+            'mipi-dsi' in device_type or
+            'exti' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_BUSES' -%}
-    {% elif ns.device_type == 'dma' or
-            ns.device_type == 'bdma' or
-            ns.device_type == 'dmamux'
+    {% elif 'dma' in device_type or
+            'bdma' in device_type or
+            'dmamux' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_DMA' -%}
-    {% elif ns.device_type == 'adc' or
-            ns.device_type == 'dac' or
-            ns.device_type == 'pwm'
+    {% elif 'adc' in device_type or
+            'dac' in device_type or
+            'pwm' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_ANALOG' -%}
-    {% elif ns.device_type == 'timers' or
-            ns.device_type == 'timer' or
-            ns.device_type == 'lptim' or
-            ns.device_type == 'rtc' or
-            ns.device_type == 'watchdog'
+    {% elif 'timers' in device_type or
+            'timer' in device_type or
+            'lptim' in device_type or
+            'rtc' in device_type or
+            'watchdog' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_TIMER' -%}
-    {% elif ns.device_type == 'flash' or
-            ns.device_type == 'fmc' or
-            ns.device_type == 'sdmmc'
+    {% elif 'flash' in device_type or
+            'fmc' in device_type or
+            'sdmmc' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_STORAGE' -%}
-    {% elif ns.device_type == 'aes' or
-            ns.device_type == 'cryp' or
-            ns.device_type == 'rng'
+    {% elif 'aes' in device_type or
+            'cryp' in device_type or
+            'rng' in device_type or
+            'syscfg' in device_type
     -%}
     {% set capa = 'sentry_capability_t_DEV_CRYPTO' -%}
-    {% elif ns.device_type == 'ucpd' -%}
+    {% elif 'ucpd' in device_type or
+            'rcc' in device_type
+    -%}
     {% set capa = 'sentry_capability_t_DEV_POWER' -%}
-    {% else -%}
-    {#
-      fallbacking on capa==0 which is invalid for user devices (only some
-      kernel devices such as nvic do not have capability at all).
-    -#}
-    {% set capa = '{0}' -%}
+    {% else %}
+    {% set capa = '0' -%}
     {% endif -%}
+    {{ capa }}
+{%- endmacro -%}
+
+
+{% set ns = namespace() -%}
+{% set ns.total_devices=0 %}
+static const device_t devices[] = {
+    {% for device in dts.get_active_nodes() -%}
+    {% if not device.compatible -%}
+    {% continue -%}
+    {% endif -%}
+    {% if 'pll' in device_get_type(device) -%}
+    {% continue -%}
+    {% endif -%}
+    {% set ns.total_devices = ns.total_devices + 1 -%}
     {
         /* device {{ device.label }} declaration */
         .devinfo = {
-            .id = {{ "0x%xUL"|format(loop.index) }},
+            .id = {{ "0x%xUL"|format(loop.index - 1) }},
+            {% if device.reg -%}
             .baseaddr = {{ "0x%08x"|format(device.reg[0]) }},
             .size = {{ "0x%08x"|format(device.reg[1]) }},
+            {% else -%}
+            .baseaddr = 0UL,
+            .size = 0UL,
+            {% endif -%}
             {% if device.interrupts -%}
             .num_interrupt = 1,
             .its = {
@@ -153,7 +137,7 @@ static const device_t devices[] = {
             .num_interrupt = 0,
             .its = {
                 {% for irq in [ 0,1,2,3,4,5,6,7] -%}
-                {  .it_controler = 0UL, .it_num = 0UL },
+                { .it_controler = 0UL, .it_num = 0UL },
                 {% endfor -%}
             },
             {% endif -%}
@@ -187,7 +171,7 @@ static const device_t devices[] = {
                 {% else -%}
                 { .port = 0, .pin = 0, .mode = 0, .af = 0, .ppull = 0, .speed = 0, .pupdr = 0, },
                 {% endif -%}
-                {% endfor -%}
+                {%- endfor %}
             },
             {% else -%}
             .num_ios = 0,
@@ -196,9 +180,11 @@ static const device_t devices[] = {
                 { .port = 0, .pin = 0, .mode = 0, .af = 0, .ppull = 0, .speed = 0, .pupdr = 0, },
                 {% endfor -%}
             },
-            {% endif -%}
+            {%- endif %}
         },
-        .capability = {{ "%s"|format(capa) }},
+        {% set type = device_get_type(device) -%}
+        /* capa for {{ type }} */
+        .capability = {{ "%s"|format(device_get_capa(type)) }},
         {% if device.clocks and not device.label == "rcc" -%}
         {% set _, bus_id, clk_msk = device.clocks -%}
         .clk_id = {{ "%#08xUL"|format(clk_msk) }},
@@ -207,9 +193,12 @@ static const device_t devices[] = {
         .clk_id = 0x0UL,
         .bus_id = 0x0UL,
         {% endif -%}
-        .kernel_owned = {{ ns.kernel_owned }},
+        {% if device["outpost,owner"] -%}
+        .owner = {{ "%#8xUL"|format(device["outpost,owner"]) }},
+        {% else -%}
+        .owner = 0UL, /* owned by kernel */
+        {%- endif %}
     },
-    {% endif -%}
     {% endfor %}
 };
 #define DEVICE_LIST_SIZE {{ "%uUL"|format(ns.total_devices) }}

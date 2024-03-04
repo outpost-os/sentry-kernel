@@ -51,6 +51,16 @@
 			compatible = "outpost,memory-pool";
     	};
 	};
+	led0: led_0 {
+		compatible = "gpio-leds";
+    	outpost,owner = <0xbabe>;
+    	pinctrl-0 = <&led_pc7 &led_pc7>;
+    	status = "disabled";
+	};
+};
+
+&led0 {
+	status = "okay";
 };
 
 &flash0 {
@@ -139,6 +149,13 @@
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;
 	};
+
+    led_pc7: led_pc7 {
+		pinmux = <&gpioc 7 STM32_DT_PIN_MODE_OUTPUT>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+    };
 };
 
 &rng {

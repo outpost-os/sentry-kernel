@@ -26,6 +26,7 @@ static const char* panic_events_name[] = {
     "KERNEL_BAD_CFI_CALCULATION",
     "HARDWARE_INVALID_STATE",
     "HARDWARE_UNEXPECTED_MODIFICATION",
+    "PANIC_CONFIGURATION_MISMATCH",
 };
 #endif
 

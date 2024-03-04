@@ -39,8 +39,7 @@ uapi_inc = include_directories('../uapi/include')
 autotest_elf = executable(
     autotest_task_name,
     name_suffix: 'elf',
-
-    sources: [autotest_sources, autotest_headers ],
+    sources: [autotest_sources, autotest_headers, devices_dtsgen_h ],
     include_directories: [ uapi_inc, autotest_inc ],
     dependencies: [ sentry_c_uapi_dep, sentry_c_uapi_headers_dep ],
     c_args: [ target_arch_args, global_build_args, userspace_args ],

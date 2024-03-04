@@ -74,7 +74,6 @@
 &flash {
 	wait-state = <5>; /* According to voltage supply and sysclock */
 	status = "okay";
-	owner = "kernel";
 };
 
 &rcc {
@@ -83,7 +82,6 @@
 	bus-prescalers = <0>, <2>, <1>;
 	bus-names = "ahb", "apb1", "apb2";
 	status = "okay";
-	owner = "kernel";
 
 	mco1 {
 		pinctrl-0 = <&rcc_mco1_pa8>;
@@ -97,42 +95,34 @@
 	interrupts = <22>;
 	events = <22>;
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpioa {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpiob {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpioc {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpiod {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpioe {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpiof {
 	status = "okay";
-	owner = "kernel";
 };
 
 &gpiog {
 	status = "okay";
-	owner = "kernel";
 };
 
 &pinctrl {
@@ -167,7 +157,6 @@
 
 &usart1 {
     status = "okay";
-	owner = "kernel";
 	pinctrl-0 = <&usart1_tx_pb6>, <&usart1_rx_pb7>;
 };
 

@@ -11,6 +11,7 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
     match Syscall::try_from(syscall_number)? {
         Syscall::Exit => exit(args[0] as i32),
         Syscall::GetProcessHandle => get_process_handle(args[0]),
+        Syscall::GetDeviceHandle => Ok(None), // C implementation
         Syscall::Yield => r#yield(),
         Syscall::Sleep => sleep(args[0], args[1]),
         Syscall::Start => start(args[0]),
@@ -26,6 +27,11 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Alarm => alarm(args[0]),
         Syscall::GetRandom => get_random(),
         Syscall::GetCycle => get_cycle(args[0]),
+        Syscall::GpioGet => Ok(None), // C implementation
+        Syscall::GpioSet => Ok(None), // C implementation
+        Syscall::GpioReset => Ok(None), // C implementation
+        Syscall::GpioToggle => Ok(None), // C implementation
+        Syscall::GpioConfigure => Ok(None), // C implementation
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),

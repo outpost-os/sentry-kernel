@@ -115,6 +115,43 @@ pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status 
     .into()
 }
 
+/// get value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_gpio_get(resource: u32, io: u8) -> Status {
+    syscall!(Syscall::GpioGet, resource, io as u32).into()
+}
+
+/// set value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_gpio_set(resource: u32, io: u8, val: bool) -> Status {
+    syscall!(Syscall::GpioSet, resource, io as u32, val as u32).into()
+}
+
+/// reset value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_gpio_reset(resource: u32, io: u8) -> Status {
+    syscall!(Syscall::GpioReset, resource, io as u32).into()
+}
+
+/// toggle value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_gpio_toggle(resource: u32, io: u8) -> Status {
+    syscall!(Syscall::GpioToggle, resource, io as u32).into()
+}
+
+/// configure value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_gpio_configure(resource: u32, io: u8) -> Status {
+    syscall!(Syscall::GpioConfigure, resource, io as u32).into()
+}
+
+/// configure value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_get_device_handle(devlabel: u8) -> Status {
+    syscall!(Syscall::GetDeviceHandle, devlabel as u32).into()
+}
+
+
 /// Wait for input event. Single active blocking syscall.
 ///
 /// This syscall holds the current thread as long as none of the event requested

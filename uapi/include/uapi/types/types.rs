@@ -56,6 +56,7 @@ syscall_list! {
 pub enum Syscall {
     Exit,
     GetProcessHandle,
+    GetDeviceHandle,
     Yield,
     Sleep,
     Start,
@@ -72,6 +73,11 @@ pub enum Syscall {
     Alarm,
     GetRandom,
     GetCycle,
+    GpioGet,
+    GpioSet,
+    GpioReset,
+    GpioToggle,
+    GpioConfigure,
 }
 }
 

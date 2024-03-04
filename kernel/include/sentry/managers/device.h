@@ -21,6 +21,10 @@ secure_bool_t mgr_device_is_kernel(devh_t d);
 
 uint32_t mgr_device_get_capa(devh_t d);
 
+kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner);
+
+kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_device_autotest(void);
 #endif

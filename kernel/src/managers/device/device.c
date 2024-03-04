@@ -64,6 +64,10 @@ static inline const device_t *mgr_device_get_device(devh_t d)
 kstatus_t mgr_device_init(void)
 {
     kstatus_t status = K_STATUS_OKAY;
+    taskh_t owner = 0;
+    taskh_t owner_from_metadata = 0;
+    devh_t  devh;
+
     memset(devices_state, 0x0, DEVICE_LIST_SIZE*sizeof(device_state_t));
     /*
      * let's boot strap the devices list.
@@ -71,14 +75,36 @@ kstatus_t mgr_device_init(void)
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         devices_state[i].device = &devices[i];
         devices_state[i].mapped = SECURE_FALSE;
-        if (devices[i].kernel_owned == SECURE_FALSE) {
-            const devh_t handle = forge_devh(devices_state[i].device);
-            if (unlikely((status = mgr_task_get_device_owner(handle, &devices_state[i].owner)) != K_STATUS_OKAY)) {
-                /* this should not happen as a userspace device must be declared
-                 * by at least one task
+        /* in order to speed-up ownership of device, the effective taskh handle
+         * of the ownering task is set at init time.
+         * the owner is get back from the task manager, to ensure an effective
+         * association between the device owner in the dts and the one of the
+         * metadata.
+         * To do this, we:
+         * - get back the taskh_t using the dts 'outpost,owner' label
+         * - we check that this owner (using the handle) do matches the metadata,
+         *   by asking the task manager to confirm.
+         *
+         * As all this work is done once for all at init time, it do not
+         * impact runtime performances.
+         */
+        if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
+            /* owner is not a task */
+            owner = 0;
+        } else {
+            devh = forge_devh(devices_state[i].device);
+            if (unlikely(mgr_task_get_device_owner(devh, &owner_from_metadata) != K_STATUS_OKAY)) {
+                panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+            }
+            if (unlikely(owner_from_metadata != owner)) {
+                /* dts owner do not match the metadata owner !
+                 * This is a configuration mismatch !
                  */
-            };
+                panic(PANIC_CONFIGURATION_MISMATCH);
+            }
         }
+        /* adding taskh value (0 or effective taskh userspace handle) */
+        devices_state[i].owner = owner;
     }
     return status;
 }
@@ -142,7 +168,7 @@ secure_bool_t mgr_device_is_kernel(devh_t d)
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
-                if (devices_state[i].device->kernel_owned == SECURE_FALSE) {
+                if (devices_state[i].owner == 0x0UL) {
                     res = SECURE_FALSE;
                 }
                 goto end;
@@ -150,6 +176,68 @@ secure_bool_t mgr_device_is_kernel(devh_t d)
     }
 end:
     return res;
+}
+
+/**
+ * @brief return the device owner (taskh_t) for given device
+ *
+ * @param[in] d: device handle for which the request is done
+ * @param[out] owner: the owner to be set
+ *
+ * @returns
+ *   K_ERROR_INVPARAM if owner is NUL
+ *   K_ERROR_NOENT if device is not found
+ *   K_STATUS_OK if the device owner is found
+ */
+kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner)
+{
+    kstatus_t status = K_ERROR_NOENT;
+
+    if (unlikely(owner == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    /*@ assert \valid(owner); */
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
+                *owner = devices_state[i].owner;
+                status = K_STATUS_OKAY;
+                goto end;
+        }
+    }
+    /*@ assert(status == K_ERROR_NOENT); */
+end:
+    return status;
+}
+
+/**
+ * @brief return the device handle (devh_t) for given device
+ *
+ * @param[in] dev_label: device identifier, shared with userspace
+ * @param[out] devhandle: the effective device handle
+ *
+ * @returns
+ *   K_ERROR_INVPARAM if devhandle is NULL
+ *   K_STATUS_OK if the device handle has been forged and returned
+ */
+kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle)
+{
+    kstatus_t status = K_ERROR_NOENT;
+
+    if (unlikely(devhandle == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    /*@ assert \valid(devhandle); */
+    if (unlikely(dev_label >= DEVICE_LIST_SIZE)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    *devhandle = forge_devh(devices_state[dev_label].device);
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /**

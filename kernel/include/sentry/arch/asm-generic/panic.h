@@ -53,6 +53,8 @@ typedef enum panic_event {
     PANIC_HARDWARE_INVALID_STATE,
     /**< a hardware IP has changed while it shouldn't have */
     PANIC_HARDWARE_UNEXPECTED_MODIFICATION,
+    /**< a configuration-time mismatch has been detected */
+    PANIC_CONFIGURATION_MISMATCH,
     /* max sentinel */
     PANIC_EVENT_MAX,
 } panic_event_t;
