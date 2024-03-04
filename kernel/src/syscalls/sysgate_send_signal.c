@@ -9,6 +9,7 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
 
 {
     taskh_t current = sched_get_current();
+    job_state_t dest_state;
     kstatus_t status;
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
     if (unlikely(current == target)) {
@@ -17,6 +18,10 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
     }
 #endif
     if (unlikely(signal < SIGNAL_ABORT || signal > SIGNAL_USR2)) {
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    if (unlikely(mgr_task_get_state(target, &dest_state) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
@@ -30,6 +35,15 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
         /* target signal slot for us is already fullfill */
         mgr_task_set_sysreturn(current, STATUS_BUSY);
         goto end;
+    }
+    /*@ assert (status == K_STATUS_OK); */
+    if ((dest_state == JOB_STATE_SLEEPING) ||
+        (dest_state == JOB_STATE_WAITFOREVENT)) {
+        /* if target job was sleeping, set return to ok */
+        /* FIXME: define a dedicated return code */
+        mgr_task_set_sysreturn(target, STATUS_OK);
+        mgr_task_set_state(target, JOB_STATE_READY);
+        sched_schedule(target);
     }
     mgr_task_set_sysreturn(current, STATUS_OK);
 end:
