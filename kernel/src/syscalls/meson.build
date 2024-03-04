@@ -3,7 +3,7 @@ subdir('managers_bindings')
 sysgate_lib = static_library(
     'sysgate',
     sources : ['lib.rs'],
-    dependencies: [systypes_dep, handles_dep, capabilities_dep, managers_bindings_dep],
+    dependencies: [systypes_dep, handles_dep, managers_bindings_dep],
     rust_abi: 'c',
     rust_args: global_rust_build_args,
     install: false,
@@ -16,6 +16,7 @@ csyscalls = files(
     'sysgate_waitforevent.c',
     'sysgate_gpio.c',
     'sysgate_get_devhandle.c',
+    'sysgate_int_acknowledge.c',
 )
 
 sentry_source_set.add(csyscalls)

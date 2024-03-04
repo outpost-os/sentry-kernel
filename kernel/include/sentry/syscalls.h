@@ -22,4 +22,6 @@ stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t devhandle, uint8
 
 stack_frame_t *gate_get_devhandle(stack_frame_t *frame, uint8_t devid);
 
+stack_frame_t *gate_int_acknowledge(stack_frame_t *frame, uint16_t IRQn);
+
 #endif/*!SYSCALLS_H*/

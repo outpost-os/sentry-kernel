@@ -16,10 +16,11 @@ extern "C" {
 #include <assert.h>
 #include <inttypes.h>
 #include <sentry/ktypes.h>
+#include <sentry/managers/security.h>
 
 typedef struct device {
     devinfo_t           devinfo;      /**< device info (info shared with userspace) */
-    sentry_capability_t capability;   /**< device associated capability */
+    capability_t        capability;   /**< device associated capability */
     uint32_t            clk_id;       /**< clock identifier, as defined in dts */
     uint32_t            bus_id;       /**< bus identifier, as defined in dts */
     uint32_t            owner;        /**< label of the owner. To be fullfill by app using the outpost,owner dts flag */
@@ -86,7 +87,7 @@ static inline devh_t forge_devh(const device_t * const device)
 {
         /*@ assert \valid_read(device); */
     kdevh_t kdevh = {
-        .dev_cap = device->capability.bits,
+        .dev_cap = device->capability & CAP_DEV_MASK,
         .reserved = 0,
         .id = device->devinfo.id,
         .family = HANDLE_DEVICE,

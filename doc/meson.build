@@ -56,6 +56,7 @@ concepts_rst = files(
     'concepts/uapi/syscalls/gpio_reset.rst',
     'concepts/uapi/syscalls/gpio_set.rst',
     'concepts/uapi/syscalls/gpio_toggle.rst',
+    'concepts/uapi/syscalls/irq_acknowledge.rst',
     'concepts/uapi/syscalls/waitforevent.rst',
     'concepts/sw_architecture/bsp.rst',
     'concepts/sw_architecture/schedulers.rst',

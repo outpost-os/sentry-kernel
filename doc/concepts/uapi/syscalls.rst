@@ -73,6 +73,11 @@ Syscall definition
 .. include:: syscalls/gpio_toggle.rst
 
 .. index::
+  single: sys_irq_acknowledge; definition
+  single: sys_irq_acknowledge; usage
+.. include:: syscalls/irq_acknowledge.rst
+
+.. index::
   single: sys_log; definition
   single: sys_log; usage
 .. include:: syscalls/log.rst

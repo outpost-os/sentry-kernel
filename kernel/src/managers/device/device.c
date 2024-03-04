@@ -277,7 +277,7 @@ uint32_t mgr_device_get_capa(devh_t d)
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
-                capa =  devices_state[i].device->capability.bits;
+                capa =  devices_state[i].device->capability & CAP_DEV_MASK;
                 goto end;
         }
     }

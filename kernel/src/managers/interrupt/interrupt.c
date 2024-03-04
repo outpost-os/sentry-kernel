@@ -24,7 +24,7 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* get the task owning the device */
-    if (unlikely(mgr_task_get_device_owner(dev, &owner) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_device_get_owner(dev, &owner) != K_STATUS_OKAY)) {
         /* user interrupt with no owning task ???? */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
@@ -78,6 +78,17 @@ kstatus_t mgr_interrupt_disable_irq(uint32_t irq)
     interrupt_disable_irq(irq);
     status = K_STATUS_OKAY;
 err:
+    return status;
+}
+
+kstatus_t mgr_interrupt_acknowledge_irq(stack_frame_t *frame, int IRQn)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(interrupt_clear_pendingirq(IRQn)!= K_STATUS_OKAY)) {
+        goto end;
+    }
+    status = K_STATUS_OKAY;
+end:
     return status;
 }
 

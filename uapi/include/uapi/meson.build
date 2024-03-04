@@ -1,9 +1,7 @@
-
 # This is a list of dict
 uapi_cbindgen_configs = []
 uapi_cbindgen_headers = []
 
-subdir('capabilities')
 subdir('handles')
 subdir('types')
 

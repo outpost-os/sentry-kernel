@@ -33,6 +33,6 @@ managers_bindings = rust.bindgen(
 managers_bindings_lib = static_library(
     'managers_bindings',
     sources : [managers_bindings],
-    dependencies : [systypes_dep, handles_dep, capabilities_dep],
+    dependencies : [systypes_dep, handles_dep],
 )
 managers_bindings_dep = declare_dependency(link_with: managers_bindings_lib)

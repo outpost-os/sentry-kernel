@@ -1,7 +1,10 @@
 use crate::arch::*;
-use capabilities::*;
 use handles::*;
 use managers_bindings as mgr;
+use mgr::{
+    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER, capability_CAP_MEM_SHM_USE,
+    capability_CAP_TIM_HP_CHRONO, secure_bool_SECURE_TRUE,
+};
 // use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
@@ -27,11 +30,12 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Alarm => alarm(args[0]),
         Syscall::GetRandom => get_random(),
         Syscall::GetCycle => get_cycle(args[0]),
-        Syscall::GpioGet => Ok(None), // C implementation
-        Syscall::GpioSet => Ok(None), // C implementation
-        Syscall::GpioReset => Ok(None), // C implementation
-        Syscall::GpioToggle => Ok(None), // C implementation
-        Syscall::GpioConfigure => Ok(None), // C implementation
+        Syscall::GpioGet => Ok(None),        // C implementation
+        Syscall::GpioSet => Ok(None),        // C implementation
+        Syscall::GpioReset => Ok(None),      // C implementation
+        Syscall::GpioToggle => Ok(None),     // C implementation
+        Syscall::GpioConfigure => Ok(None),  // C implementation
+        Syscall::IrqAcknowledge => Ok(None), // C implementation
 
         #[cfg(not(CONFIG_BUILD_TARGET_RELEASE))]
         Syscall::Log => log_rs(args[0] as usize),
@@ -156,10 +160,14 @@ impl<'a> TaskMeta<'a> {
     }
 
     /// Verify that a task possess a given capability
-    fn can(self, capability: Capability) -> Result<TaskMeta<'a>, Status> {
-        if !Capability::from(self.meta.capabilities).contains(capability) {
+    fn can(self, capability: u32) -> Result<TaskMeta<'a>, Status> {
+        if unsafe {
+            mgr::mgr_security_has_capa(sched_get_current(), capability)
+                != secure_bool_SECURE_TRUE
+        } {
             return Err(Status::Denied);
         }
+
         Ok(self)
     }
 
@@ -239,7 +247,7 @@ pub fn set_syscall_status(val: Status) -> Result<Kstatus, Kstatus> {
 }
 
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
-    TaskMeta::current()?.can(Capability::SYS_POWER)?;
+    TaskMeta::current()?.can(capability_CAP_DEV_POWER)?;
 
     match CPUSleep::try_from(mode_in)? {
         CPUSleep::AllowSleep => (),
@@ -261,8 +269,8 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     Ok(None)
 }
 // Thin wrapper over `mgr_device_get_capa`. This function never fails
-fn device_get_capa(dev: u32) -> Capability {
-    unsafe { Capability::from_bits_retain(mgr::mgr_device_get_capa(dev)) }
+fn device_get_capa(dev: u32) -> u32 {
+    unsafe { mgr::mgr_device_get_capa(dev) }
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
@@ -332,9 +340,9 @@ pub fn get_process_handle(process: u32) -> Result<StackFramePointer, Status> {
         }
         Err(err) => {
             let _ = set_syscall_status(err);
-            return Err(err)
+            return Err(err);
         }
-     }
+    }
     let _ = set_syscall_status(Status::Ok);
     Ok(None)
 }
@@ -402,7 +410,7 @@ pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
         }
         Resource::Shm(shmu) => {
             let shm = handles::shmh_t::from(shmu);
-            meta.has_shm(shm)?.can(Capability::MEM_SHM_USE)?;
+            meta.has_shm(shm)?.can(capability_CAP_MEM_SHM_USE)?;
             // if unsafe { mgr::mgr_mm_map_shm(shm) } != 0 {
             //     return Err(Status::Invalid);
             // }
@@ -469,7 +477,7 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
 }
 
 fn get_random() -> Result<StackFramePointer, Status> {
-    let current_task = TaskMeta::current()?.can(Capability::CRY_KRNG);
+    let current_task = TaskMeta::current()?.can(capability_CAP_CRY_KRNG);
     match current_task {
         Ok(_) => Status::Ok,
         Err(err) => {
@@ -496,7 +504,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
     let cycles = match precision {
         Precision::Cycle => {
             let _ = set_syscall_status(Status::Denied);
-            current_task = current_task.can(Capability::TIM_HP_CHRONO)?;
+            current_task = current_task.can(capability_CAP_TIM_HP_CHRONO)?;
             unsafe { mgr::mgr_time_get_cycle() }
         }
         Precision::Nanoseconds => unsafe { mgr::mgr_time_get_nanoseconds() },

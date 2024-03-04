@@ -5,6 +5,7 @@
 #define NVIC_H
 
 #include <stddef.h>
+#include <sentry/ktypes.h>
 #include <sentry/arch/asm-cortex-m/membarriers.h>
 #include "soc.h"
 
@@ -18,22 +19,23 @@ void     nvic_set_prioritygrouping(uint32_t PriorityGroup);
 /* INFO: typo in CMSIS intrinsics.... fixed through asm-generic aliasing */
 uint32_t nvig_get_prioritygrouping(void);
 
-void     nvic_enableirq(uint32_t IRQn);
-void     nvic_disableirq(uint32_t IRQn);
+kstatus_t     nvic_enableirq(uint32_t IRQn);
+kstatus_t     nvic_disableirq(uint32_t IRQn);
 
-uint32_t nvic_get_pendingirq(uint32_t IRQn);
-void     nvic_set_pendingirq(uint32_t IRQn);
+uint32_t    nvic_get_pendingirq(uint32_t IRQn);
+kstatus_t     nvic_set_pendingirq(uint32_t IRQn);
 
-void     nvic_clear_pendingirq(uint32_t IRQn);
+kstatus_t     nvic_clear_pendingirq(uint32_t IRQn);
 uint32_t nvic_get_active(uint32_t IRQn);
 void     nvic_systemreset(void);
 
 
 /* arch-generic naming definition, aliased to above (see nvic.c) */
-void     interrupt_enable_irq(uint32_t IRQn);
-void     interrupt_disable_irq(uint32_t IRQn);
-uint32_t interrupt_get_pending_irq(uint32_t IRQn);
-void     interrupt_set_pending_irq(uint32_t IRQn);
+kstatus_t     interrupt_enable_irq(uint32_t IRQn);
+kstatus_t     interrupt_disable_irq(uint32_t IRQn);
+uint32_t      interrupt_get_pending_irq(uint32_t IRQn);
+kstatus_t     interrupt_set_pending_irq(uint32_t IRQn);
+kstatus_t     interrupt_clear_pendingirq(uint32_t IRQn);
 
 /* arch-genric API */
 inline __attribute__((always_inline)) void wait_for_interrupt(void) {
@@ -94,6 +96,7 @@ static inline void interrupt_init(void) {
 static inline void system_reset(void) {
     NVIC_SystemReset();
 }
+
 
 
 #define NUM_IRQS __NVIC_VECTOR_LEN

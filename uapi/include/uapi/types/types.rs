@@ -78,6 +78,7 @@ pub enum Syscall {
     GpioReset,
     GpioToggle,
     GpioConfigure,
+    IrqAcknowledge,
 }
 }
 
