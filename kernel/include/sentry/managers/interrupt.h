@@ -8,6 +8,7 @@ extern "C" {
  * @file Sentry Debug manager
  */
 #include <sentry/ktypes.h>
+#include <sentry/arch/asm-generic/interrupt.h>
 
 /**
  * This is the interrupt handler for IRQ lines associated to ressources that
@@ -26,6 +27,8 @@ kstatus_t mgr_interrupt_init(void);
 kstatus_t mgr_interrupt_enable_irq(uint32_t irq);
 
 kstatus_t mgr_interrupt_disable_irq(uint32_t irq);
+
+kstatus_t mgr_interrupt_acknowledge_irq(uint32_t irq);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_interrupt_autotest(void);

@@ -150,13 +150,20 @@ uint32_t nvig_get_prioritygrouping(void)
  * The interrupt number cannot be a negative value.
  * \param [in]      IRQn  Number of the external interrupt to enable
  */
-void nvic_enableirq(uint32_t IRQn)
+kstatus_t nvic_enableirq(uint32_t IRQn)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(IRQn >= NUM_IRQS)) {
+        goto end;
+    }
     /*  NVIC->ISER[((uint32_t)(IRQn) >> 5)] = (1UL << ((uint32_t)(IRQn) & 0x1F));  enable interrupt */
     NVIC_ISER[(uint32_t) ((int32_t) IRQn) >> 5] =
         (uint32_t) (1 << ((uint32_t) ((int32_t) IRQn) & (uint32_t) 0x1F));
     arch_data_sync_barrier();
     arch_inst_sync_barrier();
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /* \brief  Disable External Interrupt
@@ -164,9 +171,16 @@ void nvic_enableirq(uint32_t IRQn)
  * The interrupt number cannot be a negative value.
  * \param [in]      IRQn  Number of the external interrupt to disable
  */
-void nvic_disableirq(uint32_t IRQn)
+kstatus_t nvic_disableirq(uint32_t IRQn)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(IRQn >= NUM_IRQS)) {
+        goto end;
+    }
     NVIC_ICER[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* disable interrupt */
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /* \brief  Get Pending Interrupt
@@ -178,10 +192,16 @@ void nvic_disableirq(uint32_t IRQn)
  */
 uint32_t nvic_get_pendingirq(uint32_t IRQn)
 {
+    uint32_t irq = 0;
+    if (unlikely(IRQn >= NUM_IRQS)) {
+        goto end;
+    }
     /* Return 1 if pending else 0 */
-    return ((uint32_t)
+    irq = ((uint32_t)
             ((NVIC_ISPR[(uint32_t) (IRQn) >> 5] &
               (uint32_t) (1 << ((uint32_t) (IRQn) & 0x1F))) ? 1 : 0));
+end:
+    return irq;
 }
 
 /* \brief  Set Pending Interrupt
@@ -190,9 +210,16 @@ uint32_t nvic_get_pendingirq(uint32_t IRQn)
  * The interrupt number cannot be a negative value.
  * \param [in]      IRQn  Number of the interrupt for set pending
  */
-void nvic_set_pendingirq(uint32_t IRQn)
+kstatus_t nvic_set_pendingirq(uint32_t IRQn)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(IRQn >= NUM_IRQS)) {
+        goto end;
+    }
     NVIC_ISPR[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* set interrupt pending */
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /* \brief  Clear Pending Interrupt
@@ -200,9 +227,16 @@ void nvic_set_pendingirq(uint32_t IRQn)
  * The interrupt number cannot be a negative value.
  * \param [in]      IRQn  Number of the interrupt for clear pending
  */
-void nvic_clear_pendingirq(uint32_t IRQn)
+kstatus_t nvic_clear_pendingirq(uint32_t IRQn)
 {
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(IRQn >= NUM_IRQS)) {
+        goto end;
+    }
     NVIC_ICPR[(uint32_t) (IRQn) >> 5] = (uint32_t) (1UL << ((uint32_t) (IRQn) & 0x1F)); /* Clear pending interrupt */
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 /* \brief  Get Active Interrupt
@@ -233,11 +267,11 @@ request_data_membarrier();                    /* Ensure all outstanding memory a
 
 
 /* arch-generic naming definition, aliasing CMSIS intrinsics */
-void     interrupt_enable_irq(uint32_t IRQn) __attribute__((alias("nvic_enableirq")));
-void     interrupt_disable_irq(uint32_t IRQn) __attribute__((alias("nvic_disableirq")));
+kstatus_t     interrupt_enable_irq(uint32_t IRQn) __attribute__((alias("nvic_enableirq")));
+kstatus_t     interrupt_disable_irq(uint32_t IRQn) __attribute__((alias("nvic_disableirq")));
 uint32_t interrupt_get_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_get_pendingirq")));
-void     interrupt_set_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_set_pendingirq")));
-void     interrupt_clear_pendingirq(uint32_t IRQn) __attribute__((alias("nvic_clear_pendingirq")));
+kstatus_t     interrupt_set_pending_irq(uint32_t IRQn) __attribute__((alias("nvic_set_pendingirq")));
+kstatus_t     interrupt_clear_pendingirq(uint32_t IRQn) __attribute__((alias("nvic_clear_pendingirq")));
 uint32_t interrupt_get_active(uint32_t IRQn) __attribute__((alias("nvic_get_active")));
 void     interrupt_systemreset(void) __attribute__((alias("nvic_systemreset")));
 void     interrupt_set_prioritygrouping(uint32_t PriorityGroup) __attribute__((alias("nvic_set_prioritygrouping")));

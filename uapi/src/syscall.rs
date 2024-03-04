@@ -151,6 +151,11 @@ pub extern "C" fn sys_get_device_handle(devlabel: u8) -> Status {
     syscall!(Syscall::GetDeviceHandle, devlabel as u32).into()
 }
 
+/// get value of given GPIO associated to given  device ressource
+#[no_mangle]
+pub extern "C" fn sys_irq_acknowledge(irq: u16) -> Status {
+    syscall!(Syscall::IrqAcknowledge, irq as u32).into()
+}
 
 /// Wait for input event. Single active blocking syscall.
 ///

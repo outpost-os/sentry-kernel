@@ -252,6 +252,11 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
             next_frame = gate_get_devhandle(frame, devid);
             break;
         }
+        case SYSCALL_IRQ_ACKNOWLEDGE: {
+            uint16_t IRQn = frame->r0;
+            next_frame = gate_get_devhandle(frame, IRQn);
+            break;
+        }
         default:
             next_frame = svc_handler_rs(frame);
             break;
