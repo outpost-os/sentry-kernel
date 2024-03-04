@@ -23,6 +23,7 @@
 /* as -dt generated file, the target dir is not the source dir. Using src/ relative path */
 #include "managers/device/device.h"
 
+{# get the 'compatible' field as a string table -#}
 {%- macro device_get_compatible(device) -%}
     {% if device.compatible is string %}
         {{ device.compatible|join('') }}
@@ -32,11 +33,12 @@
 {%- endmacro -%}
 
 
+{# get the device type from compatible, as a single string -#}
 {%- macro device_get_type(device) -%}
     {{ "%s"|format(device.compatible|join('')) }}
 {%- endmacro -%}
 
-
+{# get the device capa from the device type, using susbtr search -#}
 {% macro device_get_capa(device_type) -%}
     {% if 'gpio' in device_type or
           'leds' in device_type -%}
