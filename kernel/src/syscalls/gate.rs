@@ -1,7 +1,7 @@
 use crate::arch::*;
-use capabilities::*;
 use handles::*;
 use managers_bindings as mgr;
+use mgr::{secure_bool_SECURE_TRUE, capability_CAP_DEV_POWER, capability_CAP_MEM_SHM_USE, capability_CAP_TIM_HP_CHRONO, capability_CAP_CRY_KRNG};
 // use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
@@ -157,10 +157,13 @@ impl<'a> TaskMeta<'a> {
     }
 
     /// Verify that a task possess a given capability
-    fn can(self, capability: Capability) -> Result<TaskMeta<'a>, Status> {
-        if !Capability::from(self.meta.capabilities).contains(capability) {
+    fn can(self, capability: u32) -> Result<TaskMeta<'a>, Status> {
+        if unsafe {
+                mgr::mgr_security_has_capa(sched_get_current(), capability as u32) != secure_bool_SECURE_TRUE }
+        {
             return Err(Status::Denied);
         }
+
         Ok(self)
     }
 
@@ -240,7 +243,7 @@ pub fn set_syscall_status(val: Status) -> Result<Kstatus, Kstatus> {
 }
 
 pub fn manage_cpu_sleep(mode_in: u32) -> Result<StackFramePointer, Status> {
-    TaskMeta::current()?.can(Capability::SYS_POWER)?;
+    TaskMeta::current()?.can(capability_CAP_DEV_POWER)?;
 
     match CPUSleep::try_from(mode_in)? {
         CPUSleep::AllowSleep => (),
@@ -262,8 +265,8 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
     Ok(None)
 }
 // Thin wrapper over `mgr_device_get_capa`. This function never fails
-fn device_get_capa(dev: u32) -> Capability {
-    unsafe { Capability::from_bits_retain(mgr::mgr_device_get_capa(dev)) }
+fn device_get_capa(dev: u32) -> u32 {
+    unsafe { mgr::mgr_device_get_capa(dev)}
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
@@ -403,7 +406,7 @@ pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
         }
         Resource::Shm(shmu) => {
             let shm = handles::shmh_t::from(shmu);
-            meta.has_shm(shm)?.can(Capability::MEM_SHM_USE)?;
+            meta.has_shm(shm)?.can(capability_CAP_MEM_SHM_USE)?;
             // if unsafe { mgr::mgr_mm_map_shm(shm) } != 0 {
             //     return Err(Status::Invalid);
             // }
@@ -470,7 +473,7 @@ pub fn alarm(timeout_ms: u32) -> Result<StackFramePointer, Status> {
 }
 
 fn get_random() -> Result<StackFramePointer, Status> {
-    let current_task = TaskMeta::current()?.can(Capability::CRY_KRNG);
+    let current_task = TaskMeta::current()?.can(capability_CAP_CRY_KRNG);
     match current_task {
         Ok(_) => Status::Ok,
         Err(err) => {
@@ -497,7 +500,7 @@ fn get_cycle(precision: u32) -> Result<StackFramePointer, Status> {
     let cycles = match precision {
         Precision::Cycle => {
             let _ = set_syscall_status(Status::Denied);
-            current_task = current_task.can(Capability::TIM_HP_CHRONO)?;
+            current_task = current_task.can(capability_CAP_TIM_HP_CHRONO)?;
             unsafe { mgr::mgr_time_get_cycle() }
         }
         Precision::Nanoseconds => unsafe { mgr::mgr_time_get_nanoseconds() },

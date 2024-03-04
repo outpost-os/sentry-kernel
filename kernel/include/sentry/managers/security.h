@@ -32,6 +32,14 @@ typedef enum capability {
     CAP_CRY_KRNG         = (0x1UL  << 21),
 } capability_t;
 
+/** @def mask for dev capability. dev capa hold 11 first bytes of register */
+#define CAP_DEV_MASK ((0x1UL  << 12) - 1)
+/** @def mask for sys capability, hold bits 12-15 */
+#define CAP_SYS_MASK (((0x1UL  << 16) - 1) & ~CAP_DEV_MASK)
+/*@ def mask for mem capability */
+#define CAP_MEM_MASK (((0x1UL << 20) - 1) & ~(CAP_DEV_MASK | CAP_SYS_MASK))
+
+
 #include <sentry/ktypes.h>
 
 kstatus_t mgr_security_init(void);

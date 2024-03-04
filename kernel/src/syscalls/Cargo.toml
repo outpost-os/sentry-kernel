@@ -9,7 +9,6 @@ test = false
 doc = true
 
 [dependencies]
-capabilities = { path = "../../../uapi/include/uapi/capabilities" }
 handles = { path = "../../../uapi/include/uapi/handles" }
 systypes = { path = "../../../uapi/include/uapi/types" }
 managers_bindings = { path = "managers_bindings" }

@@ -18,7 +18,7 @@
 #include <sentry/ktypes.h>
 #include <uapi/handle.h>
 #include <uapi/device.h>
-#include <uapi/capability.h>
+#include <sentry/managers/security.h>
 #include <sentry/managers/device.h>
 /* as -dt generated file, the target dir is not the source dir. Using src/ relative path */
 #include "managers/device/device.h"
@@ -42,7 +42,7 @@
 {% macro device_get_capa(device_type) -%}
     {% if 'gpio' in device_type or
           'leds' in device_type -%}
-    {% set capa = 'sentry_capability_t_DEV_IO' -%}
+    {% set capa = 'CAP_DEV_IO' -%}
     {% elif 'usart' in device_type or
             'lpuart' in device_type or
             'usart' in device_type or
@@ -59,39 +59,39 @@
             'mipi-dsi' in device_type or
             'exti' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_BUSES' -%}
+    {% set capa = 'CAP_DEV_BUSES' -%}
     {% elif 'dma' in device_type or
             'bdma' in device_type or
             'dmamux' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_DMA' -%}
+    {% set capa = 'CAP_DEV_DMA' -%}
     {% elif 'adc' in device_type or
             'dac' in device_type or
             'pwm' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_ANALOG' -%}
+    {% set capa = 'CAP_DEV_ANALOG' -%}
     {% elif 'timers' in device_type or
             'timer' in device_type or
             'lptim' in device_type or
             'rtc' in device_type or
             'watchdog' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_TIMER' -%}
+    {% set capa = 'CAP_DEV_TIMER' -%}
     {% elif 'flash' in device_type or
             'fmc' in device_type or
             'sdmmc' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_STORAGE' -%}
+    {% set capa = 'CAP_DEV_STORAGE' -%}
     {% elif 'aes' in device_type or
             'cryp' in device_type or
             'rng' in device_type or
             'syscfg' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_CRYPTO' -%}
+    {% set capa = 'CAP_DEV_CRYPTO' -%}
     {% elif 'ucpd' in device_type or
             'rcc' in device_type
     -%}
-    {% set capa = 'sentry_capability_t_DEV_POWER' -%}
+    {% set capa = 'CAP_DEV_POWER' -%}
     {% else %}
     {% set capa = '0' -%}
     {% endif -%}

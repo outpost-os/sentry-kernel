@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "uapi/include/uapi",
-    "uapi/include/uapi/capabilities",
     "uapi/include/uapi/handles",
     "uapi/include/uapi/types",
     "kernel/src/syscalls",

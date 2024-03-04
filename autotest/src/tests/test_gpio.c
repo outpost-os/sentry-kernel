@@ -2,7 +2,6 @@
 #include <testlib/log.h>
 #include <testlib/assert.h>
 #include <uapi/uapi.h>
-#include <uapi/capability.h>
 #include <devices-dt.h>
 #include "test_gpio.h"
 

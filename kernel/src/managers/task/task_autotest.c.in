@@ -26,7 +26,7 @@ void task_autotest_init(void)
     /* for its own usage, by now, autotest needs some capa. Later version will
      * support autotest syscall-based assignation
      */
-    autotest_meta.capabilities = sentry_capability_t_CRY_KRNG.bits | sentry_capability_t_DEV_BUSES.bits;
+    autotest_meta.capabilities = (CAP_CRY_KRNG | CAP_DEV_BUSES);
     autotest_meta.magic = CONFIG_TASK_MAGIC_VALUE;
     autotest_meta.flags.start_mode = JOB_FLAG_START_AUTO;
     autotest_meta.flags.exit_mode = JOB_FLAG_EXIT_RESET;
