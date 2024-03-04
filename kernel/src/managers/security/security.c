@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <sentry/ktypes.h>
 #include <sentry/managers/security.h>
+#include <sentry/managers/task.h>
 #include <sentry/managers/debug.h>
 #include <sentry/arch/asm-generic/platform.h>
 #include "entropy.h"
@@ -30,8 +31,9 @@ kstatus_t mgr_security_init(void)
 kstatus_t mgr_security_get_capa(taskh_t tsk, uint32_t *capas)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    const task_meta_t *meta;
 
-    if (unlikely(capa == NULL)) {
+    if (unlikely(capas == NULL)) {
         goto end;
     }
     if (unlikely(mgr_task_get_metadata(tsk, &meta) != K_STATUS_OKAY)) {
@@ -46,6 +48,7 @@ end:
 secure_bool_t mgr_security_has_dev_capa(taskh_t tsk)
 {
     secure_bool_t res = SECURE_FALSE;
+    const task_meta_t *meta;
 
     if (unlikely(mgr_task_get_metadata(tsk, &meta) != K_STATUS_OKAY)) {
         /* current must be a valid task */
@@ -61,6 +64,7 @@ end:
 secure_bool_t mgr_security_has_sys_capa(taskh_t tsk)
 {
     secure_bool_t res = SECURE_FALSE;
+    const task_meta_t *meta;
 
     if (unlikely(mgr_task_get_metadata(tsk, &meta) != K_STATUS_OKAY)) {
         /* current must be a valid task */
@@ -77,6 +81,7 @@ end:
 secure_bool_t mgr_security_has_capa(taskh_t tsk, capability_t  capa)
 {
     secure_bool_t res = SECURE_FALSE;
+    const task_meta_t *meta;
 
     if (unlikely(mgr_task_get_metadata(tsk, &meta) != K_STATUS_OKAY)) {
         /* current must be a valid task */
@@ -92,6 +97,7 @@ end:
 secure_bool_t mgr_security_has_oneof_capas(taskh_t tsk, uint32_t capas)
 {
     secure_bool_t res = SECURE_FALSE;
+    const task_meta_t *meta;
 
     if (unlikely(mgr_task_get_metadata(tsk, &meta) != K_STATUS_OKAY)) {
         /* current must be a valid task */

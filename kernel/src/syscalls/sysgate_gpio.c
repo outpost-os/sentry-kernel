@@ -4,6 +4,7 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/device.h>
 #include <sentry/managers/io.h>
+#include <sentry/managers/security.h>
 #include <sentry/sched.h>
 
 /** XXX: using io manager API instead */
@@ -38,9 +39,13 @@ stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t devhandle, uint8_t io,
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-    /* disable ownership test in autotet only */
+    /* disable ownership test in autotest only */
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         pr_err("c");
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
+    if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -87,6 +92,10 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+    if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
@@ -123,6 +132,10 @@ stack_frame_t *gate_gpio_reset(stack_frame_t *frame, devh_t devhandle, uint8_t i
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+    if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
@@ -149,6 +162,10 @@ stack_frame_t *gate_gpio_toggle(stack_frame_t *frame, devh_t devhandle, uint8_t 
         goto end;
     }
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
+    if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -189,6 +206,10 @@ stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t devhandle, uint8
         goto end;
     }
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
+    if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
