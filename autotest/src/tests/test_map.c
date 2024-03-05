@@ -68,6 +68,8 @@ void test_map(void) {
 #if DEVICE_LIST_SIZE > 0
     TEST_SUITE_START("sys_map");
     test_mapunmap();
+    test_invalidmap();
+    test_unmap_notmapped();
     TEST_SUITE_END("sys_map");
 #endif
 }
