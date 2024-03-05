@@ -161,7 +161,6 @@ endif
 summary(
     {
         'soc': kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower(),
-        'dts': kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower(),
     },
     section: 'Configuration'
 )
