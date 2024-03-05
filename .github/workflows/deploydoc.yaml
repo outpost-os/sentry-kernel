@@ -122,4 +122,4 @@ jobs:
             set -e
             git commit -am "CI: update sentry component"
             git push origin main
-          endif
+          fi
