@@ -100,13 +100,9 @@ __STATIC_FORCEINLINE void mpu_fastload(
     const layout_resource_t *resource,
     uint8_t num_resources)
 {
-    __DSB();
-    for (uint8_t r = 4; r < CONFIG_NUM_MPU_REGIONS; ++r) {
-        ARM_MPU_ClrRegion(r);
-    }
+    mpu_disable();
     __mpu_fastload(first_region_number, resource, num_resources);
-    __ISB();
-    __DSB();
+    mpu_enable();
 }
 
 /*
