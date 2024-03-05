@@ -17,6 +17,7 @@
 #include "tests/test_handle.h"
 #include "tests/test_signal.h"
 #include "tests/test_gpio.h"
+#include "tests/test_map.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -50,6 +51,7 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     test_cycles();
     test_sleep();
     test_gpio();
+    test_map();
     LOG("AUTOTEST END");
 
 

@@ -33,16 +33,32 @@ device_state_t devices_state[DEVICE_LIST_SIZE];
 /**
  * @brief return a device metadata structure based on a device handle
  */
-static inline const device_t *mgr_device_get_device(devh_t d)
+static inline device_t const *device_get_device(devh_t d)
 {
-    const device_t *dev = NULL;
+    device_t const *dev = NULL;
     /* here we do not match only the id but also the capability and family
      * (i.e. full opaque check)
      */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
-            dev = &devices[i];
+            dev = devices_state[i].device;
+            break;
+        }
+    }
+    return dev;
+}
+
+static inline device_state_t *device_get_device_state(devh_t d)
+{
+    device_state_t *dev = NULL;
+    /* here we do not match only the id but also the capability and family
+     * (i.e. full opaque check)
+     */
+    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        const devh_t handle = forge_devh(devices_state[i].device);
+        if (handle == d) {
+            dev = &devices_state[i];
             break;
         }
     }
@@ -109,6 +125,42 @@ kstatus_t mgr_device_init(void)
     return status;
 }
 
+kstatus_t mgr_device_get_map_state(devh_t d, secure_bool_t *mapped)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const device_state_t *dev = NULL;
+
+    dev = device_get_device_state(d);
+    if (unlikely(mapped == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(mapped); */
+    if (unlikely(dev == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid_read(device); */
+    *mapped = dev->mapped;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t mgr_device_set_map_state(devh_t d, secure_bool_t mapped)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    device_state_t *dev = NULL;
+
+    dev = device_get_device_state(d);
+    if (unlikely(dev == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(device); */
+    dev->mapped = mapped;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_device_autotest(void)
 {
@@ -129,7 +181,7 @@ kstatus_t mgr_device_watchdog(void)
 secure_bool_t mgr_device_exists(devh_t d)
 {
     secure_bool_t res = SECURE_FALSE;
-    if (mgr_device_get_device(d) != NULL) {
+    if (device_get_device(d) != NULL) {
         res = SECURE_TRUE;
     }
     return res;

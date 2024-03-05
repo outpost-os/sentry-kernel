@@ -2,7 +2,7 @@ use crate::arch::*;
 use handles::*;
 use managers_bindings as mgr;
 use mgr::{
-    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER, capability_CAP_MEM_SHM_USE,
+    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER,
     capability_CAP_TIM_HP_CHRONO, secure_bool_SECURE_TRUE,
 };
 // use mgr::kstatus_K_ERROR_BADENTROPY;
@@ -18,10 +18,10 @@ pub fn syscall_dispatch(syscall_number: u8, args: &[u32]) -> Result<StackFramePo
         Syscall::Yield => r#yield(),
         Syscall::Sleep => sleep(args[0], args[1]),
         Syscall::Start => start(args[0]),
-        Syscall::MapDev => map(Resource::Dev(args[0])),
-        Syscall::MapShm => map(Resource::Shm(args[0])),
-        Syscall::UnmapDev => unmap(Resource::Dev(args[0])),
-        Syscall::UnmapShm => unmap(Resource::Shm(args[0])),
+        Syscall::MapDev => Ok(None),
+        Syscall::MapShm => Ok(None),
+        Syscall::UnmapDev => Ok(None),
+        Syscall::UnmapShm => Ok(None),
         Syscall::SHMSetCredential => shm_set_credential(args[0], args[1], args[2]),
         Syscall::SendIPC => send_ipc(args[0], args[1] as u8),
         Syscall::SendSignal => send_signal(args[0], args[1]),
@@ -170,22 +170,6 @@ impl<'a> TaskMeta<'a> {
 
         Ok(self)
     }
-
-    fn has_dev(self, dev: handles::devh_t) -> Result<TaskMeta<'a>, Status> {
-        let declared_devs = &self.meta.devs[..self.meta.num_devs as usize];
-        if !declared_devs.contains(&dev) {
-            return Err(Status::Denied);
-        }
-        Ok(self)
-    }
-
-    fn has_shm(self, shm: handles::shmh_t) -> Result<TaskMeta<'a>, Status> {
-        let declared_shms = &self.meta.shms[..self.meta.num_shm as usize];
-        if !declared_shms.contains(&shm) {
-            return Err(Status::Denied);
-        }
-        Ok(self)
-    }
 }
 
 impl JobState {
@@ -267,10 +251,6 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
         return Err(Status::Invalid);
     }
     Ok(None)
-}
-// Thin wrapper over `mgr_device_get_capa`. This function never fails
-fn device_get_capa(dev: u32) -> u32 {
-    unsafe { mgr::mgr_device_get_capa(dev) }
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
@@ -389,54 +369,6 @@ pub fn start(_process: u32) -> Result<StackFramePointer, Status> {
 pub enum Resource {
     Dev(u32),
     Shm(u32),
-}
-
-pub fn map(resource: Resource) -> Result<StackFramePointer, Status> {
-    let meta = TaskMeta::current()?;
-    // Check:
-    // - the requested device/shm was declared in the current task
-    // - the device/shm's capabilities match the current task's capabilities
-    match resource {
-        Resource::Dev(devu) => {
-            let dev = handles::devh_t::from(devu);
-            let capa = device_get_capa(devu);
-            meta.has_dev(dev)?.can(capa)?;
-
-            // FIXME: check whether device is already mapped
-            if unsafe { mgr::mgr_mm_map_device(dev) } != 0 {
-                let _ = set_syscall_status(Status::Invalid);
-                return Err(Status::Invalid);
-            }
-        }
-        Resource::Shm(shmu) => {
-            let shm = handles::shmh_t::from(shmu);
-            meta.has_shm(shm)?.can(capability_CAP_MEM_SHM_USE)?;
-            // if unsafe { mgr::mgr_mm_map_shm(shm) } != 0 {
-            //     return Err(Status::Invalid);
-            // }
-            todo!()
-        }
-    }
-    let _ = set_syscall_status(Status::Ok);
-    Ok(None)
-}
-
-pub fn unmap(resource: Resource) -> Result<StackFramePointer, Status> {
-    match resource {
-        Resource::Dev(devu) => {
-            let dev = handles::devh_t::from(devu);
-            if unsafe { mgr::mgr_mm_unmap_device(dev) } != 0 {
-                let _ = set_syscall_status(Status::Invalid);
-                return Err(Status::Invalid);
-            }
-        }
-        Resource::Shm(_shmu) => {
-            let _ = set_syscall_status(Status::Invalid);
-            return Err(Status::Invalid);
-        }
-    }
-    let _ = set_syscall_status(Status::Ok);
-    Ok(None)
 }
 
 pub fn shm_set_credential(

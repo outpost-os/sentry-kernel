@@ -5,7 +5,7 @@
 #include <devices-dt.h>
 #include "test_gpio.h"
 
-
+#if DEVICE_LIST_SIZE > 0
 void test_gpio_on(void)
 {
     Status res;
@@ -87,7 +87,7 @@ void test_gpio_invalid_devh(void)
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
-
+#endif
 
 void test_gpio(void) {
 #if DEVICE_LIST_SIZE > 0

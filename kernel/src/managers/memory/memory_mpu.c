@@ -156,18 +156,14 @@ err:
     return status;
 }
 
-kstatus_t mgr_mm_unmap_device(devh_t dev)
+kstatus_t mgr_mm_unmap_device(taskh_t tsk, devh_t dev)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     const devinfo_t *devinfo;
-    taskh_t tsk;
     layout_resource_t layout;
     const layout_resource_t *layout_tab;
     uint8_t id;
-    if (unlikely((status = mgr_task_get_device_owner(dev, &tsk)) != K_STATUS_OKAY)) {
-        pr_err("failed to get device owner for dev %x", dev);
-        goto err;
-    }
+
     if (unlikely((status = mgr_device_get_info(dev, &devinfo)) != K_STATUS_OKAY)) {
         pr_err("failed to get device meta from dev handle %x", dev);
         goto err;
@@ -180,23 +176,19 @@ kstatus_t mgr_mm_unmap_device(devh_t dev)
         pr_err("device %x not found in mapped layout", dev);
         goto err;
     }
-    status = mgr_task_remove_resource(tsk, mm_mgr_region_to_layout_id(id));
+    status = mgr_task_remove_resource(tsk, mgr_mm_region_to_layout_id(id));
 err:
     return status;
 }
 
-kstatus_t mgr_mm_map_device(devh_t dev)
+kstatus_t mgr_mm_map_device(taskh_t tsk, devh_t dev)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     const devinfo_t *devinfo;
-    taskh_t tsk;
     struct mpu_region_desc mpu_cfg;
     layout_resource_t layout;
     const layout_resource_t *layout_tab;
-    if (unlikely((status = mgr_task_get_device_owner(dev, &tsk)) != K_STATUS_OKAY)) {
-        pr_err("failed to get device owner for dev %x", dev);
-        goto err;
-    }
+
     if (unlikely((status = mgr_device_get_info(dev, &devinfo)) != K_STATUS_OKAY)) {
         pr_err("failed to get device meta from dev handle %x", dev);
         goto err;
@@ -219,7 +211,7 @@ kstatus_t mgr_mm_map_device(devh_t dev)
     mpu_cfg.shareable = false;
     status = mpu_forge_resource(&mpu_cfg, &layout);
     /*@ assert status == K_STATUS_OKAY; */
-    status = mgr_task_add_resource(tsk, mm_mgr_region_to_layout_id(mpu_cfg.id), layout);
+    status = mgr_task_add_resource(tsk, mpu_cfg.id, layout);
     if (unlikely(status != K_STATUS_OKAY)) {
         /* should not happen as already checked when getting free id */
         /*@ assert false; */

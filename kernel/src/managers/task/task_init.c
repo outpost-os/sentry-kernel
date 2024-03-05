@@ -221,9 +221,9 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     ctx.numtask++;
     /* forge current task layout to task context */
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -345,9 +345,9 @@ static inline kstatus_t task_init_add_autotest(void)
     /* task added to task local task list, needed so that others managers can request it */
     ctx.numtask++;
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     ctx.status = task_set_job_layout(task_ctx);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_err("failed to set job layout!");
@@ -400,9 +400,9 @@ static inline kstatus_t task_init_add_idle(void)
         task_ctx->handle.family);
     ctx.numtask++;
     mgr_mm_forge_ressource(MM_REGION_TASK_TXT, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_TXT), ressource);
     mgr_mm_forge_ressource(MM_REGION_TASK_DATA, *handle, &ressource);
-    mgr_task_add_resource(*handle, mm_mgr_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
+    mgr_task_add_resource(*handle, mgr_mm_region_to_layout_id(MM_REGION_TASK_DATA), ressource);
     ctx.status = task_set_job_layout(task_ctx);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_err("failed to set job layout!");

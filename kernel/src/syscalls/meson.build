@@ -17,6 +17,7 @@ csyscalls = files(
     'sysgate_gpio.c',
     'sysgate_get_devhandle.c',
     'sysgate_int_acknowledge.c',
+    'sysgate_map.c',
 )
 
 sentry_source_set.add(csyscalls)
