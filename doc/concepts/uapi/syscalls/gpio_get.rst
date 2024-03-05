@@ -26,6 +26,8 @@ When the device is a SoC-device that requires I/O configuration, the very same
 mechanisms is used, through the standard definition and usage of pinctrl attribute.
 
 .. code-block:: dts
+    :linenos:
+
     button0: button_0 {
 		compatible = "gpio-button";
     	outpost,owner = <0xbabe>;

@@ -100,11 +100,9 @@ __STATIC_FORCEINLINE void mpu_fastload(
     const layout_resource_t *resource,
     uint8_t num_resources)
 {
-    __ISB();
-    __DSB();
+    mpu_disable();
     __mpu_fastload(first_region_number, resource, num_resources);
-    __ISB();
-    __DSB();
+    mpu_enable();
 }
 
 /*
@@ -122,7 +120,12 @@ __STATIC_FORCEINLINE void mpu_fastload(
  *  Hackish for now, make assumption that this tab belongs to a task and applied
  *  an hardcoded offset.
  */
-__STATIC_FORCEINLINE kstatus_t mpu_get_free_id(const layout_resource_t* resource, uint8_t num_resources, uint8_t *id)
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
+__STATIC_FORCEINLINE
+#else
+static
+#endif
+kstatus_t mpu_get_free_id(const layout_resource_t* resource, uint8_t num_resources, uint8_t *id)
 {
     kstatus_t status = K_ERROR_NOENT;
 

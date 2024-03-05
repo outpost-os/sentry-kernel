@@ -88,6 +88,11 @@
 	status = "okay";
 };
 
+&i2c1 {
+	status = "okay";
+	outpost,owner = <0xbabe>;
+};
+
 &rcc {
 	clocks = <&clk_msis>;
 	clock-frequency = <DT_FREQ_M(4)>;

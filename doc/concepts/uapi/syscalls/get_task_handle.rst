@@ -1,5 +1,3 @@
-
-
 Get_Task_Handle
 """""""""""""""
 .. _uapi_task_handle:
@@ -52,7 +50,7 @@ uniquely identified by `label` on the system, and can be called multiple time if
    if (sys_get_handle(my_peer_label) != STATUS_OK) {
       // [...]
    }
-   memcpy(&my_peer_handle, &_s_svc_exchange, sizeof(taskh_t));
+   copy_to_user(&my_peer_handle, sizeof(taskh_t));
    sys_send_signal(my_peer_handle, SIGNAL_POLL);
 
 **Required capability**
@@ -61,6 +59,5 @@ uniquely identified by `label` on the system, and can be called multiple time if
 
 **Return values**
 
-   * STATUS_BUSY if the target has its input signal queue full
-   * STATUS_INVALID if the target do not exist in the current job domain
+   * STATUS_INVALID if the target task do not exist in the current task domain
    * STATUS_OK

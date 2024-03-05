@@ -43,6 +43,11 @@ Syscall definition
 .. include:: syscalls/exit.rst
 
 .. index::
+  single: sys_get_dev_handle; definition
+  single: sys_get_dev_handle; usage
+.. include:: syscalls/get_devhandle.rst
+
+.. index::
   single: sys_get_random; definition
   single: sys_get_random; usage
 .. include:: syscalls/get_random.rst
@@ -83,8 +88,10 @@ Syscall definition
 .. include:: syscalls/log.rst
 
 .. index::
-  single: sys_map; definition
-  single: sys_map; usage
+  single: sys_map_dev; definition
+  single: sys_map_dev; usage
+  single: sys_unmap_dev; definition
+  single: sys_unmap_dev; usage
 .. include:: syscalls/map.rst
 
 .. index::
@@ -96,3 +103,8 @@ Syscall definition
   single: sys_send_signal; definition
   single: sys_send_signal; usage
 .. include:: syscalls/send_signal.rst
+
+.. index::
+  single: sys_wait_for_event; definition
+  single: sys_wait_for_event; usage
+.. include:: syscalls/waitforevent.rst

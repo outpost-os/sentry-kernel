@@ -17,12 +17,28 @@
 #include <uapi/handle.h>
 #include <uapi/device.h>
 
+{% macro device_get_owner(device) -%}
+{% if device["outpost,owner"] -%}
+{{ "0x%x"|format(device["outpost,owner"]) }}
+{% else -%}
+{{ "0x%x"|format(0) }}
+{% endif -%}
+{% endmacro -%}
+
+enum devid {
+    {% for device in dts.get_active_nodes() -%}
+    {% if "0xbabe" in device_get_owner(device) -%}
+    DEV_ID_{{ device.label.upper() }},
+    {% endif -%}
+    {% endfor -%}
+    DEV_ID_MAX,
+};
+
 {% set ns = namespace() -%}
 {% set ns.total_devices=0 -%}
 static const devinfo_t devices[] = {
     {% for device in dts.get_active_nodes() -%}
-    {% if device["outpost,owner"] -%}
-    {% if device["outpost,owner"] == 0xbabe -%}
+    {% if "0xbabe" in device_get_owner(device) -%}
     {% set ns.total_devices = ns.total_devices + 1 -%}
     {
         .id = {{ "0x%xUL"|format(loop.index - 1) }},
@@ -90,7 +106,6 @@ static const devinfo_t devices[] = {
         },
         {% endif -%}
     },
-    {% endif -%}
     {% endif -%}
     {% endfor %}
 };

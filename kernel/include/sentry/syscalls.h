@@ -24,4 +24,8 @@ stack_frame_t *gate_get_devhandle(stack_frame_t *frame, uint8_t devid);
 
 stack_frame_t *gate_int_acknowledge(stack_frame_t *frame, uint16_t IRQn);
 
+stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device);
+
+stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device);
+
 #endif/*!SYSCALLS_H*/

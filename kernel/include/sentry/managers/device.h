@@ -24,6 +24,10 @@ kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner);
 
 kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle);
 
+kstatus_t mgr_device_set_map_state(devh_t d, secure_bool_t mapped);
+
+kstatus_t mgr_device_get_map_state(devh_t d, secure_bool_t *mapped);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_device_autotest(void);
 #endif

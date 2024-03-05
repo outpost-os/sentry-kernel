@@ -63,12 +63,12 @@ kstatus_t mgr_mm_map_task(taskh_t t);
  * Do **not** handle I/O nor interrupts neither clock config
  * (see corresponding managers for this)
  */
-kstatus_t mgr_mm_map_device(devh_t dev);
+kstatus_t mgr_mm_map_device(taskh_t tsk, devh_t dev);
 
 /**
  * unmap a previously mapped device from the associated task owner layout
  */
-kstatus_t mgr_mm_unmap_device(devh_t dev);
+kstatus_t mgr_mm_unmap_device(taskh_t tsk, devh_t dev);
 
 
 kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resource_t *ressource);
@@ -86,7 +86,7 @@ kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resourc
  * @param  region_id MPU region id
  * @return The associated id in task layout table.
  */
-static inline uint8_t mm_mgr_region_to_layout_id(uint8_t region_id)
+static inline uint8_t mgr_mm_region_to_layout_id(uint8_t region_id)
 {
     if (unlikely(region_id >= CONFIG_NUM_MPU_REGIONS)) {
         panic(PANIC_HARDWARE_INVALID_STATE); /* TODO: do we add a BUG panic event as in linux ? */
@@ -94,7 +94,7 @@ static inline uint8_t mm_mgr_region_to_layout_id(uint8_t region_id)
     return region_id - TASK_FIRST_REGION_NUMBER;
 }
 
-static inline uint8_t mm_mgr_layout_to_region_id(uint8_t layout_id)
+static inline uint8_t mgr_mm_layout_to_region_id(uint8_t layout_id)
 {
     if (unlikely(layout_id >= TASK_MAX_RESSOURCES_NUM)) {
         panic(PANIC_HARDWARE_INVALID_STATE); /* TODO: do we add a BUG panic event as in linux ? */
