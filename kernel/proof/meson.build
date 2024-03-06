@@ -1,16 +1,13 @@
 
-frama_c = find_program('frama-c', version: '27.1', required: true, native: true)
+frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
-cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
+cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
 
 
 framac_gen_opts = [
-  '-no-meta',
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
-  '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'sentry-parse-user.log'),
-  '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'sentry-parse-all.log'),
   '-machdep', 'x86_32',
   '-instantiate',
   '-json-compilation-database', join_paths(meson.project_build_root(), 'compile_commands.json'),
@@ -53,13 +50,11 @@ framac_wp_opts = [
 
 framac_md_opts = [
   '-mdr-gen', 'md',
-  '-mdr-out', join_paths(meson.current_build_dir(), 'sentry-report.md'),
   '-mdr-title', 'Sentry kernel noRTE report',
-  '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-md.log'),
 ]
 #'-wp-prop="-@lemma"',
 kernel_entrypoint = files(
-  '../src/startup/entrypoint.c',
+  join_paths(meson.project_source_root(), 'kernel/src/startup/entrypoint.c'),
 )
 
 # Part 1: analysis from kernel entrypoint. These targets check the call graph from
@@ -72,50 +67,112 @@ kernel_entrypoint = files(
 # headers themselves
 framac_dep = custom_target(
     command: [ 'true' ],
-    input: [ sentry_header_set_config.sources() ],
+    input: [
+      sentry_header_set_config.sources(),
+      sentry_private_header_set_config.sources(),
+      sentry_private_gen_header_set_config.sources(),
+    ],
     output: 'framac.dep',
 )
 
-#test(
-#  'frama-C-parsing',
-#  frama_c,
-#  args: [
-#    kernel_entrypoint, sentry_source_set_config.sources(),
-#    framac_gen_opts,
-#    '-main', '_entrypoint',
-#  ],
-#  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-#  suite: 'proof',
-#  depends: [ framac_dep ],
-#  timeout: 60,
-#  is_parallel: false,
-#  priority: 255,
-#  should_fail: true, # XXX until dts-gen sources parse and eva fixup
-#)
+test(
+  'frama-C-parsing',
+  frama_c,
+  args: [
+    kernel_entrypoint, sentry_source_set_config.sources(),
+    framac_gen_opts,
+    '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-parsing-user.log'),
+    '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-parsing-sentry-all.log'),
+    '-main', '_entrypoint',
+  ],
+  env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), 'frama-c-parsing')},
+  suite: 'proof',
+  depends: [ framac_dep ],
+  timeout: 120,
+  is_parallel: false,
+  priority: 255,
+)
 
-#test(
-#  'frama-C-eva',
-# frama_c,
-# args: [
-#    kernel_entrypoint, sentry_source_set_config.sources(),
-#    framac_gen_opts,
-#    '-main', '_entrypoint',
-#    framac_rte_eva_opts,
-#    '-metrics',
-#    '-metrics-eva-cover',
-#    '-metrics-output',join_paths(meson.current_build_dir(), 'sentry-rte-eva-coverage.json'),
-#    '-save',join_paths(meson.current_build_dir(), 'sentry.eva'),
-#    '-then',
-#    framac_md_opts,
-#  ],
-#  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
-#  depends: [ framac_dep ],
-#  suite: 'proof',
-#  timeout: 120,
-#  is_parallel: false,
-#  priority: 254,
-#  should_fail: true, # XXX until dts-gen sources parse and eva fixup
-#)
+# testing EVA/noRTE through kernel bootup entrypoint (init phase)
+test(
+  'frama-C-eva',
+ frama_c,
+ args: [
+    kernel_entrypoint, sentry_source_set_config.sources(),
+    framac_gen_opts,
+    '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-user.log'),
+    '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-all.log'),
+    '-main', '_entrypoint',
+    framac_rte_eva_opts,
+    '-eva-flamegraph',join_paths(meson.current_build_dir(), 'frama-c-eva.flamegraph'),
+    '-eva-report-red-statuses',join_paths(meson.current_build_dir(), 'frama-c-eva.red'),
+    '-metrics',
+    '-metrics-eva-cover',
+    '-metrics-output',join_paths(meson.current_build_dir(), 'frama-c-eva-coverage.json'),
+    '-save',join_paths(meson.current_build_dir(), 'frama-c-eva.session'),
+    '-then',
+    framac_md_opts,
+    '-mdr-out', join_paths(meson.current_build_dir(), 'frama-c-eva-report.md'),
+    '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'frama-c-eva-md.log'),
+  ],
+  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), 'frama-c-eva')},
+  depends: [ framac_dep ],
+  suite: 'proof',
+  timeout: 600,
+  is_parallel: false,
+  priority: 254,
+)
+
+# specify an ELF including framaC main. This forges the correct flags in the
+# compile_commands.json so that framaC can use it. Although it should never be
+# built by meson, but instead json metadata being used by framaC to forge the
+# correct cpp args
+# this allows custom entrypoint for, typically, syscall entrypoints coverage
+frama_c_norte_svc_entrypoint = files(
+  'svc_entrypoint.c',
+)
+
+framac_stub_elf = executable(
+    'framac_norte_svc_entrypoint',
+    name_suffix: 'elf',
+    sources: [frama_c_norte_svc_entrypoint ],
+    include_directories: kernel_inc,
+    dependencies: [sentry_dep, external_deps],
+    c_args: [ target_arch_args, global_build_args ],
+    install: false,
+    build_by_default: false,
+)
+
+# testing EVA/noRTE through kernel svc handler
+test(
+  'frama-C-eva-svc',
+ frama_c,
+ args: [
+    frama_c_norte_svc_entrypoint, sentry_source_set_config.sources(),
+    framac_gen_opts,
+    '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-svc-user.log'),
+    '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-svc-all.log'),
+    '-main', 'svc_entrypoint',
+    framac_rte_eva_opts,
+    '-eva-flamegraph',join_paths(meson.current_build_dir(), 'frama-c-eva-svc.flamegraph'),
+    '-eva-report-red-statuses',join_paths(meson.current_build_dir(), 'frama-c-eva-svc.red'),
+    '-metrics',
+    '-metrics-eva-cover',
+    '-metrics-output',join_paths(meson.current_build_dir(), 'frama-c-eva-svc-coverage.json'),
+    '-save',join_paths(meson.current_build_dir(), 'frama-c-eva-svc.session'),
+    '-then',
+    framac_md_opts,
+    '-mdr-out', join_paths(meson.current_build_dir(), 'frama-c-eva-svc-report.md'),
+    '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'frama-c-eva-svc-md.log'),
+  ],
+  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), 'frama-c-eva-svc')},
+  depends: [ framac_dep ],
+  suite: 'proof',
+  timeout: 600,
+  is_parallel: false,
+  priority: 254,
+)
+
 
 # the bellow part is to be fixed with separated test suites
 #frama_c_wp = custom_target(
@@ -141,5 +198,5 @@ framac_dep = custom_target(
 # execution, using the root Handler as entrypoint source.
 
 # including per driver WP coverage
-subdir('proof_bsp')
+#subdir('proof_bsp')
 # TODO
