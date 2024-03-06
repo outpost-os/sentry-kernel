@@ -87,7 +87,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -115,7 +115,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -141,7 +141,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -177,7 +177,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -205,7 +205,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -233,7 +233,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @ requires \valid(val);
@@ -265,7 +265,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/
@@ -294,7 +294,7 @@ err:
     return status;
 }
 
-/*@
+/*
   @ requires gpio_port_id <= GPIO_PORTS_NUMBER;
   @ requires pin <= 31;
   @*/

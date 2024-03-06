@@ -199,7 +199,7 @@ kstatus_t mgr_device_get_map_state(devh_t d, secure_bool_t *mapped)
     if (unlikely(dev == NULL)) {
         goto end;
     }
-    /*@ assert \valid_read(device); */
+    /*@ assert \valid_read(dev); */
     *mapped = dev->mapped;
     status = K_STATUS_OKAY;
 end:
@@ -215,7 +215,7 @@ kstatus_t mgr_device_set_map_state(devh_t d, secure_bool_t mapped)
     if (unlikely(dev == NULL)) {
         goto end;
     }
-    /*@ assert \valid(device); */
+    /*@ assert \valid(dev); */
     dev->mapped = mapped;
     status = K_STATUS_OKAY;
 end:

@@ -43,14 +43,15 @@ static inline kstatus_t rng_unmap(void) {
  * @param nothing
  * @return nothing
  */
-/*@
-  @ assigns *(uint32_t*)(RNG_BASE_ADDR .. RNG_BASE_ADDR + RNG_DR_REG);
-  @ ensures rng_enabled == \true <==> \result == K_STATUS_OKAY;
-  @ ensures \result == K_STATUS_OKAY ||
+/*
+  // to be replaced with ghost functions
+  assigns *(uint32_t*)(RNG_BASE_ADDR .. RNG_BASE_ADDR + RNG_DR_REG);
+  ensures rng_enabled == \true <==> \result == K_STATUS_OKAY;
+  ensures \result == K_STATUS_OKAY ||
             \result == K_ERROR_BADCLK ||
             \result == K_ERROR_NOTREADY ||
             \result == K_ERROR_BADENTROPY;
-  @*/
+  */
 kstatus_t rng_probe(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -106,14 +107,15 @@ err:
     return status;
 }
 
-/*@
-  @ requires \valid(random);
-  @ assigns *random;
-  @ ensures rng_enabled == \false <==> \result == K_ERROR_BADSTATE;
-  @ ensures \result == K_STATUS_OKAY ||
-            \result == K_ERROR_NOTREADY ||
-            \result ==  K_SECURITY_FIPSCOMPLIANCE;
-  @*/
+/*
+  // to be replaced with ghost functions
+  requires \valid(random);
+  assigns *random;
+  ensures rng_enabled == \false <==> \result == K_ERROR_BADSTATE;
+  ensures \result == K_STATUS_OKAY ||
+        \result == K_ERROR_NOTREADY ||
+        \result ==  K_SECURITY_FIPSCOMPLIANCE;
+ */
 /**
  * @brief Run the random number genrator.
  *
@@ -170,7 +172,8 @@ err:
 }
 
 
-/*@
+/*
+  // to be replaced with ghost functions
   @ assigns *random;
   @ ensures random == NULL <==> \result == K_ERROR_INVPARAM;
   @ ensures (rng_enabled == \false) <==> \result == K_ERROR_BADSTATE;

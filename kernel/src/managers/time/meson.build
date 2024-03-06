@@ -5,5 +5,9 @@
 sentry_source_set.add(files(
   'time.c',
   'delay.c',
+
+))
+
+sentry_private_header_set.add(files(
   'delay.h',
 ))

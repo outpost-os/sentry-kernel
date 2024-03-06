@@ -101,8 +101,10 @@ err:
 }
 
 #ifndef TEST_MODE
+#ifndef __FRAMAC__
 /* if not in the test suite case, aliasing to POSIX symbols, standard string.h header can be added */
 size_t strnlen(const char *s, size_t maxlen) __attribute__((alias("sentry_strnlen")));
 void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));
 void* memcpy(void * restrict d, const void * restrict s, size_t) __attribute__((alias("sentry_memcpy")));
+#endif
 #endif/*!TEST_MODE*/

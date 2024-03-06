@@ -47,7 +47,10 @@ extern size_t _idle;
 /* in test mode, we get back the table for analysis */
 static
 #endif
-_Alignas(uint64_t) task_t task_table[CONFIG_MAX_TASKS+1];
+#ifndef __FRAMAC__
+_Alignas(uint64_t)
+#endif
+task_t task_table[CONFIG_MAX_TASKS+1];
 
 /**
  * @brief return the local task table address
@@ -372,7 +375,7 @@ kstatus_t task_set_job_layout(task_t * const tsk)
     task_meta_t const * meta = tsk->metadata;
      /* mapping task data region first */
     const taskh_t *t = ktaskh_to_taskh(&tsk->handle);
-    /*@ assert \valid_read(kt); */
+    /*@ assert \valid_read(t); */
     if (unlikely(mgr_mm_map_task(*t) != K_STATUS_OKAY)) {
         status = K_ERROR_INVPARAM;
         goto err;
@@ -661,7 +664,7 @@ err:
 }
 
 /** TODO: fix handle management before coding framac_get_handle() */
-/*@
+/*
     behavior badsysret:
         assumes !\valid(sysret);
         assigns \nothing;
@@ -682,7 +685,7 @@ err:
         assumes \valid(framac_get_handle(t));
         assumes framac_sysret_is_set(framac_get_handle(t));
         assigns sysret;
-        ensures \result = framac_get_handle(t)->sysreturn;
+        ensures \result == framac_get_handle(t)->sysreturn;
 
     complete behaviors;
     disjoint behaviors;
@@ -694,7 +697,7 @@ kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
     if (unlikely(sysret == NULL)) {
         goto err;
     }
-    /*@ assert \valid(status); */
+    /*@ assert \valid(sysret); */
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }

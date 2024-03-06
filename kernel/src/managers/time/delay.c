@@ -30,7 +30,10 @@ typedef struct delayed_jobset {
     task_delay_state_t evlist[CONFIG_MAX_DELAYED_EVENTS];
 } delayed_jobset_t;
 
-static _Alignas(uint32_t) delayed_jobset_t delay_ctx;
+#ifndef __FRAMAC__
+static _Alignas(uint32_t)
+#endif
+delayed_jobset_t delay_ctx;
 
 /**
  * @brief flush all events, events list is made empty

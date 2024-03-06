@@ -319,7 +319,7 @@ static inline kstatus_t task_init_add_autotest(void)
     task_ctx = &task_table[ctx.numtask];
     /* should we though forge a HMAC for idle metadata here ? */
     task_ctx->metadata = meta;
-    /*@ assert valid_read(kt); */
+
     ctx.status = mgr_security_entropy_generate(&rerun_entropy);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_emerg("failed to get back entropy for task rerun field");

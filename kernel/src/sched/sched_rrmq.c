@@ -71,7 +71,11 @@ typedef struct sched_rrmq_context {
     task_rrmq_state_t    *current_job;     /**< current task that is being executed, or idle */
  } sched_rrmq_context_t;
 
-static sched_rrmq_context_t _Alignas(uint32_t) sched_rrmq_ctx;
+static sched_rrmq_context_t
+#ifndef __FRAMAC__
+_Alignas(uint32_t)
+#endif
+sched_rrmq_ctx;
 
 /**
  * Swapping current timeslot job set and backed job set. This happen when current

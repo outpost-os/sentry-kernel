@@ -44,7 +44,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {
         /* should not happen with a valid device */
-        /*@ assert \false */
+        /*@ assert \false; */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     if (unlikely(is_mapped != SECURE_FALSE)) {
@@ -98,7 +98,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {
         /* should not happen with a valid device */
-        /*@ assert \false */
+        /*@ assert \false; */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     if (unlikely(is_mapped != SECURE_TRUE)) {
@@ -108,7 +108,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
     }
     if (unlikely(mgr_mm_unmap_device(current, device) != K_STATUS_OKAY)) {
         /* should not happen with a valid, mapped and owned device */
-        /*@ assert \false */
+        /*@ assert \false; */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     mgr_device_set_map_state(device, SECURE_FALSE);

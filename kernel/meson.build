@@ -3,7 +3,9 @@ if meson.is_subproject()
 warning('!!! Are you sure you want to build the Sentry kernel as a subproject ?')
 endif
 
+# sources, generated and effective
 sentry_source_set = ssmod.source_set()
+sentry_generated_source_set = ssmod.source_set()
 sentry_header_set = ssmod.source_set()
 
 sentry_header_set.add(kconfig_h)
