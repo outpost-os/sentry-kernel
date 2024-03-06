@@ -76,7 +76,7 @@ jobs:
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_proof=true'
+          options: '-Dconfig=configs/nucleo_u5a5_defconfig -Ddts=dts/examples/nucleo_u5a5.dts -Ddts-include-dirs=dts -Dwith_proof=true'
       - name: build libsentry
         run: |
           cd builddir && ninja kernel/src/libsentry.a
