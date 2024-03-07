@@ -96,6 +96,7 @@ jinja_cli = meson_svd_proj.get_variable('jinja_cli')
 layout_in = meson_svd_proj.get_variable('layout_in')
 
 devicetree_proj = subproject('devicetree')
+dts_in = devicetree_proj.get_variable('devicetree_dts_in')
 dts = devicetree_proj.get_variable('devicetree_dtsd')
 dts2src = devicetree_proj.get_variable('dts2src')
 devicetree_dep = devicetree_proj.get_variable('devicetree_dep')
