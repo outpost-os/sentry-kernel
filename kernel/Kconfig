@@ -59,9 +59,4 @@ config WITH_JTAG_CONNECTED
 	default n
 	depends on BUILD_TARGET_DEBUG
 
-config DTS_FILE
-	string "dts"
-	help
-	  DTS file to use for projet configuration
-
 endmenu
