@@ -41,7 +41,7 @@ autotest_elf = executable(
     name_suffix: 'elf',
     sources: [autotest_sources, autotest_headers, devices_dtsgen_h ],
     include_directories: [ uapi_inc, autotest_inc ],
-    dependencies: [ sentry_c_uapi_dep, sentry_c_uapi_headers_dep ],
+    dependencies: [ sentry_c_uapi_dep ],
     c_args: [ target_arch_args, global_build_args, userspace_args ],
     link_args: [ '-lgcc', target_arch_args, autotest_linker_args, '-Wl,-Map=@0@'.format(autotest_map_file)],
     link_language: 'c',

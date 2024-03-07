@@ -8,11 +8,9 @@ path = "lib.rs"
 test = false
 
 [dependencies]
-handles = { path = "../../../../uapi/include/uapi/handles" }
 systypes = { path = "../../../../uapi/include/uapi/types" }
 
 [build-dependencies]
 bindgen = "0.69.1"
-handles = { path = "../../../../uapi/include/uapi/handles" }
 systypes = { path = "../../../../uapi/include/uapi/types" }
 uapi = { path = "../../../../uapi/include/uapi" }

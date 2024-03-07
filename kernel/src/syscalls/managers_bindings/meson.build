@@ -12,7 +12,7 @@ managers_bindings = rust.bindgen(
     args : ['--use-core',
             '--raw-line', '#![no_std]',
             '--raw-line', '#![allow(nonstandard_style)]',
-            '--raw-line', 'use handles::*;',
+            '--raw-line', 'use systypes::*;',
             '--no-layout-tests',
             '--merge-extern-blocks',
             '--blocklist-type','([a-z]+h_t)',
@@ -28,11 +28,11 @@ managers_bindings = rust.bindgen(
         global_build_args,
         '-D__arm__',
     ],
-    dependencies : [cmsis_dep, external_deps, sentry_c_uapi_headers_dep, declare_dependency(sources: core_h)],
+    dependencies : [cmsis_dep, external_deps, declare_dependency(sources: core_h)],
 )
 managers_bindings_lib = static_library(
     'managers_bindings',
     sources : [managers_bindings],
-    dependencies : [systypes_dep, handles_dep],
+    dependencies : [systypes_dep],
 )
 managers_bindings_dep = declare_dependency(link_with: managers_bindings_lib)

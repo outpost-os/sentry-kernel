@@ -1,6 +1,5 @@
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
-use handles::*;
 use systypes::*;
 
 /// Exiting the process.
