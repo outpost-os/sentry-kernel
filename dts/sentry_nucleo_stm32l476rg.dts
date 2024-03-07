@@ -93,7 +93,7 @@
 };
 
 &usart1 {
-    status = "okay";
+	status = "okay";
 	pinctrl-0 = <&usart1_tx_pc1>, <&usart1_rx_pc0>;
 };
 
