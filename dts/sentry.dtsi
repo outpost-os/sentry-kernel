@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2024  Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/{
+	chosen {
+		sentry,kernelram_section = <&kernel_ram>;
+		sentry,idleram_section = <&idle_ram>;
+		sentry,autotestram_section = <&autotest_ram>;
+		sentry,kernelcode_section = <&kernel_code>;
+		sentry,idlecode_section = <&idle_code>;
+		sentry,autotestcode_section = <&autotest_code>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		kernel_code: kernel_code@8000000 {
+			reg = <0x8000000 0x8000>;
+			compatible = "outpost,memory-pool";
+		};
+		idle_code: idle_code@8008000 {
+			reg = <0x8008000 0x300>;
+			compatible = "outpost,memory-pool";
+		};
+		autotest_code: autotest_code@800a000 {
+			reg = <0x800a000 0x4000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		kernel_ram: kernel_memory@20000000 {
+			reg = <0x20000000 0x2000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		idle_ram: idle_memory@20004000 {
+			reg = <0x20004000 0x200>;
+			compatible = "outpost,memory-pool";
+		};
+		autotest_ram: autotest_memory@20008000 {
+			reg = <0x20008000 0x1000>;
+			compatible = "outpost,memory-pool";
+		};
+	};
+};
