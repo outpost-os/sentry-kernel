@@ -45,7 +45,7 @@ __attribute__((noreturn)) void _entrypoint(void)
     pr_info("Starting Sentry kernel release %s", "v0.1");
     pr_info("kernel bootup stack at %p, current frame: %p", &_bootupstack, __platform_get_current_sp());
     pr_info("booting on SoC %s", CONFIG_ARCH_SOCNAME);
-    pr_info("configured dts file: %s", CONFIG_DTS_FILE);
+    pr_info("configured dts file: %s", DTS_FILE);
     /* initialize security manager */
     mgr_security_init();
     /* initialize memory manager */

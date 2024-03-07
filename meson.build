@@ -86,6 +86,8 @@ external_deps += cmsis_dep
 endif
 
 # meson svd subproject and associated variables
+# XXX: Using a default option here may lead to weird results if one changes the kconfig
+# may be use a generator and process in the top level project ?!?
 meson_svd_proj = subproject('meson-svd',  default_options: 'svd=@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower()))
 
 peripheral_defs_in = meson_svd_proj.get_variable('peripheral_defs_in')
@@ -93,19 +95,14 @@ svd_json = meson_svd_proj.get_variable('svd_json')
 jinja_cli = meson_svd_proj.get_variable('jinja_cli')
 layout_in = meson_svd_proj.get_variable('layout_in')
 
-# XXX: we may found another to do so, default options are sets once and for all
-# as this input comes from config file, **and**, any changes in dotconfig fires
-# a project reconfiguration without changing default options. This breaks the
-# rule of least suprise.
-# TODO: use a common option in all (sub)project w/ yield property to use the same
-# configuration data in all components.
-devicetree_proj = subproject('devicetree', default_options: 'dts=@0@/@1@'.format(
-    meson.current_source_dir(), kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower()))
+devicetree_proj = subproject('devicetree')
+dts_in = devicetree_proj.get_variable('devicetree_dts_in')
 dts = devicetree_proj.get_variable('devicetree_dtsd')
 dts2src = devicetree_proj.get_variable('dts2src')
 devicetree_dep = devicetree_proj.get_variable('devicetree_dep')
 external_deps += devicetree_dep
 
+# XXX: move to meson-devicetree ?
 dtsgen = generator(dts2src,
     arguments: ['-d', dts.full_path() , '-t', '@INPUT@', '@OUTPUT@' ],
     depends: [ dts ],
@@ -165,7 +162,6 @@ endif
 summary(
     {
         'soc': kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower(),
-        'dts': kconfig_data.get_unquoted('CONFIG_DTS_FILE').to_lower(),
     },
     section: 'Configuration'
 )

@@ -57,7 +57,7 @@ sentry_elf = executable(
     sources: [sentry_startup, sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, '-DDTS_FILE="@0@"'.format(fs.name(dts_in)) ],
     link_args: [ '-lgcc', target_arch_args, sentry_linker_args, '-Wl,-Map=@0@'.format(sentry_map_file)],
     link_language: 'c',
     link_depends: [ sentry_ldscript ],
