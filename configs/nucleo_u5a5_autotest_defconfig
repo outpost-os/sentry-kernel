@@ -97,5 +97,4 @@ CONFIG_STANDALONE_MODE=y
 # CONFIG_BUILD_TARGET_DEBUG is not set
 # CONFIG_BUILD_TARGET_RELEASE is not set
 CONFIG_BUILD_TARGET_AUTOTEST=y
-CONFIG_DTS_FILE="dts/sentry_nucleo_u5a5zj.dts"
 # end of Build mode

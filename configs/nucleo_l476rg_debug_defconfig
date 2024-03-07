@@ -87,5 +87,4 @@ CONFIG_BUILD_WITH_GDB=y
 CONFIG_BUILD_TARGET_DEBUG=y
 # CONFIG_BUILD_TARGET_RELEASE is not set
 # CONFIG_WITH_JTAG_CONNECTED is not set
-CONFIG_DTS_FILE="dts/sentry_nucleo_stm32l476rg.dts"
 # end of Build mode
