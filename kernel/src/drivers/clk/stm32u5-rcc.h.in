@@ -49,6 +49,32 @@
 #define RCC_APB2_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
 #define RCC_APB3_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
 
+typedef enum stm32u5_pll_id {
+    PLL_ID_1 = 0,
+    PLL_ID_2 = 1,
+    PLL_ID_3 = 2,
+
+    PLL_ID_INVALID
+} stm32u5_pll_id_t;
+
+typedef enum stm32u5_pll_src_clk {
+    PLL_SRC_CLK_NONE = 0,
+    PLL_SRC_CLK_MSIS,
+    PLL_SRC_CLK_HSI16,
+    PLL_SRC_CLK_HSE,
+
+    PLL_SRC_INVALID
+} stm32u5_pll_src_clk_t;
+
+typedef struct stm32u5_pll_cfg {
+    uint16_t n;
+    uint16_t frac;
+    uint8_t m;
+    uint8_t p;
+    uint8_t q;
+    uint8_t r;
+} stm32u5_pll_cfg_t;
+
 static inline  void __stm32_rcc_set_peripheral_bus_div(
     uint32_t hpre,
     uint32_t ppre1,
