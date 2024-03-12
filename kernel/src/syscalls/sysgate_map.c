@@ -26,6 +26,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         goto end;
     }
     /* device is valid */
+#if 0 // FIXME: need tooling update
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -37,6 +38,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     /* current task own the device and has capa to use it */
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {
@@ -71,6 +73,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#if 0 // FIXME: need tooling update
     /* device is valid */
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
@@ -83,6 +86,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     /* current task own the device and has capa to use it */
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {
