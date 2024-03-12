@@ -20,6 +20,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
     taskh_t task;
     uint32_t capa;
     secure_bool_t is_mapped;
+    secure_bool_t is_configured;
 
     if (unlikely(mgr_device_get_owner(device, &task) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
@@ -50,6 +51,12 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         /* invstate ? */
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
+    }
+    if (mgr_device_get_configured_state(device, &is_configured) != K_STATUS_OKAY) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    if (likely(is_configured == SECURE_FALSE)) {
+        mgr_device_configure(device);
     }
     if (unlikely(mgr_mm_map_device(current, device) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_BUSY);
