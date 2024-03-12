@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sentry/ktypes.h>
 #include <sentry/managers/device.h>
+#include <sentry/managers/io.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/clock.h>
 
@@ -109,6 +110,11 @@ kstatus_t mgr_device_init(void)
 
         devh = forge_devh(devices_state[i].device);
         mgr_clock_enable_device(devh);
+        for (uint8_t io = 0; io < devices[i].devinfo.num_ios; ++io) {
+            if (unlikely(mgr_io_configure(devices[i].devinfo.ios[io]) != K_STATUS_OKAY)) {
+                pr_err("failed to set io %x of device %x", io, i);
+            }
+        }
         if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
             /* owner is not a task */
             owner = 0;
