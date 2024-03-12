@@ -30,6 +30,11 @@ pkg_config.generate(
     extra_cflags: [ global_build_args, target_arch_args ],
 )
 
+install_data(
+  'task.Kconfig',
+  install_dir : get_option('datadir') / 'configs',
+)
+
 with_tests_opt = get_option('with_tests')
 if with_tests_opt
 
