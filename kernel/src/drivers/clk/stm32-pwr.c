@@ -17,15 +17,13 @@
 #include <bsp/drivers/clk/pwr.h>
 #include "pwr_defs.h"
 
-
+/* TODO: move stm32l4/f4 in a dedicated file */
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
 #define PWR_CR_REG PWR_CR1_REG
 #define PWR_CR_VOS_MASK PWR_CR1_VOS_MASK
 #define PWR_CR_VOS_SHIFT PWR_CR1_VOS_SHIFT
 #elif defined(CONFIG_SOC_SUBFAMILY_STM32U5)
-#define PWR_CR_REG PWR_VOSR_REG
-#define PWR_CR_VOS_MASK PWR_VOSR_VOS_MASK
-#define PWR_CR_VOS_SHIFT PWR_VOSR_VOS_SHIFT
+#include "stm32u5-pwr.h"
 #endif
 
 /* FIXME */
@@ -35,8 +33,6 @@
 # else
 #  define DEFAULT_SCALE_MODE POWER_VOS_SCALE_1
 # endif
-#elif defined(CONFIG_SOC_SUBFAMILY_STM32U5)
-# define DEFAULT_SCALE_MODE POWER_VOS_SCALE_4
 #endif
 
 /*@
@@ -55,6 +51,7 @@ kstatus_t pwr_probe(void)
     return pwr_set_voltage_regulator_scaling(DEFAULT_SCALE_MODE);
 }
 
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4)
 /*@
     requires scale_is_valid(scale);
     assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
@@ -74,3 +71,4 @@ kstatus_t pwr_set_voltage_regulator_scaling(uint8_t scale)
     status = K_STATUS_OKAY;
     return status;
 }
+#endif

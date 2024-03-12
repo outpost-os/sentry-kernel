@@ -36,7 +36,15 @@ endif
 # XXX: there is no OR clause in source set
 sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32x4-pll.c'))
 sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32x4-pll.c'))
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32U5', if_true: files('stm32u5-pll.c'))
+
+sentry_source_set.add(
+    when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
+    if_true: files(
+        'stm32u5-pll.c',
+        'stm32u5-pwr.c',
+        'stm32u5-pwr.h',
+    ),
+)
 
 # per subfamily RCC additions
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32F4', 0) == 1
