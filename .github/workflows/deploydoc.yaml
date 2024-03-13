@@ -40,9 +40,9 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-      - name: Install (c)bindgen
+      - name: Install bindgen
         run: |
-          cargo install cbindgen bindgen-cli --locked
+          cargo install bindgen-cli --locked
       - name: Set pypi credentials
         uses: embedded-devops/action-pypi@main
         with:

@@ -167,7 +167,6 @@ pub enum EventType {
     All = 7,
 }
 
-
 impl From<EventType> for u32 {
     fn from(event: EventType) -> u32 {
         match event {
@@ -380,20 +379,11 @@ mirror_enum! {
     }
 }
 
-#[cfg(feature = "cbindgen")]
-#[no_mangle]
-extern "C" fn types_keep_me(
-    a: Syscall,
-    b: Status,
-    c: ProcessLabel,
-    d: ResourceType,
-    e: SHMPermission,
-    f: Signal,
-    g: ProcessID,
-    h: SleepDuration,
-    i: SleepMode,
-    j: CPUSleep,
-    k: Precision,
-    l: EventType,
-) {
-}
+#[allow(non_camel_case_types)]
+pub type devh_t = u32;
+#[allow(non_camel_case_types)]
+pub type taskh_t = u32;
+#[allow(non_camel_case_types)]
+pub type shmh_t = u32;
+#[allow(non_camel_case_types)]
+pub type dmah_t = u32;

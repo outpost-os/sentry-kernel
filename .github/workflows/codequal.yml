@@ -54,9 +54,9 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - name: Install (c)bindgen
+      - name: Install bindgen
         run: |
-          cargo install cbindgen bindgen-cli --locked
+          cargo install bindgen-cli --locked
       - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:

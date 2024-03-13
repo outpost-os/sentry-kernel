@@ -31,7 +31,7 @@ test_task = executable(
         '-std=gnu11',
         '-include', join_paths(fs.parent(kconfig_h),fs.name(kconfig_h)),
     ],
-    dependencies: [gtest_main, sentry_c_uapi_headers_dep],
+    dependencies: [gtest_main],
     link_language: 'cpp',
     native: true,
 )

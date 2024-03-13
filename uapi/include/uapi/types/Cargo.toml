@@ -5,9 +5,3 @@ edition = "2021"
 
 [lib]
 path = "types.rs"
-
-[features]
-cbindgen = []
-
-[build-dependencies]
-cbindgen = "0.26.0"

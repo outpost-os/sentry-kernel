@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include <uapi/device.h>
+#include <uapi/handle.h>
 #include <sentry/ktypes.h>
 
 kstatus_t mgr_device_init(void);

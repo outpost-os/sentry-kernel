@@ -19,7 +19,7 @@ fn main() {
             "-DCONFIG_BUILD_TARGET_DEBUG=1",
             "-DCONFIG_NUM_MPU_REGIONS=8",
         ])
-        .raw_line("use handles::*;")
+        .raw_line("use systypes::*;")
         .blocklist_type("([a-z]+h_t)")
         .blocklist_function("(strtod)")
         .blocklist_function("(strtold)")

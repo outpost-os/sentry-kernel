@@ -1,11 +1,9 @@
 use crate::arch::*;
-use handles::*;
 use managers_bindings as mgr;
 use mgr::{
-    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER,
-    capability_CAP_TIM_HP_CHRONO, secure_bool_SECURE_TRUE,
+    capability_CAP_CRY_KRNG, capability_CAP_DEV_POWER, capability_CAP_TIM_HP_CHRONO,
+    secure_bool_SECURE_TRUE,
 };
-// use mgr::kstatus_K_ERROR_BADENTROPY;
 use systypes::*;
 
 pub type StackFramePointer = Option<*mut mgr::stack_frame_t>;
@@ -162,8 +160,7 @@ impl<'a> TaskMeta<'a> {
     /// Verify that a task possess a given capability
     fn can(self, capability: u32) -> Result<TaskMeta<'a>, Status> {
         if unsafe {
-            mgr::mgr_security_has_capa(sched_get_current(), capability)
-                != secure_bool_SECURE_TRUE
+            mgr::mgr_security_has_capa(sched_get_current(), capability) != secure_bool_SECURE_TRUE
         } {
             return Err(Status::Denied);
         }
@@ -200,7 +197,7 @@ impl StatusStorage {
         self.0
     }
 
-    pub fn load(&mut self, job: handles::taskh_t) -> Result<Status, Kstatus> {
+    pub fn load(&mut self, job: systypes::taskh_t) -> Result<Status, Kstatus> {
         let mut local_status = self.0 as EnumBinding;
         if unsafe { mgr::mgr_task_get_sysreturn(job, &mut local_status) } != 0 {
             return Err(Kstatus::KErrorInvParam);
@@ -209,14 +206,14 @@ impl StatusStorage {
         Ok(self.0)
     }
 
-    pub fn assign(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
+    pub fn assign(&mut self, job: systypes::taskh_t) -> Result<Kstatus, Kstatus> {
         if unsafe { mgr::mgr_task_set_sysreturn(job, self.0 as EnumBinding) } != 0 {
             return Err(Kstatus::KErrorInvParam);
         }
         Ok(Kstatus::KStatusOkay)
     }
 
-    pub fn clear(&mut self, job: handles::taskh_t) -> Result<Kstatus, Kstatus> {
+    pub fn clear(&mut self, job: systypes::taskh_t) -> Result<Kstatus, Kstatus> {
         if unsafe { mgr::mgr_task_clear_sysreturn(job) } != 0 {
             return Err(Kstatus::KErrorInvParam);
         }
@@ -254,17 +251,17 @@ pub fn log_rs(length: usize) -> Result<StackFramePointer, Status> {
 }
 
 // Thin wrapper over `sched_get_current`. This function never fails
-fn sched_get_current() -> handles::taskh_t {
+fn sched_get_current() -> systypes::taskh_t {
     unsafe { mgr::sched_get_current() }
 }
 
 // Thin wrapper over `sched_elect`. This function never fails
-fn sched_elect() -> handles::taskh_t {
+fn sched_elect() -> systypes::taskh_t {
     unsafe { mgr::sched_elect() }
 }
 
 // Safe wrapper over `mgr_task_get_sp`
-fn task_get_sp(taskh: handles::taskh_t) -> Result<StackFramePointer, Status> {
+fn task_get_sp(taskh: systypes::taskh_t) -> Result<StackFramePointer, Status> {
     let mut sp: *mut mgr::stack_frame_t = core::ptr::null_mut();
     if unsafe { mgr::mgr_task_get_sp(taskh, &mut sp) } != 0 {
         return Err(Status::Invalid);
@@ -273,7 +270,7 @@ fn task_get_sp(taskh: handles::taskh_t) -> Result<StackFramePointer, Status> {
 }
 
 fn time_delay_add_signal(
-    taskh: handles::taskh_t,
+    taskh: systypes::taskh_t,
     delay_ms: u32,
     signal: u32,
 ) -> Result<Status, Status> {
@@ -283,7 +280,7 @@ fn time_delay_add_signal(
     Ok(Status::Ok)
 }
 
-fn time_delay_add_job(taskh: handles::taskh_t, duration_ms: u32) -> Result<Status, Status> {
+fn time_delay_add_job(taskh: systypes::taskh_t, duration_ms: u32) -> Result<Status, Status> {
     if unsafe { mgr::mgr_time_delay_add_job(taskh, duration_ms) } != 0 {
         return Err(Status::Busy);
     }
