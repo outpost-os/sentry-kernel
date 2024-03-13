@@ -15,6 +15,10 @@
 		sentry,debug_stdout = <&usart1>;
 	};
 
+	aliases {
+        pll = &pll1;
+    };
+
 	led0: led_0 {
 		compatible = "gpio-leds";
 		outpost,owner = <0xbabe>;
@@ -43,12 +47,24 @@
 	status = "okay";
 };
 
+&clk_hse {
+	status = "okay";
+};
+
 &clk_msis {
 	status = "okay";
 };
 
+&pll1 {
+	status = "okay";
+};
+
+&pll3 {
+	status = "okay";
+};
+
 &flash {
-	wait-state = <0>; /* According to voltage supply and sysclock */
+	wait-state = <4>; /* According to voltage supply and sysclock */
 	status = "okay";
 };
 
@@ -58,8 +74,8 @@
 };
 
 &rcc {
-	clocks = <&clk_msis>;
-	clock-frequency = <DT_FREQ_M(4)>;
+	clocks = <&pll1>;
+	clock-frequency = <DT_FREQ_M(160)>;
 	bus-prescalers = <0>, <0>, <0>, <0>;
 	bus-names = "ahb", "apb1", "apb2", "apb3";
 	status = "okay";
