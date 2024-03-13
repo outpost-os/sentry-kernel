@@ -15,6 +15,7 @@
 #include <sentry/bits.h>
 #include <sentry/ktypes.h>
 #include <bsp/drivers/clk/pwr.h>
+#include <bsp/drivers/clk/rcc.h>
 #include "pwr_defs.h"
 
 /* TODO: move stm32l4/f4 in a dedicated file */
@@ -48,6 +49,14 @@ kstatus_t pwr_probe(void)
      * frequency. (DocID018909 Rev 15 - page 141)
      * PWR_CR_VOS = 1 => Scale 1 mode (default value at reset)
      */
+
+#if defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+    /*
+     * FIXME:
+     *  Must be set through DTS but there is no PWR node in stm32u5 dtsi.
+     */
+    rcc_enable(BUS_AHB3, 0x4, 0);
+#endif
     return pwr_set_voltage_regulator_scaling(DEFAULT_SCALE_MODE);
 }
 
