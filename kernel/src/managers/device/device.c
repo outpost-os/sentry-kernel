@@ -11,7 +11,9 @@
 #include <string.h>
 #include <sentry/ktypes.h>
 #include <sentry/managers/device.h>
+#include <sentry/managers/io.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/clock.h>
 
 #include "devlist-dt.h"
 
@@ -24,6 +26,8 @@
 typedef struct device_state {
     const device_t  *device;
     secure_bool_t    mapped;
+    /**< device as been configured at least once (gpio, power) */
+    secure_bool_t    configured;
     /** XXX: released can be considered, if we consider the action of definitely releasing a device */
     taskh_t          owner;
 } device_state_t;
@@ -91,6 +95,8 @@ kstatus_t mgr_device_init(void)
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         devices_state[i].device = &devices[i];
         devices_state[i].mapped = SECURE_FALSE;
+        devices_state[i].configured = SECURE_FALSE;
+
         /* in order to speed-up ownership of device, the effective taskh handle
          * of the ownering task is set at init time.
          * the owner is get back from the task manager, to ensure an effective
@@ -104,11 +110,12 @@ kstatus_t mgr_device_init(void)
          * As all this work is done once for all at init time, it do not
          * impact runtime performances.
          */
+
+        devh = forge_devh(devices_state[i].device);
         if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
             /* owner is not a task */
             owner = 0;
         } else {
-            devh = forge_devh(devices_state[i].device);
             if (unlikely(mgr_task_get_device_owner(devh, &owner_from_metadata) != K_STATUS_OKAY)) {
                 panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
             }
@@ -122,6 +129,51 @@ kstatus_t mgr_device_init(void)
         /* adding taskh value (0 or effective taskh userspace handle) */
         devices_state[i].owner = owner;
     }
+    return status;
+}
+
+kstatus_t mgr_device_configure(devh_t dev)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    device_state_t *devstate = device_get_device_state(dev);
+
+    if (unlikely(devstate == NULL)) {
+        goto err;
+    }
+    if (unlikely(devstate->configured == SECURE_TRUE)) {
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    mgr_clock_enable_device(dev);
+    for (uint8_t io = 0; io < devstate->device->devinfo.num_ios; ++io) {
+        if (unlikely(mgr_io_configure(devstate->device->devinfo.ios[io]) != K_STATUS_OKAY)) {
+            /* failure at this point means that the forged dev list is corrupted */
+            panic(PANIC_CONFIGURATION_MISMATCH);
+        }
+    }
+    devstate->configured = SECURE_TRUE;
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
+kstatus_t mgr_device_get_configured_state(devh_t d, secure_bool_t *configured)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const device_state_t *dev = NULL;
+
+    dev = device_get_device_state(d);
+    if (unlikely(configured == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(configured); */
+    if (unlikely(dev == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid_read(device); */
+    *configured = dev->configured;
+    status = K_STATUS_OKAY;
+end:
     return status;
 }
 

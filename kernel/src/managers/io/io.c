@@ -137,7 +137,7 @@ kstatus_t mgr_io_configure(io_info_t io)
         .type = io.pupdr,
         .speed = io.speed,
         .pull_mode = io.ppull,
-        .port_id = io.pin,
+        .port_id = io.port,
         .pin = io.pin
     };
     status = gpio_pinctrl_configure(pinctrl_desc);

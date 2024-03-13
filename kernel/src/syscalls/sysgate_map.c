@@ -20,12 +20,14 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
     taskh_t task;
     uint32_t capa;
     secure_bool_t is_mapped;
+    secure_bool_t is_configured;
 
     if (unlikely(mgr_device_get_owner(device, &task) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
     /* device is valid */
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -37,6 +39,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     /* current task own the device and has capa to use it */
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {
@@ -48,6 +51,12 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         /* invstate ? */
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
+    }
+    if (mgr_device_get_configured_state(device, &is_configured) != K_STATUS_OKAY) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    if (likely(is_configured == SECURE_FALSE)) {
+        mgr_device_configure(device);
     }
     if (unlikely(mgr_mm_map_device(current, device) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_BUSY);
@@ -71,6 +80,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     /* device is valid */
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
@@ -83,6 +93,7 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     /* current task own the device and has capa to use it */
 
     if (mgr_device_get_map_state(device, &is_mapped) != K_STATUS_OKAY) {

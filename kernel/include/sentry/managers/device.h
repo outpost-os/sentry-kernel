@@ -28,6 +28,10 @@ kstatus_t mgr_device_set_map_state(devh_t d, secure_bool_t mapped);
 
 kstatus_t mgr_device_get_map_state(devh_t d, secure_bool_t *mapped);
 
+kstatus_t mgr_device_get_configured_state(devh_t d, secure_bool_t *configured);
+
+kstatus_t mgr_device_configure(devh_t dev);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_device_autotest(void);
 #endif
