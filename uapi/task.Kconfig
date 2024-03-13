@@ -1,5 +1,10 @@
 comment "Task configuration"
 
+config TASK_LABEL
+    hex "Label"
+    help
+      Task unique label identifier
+
 config TASK_PRIORITY
     int "Priority"
     range 0 255
