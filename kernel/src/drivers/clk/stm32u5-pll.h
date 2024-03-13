@@ -20,23 +20,21 @@
  * under the License.
  */
 
-#include <bsp/drivers/clk/rcc.h>
+#ifndef __STM32U5_PLL_H
+#define __STM32U5_PLL_H
+
+#include <sentry/ktypes.h>
+
 #include "stm32u5-rcc.h"
 
-kstatus_t rcc_select_system_clock(void)
-{
-    return K_STATUS_OKAY;
-}
+void stm32u5_pll_epod_booster_prescaler(uint8_t pre);
+kstatus_t stm32u5_pll_select_clock_source(stm32u5_pll_id_t pll, stm32u5_pll_src_clk_t src);
+kstatus_t stm32u5_pll_set_fractional(stm32u5_pll_id_t pll, uint16_t frac);
+kstatus_t stm32u5_pll_configure(stm32u5_pll_id_t pll, stm32u5_pll_cfg_t cfg);
+kstatus_t stm32u5_pll_start(stm32u5_pll_id_t pll);
 
-kstatus_t rcc_enable_pll(void)
-{
-    return K_STATUS_OKAY;
-}
+kstatus_t stm32u5_enable_pll_p_output(stm32u5_pll_id_t pll);
+kstatus_t stm32u5_enable_pll_q_output(stm32u5_pll_id_t pll);
+kstatus_t stm32u5_enable_pll_r_output(stm32u5_pll_id_t pll);
 
-
-#if CONFIG_BUILD_TARGET_DEBUG
-kstatus_t rcc_enable_debug_clockout(void)
-{
-    return K_STATUS_OKAY;
-}
-#endif /* CONFIG_BUILD_TARGET_DEBUG */
+#endif /* __STM32U5_PLL_H */

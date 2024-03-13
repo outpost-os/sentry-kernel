@@ -41,8 +41,10 @@ sentry_source_set.add(
     when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
     if_true: files(
         'stm32u5-pll.c',
+        'stm32u5-pll.h',
         'stm32u5-pwr.c',
         'stm32u5-pwr.h',
+        'stm32u5-rcc.c',
     ),
 )
 
@@ -70,13 +72,8 @@ sentry_private_gen_header_set.add(stm32l4_rcc_h)
 endif
 
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32U5', 0) == 1
-stm32u5_rcc_c_template = files('stm32u5-rcc.c.in')
 stm32u5_rcc_h_template = files('stm32u5-rcc.h.in')
-
-stm32u5_rcc_c = dtsgen.process(stm32u5_rcc_c_template)
 stm32u5_rcc_h = dtsgen.process(stm32u5_rcc_h_template)
-
-sentry_private_gen_source_set.add(stm32u5_rcc_c)
 sentry_private_gen_header_set.add(stm32u5_rcc_h)
 endif
 

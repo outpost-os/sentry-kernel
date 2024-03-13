@@ -39,34 +39,50 @@
 #define STM32U5_PLL_DIVRn_OFFSET 8UL
 #define STM32U5_PLL_FRACn_OFFSET 8UL
 
+/*
+ * PLL register are interleaved between PLL1/2/3:
+ *  - PLL1CFGR offset  0x28
+ *  - PLL2CFGR offset  0x2C
+ *  - PLL3CFGR offset  0x30
+ *  - PLL1DIVR offset  0x34
+ *  - PLL1FRACR offset 0x38
+ *  - PLL2DIVR offset  0x3C
+ *  - PLL2FRACR offset 0x40
+ *  - PLL3DIVR offset  0x44
+ *  - PLL3FRACR offset 0x48
+ */
+#define STM32U5_RCC_PLL_CFGRn_REG(n) (RCC_BASE_ADDR + RCC_PLL1CFGR_REG + ((n) << 2))
+#define STM32U5_RCC_PLL_DIVRn_REG(n) (RCC_BASE_ADDR + RCC_PLL1DIVR_REG + ((n) << 3))
+#define STM32U5_RCC_PLL_FRACn_REG(n) (RCC_BASE_ADDR + RCC_PLL1FRACR_REG + ((n) << 3))
+
 __STATIC_INLINE void stm32u5_pll_cfgr_write(stm32u5_pll_id_t pll_id, uint32_t value)
 {
-    iowrite32(RCC_BASE_ADDR + RCC_PLL1CFGR_REG + (STM32U5_PLL_CFGRn_OFFSET << pll_id), value);
+    iowrite32(STM32U5_RCC_PLL_CFGRn_REG(pll_id), value);
 }
 
 __STATIC_INLINE void stm32u5_pll_divr_write(stm32u5_pll_id_t pll_id, uint32_t value)
 {
-    iowrite32(RCC_BASE_ADDR + RCC_PLL1DIVR_REG + (STM32U5_PLL_DIVRn_OFFSET << pll_id), value);
+    iowrite32(STM32U5_RCC_PLL_DIVRn_REG(pll_id), value);
 }
 
 __STATIC_INLINE void stm32u5_pll_fracr_write(stm32u5_pll_id_t pll_id, uint32_t value)
 {
-    iowrite32(RCC_BASE_ADDR + RCC_PLL1FRACR_REG + (STM32U5_PLL_FRACn_OFFSET << pll_id), value);
+    iowrite32(STM32U5_RCC_PLL_FRACn_REG(pll_id), value);
 }
 
 __STATIC_INLINE uint32_t stm32u5_pll_cfgr_read(stm32u5_pll_id_t pll_id)
 {
-    return ioread32(RCC_BASE_ADDR + RCC_PLL1CFGR_REG + (STM32U5_PLL_CFGRn_OFFSET << pll_id));
+    return ioread32(STM32U5_RCC_PLL_CFGRn_REG(pll_id));
 }
 
 __STATIC_INLINE uint32_t stm32u5_pll_divr_read(stm32u5_pll_id_t pll_id)
 {
-    return ioread32(RCC_BASE_ADDR + RCC_PLL1DIVR_REG + (STM32U5_PLL_DIVRn_OFFSET << pll_id));
+    return ioread32(STM32U5_RCC_PLL_DIVRn_REG(pll_id));
 }
 
 __STATIC_INLINE uint32_t stm32u5_pll_fracr_read(stm32u5_pll_id_t pll_id)
 {
-    return ioread32(RCC_BASE_ADDR + RCC_PLL1FRACR_REG + (STM32U5_PLL_FRACn_OFFSET << pll_id));
+    return ioread32(STM32U5_RCC_PLL_FRACn_REG(pll_id));
 }
 
 /**
