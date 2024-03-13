@@ -103,6 +103,18 @@ static inline  void __stm32_rcc_set_peripheral_bus_div(
     iowrite32(RCC_BASE_ADDR + RCC_CFGR3_REG, cfgr3.raw);
 }
 
+static inline kstatus_t rcc_enable_hsi48(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t rcc_cr;
+
+    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
+    rcc_cr |= RCC_CR_HSI48ON;
+    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
+
+    return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSI48RDY, 500);
+}
+
 kstatus_t rcc_select_system_clock(void);
 
 kstatus_t rcc_enable_pll(void);

@@ -121,6 +121,14 @@ kstatus_t rcc_enable_pll(void)
     stm32u5_enable_pll_p_output(PLL_ID_3);
     stm32u5_enable_pll_r_output(PLL_ID_3);
 
+    /*
+     * Fixme:
+     *  Ugly hack, force HSI48 ON, this is used by RNG as clock source.
+     *  Remove this while outpost/sentry-kernel/issues/253 outpost/sentry-kernel/issues/254
+     *  are fixed/closed.
+     */
+    rcc_enable_hsi48();
+
     return K_STATUS_OKAY;
 }
 
