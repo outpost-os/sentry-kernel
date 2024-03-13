@@ -39,6 +39,7 @@ stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t devhandle, uint8_t io,
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     /* disable ownership test in autotest only */
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         pr_err("c");
@@ -49,6 +50,7 @@ stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t devhandle, uint8_t io,
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         pr_err("d");
@@ -88,6 +90,7 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -96,6 +99,7 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
@@ -128,6 +132,7 @@ stack_frame_t *gate_gpio_reset(stack_frame_t *frame, devh_t devhandle, uint8_t i
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -136,6 +141,7 @@ stack_frame_t *gate_gpio_reset(stack_frame_t *frame, devh_t devhandle, uint8_t i
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
@@ -161,6 +167,7 @@ stack_frame_t *gate_gpio_toggle(stack_frame_t *frame, devh_t devhandle, uint8_t 
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -169,6 +176,7 @@ stack_frame_t *gate_gpio_toggle(stack_frame_t *frame, devh_t devhandle, uint8_t 
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
@@ -205,6 +213,7 @@ stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t devhandle, uint8
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -213,6 +222,7 @@ stack_frame_t *gate_gpio_configure(stack_frame_t *frame, devh_t devhandle, uint8
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(io >= devinfo->num_ios)) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
