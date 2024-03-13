@@ -29,12 +29,12 @@
 #include "stm32u5-pwr.h"
 
 static const stm32u5_pll_cfg_t stm32u5_pll1_config = {
-    .n = 120,
+    .n = 120, /* VCO out = VCO in * n = 4*120 = 480MHz */
     .frac = 0,
-    .m = 4,
-    .p = 2,
-    .q = 2,
-    .r = 3, /* PLL1 R ==> SYSCLK @160MHz */
+    .m = 4, /* VCO in = HSE/4 ==> 16/4 = 4MHz /*/
+    .p = 3,
+    .q = 3,
+    .r = 3, /* PLL1 R ==> VCO out / R = 480/3 = 160MHz */
 };
 
 static const stm32u5_pll_cfg_t stm32u5_pll3_config = {

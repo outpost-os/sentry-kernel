@@ -198,13 +198,13 @@ kstatus_t stm32u5_pll_configure(stm32u5_pll_id_t pll, stm32u5_pll_cfg_t cfg)
 
     cfgr = stm32u5_pll_cfgr_read(pll);
     cfgr &= ~RCC_PLL1CFGR_PLL1M_MASK;
-    cfgr |= (cfg.m << RCC_PLL1CFGR_PLL1M_SHIFT) & RCC_PLL1CFGR_PLL1M_MASK;
+    cfgr |= ((cfg.m  - 1) << RCC_PLL1CFGR_PLL1M_SHIFT) & RCC_PLL1CFGR_PLL1M_MASK;
     stm32u5_pll_cfgr_write(pll, cfgr);
 
-    divr = (cfg.n << RCC_PLL1DIVR_PLL1N_SHIFT) & RCC_PLL1DIVR_PLL1N_MASK;
-    divr |= (cfg.p << RCC_PLL1DIVR_PLL1P_SHIFT) & RCC_PLL1DIVR_PLL1P_MASK;
-    divr |= (cfg.q << RCC_PLL1DIVR_PLL1Q_SHIFT) & RCC_PLL1DIVR_PLL1Q_MASK;
-    divr |= (cfg.r << RCC_PLL1DIVR_PLL1R_SHIFT) & RCC_PLL1DIVR_PLL1R_MASK;
+    divr = ((cfg.n + 1) << RCC_PLL1DIVR_PLL1N_SHIFT) & RCC_PLL1DIVR_PLL1N_MASK;
+    divr |= ((cfg.p - 1) << RCC_PLL1DIVR_PLL1P_SHIFT) & RCC_PLL1DIVR_PLL1P_MASK;
+    divr |= ((cfg.q - 1) << RCC_PLL1DIVR_PLL1Q_SHIFT) & RCC_PLL1DIVR_PLL1Q_MASK;
+    divr |= ((cfg.r - 1) << RCC_PLL1DIVR_PLL1R_SHIFT) & RCC_PLL1DIVR_PLL1R_MASK;
     stm32u5_pll_divr_write(pll, divr);
 
     if (cfg.frac > 0) {
