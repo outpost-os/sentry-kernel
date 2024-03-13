@@ -20,23 +20,14 @@
  * under the License.
  */
 
-#include <bsp/drivers/clk/rcc.h>
-#include "stm32u5-rcc.h"
+#ifndef __STM32U5_PWR_H
+#define __STM32U5_PWR_H
 
-kstatus_t rcc_select_system_clock(void)
-{
-    return K_STATUS_OKAY;
-}
+#include <bsp/drivers/clk/pwr.h>
 
-kstatus_t rcc_enable_pll(void)
-{
-    return K_STATUS_OKAY;
-}
+#define DEFAULT_SCALE_MODE POWER_VOS_SCALE_4
 
+kstatus_t __stm32u5_pwr_set_voltage_scaling(uint8_t scale);
+kstatus_t __stm32u5_pwr_enable_epod_boost(void);
 
-#if CONFIG_BUILD_TARGET_DEBUG
-kstatus_t rcc_enable_debug_clockout(void)
-{
-    return K_STATUS_OKAY;
-}
-#endif /* CONFIG_BUILD_TARGET_DEBUG */
+#endif /* __STM32U5_PWR_H */
