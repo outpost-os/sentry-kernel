@@ -15,5 +15,12 @@ foreach header: uapi_headers
     )
 endforeach
 
+foreach header: uapi_h
+    install_headers(fs.relative_to(header, meson.current_source_dir()),
+        preserve_path: true,
+        install_dir: get_option('includedir'),
+        follow_symlinks: false,
+    )
+endforeach
 
 userspace_uapi_include_dir = include_directories('.')
