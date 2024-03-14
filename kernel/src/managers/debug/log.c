@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
+#if CONFIG_DEBUG_OUTPUT_SEMIHOSTING
+#include <sentry/arch/asm-cortex-m/semihosting.h>
+#endif
 #include "log_lexer.h"
 
 /***********************************************
@@ -38,10 +41,25 @@
  *
  * The buffer content is sent to the kernel log API.
  */
-static inline kstatus_t dbgbuffer_display(void)
+kstatus_t dbgbuffer_display(void)
 {
+#if CONFIG_DEBUG_OUTPUT_USART
     /* usart as no notion of the byte type it emit. sending unsigned content */
     return usart_tx((uint8_t*)log_get_dbgbuf(), log_get_dbgbuf_offset());
+#elif CONFIG_DEBUG_OUTPUT_SEMIHOSTING
+    kstatus_t status = K_ERROR_NOENT;
+    const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
+    int fd;
+
+    fd = arm_semihosting_open(filename, SYS_FILE_MODE_APPEND, sizeof(filename) - 1);
+    if (fd < 0) {
+        goto err;
+    }
+    arm_semihosting_write(fd, (uint8_t*)log_get_dbgbuf(), log_get_dbgbuf_offset());
+    arm_semihosting_close(fd);
+err:
+    return status;
+#endif
 }
 
 

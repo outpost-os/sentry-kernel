@@ -57,6 +57,6 @@ endchoice
 config WITH_JTAG_CONNECTED
 	bool "Built for target with JTAG connected, active auto-breakpoints"
 	default n
-	depends on BUILD_TARGET_DEBUG
+	depends on BUILD_TARGET_DEBUG || BUILD_TARGET_AUTOTEST
 
 endmenu

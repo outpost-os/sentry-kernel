@@ -5,6 +5,9 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 #include <bsp/drivers/clk/rcc.h>
+#if CONFIG_DEBUG_OUTPUT_SEMIHOSTING
+#include <sentry/arch/asm-cortex-m/semihosting.h>
+#endif
 #include "log.h"
 
 /**
@@ -15,16 +18,20 @@
  */
 kstatus_t mgr_debug_init(void)
 {
-    kstatus_t status;
+    kstatus_t status = K_STATUS_OKAY;
+#if CONFIG_DEBUG_OUTPUT_USART
     status = usart_probe();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto end;
     }
+#endif
 #ifdef CONFIG_BUILD_TARGET_DEBUG
-    rcc_enable_debug_clockout();
+    status = rcc_enable_debug_clockout();
 #endif
     dbgbuffer_flush();
+#if CONFIG_DEBUG_OUTPUT_USART
 end:
+#endif
     return status;
 }
 
@@ -38,7 +45,23 @@ end:
  */
 kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
 {
-	return usart_tx(logbuf, len);
+#if CONFIG_DEBUG_OUTPUT_USART
+    /* usart as no notion of the byte type it emit. sending unsigned content */
+    return usart_tx(logbuf, len);
+#elif CONFIG_DEBUG_OUTPUT_SEMIHOSTING
+    kstatus_t status = K_ERROR_NOENT;
+    const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
+    int fd;
+
+    fd = arm_semihosting_open(filename, SYS_FILE_MODE_APPEND, sizeof(filename) - 1);
+    if (fd < 0) {
+        goto err;
+    }
+    arm_semihosting_write(fd, logbuf, len);
+    arm_semihosting_close(fd);
+err:
+    return status;
+#endif
 }
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST

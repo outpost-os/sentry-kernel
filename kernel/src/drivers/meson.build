@@ -22,6 +22,6 @@ subdir('rng')
 endif
 
 subdir('syscfg')
-if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) == 0
+if kconfig_data.get('CONFIG_DEBUG_OUTPUT_USART', 0) == 1
 subdir('usart')
 endif

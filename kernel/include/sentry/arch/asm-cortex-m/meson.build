@@ -14,6 +14,7 @@ sentry_header_set.add(files(
     'system.h',
     'systick.h',
     'thread.h',
+    'semihosting.h',
 ))
 
 sentry_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V7', if_true: files('mpu_pmsa_v7.h'))
