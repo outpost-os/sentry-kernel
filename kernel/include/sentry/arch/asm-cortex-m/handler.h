@@ -17,10 +17,8 @@ static inline __attribute__((noreturn)) void __do_panic(void) {
     /* XXX: here, a security policy should be considered. The do_panic() should call security manager
       primitive (potential cleanups) and other things to define */
 #if defined(CONFIG_WITH_JTAG_CONNECTED)
-    if (__dbg_debugger_is_connected()) {
-        /* explicit breakpoint in jtag mode (JTAG connected) s*/
-        asm volatile("bkpt");
-    }
+    /* explicit breakpoint in jtag mode (JTAG connected) s*/
+    asm volatile("bkpt");
 #endif
     do {
         asm volatile("nop");
