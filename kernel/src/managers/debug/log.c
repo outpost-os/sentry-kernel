@@ -41,7 +41,7 @@
  *
  * The buffer content is sent to the kernel log API.
  */
-static inline kstatus_t dbgbuffer_display(void)
+kstatus_t dbgbuffer_display(void)
 {
 #if CONFIG_DEBUG_OUTPUT_USART
     /* usart as no notion of the byte type it emit. sending unsigned content */
