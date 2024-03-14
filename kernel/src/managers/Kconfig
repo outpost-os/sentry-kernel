@@ -52,7 +52,7 @@ config DEBUG_OUTPUT_USART
 	bool "using dts-configured usart as debug output"
 config DEBUG_OUTPUT_SEMIHOSTING
 	bool "using jtag ARM semihosting as output"
-	depends on ARCH_ARM_CORTEX_M
+	depends on ARCH_ARM_CORTEX_M && WITH_JTAG_CONNECTED
 endchoice
 
 if DEBUG_OUTPUT_SEMIHOSTING
