@@ -45,6 +45,29 @@ if !BUILD_TARGET_RELEASE
 
 menu "Debug manager"
 
+choice
+	bool "Debug output"
+	default DEBUG_OUTPUT_USART
+config DEBUG_OUTPUT_USART
+	bool "using dts-configured usart as debug output"
+config DEBUG_OUTPUT_SEMIHOSTING
+	bool "using jtag ARM semihosting as output"
+	depends on ARCH_ARM_CORTEX_M
+endchoice
+
+if DEBUG_OUTPUT_SEMIHOSTING
+
+config DEBUG_SEMIHOSTING_OUTPUT_FILE
+	string "semihosting Host filename to use"
+	default "/tmp/fb_rot_log"
+	help
+	  Host filename to write log outputs to, in
+	  semihosting mode
+
+endif
+
+if DEBUG_OUTPUT_USART
+
 config DEBUG_COLORS
 	bool "Support for ANSI colors support"
 	default n
@@ -80,6 +103,7 @@ config DEBUG_COLOR_DEFAULT_BLACK
 	bool "default text color to black"
 endchoice
 
+endif
 
 endif
 

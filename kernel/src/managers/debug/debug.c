@@ -15,16 +15,20 @@
  */
 kstatus_t mgr_debug_init(void)
 {
-    kstatus_t status;
+    kstatus_t status = K_STATUS_OKAY;
+#if CONFIG_DEBUG_OUTPUT_USART
     status = usart_probe();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto end;
     }
+#endif
 #ifdef CONFIG_BUILD_TARGET_DEBUG
-    rcc_enable_debug_clockout();
+    status = rcc_enable_debug_clockout();
 #endif
     dbgbuffer_flush();
+#if CONFIG_DEBUG_OUTPUT_USART
 end:
+#endif
     return status;
 }
 

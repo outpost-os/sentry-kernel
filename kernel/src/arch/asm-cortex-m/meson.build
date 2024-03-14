@@ -6,6 +6,7 @@ sentry_source_set.add(files(
   'thread.c',
   'systick.c',
   'tick.c',
+  'semihosting.c',
 ))
 
 sentry_startup += files(
