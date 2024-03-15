@@ -2,6 +2,21 @@
 # target SoC.
 # The target SoC define the core technology, and thus the core features
 
+config ARCH_ARM_CORTEX_M3
+	bool
+
+config ARCH_ARM_CORTEX_M4
+	bool
+
+config ARCH_ARM_CORTEX_M7
+	bool
+
+config ARCH_ARM_CORTEX_M33
+	bool
+
+config ARCH_ARM_CORTEX_M35P
+	bool
+
 config HAS_DCACHE
 	bool
 
