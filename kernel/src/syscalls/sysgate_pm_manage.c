@@ -31,6 +31,7 @@ stack_frame_t *gate_pm_manage(stack_frame_t *frame, uint32_t pm_command)
             break;
         default:
             /** TODO: support for PM (un)lock */
+            break;
     }
     mgr_task_set_sysreturn(current, STATUS_OK);
 end:
