@@ -33,11 +33,6 @@ extern uint32_t _edata;
 extern __irq_handler_t __vtor_table[];
 
 /**
- * Used subhandlers if the Rust submodule was built
-*/
-stack_frame_t *svc_handler_rs(stack_frame_t *frame);
-
-/**
  * NOTE: the frame dump just do nothing (pr_ are empty macros) in release mode
  */
 static inline void dump_frame(stack_frame_t *frame)
@@ -267,8 +262,58 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
             next_frame = gate_unmap_dev(frame, dev);
             break;
         }
+        case SYSCALL_EXIT: {
+            uint32_t exit_code = frame->r0;
+            next_frame = gate_exit(frame, exit_code);
+            break;
+        }
+        case SYSCALL_GET_PROCESS_HANDLE: {
+            uint32_t label = frame->r0;
+            next_frame = gate_get_prochandle(frame, label);
+            break;
+        }
+        case SYSCALL_YIELD: {
+            next_frame = gate_yield(frame);
+            break;
+        }
+        case SYSCALL_SLEEP: {
+            uint32_t duration_ms = frame->r0;
+            uint32_t sleep_mode = frame->r1;
+            next_frame = gate_sleep(frame, duration_ms, sleep_mode);
+            break;
+        }
+        case SYSCALL_START: {
+            uint32_t target_label = frame->r0;
+            next_frame = gate_start(frame, target_label);
+            break;
+        }
+        case SYSCALL_GET_RANDOM: {
+            next_frame = gate_get_random(frame);
+            break;
+        }
+        case SYSCALL_PM_MANAGE: {
+            uint32_t pm_cmd = frame->r0;
+            next_frame = gate_pm_manage(frame, pm_cmd);
+            break;
+        }
+        case SYSCALL_ALARM: {
+            uint32_t delay_ms = frame->r0;
+            next_frame = gate_alarm(frame, delay_ms);
+            break;
+        }
+        case SYSCALL_GET_CYCLE: {
+            uint32_t precision = frame->r0;
+            next_frame = gate_get_cycle(frame, precision);
+            break;
+        }
+        case SYSCALL_LOG: {
+            uint32_t len = frame->r0;
+            next_frame = gate_log(frame, len);
+            break;
+        }
         default:
-            next_frame = svc_handler_rs(frame);
+            /* TODO: define response to invalid svc id */
+            panic(PANIC_UNEXPECTED_BRANCH_EXEC);
             break;
     }
     return next_frame;

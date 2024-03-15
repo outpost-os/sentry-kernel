@@ -28,4 +28,24 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device);
 
 stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device);
 
+stack_frame_t *gate_exit(const stack_frame_t *frame, uint32_t result);
+
+stack_frame_t *gate_get_prochandle(stack_frame_t *frame, uint32_t job_label);
+
+stack_frame_t *gate_yield(stack_frame_t *frame);
+
+stack_frame_t *gate_sleep(stack_frame_t *frame, uint32_t duration_ms, uint32_t sleep_mode);
+
+stack_frame_t *gate_start(stack_frame_t *frame, uint32_t target_label);
+
+stack_frame_t *gate_get_random(stack_frame_t *frame);
+
+stack_frame_t *gate_pm_manage(stack_frame_t *frame, uint32_t pm_command);
+
+stack_frame_t *gate_alarm(stack_frame_t *frame, uint32_t delay_ms);
+
+stack_frame_t *gate_get_cycle(stack_frame_t *frame, uint32_t precision);
+
+stack_frame_t *gate_log(stack_frame_t *frame, [[maybe_unused]] uint32_t log_len);
+
 #endif/*!SYSCALLS_H*/

@@ -213,6 +213,7 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     task_ctx->sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
+    task_ctx->returncode = 0UL;
     mgr_mm_forge_empty_table(task_table[cell].layout);
     pr_info("[task %08x] task local dynamic content set", meta->label);
     /* TODO: ipc & signals ? nothing to init as memset to 0 */

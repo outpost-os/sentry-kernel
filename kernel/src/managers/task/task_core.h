@@ -87,6 +87,7 @@ typedef struct  task {
     uint8_t            num_ints;
 
     job_state_t     state;      /**< current task state */
+    uint32_t        returncode;  /**< current task job return value, when exiting */
     secure_bool_t   sysretassigned; /**< a syscall has assigned a sysreturn */
     Status          sysreturn;  /**< current job syscall return */
 } task_t;

@@ -1,16 +1,6 @@
-subdir('managers_bindings')
 
-sysgate_lib = static_library(
-    'sysgate',
-    sources : ['lib.rs'],
-    dependencies: [systypes_dep, managers_bindings_dep],
-    rust_abi: 'c',
-    rust_args: global_rust_build_args,
-    install: false,
-)
-sysgate_dep = declare_dependency(link_with: sysgate_lib)
 
-csyscalls = files(
+syscalls = files(
     'sysgate_send_ipc.c',
     'sysgate_send_signal.c',
     'sysgate_waitforevent.c',
@@ -18,8 +8,16 @@ csyscalls = files(
     'sysgate_get_devhandle.c',
     'sysgate_int_acknowledge.c',
     'sysgate_map.c',
+    'sysgate_exit.c',
+    'sysgate_get_prochandle.c',
+    'sysgate_yield.c',
+    'sysgate_sleep.c',
+    'sysgate_start.c',
+    'sysgate_get_random.c',
+    'sysgate_pm_manage.c',
+    'sysgate_alarm.c',
+    'sysgate_get_cycle.c',
+    'sysgate_log.c',
 )
 
-sentry_source_set.add(csyscalls)
-
-external_deps += sysgate_dep
+sentry_source_set.add(syscalls)

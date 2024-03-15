@@ -68,7 +68,7 @@ pub enum Syscall {
     SendIPC,
     SendSignal,
     WaitForEvent,
-    ManageCPUSleep,
+    PmManage,
     Log,
     Alarm,
     GetRandom,
