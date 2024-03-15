@@ -8,6 +8,9 @@
 stack_frame_t *gate_log(stack_frame_t *frame, [[maybe_unused]] uint32_t log_len)
 {
 #if CONFIG_BUILD_TARGET_RELEASE
+    taskh_t current = sched_get_current();
+
+    mgr_task_set_sysreturn(current, STATUS_OK);
     return frame;
 #else
     taskh_t current = sched_get_current();
