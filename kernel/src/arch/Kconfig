@@ -1,16 +1,17 @@
 menu "Platform support"
 
-config ARCH_ARM_CORTEX_M
+config ARCH_ARM
 	bool
 
 choice
-	bool "Target arch selection"
-config ARCH_ARM
+	prompt "Target arch selection"
+config ARCH_ARM_CORTEX_M
 	bool "ARM Cortex-M target & SoCs"
+	select ARCH_ARM
 
 endchoice
 
-if ARCH_ARM
+if ARCH_ARM_CORTEX_M
 rsource 'asm-cortex-m/Kconfig'
 endif
 

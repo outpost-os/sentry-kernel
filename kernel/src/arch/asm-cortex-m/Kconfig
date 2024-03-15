@@ -2,6 +2,53 @@
 # target SoC.
 # The target SoC define the core technology, and thus the core features
 
+config ARCH_ARM_ARMV7M
+	bool
+	select HAS_NVIC
+	select THUMB
+	select HAS_DWT
+
+config ARCH_ARM_ARMV7EM
+	bool
+	select ARCH_ARM_ARMV7M
+	select HAS_DSP
+
+config ARCH_ARM_ARMV8M
+	bool
+	select HAS_MPU
+	select HAS_MPU_PMSA_V8
+	select HAS_NVIC
+	select THUMB
+	select HAS_DWT
+
+# ARMv8m-mainline
+config ARCH_ARM_ARMV8MML
+	bool
+	select ARCH_ARM_ARMV8M
+	select HAS_DSP
+	select HAS_SIMD
+
+config ARCH_ARM_CORTEX_M3
+	bool
+	select ARCH_ARM_ARMV7M
+
+config ARCH_ARM_CORTEX_M4
+	bool
+	select ARCH_ARM_ARMV7EM
+
+config ARCH_ARM_CORTEX_M7
+	bool
+	select ARCH_ARM_ARMV7EM
+	select HAS_SIMD
+
+config ARCH_ARM_CORTEX_M33
+	bool
+	select ARCH_ARM_ARMV8MML
+
+config ARCH_ARM_CORTEX_M35P
+	bool
+	select ARCH_ARM_ARMV8MML
+
 config HAS_DCACHE
 	bool
 
@@ -38,6 +85,9 @@ config NUM_MPU_REGIONS
 
 # TODO Add secure MPU feature
 
+config HAS_TRUSTZONE
+	bool
+
 config HAS_NVIC
 	bool
 
@@ -59,82 +109,105 @@ config HAS_RNG
 config HAS_FLASH_DUAL_BANK
 	bool
 
-config ARCH_ARM_ARMV7M
-    bool
-	select HAS_MPU
-	select HAS_MPU_PMSA_V7
-	select HAS_NVIC
-	select THUMB
-	select LITTLE_ENDIAN
-	select HAS_DWT
-
-config ARCH_ARM_ARMV8M
-    bool
-	select HAS_MPU
-	select HAS_MPU_PMSA_V8
-	select HAS_NVIC
-	select THUMB
-	select LITTLE_ENDIAN
-	select HAS_DWT
-
-
-
 config SOC_FAMILY_STM32
 	bool
+	select LITTLE_ENDIAN
 
 config SOC_SUBFAMILY_STM32F4
 	bool
-
-config SOC_SUBFAMILY_STM32F4x5_7
-	bool
+	select ARCH_ARM_CORTEX_M4
+	select SOC_FAMILY_STM32
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+	select HAS_MPU
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_MPU_PMSA_V7
 	help
-	  "STM32F405/F407/F415/F417 soc sub family"
-
-config SOC_SUBFAMILY_STM32F42_3xx
-	bool
-	help
-	  "STM32F427/F429/F437/F439 soc sub family"
+	  STM32F4 family is based on Cortex-M4 with FPU and PMSAv7 MPU.
 
 config SOC_SUBFAMILY_STM32L4
 	bool
-
-config SOC_SUBFAMILY_STM32L47_8x
-	bool
+	select ARCH_ARM_CORTEX_M4
+	select SOC_FAMILY_STM32
+	select HAS_FPU
+	select HAS_FPU_VFPV4
+	select HAS_MPU
+	select HAS_MPU_PMSA_V7
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_RNG
 	help
-	  "STM32L47x/L48x soc sub family"
-
-config SOC_SUBFAMILY_STM32L49_Ax
-	bool
-	help
-	  "STM32L49x/L4Ax soc sub family"
+	  STM32L4 family is based on Cortex-M4 with FPU and PMSAv7 MPU with low power features
 
 config SOC_SUBFAMILY_STM32U5
 	bool
-
-config SOC_SUBFAMILY_STM32U535_545
-	bool
-
-config SOC_SUBFAMILY_STM32U535_545
-	bool
-
-config SOC_SUBFAMILY_STM32U575_585
-	bool
-
-config SOC_SUBFAMILY_STM32U59_Ax
-	bool
-
-config SOC_SUBFAMILY_STM32U5F_Gx
-	bool
+	select ARCH_ARM_CORTEX_M33
+	select SOC_FAMILY_STM32
+	select HAS_FPU
+	select HAS_FPU_FPV5
+	select HAS_TRUSTZONE
+	select HAS_DCACHE
+	select HAS_ICACHE
+	select HAS_RNG
+	help
+	  STM32U5 family is based on Cortex-M33 with FPU, PMSAv8 MPU and TrustZone
 
 config SOC_SUBFAMILY_STM32WB
 	bool
+	select ARCH_ARM_CORTEX_M4
+	select SOC_FAMILY_STM32
+	select HAS_FPU
+	select HAS_MPU
+	select HAS_MPU_PMSA_V7
+	# Cache support ?
+	help
+	  STM32WB family is based on Cortex-M4 (main core and a Cortex-M0+ for wireless core)
+	  Cortex-M0+ arch is not supported, only main core can be targetted.
+
+# XXX STM32F401 does not have RNG !
+config SOC_SUBFAMILY_STM32F4x5_7
+	bool
+	select HAS_RNG
+	select SOC_SUBFAMILY_STM32F4
+
+config SOC_SUBFAMILY_STM32F42_3xx
+	bool
+	select HAS_RNG
+	select HAS_FLASH_DUAL_BANK
+	select SOC_SUBFAMILY_STM32F4
+
+config SOC_SUBFAMILY_STM32L47_8x
+	bool
+	select SOC_SUBFAMILY_STM32L4
+
+config SOC_SUBFAMILY_STM32L49_Ax
+	bool
+	select SOC_SUBFAMILY_STM32L4
+
+config SOC_SUBFAMILY_STM32U535_545
+	bool
+	select SOC_SUBFAMILY_STM32U5
+
+config SOC_SUBFAMILY_STM32U575_585
+	bool
+	select SOC_SUBFAMILY_STM32U5
+
+config SOC_SUBFAMILY_STM32U59_Ax
+	bool
+	select SOC_SUBFAMILY_STM32U5
+
+config SOC_SUBFAMILY_STM32U5F_Gx
+	bool
+	select SOC_SUBFAMILY_STM32U5
 
 config ARCH_ARM_CORTEX_NAME
-    string
-	default "m4" if ARCH_MCU_STM32WB55
-	default "m4" if SOC_SUBFAMILY_STM32F4
-	default "m4" if SOC_SUBFAMILY_STM32L4
-	default "m33" if SOC_SUBFAMILY_STM32U5
+	string
+	default "m3" if ARCH_ARM_CORTEX_M3
+	default "m4" if ARCH_ARM_CORTEX_M4
+	default "m7" if ARCH_ARM_CORTEX_M7
+	default "m33" if ARCH_ARM_CORTEX_M33
+	default "m35p" if ARCH_ARM_CORTEX_M35P
 
 config ARCH_SOCNAME
 	string
@@ -145,100 +218,62 @@ config ARCH_SOCNAME
 	default "STM32F429" if ARCH_MCU_STM32F429
 	default "STM32F439" if ARCH_MCU_STM32F439
 	default "STM32L476" if ARCH_MCU_STM32L476
+	default "STM32U534" if ARCH_MCU_STM32U534
+	default "STM32U535" if ARCH_MCU_STM32U535
+	default "STM32U545" if ARCH_MCU_STM32U545
+	default "STM32U575" if ARCH_MCU_STM32U575
+	default "STM32U585" if ARCH_MCU_STM32U585
+	default "STM32U595" if ARCH_MCU_STM32U595
+	default "STM32U599" if ARCH_MCU_STM32U599
 	default "STM32U5A5" if ARCH_MCU_STM32U5A5
+	default "STM32U5A9" if ARCH_MCU_STM32U5A9
+	default "STM32U5FX" if ARCH_MCU_STM32U5FX
+	default "STM32U5GX" if ARCH_MCU_STM32U5GX
 
 # User-accessible selectors
 
 choice
 	bool "target SoC selection"
-	default ARCH_MCU_STM32F439
+	default ARCH_MCU_STM32U599
 
 config ARCH_MCU_STM32F439
 	bool "STM32F439"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select HAS_RNG
-	select HAS_FLASH_DUAL_BANK
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32F4
 	select SOC_SUBFAMILY_STM32F42_3xx
 
 config ARCH_MCU_STM32F429
 	bool "STM32F429"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select HAS_RNG
-	select HAS_FLASH_DUAL_BANK
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32F4
 	select SOC_SUBFAMILY_STM32F42_3xx
 
 config ARCH_MCU_STM32F407
 	bool "STM32F407"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select HAS_RNG
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32F4
 	select SOC_SUBFAMILY_STM32F4x5_7
 
 config ARCH_MCU_STM32F401
 	bool "STM32F401"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32F4
 
 config ARCH_MCU_STM32WB55
 	bool "STM32WB55"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select SOC_FAMILY_STM32
 	select SOC_SUBFAMILY_STM32WB
 
 config ARCH_MCU_STM32L476
 	bool "STM32L476"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV7M
-	select HAS_FPU
-	select HAS_FPU_VFPV4
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32L4
 	select SOC_SUBFAMILY_STM32L47_8x
+
+config ARCH_MCU_STM32U595
+	bool "STM32U595"
+	select SOC_SUBFAMILY_STM32U59_Ax
+
+config ARCH_MCU_STM32U599
+	bool "STM32U599"
+	select SOC_SUBFAMILY_STM32U59_Ax
 
 config ARCH_MCU_STM32U5A5
 	bool "STM32U5A5"
-	select ARCH_ARM_CORTEX_M
-	select ARCH_ARM_ARMV8M
-	select HAS_DCACHE
-	select HAS_ICACHE
-	select HAS_FPU
-	select HAS_FPU_FPV5
-	select HAS_RNG
-	select SOC_FAMILY_STM32
-	select SOC_SUBFAMILY_STM32U5
+	select SOC_SUBFAMILY_STM32U59_Ax
+
+config ARCH_MCU_STM32U5A9
+	bool "STM32U5A9"
 	select SOC_SUBFAMILY_STM32U59_Ax
 
 endchoice
@@ -262,24 +297,21 @@ config USE_FPU
 	default y if FPU_HARDFP_ABI
 	default y if FPU_SOFTFP_ABI
 
-comment "VFPv3 FPU not available for this target arch"
-	depends on !HAS_FPU_VFPV3
-
-comment "VFPv4 FPU not available for this target arch"
-	depends on !HAS_FPU_VFPV4
-
-comment "FPv5 FPU not available for this target arch"
-	depends on !HAS_FPU_FPV5
-
 choice
 	bool "FPv5 float precision"
 	depends on HAS_FPU_FPV5
 	help
 	  Choose floating precision (single/double) to use for FPv5 floating point unit
+	  FPV5 is the FPU revision for M7/M33/M35P arch.
+	  Only Cortex-M7 can use Double precision (manufacturer defined, check your SoC
+	  dreference manual).
+
 config FPV5_SP
 	bool "single precision"
+
 config FPV5_DP
 	bool "double precision"
+	depends on ARCH_ARM_CORTEX_M7
 endchoice
 
 endif
