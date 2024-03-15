@@ -98,6 +98,31 @@ pub extern "C" fn sys_shm_set_credential(
 }
 
 /// Send events to another process
+///
+/// # description
+///
+/// `sys_send_ipc()` is a blocking syscall. The current job is blocked and will
+/// be eligible again only if:
+///
+///    * the targetted task job reads the IPC content
+///    * the targetted task job terminates (even without reading the IPC content)
+///
+/// In the later case, the syscall return code is STATUS_BROKENPIPE.
+/// There is no timeout notion in IPC emission.
+///
+/// # examples
+///
+/// C implementation usage:
+/// ```
+/// if (sys_send_ipc(target_taskh, ipc_len) == STATUS_BROKENPIPE) {
+///   // react to target failure
+/// }
+/// ```
+///
+/// Rust implementation usage:
+/// ```
+/// uapi::send_ipc(TargetTaskh, IpcLen)?continue_here;
+/// ```
 #[no_mangle]
 pub extern "C" fn sys_send_ipc(resource: u32, length: u8) -> Status {
     syscall!(Syscall::SendIPC, resource, length as u32).into()
@@ -181,8 +206,8 @@ pub extern "C" fn sys_wait_for_event(mask: u8, timeout: u32) -> Status {
 /// it also accepts two other mode values that enable or prevent the
 /// CPU from sleeping.
 #[no_mangle]
-pub extern "C" fn sys_manage_cpu_sleep(mode: CPUSleep) -> Status {
-    syscall!(Syscall::ManageCPUSleep, u32::from(mode)).into()
+pub extern "C" fn sys_pm_manage(mode: CPUSleep) -> Status {
+    syscall!(Syscall::PmManage, u32::from(mode)).into()
 }
 
 /// Send a SIGALRM signal to the task after `timeout_ms` milliseconds.

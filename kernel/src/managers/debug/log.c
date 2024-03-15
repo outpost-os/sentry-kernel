@@ -59,6 +59,9 @@ kstatus_t dbgbuffer_display(void)
     arm_semihosting_close(fd);
 err:
     return status;
+#else
+    /* in release mode, if called, just do nothing */
+    return K_STATUS_OKAY;
 #endif
 }
 

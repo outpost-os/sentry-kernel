@@ -55,6 +55,8 @@ typedef enum panic_event {
     PANIC_HARDWARE_UNEXPECTED_MODIFICATION,
     /**< a configuration-time mismatch has been detected */
     PANIC_CONFIGURATION_MISMATCH,
+    /**< entering an execution flow that should not happen */
+    PANIC_UNEXPECTED_BRANCH_EXEC,
     /* max sentinel */
     PANIC_EVENT_MAX,
 } panic_event_t;

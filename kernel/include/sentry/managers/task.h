@@ -220,6 +220,16 @@ kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret);
  */
 kstatus_t mgr_task_clear_sysreturn(taskh_t t);
 
+/**
+ * @brief set current job return code, when leaving
+ *
+ * The return code of the current job aim to be used for analysis and
+ * potentialy other jobs associated to it if needed.
+ *
+ * It also allows the usage of the restart_on_failure concept if needed
+ */
+kstatus_t mgr_task_set_jobreturn(taskh_t t, uint32_t returncode);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 taskh_t mgr_task_get_autotest(void);
 

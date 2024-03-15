@@ -651,6 +651,19 @@ err:
     return status;
 }
 
+kstatus_t mgr_task_set_jobreturn(taskh_t t, uint32_t returncode)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t *cell;
+    if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
+        goto err;
+    }
+    cell->returncode = returncode;
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+
 /** TODO: fix handle management before coding framac_get_handle() */
 /*@
     behavior badsysret:
