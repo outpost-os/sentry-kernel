@@ -78,7 +78,8 @@ kstatus_t rcc_select_system_clock(void)
     dwt_reset_cyccnt();
     while(dwt_cyccnt() < (3* 800UL));
 
-    __stm32_rcc_set_peripheral_bus_div(0, 0, 0, 0);
+    /* configure APB1 freq to sysfreq / 4 (i.e. 40Mhz) */
+    __stm32_rcc_set_peripheral_bus_div(0, 5, 0, 0);
 
     return K_STATUS_OKAY;
 }
