@@ -149,7 +149,7 @@ kstatus_t mgr_mm_map_svcexchange(taskh_t t)
             .noexec = true,
             .shareable = false,
         };
-        pr_info("mapping %x, size %u", meta->s_svcexchange, CONFIG_SVC_EXCHANGE_AREA_LEN);
+        pr_debug("mapping %x, size %u", meta->s_svcexchange, CONFIG_SVC_EXCHANGE_AREA_LEN);
         status = mpu_load_descriptors(&svcexch_config, 1);
     }
 err:

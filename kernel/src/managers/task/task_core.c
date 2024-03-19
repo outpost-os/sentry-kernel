@@ -457,13 +457,14 @@ kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest)
     if (unlikely(tsk == NULL)) {
         goto err;
     }
-    const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
-    tsk->ipcs[kdesth->id] = len;
+    const ktaskh_t *ksrc = taskh_to_ktaskh(&source);
+    tsk->ipcs[ksrc->id] = len;
     if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
     }
     if (likely(state == JOB_STATE_WAITFOREVENT)) {
         mgr_task_set_state(dest, JOB_STATE_READY);
+        mgr_task_set_sysreturn(dest, STATUS_OK);
         sched_schedule(dest);
     }
     status = K_STATUS_OKAY;
@@ -511,9 +512,9 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
 #endif
             /* set T,L values from TLV */
             dest_svcexch->type = EVENT_TYPE_IPC;
-            dest_svcexch->length = len;
+            dest_svcexch->length = len + sizeof(taskh_t);
             dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
-            memcpy(dest_svcexch->data, source_handle, len);
+            memcpy(dest_svcexch->data, source_handle, sizeof(taskh_t));
             memcpy(&dest_svcexch->data[4], source_svcexch, len);
             /* handle scheduling, awake source */
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
