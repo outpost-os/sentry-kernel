@@ -237,4 +237,13 @@ typedef struct SleepDuration {
   };
 } SleepDuration;
 
+/* Exchange event header for all events received in SVC Exchange area */
+typedef struct exchange_event {
+    uint8_t type;   /*< event type, as defined in uapi/types.h */
+    uint8_t length; /*< event data length, depending on event */
+    uint16_t magic; /*< event TLV magic, specific to input event reception */
+    uint8_t data[]; /*< event data, varies depending on length field */
+} exchange_event_t;
+
+
 #endif /* __SENTRY_UAPI_TYPES_H */

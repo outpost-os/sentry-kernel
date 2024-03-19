@@ -241,14 +241,6 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest);
 kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest);
 kstatus_t mgr_task_push_sig_event(uint32_t sig, taskh_t source, taskh_t dest);
 
-
-typedef struct exchange_event {
-    uint8_t type;   /*< event type, as defined in uapi/types.h */
-    uint8_t length; /*< event data length, depending on event */
-    uint16_t magic; /*< event TLV magic, specific to input event reception */
-    uint8_t data[]; /*< event data, varies depending on length field */
-} exchange_event_t;
-
 kstatus_t mgr_task_load_ipc_event(taskh_t context);
 kstatus_t mgr_task_load_sig_event(taskh_t context);
 kstatus_t mgr_task_load_int_event(taskh_t context);
