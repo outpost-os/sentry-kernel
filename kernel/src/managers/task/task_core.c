@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <string.h>
 #include <limits.h>
+#include <uapi/types.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/arch/asm-generic/platform.h>
 #include <sentry/thread.h>
