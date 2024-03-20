@@ -120,7 +120,7 @@ pub enum Status {
     AlreadyMapped,
     TimeOut,
     Critical,
-    NonSense,
+    Timeout,
 }
 
 impl From<u32> for Status {
@@ -134,6 +134,7 @@ impl From<u32> for Status {
             5 => Status::AlreadyMapped,
             6 => Status::TimeOut,
             7 => Status::Critical,
+            8 => Status::Timeout,
             _ => panic!(),
         }
     }

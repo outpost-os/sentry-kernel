@@ -109,8 +109,8 @@ void mgr_time_delay_tick(void)
                 delay_ctx.joblist[i].wait_time_ms = 0;
                 /* delay terminated for current delayed task */
                 mgr_task_set_state(delay_ctx.joblist[i].handler, JOB_STATE_READY);
+                mgr_task_set_sysreturn(delay_ctx.joblist[i].handler, STATUS_TIMEOUT);
                 /* update previous NON SENSE status to OKAY now that the job is ready */
-                mgr_task_set_sysreturn(delay_ctx.joblist[i].handler, STATUS_OK);
                 sched_schedule(delay_ctx.joblist[i].handler);
                 delay_ctx.joblist[i].active = false;
             }
