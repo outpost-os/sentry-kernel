@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "uapi/include/uapi",
+    "uapi",
+    "uapi/src",
     "uapi/include/uapi/types",
-    "kernel/src/syscalls",
     ]
 resolver = "2"

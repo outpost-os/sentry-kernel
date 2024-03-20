@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-path = "../../src/lib.rs"
+path = "lib.rs"
 
 [dependencies]
-systypes = { path = "types" }
+systypes = { path = "../systypes" }
 
 [dev-dependencies]
-sysgate = { path = "../../../kernel/src/syscalls", features = ['mock'] }
 uapi = { path = '.', features = ['std'] }
 
 [features]
