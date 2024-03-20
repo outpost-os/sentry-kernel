@@ -1,8 +1,10 @@
 [package]
-name = "uapi"
+name = "sentry-uapi"
 version = "0.1.0"
 edition = "2021"
 license = "Apache 2.0"
+description = "Wrapper on Sentry kernel syscalls"
+categories = ["os::api"]
 
 [lib]
 path = "lib.rs"

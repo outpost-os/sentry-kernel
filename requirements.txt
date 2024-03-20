@@ -11,3 +11,4 @@ swig
 sphinx-simplepdf
 weasyprint
 lief
+GitPython>=3.1.0
