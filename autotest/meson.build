@@ -18,8 +18,6 @@ autotest_ldscript_template = files()
 subdir('include')
 subdir('src')
 
-if get_option('with_tests') == false
-
 autotest_ldscript = custom_target('autotest_ldscript',
     input: autotest_ldscript_template,
     output: '@BASENAME@',
@@ -76,4 +74,4 @@ autotest_json = custom_target(
 
 meson.add_install_script(sentry_install_script, autotest_map_file, get_option('infodir') / autotest_task_name)
 
-endif
+

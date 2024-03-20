@@ -2,12 +2,14 @@
 
 pkg_config = import('pkgconfig')
 uapi_rust_std = 'rust_std=2021'
-uapi_rust_libfile = files('src/lib.rs')
+uapi_rust_libfile = files('uapi/lib.rs')
 
 subdir('include/uapi')
-subdir('src')
+subdir('uapi')
 
 if with_uapi_opt
+
+py3 = pymod.find_installation('python3', modules: ['git'])
 
 # XXX:
 #  This deps is designed for userspace (libshied) only
@@ -31,72 +33,42 @@ install_data(
   install_dir : get_option('datadir') / 'configs',
 )
 
-with_tests_opt = get_option('with_tests')
-if with_tests_opt
-
-cargo = find_program('cargo', required: true)
-
-cargo_options = [ '--manifest-path', meson.project_source_root() / 'Cargo.toml' ]
-cargo_options += [ '--target-dir', meson.current_build_dir() ]
-
-cargo_env = environment()
-# it seems that flatpak can't access network during install stage.
-#cargo_env.set('CARGO_HOME', meson.project_build_root() / 'cargo-home')
-#cargo_env.set('CODEGEN_BUILD_DIR', meson.current_build_dir())
-
-test(
-  'rust-fmt',
-  cargo,
-  args: [
-    'fmt',
-    cargo_options,
-    '--',
-    '--check',
-  ],
-  depends: uapi_rs_lib,
-  env: cargo_env,
-  is_parallel: false,
-  timeout: 1800,
-  should_fail: true,
-  suite: 'uapi',
+install_subdir(
+  'uapi',
+  install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
+  strip_directory: true,
+  install_tag: 'devel',
 )
 
-cargo_clippy = find_program('cargo-clippy', required: false)
-if cargo_clippy.found()
-  test(
-    'rust-clippy',
-    cargo_clippy,
-    args: [
-      cargo_options,
-      '--no-deps',
-      '--',
-      '-D',
-      'warnings',
-    ],
-    depends: uapi_rs_lib,
-    env: cargo_env,
-    should_fail: true,
-    suite: 'uapi',
-  )
-endif
+vendoring_py_wrapper = '''
+import git
 
-test(
-  'rust-test',
-  cargo,
-  args: [
-    'test',
-    cargo_options,
-    '--',
-    '--test-threads=1',
-  ],
-  depends: uapi_rs_lib,
-  env: cargo_env,
-  is_parallel: false,
-  timeout: 1800,
-  should_fail: true,
-  suite: 'uapi',
+repo = git.Repo(search_parent_directories=True)
+print('{');
+print('  "git": {')
+print('    "sha1": "{}"'.format(repo.head.commit.tree.hexsha))
+print('}');
+'''
+
+gen_cargo_hash = custom_target(
+  'forge_cargo_hashfile',
+  output: '.cargo_vcs_info.json',
+  command: [ py3, '-c', vendoring_py_wrapper ],
+  capture: true,
+  install: true,
+  install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
+  install_tag: 'devel',
+  build_always: true,
 )
 
-endif #with_tests
+install_data(
+  'task.Kconfig',
+  install_dir : get_option('datadir') / 'configs',
+)
+
+install_data(
+  '.cargo-checksum.json',
+  install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
+)
 
 endif #with_uapi

@@ -1,16 +1,17 @@
 [package]
-name = "uapi"
+name = "sentry-uapi"
 version = "0.1.0"
 edition = "2021"
+license = "Apache 2.0"
+description = "Wrapper on Sentry kernel syscalls"
+categories = ["os::api"]
 
 [lib]
-path = "../../src/lib.rs"
+path = "lib.rs"
 
 [dependencies]
-systypes = { path = "types" }
 
 [dev-dependencies]
-sysgate = { path = "../../../kernel/src/syscalls", features = ['mock'] }
 uapi = { path = '.', features = ['std'] }
 
 [features]

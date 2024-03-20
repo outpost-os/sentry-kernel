@@ -1,4 +1,4 @@
-use systypes::Status;
+use crate::systypes::Status;
 
 pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
 

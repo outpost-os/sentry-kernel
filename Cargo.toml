@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "uapi/include/uapi",
-    "uapi/include/uapi/types",
-    "kernel/src/syscalls",
-    ]
-resolver = "2"

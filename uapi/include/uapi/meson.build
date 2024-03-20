@@ -1,6 +1,3 @@
-subdir('types')
-
-uapi_cargo_toml = files('Cargo.toml')
 uapi_headers = files([
     'device.h',
     'handle.h',

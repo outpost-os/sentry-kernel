@@ -1,7 +1,7 @@
 use crate::svc_exchange::*;
 use crate::syscall::*;
 use core::fmt;
-use systypes::*;
+use crate::systypes::*;
 
 struct DebugPrint;
 
