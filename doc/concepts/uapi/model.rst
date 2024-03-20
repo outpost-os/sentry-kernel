@@ -9,19 +9,11 @@ UAPI introduction
 """""""""""""""""
 
 The Sentry kernel is designed in order to deliver an easy to use, generic and
-portable UAPI.
-The Sentry UAPI is written as a Rust crate and is defined using the ``uapi``
+portable UAPI. This UAPI is written as a Rust crate and is defined using a dedicated ``uapi``
 namespace.
 
 The Rust crate is also built as a static library with a delivered C interface for
 C usage, starting with the libshield POSIX implementation C library.
-
-This UAPI is build in order to respond to all needs for which the kernel execution
-is required.
-
-Any other need should be considered as being under the responsibility of a dedicated
-task that deliver a value added service to others. In that later case, the API is
-IPC and signal based and the kernel remains only responsible of the task partitioning.
 
 As the overall UAPI is written in Rust, the Sentry UAPI documentation (i.e. Sentry
 application developer interface specification) is generated through
