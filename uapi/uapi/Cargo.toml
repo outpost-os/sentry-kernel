@@ -2,12 +2,12 @@
 name = "uapi"
 version = "0.1.0"
 edition = "2021"
+license = "Apache 2.0"
 
 [lib]
 path = "lib.rs"
 
 [dependencies]
-systypes = { path = "../systypes" }
 
 [dev-dependencies]
 uapi = { path = '.', features = ['std'] }

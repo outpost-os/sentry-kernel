@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 
-use systypes::*;
+use crate::systypes::*;
 
 #[cfg(test)]
 use sysgate::gate;

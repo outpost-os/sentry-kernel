@@ -1,5 +1,3 @@
-#![no_std]
-
 /// This library defines types (structs, enums, ...) related to syscalls,
 /// that need to be shared between the kernel and the uapi.
 ///

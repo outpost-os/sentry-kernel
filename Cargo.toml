@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "uapi",
-    "uapi/src",
-    "uapi/include/uapi/types",
-    ]
-resolver = "2"

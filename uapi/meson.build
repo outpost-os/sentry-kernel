@@ -4,7 +4,6 @@ pkg_config = import('pkgconfig')
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('uapi/lib.rs')
 
-subdir('systypes')
 subdir('include/uapi')
 subdir('uapi')
 

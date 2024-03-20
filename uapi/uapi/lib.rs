@@ -7,6 +7,7 @@ mod arch;
 pub mod svc_exchange;
 pub mod syscall;
 pub mod uapi;
+pub mod systypes;
 
 #[cfg(not(feature = "std"))]
 mod panic;

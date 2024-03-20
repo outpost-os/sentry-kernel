@@ -8,7 +8,6 @@ uapi_rs_lib = static_library(
     'uapi',
     sources : uapi_rust_libfile,
     rust_abi: 'c',
-    dependencies : [systypes_dep],
     rust_args: global_rust_build_args,
     override_options: [uapi_rust_std],
     install: true,

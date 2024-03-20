@@ -1,6 +1,6 @@
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
-use systypes::*;
+use crate::systypes::*;
 
 /// Exiting the process.
 ///
