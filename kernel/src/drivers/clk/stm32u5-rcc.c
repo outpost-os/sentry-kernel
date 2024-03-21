@@ -38,12 +38,12 @@ static const stm32u5_pll_cfg_t stm32u5_pll1_config = {
 };
 
 static const stm32u5_pll_cfg_t stm32u5_pll3_config = {
-    .n = 125,
+    .n = 99,
     .frac = 0,
     .m = 4,
-    .p = 8, /* PLL3 P ==> MIPI DSI @62.5MHz */
+    .p = 8, /* PLL3 P ==> MIPI DSI byte lane clock @49.5MHz */
     .q = 2,
-    .r = 24, /* PLL3 R ==> LTDC @20.833... MHz */
+    .r = 12, /* PLL3 R ==> LTDC @33MHz */
 };
 
 
