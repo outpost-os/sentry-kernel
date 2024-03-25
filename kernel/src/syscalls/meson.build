@@ -15,6 +15,7 @@ syscalls = files(
     'sysgate_start.c',
     'sysgate_get_random.c',
     'sysgate_pm_manage.c',
+    'sysgate_pm_setclock.c',
     'sysgate_alarm.c',
     'sysgate_get_cycle.c',
     'sysgate_log.c',

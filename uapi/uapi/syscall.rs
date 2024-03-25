@@ -235,6 +235,17 @@ pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
     syscall!(Syscall::GetCycle, precision as u32).into()
 }
 
+/// Set a given explicit clock config
+///
+/// Required for complex devices that need to make clock configuration vary.
+/// Requires the CAP_SYS_POWER capability
+///
+/// TODO: using dts instead
+#[no_mangle]
+pub extern "C" fn sys_pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
+    syscall!(Syscall::PmSetClock, clk_reg, clkmsk, val).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

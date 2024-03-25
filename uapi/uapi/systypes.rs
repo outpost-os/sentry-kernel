@@ -67,6 +67,7 @@ pub enum Syscall {
     SendSignal,
     WaitForEvent,
     PmManage,
+    PmSetClock,
     Log,
     Alarm,
     GetRandom,
