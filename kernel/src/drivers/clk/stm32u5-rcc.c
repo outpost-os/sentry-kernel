@@ -54,6 +54,37 @@ static const stm32u5_pll_cfg_t stm32u5_pll3_config = {
     .r = 12, /* PLL3 R ==> LTDC @33MHz */
 };
 
+#define STM32U5_MUX_REG_RANGE RANGE(RCC_CCIPR1_REG, RCC_CCIPR3_REG)
+
+kstatus_t rcc_mux_select_clock_source(uint32_t clk_reg, uint32_t clkmsk, uint32_t val)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t shift;
+    uint32_t regval;
+
+    if (unlikely(!IN_RANGE(clk_reg, STM32U5_MUX_REG_RANGE))) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+
+    /*
+     * Returns one plus the index of the least significant 1-bit of x,
+     * or if x is zero, returns zero.
+     */
+    shift = __builtin_ffsl(clkmsk);
+    if (unlikely(shift == 0)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+
+    regval = ioread32(RCC_BASE_ADDR + clk_reg);
+    regval &= ~clkmsk;
+    regval |= (val << (shift - 1)) & clkmsk;
+    iowrite32(RCC_BASE_ADDR + clk_reg, regval);
+
+err:
+    return status;
+}
 
 kstatus_t rcc_select_system_clock(void)
 {
