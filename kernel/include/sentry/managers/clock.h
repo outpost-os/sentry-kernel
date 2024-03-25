@@ -23,6 +23,8 @@ kstatus_t mgr_clock_enable_device(devh_t dev);
 
 kstatus_t mgr_clock_disable_device(devh_t dev);
 
+kstatus_t mgr_clock_configure_clockline(uint32_t clk_reg, uint32_t clockid, bool val);
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_clock_autotest(void);
 #endif

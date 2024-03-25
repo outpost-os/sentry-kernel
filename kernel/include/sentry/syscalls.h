@@ -42,6 +42,8 @@ stack_frame_t *gate_get_random(stack_frame_t *frame);
 
 stack_frame_t *gate_pm_manage(stack_frame_t *frame, uint32_t pm_command);
 
+stack_frame_t *gate_pm_clock_set(stack_frame_t *frame, uint32_t clk_reg, uint32_t clockid, uint32_t val);
+
 stack_frame_t *gate_alarm(stack_frame_t *frame, uint32_t delay_ms);
 
 stack_frame_t *gate_get_cycle(stack_frame_t *frame, uint32_t precision);

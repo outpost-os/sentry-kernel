@@ -296,6 +296,13 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
             next_frame = gate_pm_manage(frame, pm_cmd);
             break;
         }
+        case SYSCALL_PM_SET_CLOCK: {
+            uint32_t clkreg = frame->r0;
+            uint32_t clkbit = frame->r1;
+            uint32_t val = frame->r2;
+            next_frame = gate_pm_clock_set(frame, clkreg, clkbit, val);
+            break;
+        }
         case SYSCALL_ALARM: {
             uint32_t delay_ms = frame->r0;
             next_frame = gate_alarm(frame, delay_ms);
