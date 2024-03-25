@@ -41,8 +41,16 @@ static const stm32u5_pll_cfg_t stm32u5_pll3_config = {
     .n = 99,
     .frac = 0,
     .m = 4,
-    .p = 8, /* PLL3 P ==> MIPI DSI byte lane clock @49.5MHz */
-    .q = 2,
+    /* XXX:
+     *  Might be PLL3 P ==> MIPI DSI byte lane clock @49.5MHz
+     * **BUT**
+     *  In FW4HW PoC this is configured @66MHz despite byte lane clock computation
+     *  This is working this way and this is a strong enough argument for a demo ;-)
+     *
+     * Must be fixed/consolidated in next milestone(s)
+     */
+    .p = 6,
+    .q = 6,
     .r = 12, /* PLL3 R ==> LTDC @33MHz */
 };
 
