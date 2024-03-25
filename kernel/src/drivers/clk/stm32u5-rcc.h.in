@@ -96,6 +96,7 @@ static inline  void __stm32_rcc_set_peripheral_bus_div(
     cfgr2.reg.hpre = hpre;
     cfgr2.reg.ppre1 = ppre1;
     cfgr2.reg.ppre2 = ppre2;
+    cfgr2.reg.dpre = 0;
     iowrite32(RCC_BASE_ADDR + RCC_CFGR2_REG, cfgr2.raw);
 
     cfgr3.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR3_REG);
