@@ -298,9 +298,9 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
         }
         case SYSCALL_PM_SET_CLOCK: {
             uint32_t clkreg = frame->r0;
-            uint32_t clkbit = frame->r1;
+            uint32_t clkmsk = frame->r1;
             uint32_t val = frame->r2;
-            next_frame = gate_pm_clock_set(frame, clkreg, clkbit, val);
+            next_frame = gate_pm_clock_set(frame, clkreg, clkmsk, val);
             break;
         }
         case SYSCALL_ALARM: {

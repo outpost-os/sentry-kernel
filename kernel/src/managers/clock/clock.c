@@ -90,7 +90,7 @@ err:
     return status;
 }
 
-kstatus_t mgr_clock_configure_clockline(uint32_t clk_reg, uint32_t clockid, bool val)
+kstatus_t mgr_clock_configure_clockline(uint32_t clk_reg, uint32_t clockid, uint32_t regmsk)
 {
     kstatus_t status = K_ERROR_INVPARAM;
 

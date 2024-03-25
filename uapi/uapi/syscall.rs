@@ -242,8 +242,8 @@ pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
 ///
 /// TODO: using dts instead
 #[no_mangle]
-pub extern "C" fn sys_pm_set_clock(clk_reg: u32, regbit: u32, val: bool) -> Status {
-    syscall!(Syscall::PmSetClock, clk_reg, regbit, u32::from(val)).into()
+pub extern "C" fn sys_pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
+    syscall!(Syscall::PmSetClock, clk_reg, clkmsk, val).into()
 }
 
 #[cfg(test)]

@@ -228,6 +228,8 @@ Status sys_wait_for_event(uint8_t mask, uint32_t timeout);
  */
 Status sys_yield(void);
 
+Status sys_pm_set_clock(uint32_t clk_reg, uint32_t regmsk, uint32_t val);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
