@@ -112,9 +112,16 @@ kstatus_t mgr_device_init(void)
          */
 
         devh = forge_devh(devices_state[i].device);
+
+        /*
+         * XXX: To be fixed in next milestone
+         */
+#if !defined(CONFIG_BUILD_TARGET_DEBUG)
         if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
+#endif /* !defined(CONFIG_BUILD_TARGET_DEBUG) */
             /* owner is not a task */
             owner = 0;
+#if !defined(CONFIG_BUILD_TARGET_DEBUG)
         } else {
             if (unlikely(mgr_task_get_device_owner(devh, &owner_from_metadata) != K_STATUS_OKAY)) {
                 panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
@@ -126,6 +133,8 @@ kstatus_t mgr_device_init(void)
                 panic(PANIC_CONFIGURATION_MISMATCH);
             }
         }
+#endif /* !defined(CONFIG_BUILD_TARGET_DEBUG) */
+
         /* adding taskh value (0 or effective taskh userspace handle) */
         devices_state[i].owner = owner;
     }
