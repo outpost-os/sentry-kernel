@@ -90,10 +90,25 @@ err:
     return status;
 }
 
-kstatus_t mgr_clock_configure_clockline(uint32_t clk_reg, uint32_t clockid, uint32_t regmsk)
+kstatus_t mgr_clock_configure_clockline(uint32_t clk_reg, uint32_t clkmsk, uint32_t val)
 {
     kstatus_t status = K_ERROR_INVPARAM;
 
+    /* clk_reg must be 32 bits align */
+    if (unlikely((clk_reg & 0x3) != 0)) {
+        pr_err("clock reg (%x) must be 32 bits aligned", clk_reg);
+        goto err;
+    }
+
+    pr_err("configure reg %x, mask %x, value %x", clk_reg, clkmsk, val);
+    status = rcc_mux_select_clock_source(clk_reg, clkmsk, val);
+
+    if (unlikely(status != K_STATUS_OKAY)) {
+        /* XXX: better error message */
+        pr_err("failed to select clock source");
+    }
+
+err:
     return status;
 }
 

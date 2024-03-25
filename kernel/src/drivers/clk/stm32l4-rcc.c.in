@@ -84,6 +84,15 @@ kstatus_t rcc_enable_pll(void)
     return status;
 }
 
+kstatus_t rcc_mux_select_clock_source(
+    uint32_t clk_reg [[maybe_unused]],
+    uint32_t clkmsk [[maybe_unused]],
+    uint32_t val [[maybe_unused]]
+)
+{
+    return K_ERROR_NOENT;
+}
+
 #if CONFIG_BUILD_TARGET_DEBUG
 kstatus_t rcc_enable_debug_clockout(void)
 {

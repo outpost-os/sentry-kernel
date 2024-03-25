@@ -41,6 +41,6 @@ kstatus_t rcc_disable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags);
 
 kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk);
 
-
+kstatus_t rcc_mux_select_clock_source(uint32_t clk_reg, uint32_t clkmsk, uint32_t val);
 
 #endif/*DRV_RCC_H*/
