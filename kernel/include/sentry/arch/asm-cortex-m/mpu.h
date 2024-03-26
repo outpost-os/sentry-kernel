@@ -130,8 +130,8 @@ kstatus_t mpu_get_free_id(const layout_resource_t* resource, uint8_t num_resourc
     kstatus_t status = K_ERROR_NOENT;
 
     for (uint8_t i = 0; i < num_resources; ++i) {
-        if (__mpu_is_resource_free(resource)) {
-            *id = i + TASK_FIRST_REGION_NUMBER;
+        if (__mpu_is_resource_free(resource) == SECURE_TRUE) {
+            *id = i;
             status = K_STATUS_OKAY;
             break;
         }
