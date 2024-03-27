@@ -23,6 +23,8 @@ kstatus_t mgr_time_autotest(void);
  */
 kstatus_t mgr_time_delay_add_job(taskh_t job, uint32_t delay_ms);
 
+kstatus_t mgr_time_delay_del_job(taskh_t job);
+
 /**
  * @brief add a new delayed signal to the delay queue, with a delay of delay_ms
  * the kernel will emit the signal toward the target job at end time

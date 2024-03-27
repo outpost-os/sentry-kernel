@@ -9,6 +9,8 @@
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/device.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/time.h>
+#include <sentry/sched.h>
 
 #include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/clk/pwr.h>
@@ -18,6 +20,8 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
 {
     devh_t dev;
     taskh_t owner;
+    job_state_t owner_state;
+
     /* get the device owning the interrupt */
     if (unlikely(mgr_device_get_devh_from_interrupt(IRQn, &dev) != K_STATUS_OKAY)) {
         /* interrupt with no known device ???? */
@@ -28,10 +32,25 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
         /* user interrupt with no owning task ???? */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
+    if (unlikely(mgr_task_get_state(owner, &owner_state) != K_STATUS_OKAY)) {
+       panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
     /* push the inth event into the task input events queue */
     if (unlikely(mgr_task_push_int_event(IRQn, owner) == K_STATUS_OKAY)) {
         /* failed to push IRQ event !!! XXX: what do we do ? */
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+    }
+    if ((owner_state == JOB_STATE_SLEEPING) ||
+        (owner_state == JOB_STATE_WAITFOREVENT)) {
+        /* if the job exists in the delay queue (sleep or waitforevent with timeout)
+         * remove it from the delay queue before schedule
+         * TODO: use a dedicated state (WAITFOREVENT_TIMEOUT) to call this
+         * function only if needed
+         */
+        mgr_time_delay_del_job(owner);
+        mgr_task_set_sysreturn(owner, STATUS_OK);
+        mgr_task_set_state(owner, JOB_STATE_READY);
+        sched_schedule(owner);
     }
     return frame;
 }

@@ -430,13 +430,7 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     }
     tsk->ints[tsk->num_ints] = IRQn;
     tsk->num_ints++;
-    if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
-        goto err;
-    }
-    if (likely(state == JOB_STATE_WAITFOREVENT)) {
-        mgr_task_set_state(dest, JOB_STATE_READY);
-        sched_schedule(dest);
-    }
+
     status = K_STATUS_OKAY;
 err:
     return status;

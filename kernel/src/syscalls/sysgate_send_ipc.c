@@ -1,5 +1,6 @@
 #include <sentry/syscalls.h>
 #include <sentry/managers/task.h>
+#include <sentry/managers/time.h>
 #include <sentry/sched.h>
 
 
@@ -38,7 +39,12 @@ stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len)
     mgr_task_get_state(target, &dest_state);
     if ((dest_state == JOB_STATE_SLEEPING) ||
         (dest_state == JOB_STATE_WAITFOREVENT)) {
-        /* if target job was sleeping, set return to ok */
+        /* if the job exists in the delay queue (sleep or waitforevent with timeout)
+         * remove it from the delay queue before schedule
+         * TODO: use a dedicated state (WAITFOREVENT_TIMEOUT) to call this
+         * function only if needed
+         */
+        mgr_time_delay_del_job(target);
         /* FIXME: define a dedicated return code */
         mgr_task_set_sysreturn(target, STATUS_OK);
         mgr_task_set_state(target, JOB_STATE_READY);
