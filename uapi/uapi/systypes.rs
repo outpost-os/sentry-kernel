@@ -179,6 +179,30 @@ impl From<EventType> for u32 {
     }
 }
 
+
+/// Sentry syscall return values
+/// NonSense must never be returned, as it means that an
+/// asynchronously updated return value.... has not been updated at all
+/// This must raise a security exception. All syscalls that can't set
+/// they return code synchronously (e.g. IPC), MUST use this value as
+/// default one
+#[repr(C)]
+pub enum AlarmFlag {
+    AlrmStart,
+    AlrmStartPeriodic,
+    AlrmStop,
+}
+
+impl From<AlarmFlag> for u32 {
+    fn from(mode: AlarmFlag) -> u32 {
+        match mode {
+            AlarmFlag::AlrmStart => 0,
+            AlarmFlag::AlrmStartPeriodic => 1,
+            AlarmFlag::AlrmStop => 2,
+        }
+    }
+}
+
 #[repr(C)]
 pub enum SHMPermission {
     /// allows target process to map the SHM. No read nor write though
