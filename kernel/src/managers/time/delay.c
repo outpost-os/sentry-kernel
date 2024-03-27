@@ -67,6 +67,32 @@ end:
 }
 
 /**
+ * @brief remove a delayed job from the event queue
+ *
+ * @param job[in]: job identifier
+ *
+ * @return:
+ * - K_STATUS_OKAY on success
+ * - K_ERROR_NOENT if job not found in the delay queue
+ */
+kstatus_t mgr_time_delay_del_job(taskh_t job)
+{
+    kstatus_t status;
+    for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
+        if ((delay_ctx.joblist[i].active == true) &&
+            (delay_ctx.joblist[i].handler == job))
+        {
+            delay_ctx.joblist[i].active = false;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+    status = K_ERROR_NOENT;
+end:
+    return status;
+}
+
+/**
  * @brief insert a new signal in the event queue
  *
  * @param job[in]: job identifier
