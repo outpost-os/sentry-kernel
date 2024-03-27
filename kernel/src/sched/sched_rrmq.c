@@ -20,7 +20,6 @@ typedef struct task_rrmq_state {
     taskh_t       handler;
     uint32_t      priority;
     uint32_t      quantum;    /**< set at spawn time to systick period */
-    job_state_t   state;
     bool          active;
 } task_rrmq_state_t;
 
@@ -101,17 +100,43 @@ kstatus_t sched_rrmq_init(void)
     return K_STATUS_OKAY;
 }
 
-
+static kstatus_t sched_rrmq_not_in_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
+        if (jobset->joblist[i].active == true) {
+            if (jobset->joblist[i].handler == t) {
+                status = K_ERROR_BADSTATE;
+                break;
+            }
+        }
+    }
+    return status;
+}
 
 static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
 {
     kstatus_t status;
+    job_state_t state;
+    const task_meta_t *meta = NULL;
+    uint8_t cell = 0;
+
     if (unlikely(jobset->num_jobs > CONFIG_MAX_TASKS)) {
         /* should never happen! */
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
-    uint8_t cell = 0;
-    const task_meta_t *meta = NULL;
+    if (unlikely((status = mgr_task_get_metadata(t, &meta)) != K_STATUS_OKAY)) {
+        pr_err("failed to get metadata for task %lx", t);
+        goto err;
+    }
+    mgr_task_get_state(t, &state);
+    if (unlikely(state != JOB_STATE_READY)) {
+        status = K_ERROR_INVPARAM;
+        goto err;
+    }
+    if (unlikely((status = sched_rrmq_not_in_jobset(t, jobset)) != K_STATUS_OKAY)) {
+        goto err;
+    }
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         if (jobset->joblist[i].active == false) {
             /* 1st empty cell, using it */
@@ -119,14 +144,9 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
             break;
         }
     }
-    if (unlikely((status = mgr_task_get_metadata(t, &meta)) != K_STATUS_OKAY)) {
-        pr_err("failed to get metadata for task %lx", t);
-        goto err;
-    }
     jobset->joblist[cell].handler = t;
     jobset->joblist[cell].priority = meta->priority;
     jobset->joblist[cell].quantum = meta->quantum;
-    jobset->joblist[cell].state = JOB_STATE_READY;
     jobset->joblist[cell].active = true;
     jobset->num_jobs++;
     /* shedule is not an election, task job is only added to current taskset */
@@ -209,6 +229,7 @@ elect:
         }
     }
     if (unlikely(next == NULL)) {
+        sched_rrmq_ctx.current_job = NULL;
         goto end;
     }
     /* task found in list (priority based), elect it */
@@ -221,9 +242,11 @@ end:
 taskh_t sched_rrmq_get_current(void)
 {
     taskh_t tsk = mgr_task_get_idle();
+
     if (likely(sched_rrmq_ctx.current_job != NULL)) {
         tsk = sched_rrmq_ctx.current_job->handler;
     }
+
     return tsk;
 }
 
