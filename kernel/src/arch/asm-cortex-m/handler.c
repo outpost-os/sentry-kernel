@@ -305,7 +305,8 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
         }
         case SYSCALL_ALARM: {
             uint32_t delay_ms = frame->r0;
-            next_frame = gate_alarm(frame, delay_ms);
+            bool periodic = frame->r1;
+            next_frame = gate_alarm(frame, delay_ms, periodic);
             break;
         }
         case SYSCALL_GET_CYCLE: {

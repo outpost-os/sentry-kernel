@@ -20,6 +20,8 @@ typedef struct task_delay_state {
     taskh_t           handler;
     uint32_t          sig;
     uint32_t          wait_time_ms;
+    uint32_t          remaining_time_ms;
+    bool              periodic;
     bool              active;
 } task_delay_state_t;
 
@@ -56,6 +58,7 @@ kstatus_t mgr_time_delay_add_job(taskh_t job, uint32_t delay_ms)
         if (delay_ctx.joblist[i].active == false) {
             delay_ctx.joblist[i].handler = job;
             delay_ctx.joblist[i].wait_time_ms = delay_ms;
+            delay_ctx.joblist[i].remaining_time_ms = delay_ms;
             delay_ctx.joblist[i].active = true;
             status = K_STATUS_OKAY;
             goto end;
@@ -98,20 +101,23 @@ end:
  * @param job[in]: job identifier
  * @param delay_ms[in]: event duration in ms
  * @param sig[in]: signal to postpone
+ * @param periodic[in]: request a periodic alarm
  *
  * @return:
  * - K_STATUS_OKAY on success
  * - K_ERROR_BUSY if no remaining space found
  */
-kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, uint32_t sig)
+kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, uint32_t sig, bool periodic)
 {
     kstatus_t status;
     for (uint8_t i = 0; i < CONFIG_MAX_DELAYED_EVENTS; ++i) {
-        if (delay_ctx.joblist[i].active == false) {
-            delay_ctx.joblist[i].handler = job;
-            delay_ctx.joblist[i].wait_time_ms = delay_ms;
-            delay_ctx.joblist[i].sig = sig;
-            delay_ctx.joblist[i].active = true;
+        if (delay_ctx.evlist[i].active == false) {
+            delay_ctx.evlist[i].handler = job;
+            delay_ctx.evlist[i].wait_time_ms = delay_ms;
+            delay_ctx.evlist[i].remaining_time_ms = delay_ms;
+            delay_ctx.evlist[i].sig = sig;
+            delay_ctx.evlist[i].periodic = periodic;
+            delay_ctx.evlist[i].active = true;
             status = K_STATUS_OKAY;
             goto end;
         }
@@ -129,10 +135,10 @@ void mgr_time_delay_tick(void)
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         if (delay_ctx.joblist[i].active == true) {
             uint32_t num_ms = JIFFIES_TO_MSEC(1);
-            if (likely(num_ms <= delay_ctx.joblist[i].wait_time_ms)) {
-                delay_ctx.joblist[i].wait_time_ms -= num_ms;
+            if (likely(num_ms < delay_ctx.joblist[i].remaining_time_ms)) {
+                delay_ctx.joblist[i].remaining_time_ms -= num_ms;
             } else {
-                delay_ctx.joblist[i].wait_time_ms = 0;
+                delay_ctx.joblist[i].remaining_time_ms = 0;
                 /* delay terminated for current delayed task */
                 mgr_task_set_state(delay_ctx.joblist[i].handler, JOB_STATE_READY);
                 mgr_task_set_sysreturn(delay_ctx.joblist[i].handler, STATUS_TIMEOUT);
@@ -145,12 +151,18 @@ void mgr_time_delay_tick(void)
     for (uint8_t i = 0; i < CONFIG_MAX_DELAYED_EVENTS; ++i) {
         if (delay_ctx.evlist[i].active == true) {
             uint32_t num_ms = JIFFIES_TO_MSEC(1);
-            if (likely(num_ms <= delay_ctx.evlist[i].wait_time_ms)) {
-                delay_ctx.evlist[i].wait_time_ms -= num_ms;
+            if (likely(num_ms < delay_ctx.evlist[i].remaining_time_ms)) {
+                delay_ctx.evlist[i].remaining_time_ms -= num_ms;
             } else {
-                delay_ctx.evlist[i].wait_time_ms = 0;
+                delay_ctx.evlist[i].remaining_time_ms = 0;
                 mgr_task_push_sig_event(delay_ctx.evlist[i].sig, delay_ctx.evlist[i].handler, delay_ctx.evlist[i].handler);
-                delay_ctx.evlist[i].active = false;
+                if (delay_ctx.evlist[i].periodic == true) {
+                    /* rearm event */
+                    delay_ctx.evlist[i].remaining_time_ms = delay_ctx.evlist[i].wait_time_ms;
+                } else {
+                    /* clear event */
+                    delay_ctx.evlist[i].active = false;
+                }
             }
         }
     }
