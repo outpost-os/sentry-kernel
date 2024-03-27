@@ -161,6 +161,12 @@ typedef enum SleepMode {
   SLEEP_MODE_DEEP,
 } SleepMode;
 
+typedef enum AlarmFlag {
+  O_ALRM_START,
+  O_ALRM_START_PERIODIC,
+  O_ALRM_STOP,
+} AlarmFlag;
+
 /**
  * Sentry syscall return values
  * NonSense must never be returned, as it means that an

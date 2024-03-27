@@ -5,17 +5,38 @@
 #include <uapi/types.h>
 #include <sentry/sched.h>
 
-stack_frame_t *gate_alarm(stack_frame_t *frame, uint32_t delay_ms, bool periodic)
+stack_frame_t *gate_alarm(stack_frame_t *frame, uint32_t delay_ms, uint32_t flag)
 {
     taskh_t current = sched_get_current();
     taskh_t next;
     stack_frame_t *next_frame = frame;
 
-    if (unlikely(mgr_time_delay_add_signal(current, delay_ms, SIGNAL_ALARM, periodic) != K_STATUS_OKAY)) {
-        mgr_task_set_sysreturn(current, STATUS_BUSY);
-        goto end;
+    switch (flag) {
+        case O_ALRM_START:
+            if (unlikely(mgr_time_delay_add_signal(current, delay_ms, SIGNAL_ALARM, false) != K_STATUS_OKAY)) {
+                mgr_task_set_sysreturn(current, STATUS_BUSY);
+                goto end;
+            }
+            mgr_task_set_sysreturn(current, STATUS_OK);
+            break;
+        case O_ALRM_START_PERIODIC:
+            if (unlikely(mgr_time_delay_add_signal(current, delay_ms, SIGNAL_ALARM, true) != K_STATUS_OKAY)) {
+                mgr_task_set_sysreturn(current, STATUS_BUSY);
+                goto end;
+            }
+            mgr_task_set_sysreturn(current, STATUS_OK);
+            break;
+        case O_ALRM_STOP:
+            if (unlikely(mgr_time_delay_del_signal(current, delay_ms) != K_STATUS_OKAY)) {
+                mgr_task_set_sysreturn(current, STATUS_NO_ENTITY);
+                goto end;
+            }
+            mgr_task_set_sysreturn(current, STATUS_OK);
+            break;
+        default:
+            mgr_task_set_sysreturn(current, STATUS_INVALID);
+            break;
     }
-    mgr_task_set_sysreturn(current, STATUS_OK);
 end:
     return next_frame;
 }

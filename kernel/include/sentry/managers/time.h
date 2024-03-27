@@ -31,6 +31,8 @@ kstatus_t mgr_time_delay_del_job(taskh_t job);
  */
 kstatus_t mgr_time_delay_add_signal(taskh_t job, uint32_t delay_ms, uint32_t sig, bool periodic);
 
+kstatus_t mgr_time_delay_del_signal(taskh_t job, uint32_t delay_ms);
+
 /**
  * @brief retrieve current number of cycles since boot
  */

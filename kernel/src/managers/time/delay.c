@@ -128,6 +128,34 @@ end:
 }
 
 /**
+ * @brief remove a signal from the event queue, based on the job,delay tuple
+ *
+ * @param job[in]: job identifier
+ * @param delay_ms[in]: delay_ms that was set at add time
+ *
+ * @return:
+ * - K_STATUS_OKAY on success
+ * - K_ERROR_NOENT if signal not found in the delay queue
+ */
+kstatus_t mgr_time_delay_del_signal(taskh_t job, uint32_t delay_ms)
+{
+    kstatus_t status;
+    for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
+        if ((delay_ctx.evlist[i].active == true) &&
+            (delay_ctx.evlist[i].handler == job) &&
+            (delay_ctx.evlist[i].wait_time_ms == delay_ms))
+        {
+            delay_ctx.evlist[i].active = false;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+    status = K_ERROR_NOENT;
+end:
+    return status;
+}
+
+/**
  * @brief Delay mechanism ticker, to be called by hardware ticker (systick....)
  */
 void mgr_time_delay_tick(void)
