@@ -129,11 +129,11 @@ stack_frame_t *systick_handler(stack_frame_t * stack_frame)
      * missed, except in low power mode (when systick is deactivated).
      */
     systime_get_cycle();
-    /* upgrade delayed tasks (slepping task) */
-    mgr_time_delay_tick();
 #if CONFIG_SCHED_RRMQ
     /* refresh quantums */
     stack_frame = sched_refresh(stack_frame);
 #endif
+    /* upgrade delayed tasks (slepping task) */
+    mgr_time_delay_tick();
     return stack_frame;
 }

@@ -422,6 +422,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
     /*
      * get back target syscall return code, if in comming back to a previously preempted syscall
      */
+
     if (likely(mgr_task_get_sysreturn(next, &statuscode) == K_STATUS_OKAY)) {
         /* a syscall return code as been previously set in this context and not cleared
          * by the handler. This means that the next job has been preempted during a syscall,
@@ -431,9 +432,9 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
          * means that a syscall that do not know synchronously its own return code has not seen
          * its return value being updated in the meantime **before** coming back to the job
          */
-        //if (unlikely(statuscode == STATUS_NON_SENSE)) {
-        //    __do_panic();
-        //}
+        if (unlikely(statuscode == STATUS_NON_SENSE)) {
+            __do_panic();
+        }
         newframe->r0 = statuscode;
         /* clearing the sysreturn. next job is no more syscall-preempted */
         mgr_task_clear_sysreturn(next);
