@@ -95,6 +95,11 @@ Syscall definition
 .. include:: syscalls/map.rst
 
 .. index::
+  single: sys_pm_clock_set; definition
+  single: sys_pm_clock_set; usage
+.. include:: syscalls/pm_clock_set.rst
+
+.. index::
   single: sys_send_ipc; definition
   single: sys_send_ipc; usage
 .. include:: syscalls/send_ipc.rst
