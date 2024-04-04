@@ -581,8 +581,7 @@ kstatus_t mgr_task_load_sig_event(taskh_t context)
                 dest_svcexch->source = 0UL;
             }
             uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
-            sigdata[0] = *source_handle;
-            sigdata[1] = signal;
+            sigdata[0] = signal;
             /* clear local cache */
             current->sigs[idx] = 0;
             status = K_STATUS_OKAY;

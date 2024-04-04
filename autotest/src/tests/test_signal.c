@@ -26,13 +26,13 @@ void test_signal_sendrecv(void)
         ret = sys_wait_for_event(EVENT_TYPE_SIGNAL, timeout);
         copy_to_user(data, 4+sizeof(exchange_event_t));
         header = (exchange_event_t*)&data[0];
-        uint32_t* content = (char*)&header->data[0];
+        uint32_t* content = (uint32_t*)&header->data[0];
         LOG("%x:%u:%x:src=%lx signal=%lu",
             header->type,
             header->length,
             header->magic,
             header->source,
-            content);
+            *content);
 
         ASSERT_EQ(ret, STATUS_OK);
     }
