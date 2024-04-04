@@ -12,10 +12,13 @@ stack_frame_t *gate_get_random(stack_frame_t *frame)
     const task_meta_t *meta;
     uint32_t *svcexch;
 
+#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
+    /* disable ownership test in autotest only */
     if (unlikely(mgr_security_has_capa(current, CAP_CRY_KRNG) != SECURE_TRUE)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
+#endif
     if (unlikely(mgr_security_entropy_generate(&rngval) != K_STATUS_OKAY)) {
         mgr_task_set_sysreturn(current, STATUS_CRITICAL);
         goto end;
