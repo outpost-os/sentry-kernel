@@ -250,6 +250,7 @@ typedef struct exchange_event {
     uint8_t type;   /*< event type, as defined in uapi/types.h */
     uint8_t length; /*< event data length, depending on event */
     uint16_t magic; /*< event TLV magic, specific to input event reception */
+    uint32_t source; /*< event source (task handle value). 0 means the kernel */
     uint8_t data[]; /*< event data, varies depending on length field */
 } exchange_event_t;
 

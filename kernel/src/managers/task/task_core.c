@@ -477,6 +477,7 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
         uint8_t len = current->ipcs[idx];
         if (len > 0) {
             task_t *source = &task_table[idx];
+            /* the kernel never emits IPC, only signals to tasks */
             const taskh_t *source_handle = ktaskh_to_taskh(&source->handle);
             /* get source and dest exchange area address (metadata) */
             uint8_t *source_svcexch = (uint8_t*)source->metadata->s_svcexchange;
@@ -499,10 +500,10 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
 #endif
             /* set T,L values from TLV */
             dest_svcexch->type = EVENT_TYPE_IPC;
-            dest_svcexch->length = len + sizeof(taskh_t);
+            dest_svcexch->length = len;
             dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
-            memcpy(dest_svcexch->data, source_handle, sizeof(taskh_t));
-            memcpy(&dest_svcexch->data[4], source_svcexch, len);
+            dest_svcexch->source = *source_handle;
+            memcpy(&dest_svcexch->data[0], source_svcexch, len);
             /* handle scheduling, awake source */
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
             /* in autotest, no need to schedule again ourself, as already ready */
@@ -564,13 +565,21 @@ kstatus_t mgr_task_load_sig_event(taskh_t context)
         if (signal > 0) {
             task_t *source = &task_table[idx];
             job_state_t state;
-            const taskh_t *source_handle = ktaskh_to_taskh(&source->handle);
+            const taskh_t *source_handle;
             /* get source and dest exchange area address (metadata) */
             exchange_event_t *dest_svcexch = (exchange_event_t *)current->metadata->s_svcexchange;
+
             /* set T,L values from TLV */
             dest_svcexch->type = EVENT_TYPE_SIGNAL;
-            dest_svcexch->length = 2*(sizeof(uint32_t));
+            dest_svcexch->length = sizeof(uint32_t);
             dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+            if (likely(source != 0)) {
+                /* when source is kernel, the source handle is 0 */
+                source_handle = ktaskh_to_taskh(&source->handle);
+                dest_svcexch->source = *source_handle;
+            } else {
+                dest_svcexch->source = 0UL;
+            }
             uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
             sigdata[0] = *source_handle;
             sigdata[1] = signal;
