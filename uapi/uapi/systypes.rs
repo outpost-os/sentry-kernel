@@ -122,6 +122,7 @@ pub enum Status {
     TimeOut,
     Critical,
     Timeout,
+    Again,
 }
 
 impl From<u32> for Status {
@@ -136,6 +137,7 @@ impl From<u32> for Status {
             6 => Status::TimeOut,
             7 => Status::Critical,
             8 => Status::Timeout,
+            9 => Status::Again,
             _ => panic!(),
         }
     }

@@ -192,7 +192,7 @@ pub extern "C" fn sys_irq_acknowledge(irq: u16) -> Status {
 ///
 /// POSIX upper layer(s): select(2), poll(2)
 #[no_mangle]
-pub extern "C" fn sys_wait_for_event(mask: u8, timeout: u32) -> Status {
+pub extern "C" fn sys_wait_for_event(mask: u8, timeout: i32) -> Status {
     syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into()
 }
 
