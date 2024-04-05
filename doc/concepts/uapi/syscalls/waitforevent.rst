@@ -7,7 +7,7 @@ Wait_For_Event
    :caption: Rust UAPI for wait_for_event syscall
 
    mod uapi {
-      fn wait_for_event(mask: u8, timeout: u32) -> Status
+      fn wait_for_event(mask: u8, timeout: i32) -> Status
 
       fn get_received_event_type() -> EventType
       fn get_received_event_length() -> u8
@@ -25,7 +25,7 @@ Wait_For_Event
      EVENT_TYPE_ALL = 7,
    } EventType;
 
-   enum Status sys_wait_for_event(uint8_t mask, uint32_t timeout);
+   enum Status sys_wait_for_event(uint8_t mask, int32_t timeout);
    void get_received_event_type(void);
    uint8_t get_received_event_length(void);
    uint8_t *get_received_event_data();
@@ -43,10 +43,18 @@ This syscall handles external events blocking reception (IPCs, signals or interr
 In order to wait for specific event(s) only, the mask argument is used in order to
 filter some specific inputs events using logical OR between waited event(s).
 
+The timeout argument is used to define the temporal behavior:
+
+   * if ``timeout`` is -1, the syscall synchronously return to the job, with STATUS_AGAIN of no
+     event is received
+   * if ``timeout`` is 0, the job is preempted until an event is received
+   * if ``timeout`` is positive, the job waits upto `timeout` ms. In case of timeout reached,
+     STATUS_TIMEOUT is returned
+
 Any received event is delivered with a TLV basic content in the **svc_exchange** area:
 
 ```
-[T:u8][L:u8][magic:16][data]
+[T:u8][L:u8][magic:u16][source:u32][data...]
 ```
 
 The T field is keeping the enumerate EventMask encoding, in order to identify the

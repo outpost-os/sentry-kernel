@@ -207,7 +207,7 @@ __STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
         }
         case SYSCALL_WAIT_FOR_EVENT: {
             uint8_t event_mask = frame->r0;
-            uint32_t timeout = frame->r1;
+            int32_t timeout = frame->r1;
             next_frame = gate_waitforevent(frame, event_mask, timeout);
             break;
         }
