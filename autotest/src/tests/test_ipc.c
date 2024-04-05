@@ -2,6 +2,7 @@
 #include <testlib/log.h>
 #include <testlib/assert.h>
 #include <uapi/uapi.h>
+#include <uapi/types.h>
 #include "test_ipc.h"
 
 void test_ipc_send_toobig(void)
@@ -40,6 +41,8 @@ void test_ipc_sendrecv(void)
     taskh_t handle = 0;
     uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
     uint32_t timeout = 100UL; /* milisecond timeout */
+    exchange_event_t *header;
+
     ret = sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
     LOG("handle is %lx", handle);
@@ -49,10 +52,16 @@ void test_ipc_sendrecv(void)
     copy_from_user(msg, 20);
     ret = sys_send_ipc(handle, 20);
     ret = sys_wait_for_event(EVENT_TYPE_IPC, timeout);
-    uint32_t *source = (uint32_t*)&data[4];
-    char *content = (char*)&data[8];
-    copy_to_user(data, 24);
-    LOG("%x:%u:%x%x: source=%lx %s", data[0], data[1], data[2], data[3], *source, content);
+    copy_to_user(data, 20+sizeof(exchange_event_t));
+    header = (exchange_event_t*)&data[0];
+    uint32_t source = header->source;
+    char *content = (char*)&header->data[0];
+    LOG("%x:%u:%x:src=%lx %s",
+        header->type,
+        header->length,
+        header->magic,
+        header->source,
+        content);
     ASSERT_EQ(ret, STATUS_OK);
     TEST_END();
 }
