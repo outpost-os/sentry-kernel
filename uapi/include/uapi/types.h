@@ -246,6 +246,15 @@ typedef struct SleepDuration {
   };
 } SleepDuration;
 
+/** @def wait for event flag that allows async receive (no wait with AGAIN) */
+#define WFE_WAIT_NO      (-1)
+
+/** @def wait for event flag that allows blocking wait */
+#define WFE_WAIT_FOREVER (0)
+
+/** @def wait for event flag that allows blocking wait with timeout */
+#define WFE_WAIT_UPTO(x) (x)
+
 /* Exchange event header for all events received in SVC Exchange area */
 typedef struct exchange_event {
     uint8_t type;   /*< event type, as defined in uapi/types.h */

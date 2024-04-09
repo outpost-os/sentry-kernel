@@ -8,10 +8,6 @@ Wait_For_Event
 
    mod uapi {
       fn wait_for_event(mask: u8, timeout: i32) -> Status
-
-      fn get_received_event_type() -> EventType
-      fn get_received_event_length() -> u8
-      fn get_received_event_data(length: u8) -> mut *data
    }
 
 .. code-block:: c
@@ -26,14 +22,6 @@ Wait_For_Event
    } EventType;
 
    enum Status sys_wait_for_event(uint8_t mask, int32_t timeout);
-   void get_received_event_type(void);
-   uint8_t get_received_event_length(void);
-   uint8_t *get_received_event_data();
-
-.. warning::
-    the get_received_event_data directly return a pointer on the data part of
-    the exchange area. Remember to copy the data if needed as other syscalls will
-    erase the content of svc_exchange
 
 **Usage**:
 
@@ -50,6 +38,15 @@ The timeout argument is used to define the temporal behavior:
    * if ``timeout`` is 0, the job is preempted until an event is received
    * if ``timeout`` is positive, the job waits upto `timeout` ms. In case of timeout reached,
      STATUS_TIMEOUT is returned
+
+In order to help with the timeout flag usage, C macros as been written to hide the field numeric value:
+
+.. code-block:: c
+   :caption: wait_for_event timeout helpers
+
+   #define WFE_WAIT_NO      (-1)
+   #define WFE_WAIT_FOREVER (0)
+   #define WFE_WAIT_UPTO(x) (x)
 
 Any received event is delivered with a TLV basic content in the **svc_exchange** area:
 
@@ -74,3 +71,55 @@ The L field always specify the exact data size. This means that:
 
 The magic field is used in order to detect invalid exchange content easily, to prevent
 invalid data values access from userspace upper layers.
+
+The exchange event is an UAPI types that is defined as the following:
+
+.. code-block:: c
+   :caption: wait_for_event helper struct
+
+   typedef struct exchange_event {
+       uint8_t type;   /*< event type, as defined in uapi/types.h */
+       uint8_t length; /*< event data length, depending on event */
+       uint16_t magic; /*< event TLV magic, specific to input event reception */
+       uint32_t source; /*< event source (task handle value). 0 means the kernel */
+       uint8_t data[]; /*< event data, varies depending on length field */
+   } exchange_event_t;
+
+This make the syscall usage easier:
+
+.. code-block:: c
+   :caption: Typicall wait_for_event usage
+
+   exchange_event_t * event = NULL;
+   status = wait_for_event(EVENT_TYPE_IPC | EVENT_TYPE_SIGNAL, WFE_WAIT_NO);
+   switch (status) {
+      case STATUS_OKAY:
+         /* an IPC or signal is received */
+         event = &_s_svcexchange;
+         switch (event->type) {
+            case EVENT_TYPE_IPC:
+               /* handle IPC */
+               break;
+            case EVENT_TYPE_SIGNAL:
+               /* handle signal */
+               break;
+            default:
+               break;
+         }
+         break;
+      case STATUS_AGAIN:
+         break;
+      default:
+         /* others are errors that should be handled */
+         break;
+   }
+   
+
+.. note::
+   The wait_for_event() API is typically manipulated through the msgrcv() POSIX
+   API implemented in libshield
+
+.. warning::
+   Not that svc_exhchange area content is ephemeral upto the next syscall. The developper should
+   copy its content to a safe area or manipulate it withtout any syscall in the between (including sys_log())
+
