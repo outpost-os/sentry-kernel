@@ -416,7 +416,12 @@ end:
     return status;
 }
 
-static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint8_t IRQn)
+/*
+ * XXX:
+ *  How to deals with shared IRQ line ?
+ *   e.g. STM32U5 ADC1 and ADC2 or  STM32f429 TIM8 (3 irq lines) respectively shared w/ TIM12/13/14)
+ */
+static inline secure_bool_t dev_has_interrupt(const devinfo_t *devinfo, uint16_t IRQn)
 {
     secure_bool_t res = SECURE_FALSE;
 
@@ -433,7 +438,7 @@ end:
     return res;
 }
 
-kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh)
+kstatus_t mgr_device_get_devh_from_interrupt(uint16_t IRQn, devh_t *devh)
 {
     kstatus_t status = K_ERROR_INVPARAM;
 
@@ -453,7 +458,7 @@ end:
     return status;
 }
 
-kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo)
+kstatus_t mgr_device_get_devinfo_from_interrupt(uint16_t IRQn, const devinfo_t **devinfo)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(devinfo == NULL)) {
