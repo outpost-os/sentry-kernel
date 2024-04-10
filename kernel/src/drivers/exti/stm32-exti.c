@@ -104,13 +104,13 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
-  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= EXTI_NUM_INTERRUPTS <==> \result == K_STATUS_OKAY;
+  ensures itn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_mask_interrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
+    if (unlikely(itn > EXTI_NUM_EVENTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }
@@ -139,13 +139,13 @@ err:
  */
 /*@
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
-  ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
-  ensures itn <= EXTI_NUM_INTERRUPTS <==> \result == K_STATUS_OKAY;
+  ensures itn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
+  ensures itn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
  */
 kstatus_t exti_unmask_interrupt(uint8_t itn)
 {
     kstatus_t status = K_STATUS_OKAY;
-    if (unlikely(itn > EXTI_NUM_INTERRUPTS)) {
+    if (unlikely(itn > EXTI_NUM_EVENTS)) {
         status = K_ERROR_INVPARAM;
         goto err;
     }

@@ -5,11 +5,25 @@
 #define __STM32_EXTI_DT_GENERATED_H
 
 {%- if dts.exti.status == "okay" %}
-{%- set num_it = dts.exti['interrupts'] %}
+
+/*
+ * XXX:
+ *  NVIC interrupt line are lesser or equal that the EXTI event/interrupts
+ *  depending on the SOC.
+ *  E.g. SM32U5 COMP1/COMP2 are EXTI line 17/18 but share the same IRQ line
+ *  on NVIC if configured as interrupt.
+ *
+ * TODO:
+ *  Add binding between event number and nvic irq line in dts
+ *   ↳ this requires IRQ owned by kernel that dispatch EXTI Interrupt to userspace
+ *  Add exti interrupt configuration capability (irq/event, edge) in dts
+ *  Add exti based irq for userspace
+ */
+
 /**
  * @def number of external interrupts supported by EXTI device
  */
-#define EXTI_NUM_INTERRUPTS {{ num_it|int }}UL
+#define EXTI_NUM_INTERRUPTS {{ dts.exti|interrupts|length|int }}UL
 
 {%- set num_ev = dts.exti['events'] %}
 /**

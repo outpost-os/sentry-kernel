@@ -44,7 +44,6 @@
 };
 
 &exti {
-	interrupts = <40>;
 	events = <40>;
 	status = "okay";
 };
