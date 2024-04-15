@@ -1,38 +1,43 @@
-project('sentry-kernel',
-    ['c','cpp','rust'],
+# SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2023-2024 Ledger SAS
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+project('sentry-kernel', 'c',
     meson_version: '>=1.3.0',
     default_options: [
-        'c_std=gnu11', 'cpp_std=gnu++20', 'rust_std=2021',
+        'c_std=gnu11', 'cpp_std=gnu++20',
         'warning_level=3', 'optimization=s',
         'default_library=static', 'b_pie=false', 'b_staticpic=false',
         'licensedir=share/info/sentry-kernel',
         'pkgconfig.relocatable=true',
     ],
+    version: run_command('dunamai', 'from', 'git', '--style', 'semver', '--dirty', check: true)
+            .stdout().strip(),
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
 
-top_dir = meson.current_source_dir()
-
 objcopy = find_program('objcopy')
 sentry_install_script = find_program('support/scripts/install.py')
 
-# dunamai is used for version sync with gconf (in the same way poetry-dynamic-versioning does)
 keyval = import('keyval')
 fs = import('fs')
 pymod = import('python')
 ssmod = import('sourceset')
 
 py3 = pymod.find_installation('python3', modules: ['dunamai'])
-
-if meson.has_external_property('rust_target')
-    add_project_arguments([
-        '--target=@0@'.format(meson.get_external_property('rust_target')),
-        '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
-    ], language: 'rust', native: false)
-else
-    warning('No `rust_target` defined, build will fail unless it is only docs.')
-endif
 
 kconfig_file = meson.current_source_dir() / 'Kconfig'
 kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kconfig_file)])
@@ -54,10 +59,6 @@ global_build_args = [
     '-Wno-unused-function', # FIXME: while in early dev
     '-Wno-unused-variable', # FIXME: while in early dev
     '-Wno-unused-parameter', # FIXME: while in early dev
-]
-
-global_rust_build_args = [
-   '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs)
 ]
 
 # these flags are overload by arch/<architecture> meson.build file
@@ -114,59 +115,58 @@ dtsgen = generator(dts2src,
 with_uapi_opt = get_option('with_uapi')
 with_kernel_opt = get_option('with_kernel')
 with_idle_opt = get_option('with_idle')
+with_doc_opt = get_option('with_doc')
+with_autotest = kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+with_tests = get_option('with_tests')
+with_tools = get_option('with_tools')
+with_proof = get_option('with_proof')
 
-subdir('tools')
-subdir('support/arch')
-
-# Idle implies libuapi
-if with_idle_opt or kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
+if with_idle_opt or with_autotest
     with_uapi_opt = true
 endif
 
-# at least uapi headers are generated libuapi build is under
-# with_uapi option flag
+subdir('tools')
+subdir('support/arch')
 subdir('uapi')
-
-# building kernel
-if with_idle_opt
 subdir('idle')
-endif
-
-# building kernel
-if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
 subdir('autotest')
-endif
-
-# building idle
-if with_kernel_opt
 subdir('kernel')
-endif
-
-# schemas and tooling
 subdir('schemas')
+subdir('doc')
 
-with_doc_opt = get_option('with_doc')
-if with_doc_opt
-  subdir('doc')
-endif
-
-message('build targetting SoC', kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME'))
-
-if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
-message('> This is an autotest standalone image')
-endif
+is_standalone = kconfig_data.get('CONFIG_STANDALONE_MODE', 0)
+build_mode = 'Release'
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
-warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
+    build_mode = 'Debug'
+    warning('!!! This is NOT a release build ! DO NOT USE IT IN PRODUCTION !!!')
 endif
 
 summary(
     {
         'soc': kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower(),
+        'build mode': build_mode,
+        'standalone': is_standalone,
     },
+    bool_yn: true,
     section: 'Configuration'
 )
 
-if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1 and not get_option('with_tests')
+summary(
+    {
+        'sentry-kernel': with_kernel_opt,
+        'idle': with_idle_opt,
+        'uapi': with_uapi_opt,
+        'autotest': with_autotest,
+        'tools': with_tools,
+        'doc' : with_doc_opt,
+        'unit tests': with_tests,
+        'formal proof': with_proof,
+    },
+    bool_yn: true,
+    section: 'Targets',
+)
+
+if with_autotest and not with_tests
 # in autotest mode only, fusion all hex into one single hex, to simplify
 # gdb flashing. This mode needs srec_cat to fusion all hex into one
 # other nominal (debug, release) modes use build system based binary
@@ -192,6 +192,3 @@ warning('!!! Unable to forge final hex automatically! help yourself with ELF and
 endif
 
 endif
-
-# auto-generation (jinja2, json) tooling is there
-# subdir('tools')

@@ -1,5 +1,9 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
+
+if not with_idle_opt
+    subdir_done()
+endif
 
 if meson.is_subproject()
 warning('!!! Are you sure you want to build the Idle task as a subproject ?')
@@ -16,7 +20,9 @@ userspace_args = [
 
 subdir('src')
 
-if get_option('with_tests') == false
+if with_tests
+    subdir_done()
+endif
 
 idle_ldscript = custom_target('idle_ldscript',
     input: idle_ldscript_template,
@@ -56,12 +62,9 @@ idle_hex = custom_target(
         '@INPUT@',
         '@OUTPUT@'
     ],
-    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
     install_tag: 'runtime',
 )
 
 meson.add_install_script(sentry_install_script, idle_map_file, get_option('infodir') / idle_task_name)
-
-endif

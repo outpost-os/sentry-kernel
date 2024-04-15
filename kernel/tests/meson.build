@@ -1,5 +1,7 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
+
+add_languages('cpp', native: true, required: true)
 
 hostcc = meson.get_compiler('c', native: true)
 hostcc.has_function('__builtin_ffsl')
