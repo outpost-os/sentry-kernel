@@ -7,3 +7,5 @@ parseelf = find_program('parseelf.py', required: true)
 if not with_tools
     subdir_done()
 endif
+
+subdir('genmetadata')
