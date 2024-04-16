@@ -1,11 +1,12 @@
 #ifndef SECURITY_MANAGER_H
 #define SECURITY_MANAGER_H
 
+#include <uapi/uapi.h>
+#include <sentry/ktypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <uapi/uapi.h>
 
 /**
  * @file Sentry I/O manager API
@@ -38,9 +39,6 @@ typedef enum capability {
 #define CAP_SYS_MASK (((0x1UL  << 16) - 1) & ~CAP_DEV_MASK)
 /** @def mask for mem capability */
 #define CAP_MEM_MASK (((0x1UL << 20) - 1) & ~(CAP_DEV_MASK | CAP_SYS_MASK))
-
-
-#include <sentry/ktypes.h>
 
 kstatus_t mgr_security_init(void);
 

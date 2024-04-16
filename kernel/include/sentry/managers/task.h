@@ -1,11 +1,6 @@
 #ifndef TASK_MANAGER_H
 #define TASK_MANAGER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #include <assert.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -24,6 +19,11 @@ extern "C" {
  */
 #include <sentry/arch/asm-generic/thread.h>
 #include <sentry/arch/asm-generic/memory.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @def idle task label definition
  *

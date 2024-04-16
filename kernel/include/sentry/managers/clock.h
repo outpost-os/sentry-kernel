@@ -4,14 +4,15 @@
 #ifndef CLOCK_MANAGER_H
 #define CLOCK_MANAGER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 /**
  * @file Sentry Clock manager
  */
 #include <uapi/handle.h>
 #include <sentry/ktypes.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 kstatus_t mgr_clock_init(void);
 
@@ -30,7 +31,7 @@ kstatus_t mgr_clock_autotest(void);
 #endif
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif/*!CLOCK_MANAGER_H*/
