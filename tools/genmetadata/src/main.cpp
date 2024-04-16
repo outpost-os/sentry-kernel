@@ -20,11 +20,37 @@
  * under the License.
  */
 
+#include <string>
+#include <iostream>
+#include <sstream>
+
 #include <nlohmann/json.hpp>
+#include <argparse/argparse.hpp>
+
+#include <sentry/managers/task.h>
+#include <sentry/managers/security.h>
+#include <sentry/job.h>
+
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])
 {
+    argparse::ArgumentParser program("genmetadata", "0", argparse::default_arguments::help);
+
+    program.add_argument("-o", "--output").help("generated metadata blob");
+    program.add_argument("json_str").help("input json stream");
+
+    try {
+        program.parse_args(argc, argv);
+        std::istringstream in{program.get<std::string>("json_str")};
+        auto data = json::parse(in);
+
+    }
+    catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
 
     return 0;
 }
