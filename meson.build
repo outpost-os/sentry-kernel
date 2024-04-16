@@ -125,13 +125,13 @@ if with_idle_opt or with_autotest
     with_uapi_opt = true
 endif
 
-subdir('tools')
 subdir('support/arch')
 subdir('uapi')
 subdir('idle')
 subdir('autotest')
 subdir('kernel')
 subdir('schemas')
+subdir('tools')
 subdir('doc')
 
 is_standalone = kconfig_data.get('CONFIG_STANDALONE_MODE', 0)

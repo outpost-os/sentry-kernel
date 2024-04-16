@@ -9,6 +9,7 @@ test_printk = executable(
         join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
     ),
     include_directories: kernel_inc,
+    override_options: ['cpp_std=gnu++20'],
     cpp_args: [
         '-DTEST_MODE=1',
         '-DCONFIG_BUILD_TARGET_DEBUG=1',

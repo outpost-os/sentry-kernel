@@ -10,16 +10,14 @@ if not meson.has_external_property('rust_target')
 endif
 
 add_languages('rust', native: false, required: true)
-add_project_arguments([
-    '--target=@0@'.format(meson.get_external_property('rust_target')),
-    '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
-], language: 'rust', native: false)
 
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('uapi/lib.rs')
 
 global_rust_build_args = [
-   '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs)
+    '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs),
+    '--target=@0@'.format(meson.get_external_property('rust_target')),
+    '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
 ]
 
 subdir('include/uapi')

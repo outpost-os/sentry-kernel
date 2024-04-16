@@ -5,6 +5,7 @@ test_io = executable(
     'test_io',
     sources: files('test_io.cpp'),
     include_directories: kernel_inc,
+    override_options: ['cpp_std=gnu++20'],
     cpp_args: [
         '-DTEST_MODE=1',
         '-Wno-pedantic',

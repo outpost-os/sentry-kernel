@@ -9,6 +9,9 @@ if meson.is_subproject()
 warning('!!! Are you sure you want to build the autotest task as a subproject ?')
 endif
 
+# local tool for easy ELF parsing to json file
+parseelf = find_program('parseelf.py', required: true, dirs: [meson.project_source_root() / 'tools'])
+
 autotest_task_name = 'autotest'
 
 userspace_args = [
