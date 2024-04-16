@@ -25,6 +25,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 typedef enum {
   CPU_SLEEP_WAIT_FOR_INTERRUPT,
   CPU_SLEEP_WAIT_FOR_EVENT,
@@ -264,5 +269,8 @@ typedef struct exchange_event {
     uint8_t data[]; /*< event data, varies depending on length field */
 } exchange_event_t;
 
+#ifdef __cplusplus
+} /* extern "C" */
+#endif // __cplusplus
 
 #endif /* __SENTRY_UAPI_TYPES_H */
