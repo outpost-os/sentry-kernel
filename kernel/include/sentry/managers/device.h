@@ -37,7 +37,7 @@ kstatus_t mgr_device_configure(devh_t dev);
 kstatus_t mgr_device_autotest(void);
 #endif
 
-kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh);
+kstatus_t mgr_device_get_devh_from_interrupt(uint16_t IRQn, devh_t *devh);
 
 /**
  * Iterate over the device list, starting with id==id.
@@ -47,7 +47,7 @@ kstatus_t mgr_device_get_devh_from_interrupt(uint8_t IRQn, devh_t *devh);
 kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id);
 
 
-kstatus_t mgr_device_get_devinfo_from_interrupt(uint8_t IRQn, const devinfo_t **devinfo);
+kstatus_t mgr_device_get_devinfo_from_interrupt(uint16_t IRQn, const devinfo_t **devinfo);
 
 kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id);
 

@@ -12,11 +12,11 @@
 
 /** device information UAPI types. Variables are jinja-generated from dts */
 
-typedef int (*it_handler_p)(uint8_t it);
+typedef int (*it_handler_p)(uint16_t it);
 
 typedef struct it_info {
+    uint16_t     it_num;       /**< interrupt number */
     uint8_t      it_controler; /**< interrupt controler identifier */
-    uint8_t      it_num;     /**< interrupt number */
 } it_info_t;
 
 typedef struct io_info {

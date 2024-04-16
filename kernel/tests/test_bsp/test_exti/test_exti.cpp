@@ -93,7 +93,7 @@ TEST_F(ExtiDevice, TestUnmaskInterrupt)
         uint8_t Val = distrib(gen);
         kstatus_t res;
         res = exti_unmask_interrupt(Val);
-        if (Val <= EXTI_NUM_INTERRUPTS) {
+        if (Val <= EXTI_NUM_EVENTS) {
             EXPECT_EQ(res, K_STATUS_OKAY);
         } else {
             EXPECT_EQ(res, K_ERROR_INVPARAM);
@@ -103,7 +103,7 @@ TEST_F(ExtiDevice, TestUnmaskInterrupt)
         uint8_t Val = distrib(gen);
         kstatus_t res;
         res = exti_mask_interrupt(Val);
-        if (Val <= EXTI_NUM_INTERRUPTS) {
+        if (Val <= EXTI_NUM_EVENTS) {
             EXPECT_EQ(res, K_STATUS_OKAY);
         } else {
             EXPECT_EQ(res, K_ERROR_INVPARAM);

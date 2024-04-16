@@ -103,10 +103,7 @@
 {% set ns.total_devices=0 %}
 static const device_t devices[] = {
     {% for device in dts.get_active_nodes() -%}
-    {% if not device.compatible -%}
-    {% continue -%}
-    {% endif -%}
-    {% if 'pll' in device_get_type(device) -%}
+    {% if device is not owned or device is not enabled -%}
     {% continue -%}
     {% endif -%}
     {% set ns.total_devices = ns.total_devices + 1 -%}
@@ -121,23 +118,20 @@ static const device_t devices[] = {
             .baseaddr = 0UL,
             .size = 0UL,
             {% endif -%}
-            {% if device.interrupts -%}
-            .num_interrupt = 1,
+            {% set interrupts = device|interrupts -%}
+            {% if interrupts|length|int > 0 -%}
+            {# /* XXX exti might have more than 8 interrupts */ #}
+            .num_interrupt = {{ [interrupts|length|int, 8]|min }},
             .its = {
-                {% if device.interrupts[0] -%}
-                {  .it_controler = {{ device.interrupts[1] }}UL, .it_num = {{ device.interrupts[0] }}UL },
-                {% else -%}
-                {  .it_controler = 0UL, .it_num = 0UL },
-                {% endif -%}
-                {% for irq in [ 1,2,3,4,5,6,7] -%}
-                {  .it_controler = 0UL, .it_num = 0UL },
+                {% for irq_ctrl, irqnum, irqprio in interrupts[:8] -%}
+                {  .it_num = {{ irqnum }}U, .it_controler = 0U },
                 {% endfor -%}
             },
             {% else -%}
             .num_interrupt = 0,
             .its = {
-                {% for irq in [ 0,1,2,3,4,5,6,7] -%}
-                { .it_controler = 0UL, .it_num = 0UL },
+                {% for irq in range(8) -%}
+                { .it_controler = 0U, .it_num = 0U },
                 {% endfor -%}
             },
             {% endif -%}
@@ -193,11 +187,7 @@ static const device_t devices[] = {
         .clk_id = 0x0UL,
         .bus_id = 0x0UL,
         {% endif -%}
-        {% if device["outpost,owner"] -%}
-        .owner = {{ "%#8xUL"|format(device["outpost,owner"]) }},
-        {% else -%}
-        .owner = 0UL, /* owned by kernel */
-        {%- endif %}
+        .owner = {{ "%#xUL"|format(device|owner) }},
     },
     {% endfor %}
 };

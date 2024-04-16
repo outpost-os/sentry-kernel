@@ -411,6 +411,7 @@ stack_frame_t *Default_SubHandler(stack_frame_t *frame)
                 newframe = userisr_handler(frame, it);
             }
             /* defaulting to nothing... */
+            /* We might assert on spurious/unahndled exception here ? */
             break;
     }
 
