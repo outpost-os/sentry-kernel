@@ -1,0 +1,165 @@
+{
+    "task_meta": {
+        "magic": {
+            "c_type": "uint64_t",
+            "rust_type": "u64",
+            "description": "task structure magic number"
+        },
+        "version": {
+            "c_type": "uint32_t",
+            "rust_type": "u32",
+            "description": "structure version, may vary based on SDK version"
+        },
+        "label": {
+            "c_type": "uint32_t",
+            "rust_type": "u32",
+            "description": "task unique identifier (32bit label)"
+        },
+        "priority": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "task priority, higher is bigger"
+        },
+        "quantum": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "task quantum, number of HZ allowed contiguous periods"
+        },
+        "capabilities": {
+            "c_type": "uint32_t",
+            "rust_type": "u32",
+            "cpp_type": "capability",
+            "description": "task capabilities to access resources"
+        },
+        "flags": {
+            "c_type": "job_flags_t",
+            "rust_type": "JobFlags",
+            "description": "task start and exit flags"
+        },
+        "domain": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "domain identifier"
+        },
+        "s_text": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": "start address of task .text section"
+        },
+        "text_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": ".text section size"
+        },
+        "s_got": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": "start address of task .got section"
+        },
+        "got_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": ".got section size"
+        },
+        "rodata_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": ".rodata section size"
+        },
+        "data_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": ".data section size"
+        },
+        "bss_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": ".bss section size"
+        },
+        "heap_size": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": "process head size (can be 0, i.e. no heap)"
+        },
+        "s_svcexchange": {
+            "c_type": "size_t",
+            "rust_type": "usize",
+            "description": "SVC exchange start address in RAM"
+        },
+        "stack_size": {
+            "c_type": "uint16_t",
+            "rust_type": "u16",
+            "description": "task stack size"
+        },
+        "entrypoint_offset": {
+            "c_type": "uint16_t",
+            "rust_type": "u16",
+            "description": "_start symbol offset in .text section"
+        },
+        "finalize_offset": {
+            "c_type": "uint16_t",
+            "rust_type": "u16",
+            "description": "_finalize symbol offset in .text section"
+        },
+        "num_shms": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "number of task shared memorie(s)"
+        },
+        "shms": {
+            "array": true,
+            "array_size": "CONFIG_MAX_SHM_PER_TASK",
+            "element": {
+                "c_type": "shmh_t",
+                "rust_type": "SHMHandle",
+                "description": "shared memory handler identifier"
+            }
+        },
+        "num_devs": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "number of task device(s)"
+        },
+        "devs": {
+            "array": true,
+            "array_size": "CONFIG_MAX_DEV_PER_TASK",
+            "element": {
+                "c_type": "devh_t",
+                "rust_type": "DEVHandle",
+                "description": "device handler identifier"
+            }
+        },
+        "num_dmas": {
+            "c_type": "uint8_t",
+            "rust_type": "u8",
+            "description": "number of task dma stream(s)"
+        },
+        "dmas": {
+            "array": true,
+            "array_size": "CONFIG_MAX_DMA_STREAMS_PER_TASK",
+            "element": {
+                "c_type": "dmah_t",
+                "rust_type": "DMAHandle",
+                "description": "dma stream handler identifier"
+            }
+        },
+        "task_hmac": {
+            "array": true,
+            "array_size": 32,
+            "element": {
+                "c_type": "uint8_t",
+                "rust_type": "u8",
+                "description": "task .text+.rodata+.data build time hmac calculation (TBD)"
+            }
+        },
+        "metadata_hmac": {
+            "array": true,
+            "array_size": 32,
+            "element": {
+                "c_type": "uint8_t",
+                "rust_type": "u8",
+                "description": "current struct build time hmac calculation"
+            }
+        }
+    }
+}

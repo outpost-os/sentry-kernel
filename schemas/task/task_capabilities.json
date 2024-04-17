@@ -1,0 +1,25 @@
+{
+    "capabilities": [
+        { "name": "dev_buses", "shift": 0 },
+        { "name": "dev_io", "shift": 1 },
+        { "name": "dev_dma", "shift": 2 },
+        { "name": "dev_analog", "shift": 3 },
+        { "name": "dev_timer", "shift": 4 },
+        { "name": "dev_storage", "shift": 5 },
+        { "name": "dev_crypto", "shift": 6 },
+        { "name": "dev_clock", "shift": 7 },
+        { "name": "dev_power", "shift": 8 },
+        { "name": "dev_neural", "shift": 9 },
+
+        { "name": "sys_upgrade", "shift": 12 },
+        { "name": "sys_power", "shift": 13 },
+        { "name": "sys_procstart", "shift": 14 },
+
+        { "name": "mem_shm_own", "shift": 16 },
+        { "name": "mem_shm_use", "shift": 17 },
+        { "name": "mem_shm_transfer", "shift": 18 },
+
+        { "name": "tim_hp_chrono", "shift" :20 },
+        { "name": "cry_krng", "shift": 21 }
+    ]
+}

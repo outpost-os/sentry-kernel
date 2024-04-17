@@ -1,0 +1,58 @@
+#ifndef __SENTRY_MANAGERS_TASK_METADATA_GENERATED_H
+#define __SENTRY_MANAGERS_TASK_METADATA_GENERATED_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <inttypes.h>
+#include <stddef.h>
+#include <sentry/job.h>
+
+/**
+ * This is the main task structure manipulated by the kernel. Each task build (ELF generation)
+ * produce a blob that contain such binary format.
+ * The structure is generated using as input:
+ * - the ELF metadatas
+ * - the task informations (permissions, configuration, dts information, etc.)
+ * - the task label (16 bits unique identifier, like, for e.g. 0xbabe or 0x1051)
+ *
+ * when generated, the task structure is stored as a standalone file in the build system
+ * so that it can be easily dumped by python tooling, and also pushed into the kernel image
+ * in a dedicated task list section where all tasks info are stored.
+ *
+ * Task memory mapping information, used for context switching and MPU configuration
+ * Using all of these, the task manager can fully forge the task RAM mapping, using
+ * the following layout:
+ *  RAM (RW-)      FLASH (R-X)
+ * [ stack ]      [ rodata ]
+ * [ heap  ]      [ text   ]
+ * [ bss   ]
+ * [ data  ]
+ * [ svc-e ]
+ *
+ * As a consequence, only svc-e and text base address is required. Overall region
+ * size is a basic addition of each section size, starting from the corresponding
+ * base address
+ *
+ * The task meta layout is defined once and for all in schema/task/task_metadata.json.
+ * Here we use the one definition rules as we need the same layout to be defined, natively,
+ * in many other languages (C++/Rust).
+ */
+typedef struct task_meta {
+{% filter indent(4, true) -%}
+{% for name, field in task_meta.items() -%}
+{% if field.array -%}
+{{ field.element.c_type }} {{ name }}[{{ field.array_size }}]; /**< {{ field.element.description }} */
+{% else -%}
+{{ field.c_type }} {{ name }}; /**< {{ field.description }} */
+{% endif -%}
+{% endfor -%}
+{% endfilter -%}
+} task_meta_t;
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __SENTRY_MANAGERS_TASK_METADATA_GENERATED_H */

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 subdir('arch')
@@ -16,18 +16,7 @@ sentry_header_set.add(files(
   'thread.h',
 ))
 
-# managers headers
-sentry_header_set.add(files(
-  'managers/clock.h',
-  'managers/debug.h',
-  'managers/device.h',
-  'managers/interrupt.h',
-  'managers/io.h',
-  'managers/memory.h',
-  'managers/security.h',
-  'managers/task.h',
-  'managers/time.h',
-))
+subdir('managers')
 
 # zlib headers
 sentry_header_set.add(files(

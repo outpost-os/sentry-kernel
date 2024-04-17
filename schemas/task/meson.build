@@ -1,5 +1,13 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
+
+task_metadata_json = files('task_metadata.json')
+task_capabilities_json = files('task_capabilities.json')
+
+# TODO:
+# task_metadata_schema = files('task_metadata.schema.json')
+# package_metadata_schema = files('package_metadata.schema.json')
+#
 
 task_metadata_schema = files(
     'metadata.schema.json.cpp',

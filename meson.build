@@ -126,11 +126,11 @@ if with_idle_opt or with_autotest
 endif
 
 subdir('support/arch')
+subdir('schemas')
 subdir('uapi')
 subdir('idle')
 subdir('autotest')
 subdir('kernel')
-subdir('schemas')
 subdir('tools')
 subdir('doc')
 
