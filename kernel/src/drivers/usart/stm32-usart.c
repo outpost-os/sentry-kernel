@@ -109,7 +109,7 @@ static void __usart_wait_te_ack(stm32_usartport_desc_t const *usart, bool enable
     while ((ioread32(usart->base_addr + USART_SR_REG) & USART_ISR_TEACK) == val);
 }
 #elif defined(CONFIG_SOC_SUBFAMILY_STM32F4)
-static void __usart_wait_te_ack(stm32_usartport_desc_t const *usart [[maybe_unused]], bool enable [[maybe_unused]])
+static void __usart_wait_te_ack(stm32_usartport_desc_t const *usart __MAYBE_UNUSED, bool enable __MAYBE_UNUSED)
 {
     /* Nothing to do */
 }

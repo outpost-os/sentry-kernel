@@ -1,5 +1,6 @@
 
 #include <sentry/arch/asm-cortex-m/semihosting.h>
+#include <sentry/ktypes.h>
 
 #define SYS_OPEN        0x01
 #define SYS_CLOSE       0x02
@@ -50,21 +51,19 @@
  *
  * @return host executed call return code
  */
-#ifndef __FRAMAC__
+
 __attribute__((noinline, naked, optimize("-O0")))
-static int thumb_semihosting_call(int op [[gnu::unused]], int* argv [[gnu::unused]])
+static int thumb_semihosting_call(int op __UNUSED, int* argv __UNUSED)
 {
+#ifndef __FRAMAC__
     asm inline (
         "bkpt #0xAB     \n\t\
          bx lr          \n\t\
         ");
-}
 #else
-static int thumb_semihosting_call(int op __attribute__((unused)), int* argv __attribute__((unused)))
-{
     return 0;
+#endif/*!__FRAMAC__*/
 }
-#endif
 
 /**
  * @brief open a file on host operating system

@@ -85,9 +85,9 @@ kstatus_t rcc_enable_pll(void)
 }
 
 kstatus_t rcc_mux_select_clock_source(
-    uint32_t clk_reg [[maybe_unused]],
-    uint32_t clkmsk [[maybe_unused]],
-    uint32_t val [[maybe_unused]]
+    uint32_t clk_reg __MAYBE_UNUSED,
+    uint32_t clkmsk __MAYBE_UNUSED,
+    uint32_t val __MAYBE_UNUSED
 )
 {
     return K_ERROR_NOENT;
