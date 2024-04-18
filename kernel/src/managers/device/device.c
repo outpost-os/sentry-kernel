@@ -116,12 +116,12 @@ kstatus_t mgr_device_init(void)
         /*
          * XXX: To be fixed in next milestone
          */
-#if !defined(CONFIG_BUILD_TARGET_DEBUG)
+#if defined(CONFIG_BUILD_TARGET_RELEASE)
         if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
 #endif /* !defined(CONFIG_BUILD_TARGET_DEBUG) */
             /* owner is not a task */
             owner = 0;
-#if !defined(CONFIG_BUILD_TARGET_DEBUG)
+#if defined(CONFIG_BUILD_TARGET_RELEASE)
         } else {
             if (unlikely(mgr_task_get_device_owner(devh, &owner_from_metadata) != K_STATUS_OKAY)) {
                 panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
