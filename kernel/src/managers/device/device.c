@@ -179,7 +179,7 @@ kstatus_t mgr_device_get_configured_state(devh_t d, secure_bool_t *configured)
     if (unlikely(dev == NULL)) {
         goto end;
     }
-    /*@ assert \valid_read(device); */
+    /*@ assert \valid_read(dev); */
     *configured = dev->configured;
     status = K_STATUS_OKAY;
 end:

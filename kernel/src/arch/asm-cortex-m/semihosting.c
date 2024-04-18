@@ -50,6 +50,7 @@
  *
  * @return host executed call return code
  */
+#ifndef __FRAMAC__
 __attribute__((noinline, naked, optimize("-O0")))
 static int thumb_semihosting_call(int op [[gnu::unused]], int* argv [[gnu::unused]])
 {
@@ -58,6 +59,12 @@ static int thumb_semihosting_call(int op [[gnu::unused]], int* argv [[gnu::unuse
          bx lr          \n\t\
         ");
 }
+#else
+static int thumb_semihosting_call(int op __attribute__((unused)), int* argv __attribute__((unused)))
+{
+    return 0;
+}
+#endif
 
 /**
  * @brief open a file on host operating system

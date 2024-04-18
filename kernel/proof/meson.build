@@ -8,11 +8,11 @@ framac_gen_opts = [
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
   '-kernel-debug','1',
-  '-machdep', 'x86_32',
+  '-machdep', 'gcc_x86_32',
   '-instantiate',
   '-json-compilation-database', join_paths(meson.project_build_root(), 'compile_commands.json'),
   '-config', join_paths(meson.current_build_dir(), '.sentry-config'),
-  '-cpp-extra-args=-nostdinc',
+  '-cpp-extra-args=-nostdinc,-DDTS_FILE=\\"@0@\\"'.format(sentry_dts_file),
   '-frama-c-stdlib',
   '-absolute-valid-range', '40000000-0xE000F000',
 ]
@@ -138,7 +138,7 @@ framac_stub_elf = executable(
     sources: [frama_c_norte_svc_entrypoint ],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
-    c_args: [ target_arch_args, global_build_args ],
+    c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,
 )
