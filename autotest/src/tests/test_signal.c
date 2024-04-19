@@ -35,6 +35,7 @@ void test_signal_sendrecv(void)
             *content);
 
         ASSERT_EQ(ret, STATUS_OK);
+        ASSERT_EQ(*content, sig);
     }
     TEST_END();
 }
