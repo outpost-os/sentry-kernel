@@ -1,0 +1,80 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include <bsp/drivers/gpio/pinctrl.h>
+#include "lpuart_defs.h"
+#include "stm32-gpio-dt.h"
+#include "stm32-lpuart-dt.h"
+
+{% set lpuart_ports = dts.get_compatible("st,stm32-lpuart") -%}
+
+{%- set debug_lpuart = dts.chosen["sentry,debug_stdout"] %}
+{%- if not debug_lpuart %}
+#error "sentry,debug_stdout not define in device tree, check your configuration"
+{%- elif debug_lpuart.status != "okay" %}
+#error "sentry,debug_stdout is disabled, check lpuart status property"
+{%- else %}
+#define DEBUG_USART {{ debug_lpuart.label.upper() }}_PORT_ID
+{%- endif %}
+
+{% for port in lpuart_ports -%}
+{% if port.status and port.status == "okay" -%}
+{%- set pinctrl_prop = port["pinctrl-0"] %}
+{%- if pinctrl_prop is none %}
+{{ PINCTRL_0|mandatory('pinctrl-0 not defined for lpuart node') }}
+{%- endif %}
+{%- set pinctrl_tbl = [] %}
+{%- set _ = pinctrl_tbl.extend(pinctrl_prop) if pinctrl_prop is iterable else pinctrl_tbl.append(pinctrl_prop) %}
+static const gpio_pinctrl_desc_t {{ port.label }}_pinctrl_tbl[] = {
+    {%- for pinctrl in pinctrl_tbl %}
+    /* {{ pinctrl.label }} pinctrl */
+    {%- set port, pin, mode, altfunc = pinctrl.pinmux %}
+    {%- set type, speed, pull_mode = pinctrl.pincfg %}
+    {
+        .port_id = {{ port.label.upper() }}_PORT_ID,
+        .pin = {{ pin }},
+        .mode = {{ mode }},
+        .altfunc = {{ altfunc }},
+        .type = {{ type }},
+        .speed = {{ speed }},
+        .pull_mode = {{ pull_mode }},
+    },
+    {%- endfor %}
+};
+
+#define {{ port.label.upper() }}_PINCTRL_TBL_SIZE {{ pinctrl_tbl|length }}UL
+static_assert(ARRAY_SIZE({{ port.label }}_pinctrl_tbl) == {{ port.label.upper() }}_PINCTRL_TBL_SIZE, "pinctrl inconsistency !");
+{%- endif %}
+{%- endfor %}
+
+/**
+ * \brief .rodata field: list of current platform USART ports
+ */
+static const stm32_lpuartport_desc_t stm32_lpuartports[] = {
+    {% for port in lpuart_ports -%}
+    {% if port.status and port.status == "okay" -%}
+    {% set _, bus_id, clk_msk = port.clocks -%}
+
+    /* {{ port.label }} port configuration */
+    {
+        .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
+        .size = {{ "%#08xUL"|format(port.reg[1]) }},
+        .bus_id = {{ bus_id }},
+        .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+        .pinctrl_tbl = {{ port.label }}_pinctrl_tbl,
+        .pinctrl_tbl_size = {{ port.label.upper() }}_PINCTRL_TBL_SIZE
+    },
+    {% endif -%}
+    {% endfor %}
+    {} /* sentinel */
+};
+
+/**
+ * @warning this is a private function, port id must be valid and checked by caller
+ */
+const stm32_lpuartport_desc_t * stm32_lpuartport_get_desc(void)
+{
+    return &stm32_lpuartports[DEBUG_USART];
+}

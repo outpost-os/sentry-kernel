@@ -25,4 +25,8 @@ static inline __attribute__((noreturn)) void __do_panic(void) {
     } while (1);
 }
 
+#ifdef __FRAMAC__
+stack_frame_t *svc_handler(stack_frame_t *frame);
+#endif
+
 #endif/*HANDLER_H*/

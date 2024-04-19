@@ -185,13 +185,29 @@ __STATIC_FORCEINLINE stack_frame_t *memfault_handler(stack_frame_t *frame)
                   : "r1", "memory"            \
                   );})
 
-__STATIC_FORCEINLINE stack_frame_t *svc_handler(stack_frame_t *frame)
+#ifdef __FRAMAC__
+/**
+ * NOTE: In Frama-C mode, we make input syscall num value randomized over 0-255,
+ * so that all supported syscalls are executed, and invalid syscall num is
+ * also considered
+ */
+extern volatile uint8_t Frama_C_entropy_source_u8 __attribute__((unused));
+#endif
+
+#ifndef __FRAMAC__
+__STATIC_FORCEINLINE
+#endif
+stack_frame_t *svc_handler(stack_frame_t *frame)
 {
     /* C implementation first */
     uint8_t syscall_num = 0;
     stack_frame_t *next_frame = frame;
 
+#ifndef __FRAMAC__
     __GET_SVCNUM(frame->pc, syscall_num);
+#else
+    syscall_num = Frama_C_entropy_source_u8;
+#endif
     switch (syscall_num) {
         case SYSCALL_SEND_IPC: {
             taskh_t target = frame->r0;

@@ -9,7 +9,7 @@ sentry_source_set.add(files(
   'semihosting.c',
 ))
 
-sentry_startup += files(
+sentry_handlers += files(
   'handler.c',
 )
 

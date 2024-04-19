@@ -3,6 +3,7 @@
 
 # updated in arch, depending on CONFIG value
 sentry_startup = files()
+sentry_handlers = files()
 sentry_linker_script = files()
 sentry_linker_script_path = files()
 
