@@ -210,7 +210,15 @@ static inline kstatus_t task_init_initiate_localinfo(task_meta_t const * const m
     /* stack top is calculated from layout forge. We align each section to SECTION_ALIGNMENT_LEN to
      * ensure HW constraint word alignment if not already done at link time (yet should be zero) */
     size_t stack_top = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
+#ifndef __FRAMAC__
+    /** TODO: by now, application layout is out of the valid scope of Frama-C
+     * as a consequence, any access to this layout is considered as a RTE.
+     * Instead, we should define a valid memory area, with bound checking for
+     * frama-C
+     */
     task_ctx->sp = mgr_task_initialize_sp(0UL, stack_top, (meta->s_text + meta->entrypoint_offset), meta->s_got);
+#endif
+
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
     task_ctx->returncode = 0UL;
@@ -330,9 +338,16 @@ static inline kstatus_t task_init_add_autotest(void)
     task_ctx->handle.family = HANDLE_TASKID;
     handle = ktaskh_to_taskh(&task_ctx->handle);
     size_t autotest_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
+#ifndef __FRAMAC__
+    /** TODO: by now, application layout is out of the valid scope of Frama-C
+     * as a consequence, any access to this layout is considered as a RTE.
+     * Instead, we should define a valid memory area, with bound checking for
+     * frama-C
+     */
     task_ctx->sp =
     mgr_task_initialize_sp(task_ctx->handle.rerun,
          autotest_sp, (size_t)(meta->s_text + meta->entrypoint_offset), 0);
+#endif
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
 
