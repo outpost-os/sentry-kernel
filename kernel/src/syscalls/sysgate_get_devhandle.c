@@ -17,7 +17,7 @@ stack_frame_t *gate_get_devhandle(stack_frame_t *frame, uint8_t devid)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
+#ifdef CONFIG_BUILD_TARGET_RELEASE // FIXME: need tooling update
     if (unlikely(mgr_device_get_owner(devhandle, &devowner) != K_STATUS_OKAY)) {
         /* smoke test here, this branch should never happen */
         /*@ assert(false); */

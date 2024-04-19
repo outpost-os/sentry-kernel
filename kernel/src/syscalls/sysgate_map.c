@@ -27,7 +27,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         goto end;
     }
     /* device is valid */
-#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
+#ifdef CONFIG_BUILD_TARGET_RELEASE // FIXME: need tooling update
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
@@ -80,8 +80,8 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
-#ifndef CONFIG_BUILD_TARGET_DEBUG // FIXME: need tooling update
     /* device is valid */
+#ifdef CONFIG_BUILD_TARGET_RELEASE // FIXME: need tooling update
     if (unlikely(current != task)) {
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;

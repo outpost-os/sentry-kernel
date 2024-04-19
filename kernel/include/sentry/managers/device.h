@@ -17,8 +17,6 @@ secure_bool_t mgr_device_exists(devh_t d);
 
 kstatus_t mgr_device_get_info(devh_t, const devinfo_t **devinfo);
 
-secure_bool_t mgr_device_is_kernel(devh_t d);
-
 uint32_t mgr_device_get_capa(devh_t d);
 
 kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner);
