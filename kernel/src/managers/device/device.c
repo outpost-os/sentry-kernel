@@ -272,26 +272,6 @@ end:
 }
 
 /**
- * @brief return SECURE_TRUE if the device is a kernel device
- */
-secure_bool_t mgr_device_is_kernel(devh_t d)
-{
-    secure_bool_t res = SECURE_TRUE;
-
-    for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
-        const devh_t handle = forge_devh(devices_state[i].device);
-        if (handle == d) {
-                if (devices_state[i].owner == 0x0UL) {
-                    res = SECURE_FALSE;
-                }
-                goto end;
-        }
-    }
-end:
-    return res;
-}
-
-/**
  * @brief return the device owner (taskh_t) for given device
  *
  * @param[in] d: device handle for which the request is done
@@ -343,12 +323,13 @@ kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle)
         goto end;
     }
     /*@ assert \valid(devhandle); */
-    if (unlikely(dev_label >= DEVICE_LIST_SIZE)) {
-        status = K_ERROR_INVPARAM;
-        goto end;
+    for (uint8_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
+        if (devices[i].devinfo.id == dev_label) {
+            *devhandle = forge_devh(devices_state[i].device);
+            status = K_STATUS_OKAY;
+            goto end;
+        }
     }
-    *devhandle = forge_devh(devices_state[dev_label].device);
-    status = K_STATUS_OKAY;
 end:
     return status;
 }
