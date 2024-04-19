@@ -179,6 +179,10 @@ static uint8_t dbgbuffer_get_number_len(uint64_t value, uint8_t base)
 
     /* now we calculate the number of digits in the number */
     for (; (value / base) != 0; value /= base) {
+        if (len == 254) {
+            /* what the point of using 254 digits number ? !*/
+            break;
+        }
         len++;
     }
     return len;

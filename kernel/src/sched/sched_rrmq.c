@@ -133,7 +133,9 @@ static kstatus_t sched_rrmq_add_to_jobset(taskh_t t, task_rrmq_jobset_t *jobset)
         pr_err("failed to get metadata for task %lx", t);
         goto err;
     }
-    mgr_task_get_state(t, &state);
+    if (unlikely((status = mgr_task_get_state(t, &state)) != K_STATUS_OKAY)) {
+        goto err;
+    }
     if (unlikely(state != JOB_STATE_READY)) {
         status = K_ERROR_INVPARAM;
         goto err;
