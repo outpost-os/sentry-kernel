@@ -115,12 +115,44 @@ test(
     '-mdr-out', join_paths(meson.current_build_dir(), 'frama-c-eva-report.md'),
     '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'frama-c-eva-md.log'),
   ],
-  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), 'frama-c-eva')},
+  env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), 'frama-c-eva')},
   depends: [ framac_dep ],
   suite: 'proof',
   timeout: 600,
   is_parallel: false,
   priority: 254,
+)
+
+# check the number of red alarms emitted by eva
+# the first line always describes result's columns type
+# a noRTE program should hold only that line
+# NOTE: ARM CMSIS headers uninitialized alarms are not considered as they
+# are the consequence of uninitialized consideration, while HW is reset-time initialized
+redalarmcount_py_wrapper = '''
+import sys
+import re
+
+lines=0
+with open(sys.argv[1], 'r') as fp:
+  for line in fp:
+       if not re.search('include/cmsis\s.*\sinitialization\s', line):
+          lines += 1
+  print('found ' + str(lines-1) + ' alarms')
+exit(lines-1)
+'''
+
+test(
+  'frama-C-eva-redalarm',
+  py3,
+  args: [
+    '-c',
+    redalarmcount_py_wrapper,
+    join_paths(meson.current_build_dir(), 'frama-c-eva.red'),
+  ],
+  depends: [ framac_dep ],
+  suite: 'proof',
+  is_parallel: false,
+  priority: 253,
 )
 
 # specify an ELF including framaC main. This forges the correct flags in the
