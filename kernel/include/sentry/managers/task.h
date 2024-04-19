@@ -135,6 +135,33 @@ typedef struct task_meta {
     uint8_t         metadata_hmac[32]; /**< current struct build time hmac calculation */
 } task_meta_t;
 
+#ifdef __FRAMAC__
+/** INFO: to support fully randomized svc exchange content at anytime for Frama-C,
+ * use an emulated randomized area
+ */
+static uint8_t svcexch[CONFIG_SVC_EXCHANGE_AREA_LEN];
+#endif
+
+/*@
+    requires \valid(svcexch+(0..127));
+    assigns \nothing;
+    ensures \valid_read(meta) ==> (\result == &svcexch[0]);
+ */
+static inline uint8_t *task_get_svcexchange(const task_meta_t *meta) {
+    uint8_t * exch = NULL;
+    if (unlikely(meta == NULL)) {
+        goto end;
+    }
+#ifndef __FRAMAC__
+    exch = (uint8_t*)meta->s_svcexchange;
+#else
+    /*@ assert \valid_read(meta); */
+    exch = &svcexch[0];
+    /*@ assert exch == &svcexch[0]; */
+#endif
+end:
+    return exch;
+}
 /*
  * About main module standardly defined functions (init, watchdog....)
  */

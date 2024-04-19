@@ -266,7 +266,7 @@ taskh_t mgr_task_get_idle(void)
     /* idle is always the last one */
     ktaskh_t kt = task_table[mgr_task_get_num() - 1].handle;
     const taskh_t *h = ktaskh_to_taskh(&kt);
-    /*@ assert \valid(h); */
+    /*@ assert \valid_read(h); */
     return *h;
 }
 

@@ -59,7 +59,7 @@ sentry_dts_args = '-DDTS_FILE="@0@"'.format(sentry_dts_file)
 sentry_elf = executable(
     meson.project_name(),
     name_suffix: 'elf',
-    sources: [sentry_startup, sentry_header_set_config.sources() ],
+    sources: [sentry_startup, sentry_handlers, sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
     dependencies: [sentry_dep, external_deps],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
