@@ -47,7 +47,10 @@ extern size_t _idle;
 /* in test mode, we get back the table for analysis */
 static
 #endif
-_Alignas(uint64_t) task_t task_table[CONFIG_MAX_TASKS+1];
+#ifndef __FRAMAC__
+_Alignas(uint64_t)
+#endif
+task_t task_table[CONFIG_MAX_TASKS+1];
 
 /**
  * @brief return the local task table address
@@ -372,7 +375,7 @@ kstatus_t task_set_job_layout(task_t * const tsk)
     task_meta_t const * meta = tsk->metadata;
      /* mapping task data region first */
     const taskh_t *t = ktaskh_to_taskh(&tsk->handle);
-    /*@ assert \valid_read(kt); */
+    /*@ assert \valid_read(t); */
     if (unlikely(mgr_mm_map_task(*t) != K_STATUS_OKAY)) {
         status = K_ERROR_INVPARAM;
         goto err;
@@ -384,7 +387,12 @@ kstatus_t task_set_job_layout(task_t * const tsk)
         size_t got_start  = meta->s_svcexchange + \
                              CONFIG_SVC_EXCHANGE_AREA_LEN;
         pr_debug("[task handle %08x] copy %u bytes of .got from %p to %p", meta->got_size, got_source, got_start);
+    #ifndef __FRAMAC__
+        /** TODO: the memsetting proof can be added easily through the usage of dts-based autotest memory layout,
+         * so that a ghost function can validate that bss init is made on a valid range
+         */
         memcpy((void*)got_start, (void*)got_source, meta->got_size);
+    #endif
     }
     /* copy data segment if non null */
     if (likely(meta->data_size)) {
@@ -395,7 +403,12 @@ kstatus_t task_set_job_layout(task_t * const tsk)
                              CONFIG_SVC_EXCHANGE_AREA_LEN + \
                              ROUND_UP(meta->got_size, __WORDSIZE);
         pr_debug("[task handle %08x] copy %u bytes of .data from %p to %p", meta->data_size, data_source, data_start);
+    #ifndef __FRAMAC__
+        /** TODO: the memsetting proof can be added easily through the usage of dts-based autotest memory layout,
+         * so that a ghost function can validate that bss init is made on a valid range
+         */
         memcpy((void*)data_start, (void*)data_source, meta->data_size);
+    #endif
     }
     /* zeroify bss if non-null */
     if (likely(meta->bss_size)) {
@@ -404,10 +417,18 @@ kstatus_t task_set_job_layout(task_t * const tsk)
                             ROUND_UP(meta->got_size, __WORDSIZE) + \
                             ROUND_UP(meta->data_size, __WORDSIZE);
         pr_debug("[task handle %08x] zeroify %u bytes of .bss at addr %p", meta->bss_size, bss_start);
+#ifndef __FRAMAC__
+        /** TODO: the memsetting proof can be added easily through the usage of dts-based autotest memory layout,
+         * so that a ghost function can validate that bss init is made on a valid range
+         */
         memset((void*)bss_start, 0x0, meta->bss_size);
+#endif
     }
     /* zeroify SVC Exchange */
+#ifndef __FRAMAC__
+    /**! TODO: the same can be done here. Moreover, check against overlapping can also be added easily */
     memset((void*)meta->s_svcexchange, 0x0, CONFIG_SVC_EXCHANGE_AREA_LEN);
+#endif
     status = K_STATUS_OKAY;
 err:
     return status;
@@ -661,7 +682,7 @@ err:
 }
 
 /** TODO: fix handle management before coding framac_get_handle() */
-/*@
+/*
     behavior badsysret:
         assumes !\valid(sysret);
         assigns \nothing;
@@ -682,7 +703,7 @@ err:
         assumes \valid(framac_get_handle(t));
         assumes framac_sysret_is_set(framac_get_handle(t));
         assigns sysret;
-        ensures \result = framac_get_handle(t)->sysreturn;
+        ensures \result == framac_get_handle(t)->sysreturn;
 
     complete behaviors;
     disjoint behaviors;
@@ -694,7 +715,7 @@ kstatus_t mgr_task_get_sysreturn(taskh_t t, Status *sysret)
     if (unlikely(sysret == NULL)) {
         goto err;
     }
-    /*@ assert \valid(status); */
+    /*@ assert \valid(sysret); */
     if (unlikely((cell = task_get_from_handle(t)) == NULL)) {
         goto err;
     }

@@ -16,6 +16,7 @@
 #define EXC_RETURN_THREAD_MSP 0xfffffff9
 #endif
 
+#ifndef __FRAMAC__
 /* x86_64 typical stack frame */
 typedef struct stack_frame {
     /**< backed by default handler */
@@ -54,5 +55,6 @@ static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t 
     frame->gs = 0x0;
     return frame;
 }
+#endif
 
 #endif/*__THREAD_H*/

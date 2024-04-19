@@ -58,7 +58,7 @@ kstatus_t mgr_io_init(void)
         if (devinfo->num_ios > 0) {
             /* device has I/O: associated GPIO port to probe */
             for (uint8_t io = 0; io < devinfo->num_ios; ++io) {
-                /*@ assert(devinfo->ios[io].ioport < 16); */
+                /*@ assert(devinfo->ios[io].port < 16); */
                 /* we only flag the port for probing, to avoid multiple probe() of the same port */
                 port_to_enable[devinfo->ios[io].port] = 1;
             }

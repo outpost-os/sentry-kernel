@@ -25,7 +25,7 @@ typedef struct __attribute__((packed)) ktaskh  {
 static_assert(sizeof(ktaskh_t) == sizeof(taskh_t), "taskh_t opaque model failure!");
 
 static inline const ktaskh_t *taskh_to_ktaskh(const taskh_t * const th) {
-    /*@ assert \valid(th); */
+    /*@ assert \valid_read(th); */
     union uth {
         const uint32_t *th;
         const ktaskh_t *kth;
@@ -38,7 +38,7 @@ static inline const ktaskh_t *taskh_to_ktaskh(const taskh_t * const th) {
 }
 
 static inline const taskh_t *ktaskh_to_taskh(const ktaskh_t * const kth) {
-    /*@ assert \valid(kth); */
+    /*@ assert \valid_read(kth); */
     union uth {
         const uint32_t *th;
         const ktaskh_t *kth;

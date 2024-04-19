@@ -48,6 +48,6 @@ stack_frame_t *gate_alarm(stack_frame_t *frame, uint32_t delay_ms, uint32_t flag
 
 stack_frame_t *gate_get_cycle(stack_frame_t *frame, uint32_t precision);
 
-stack_frame_t *gate_log(stack_frame_t *frame, [[maybe_unused]] uint32_t log_len);
+stack_frame_t *gate_log(stack_frame_t *frame, __MAYBE_UNUSED uint32_t log_len);
 
 #endif/*!SYSCALLS_H*/

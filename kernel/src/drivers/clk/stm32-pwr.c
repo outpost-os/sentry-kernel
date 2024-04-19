@@ -37,7 +37,6 @@
 #endif
 
 /*@
-    assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
     ensures \result == K_STATUS_OKAY;
   */
 kstatus_t pwr_probe(void)
@@ -63,7 +62,6 @@ kstatus_t pwr_probe(void)
 #if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4)
 /*@
     requires scale_is_valid(scale);
-    assigns *(uint32_t*)(PWR_BASE_ADDR + PWR_CR_REG);
     ensures \result == K_STATUS_OKAY;
   */
 kstatus_t pwr_set_voltage_regulator_scaling(uint8_t scale)

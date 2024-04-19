@@ -37,7 +37,7 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
         mgr_task_set_sysreturn(current, STATUS_BUSY);
         goto end;
     }
-    /*@ assert (status == K_STATUS_OK); */
+    /*@ assert (status == K_STATUS_OKAY); */
     if ((dest_state == JOB_STATE_SLEEPING) ||
         (dest_state == JOB_STATE_WAITFOREVENT)) {
         /* if the job exists in the delay queue (sleep or waitforevent with timeout)

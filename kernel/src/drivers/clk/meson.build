@@ -41,10 +41,18 @@ sentry_source_set.add(
     when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
     if_true: files(
         'stm32u5-pll.c',
-        'stm32u5-pll.h',
+
         'stm32u5-pwr.c',
-        'stm32u5-pwr.h',
+
         'stm32u5-rcc.c',
+    ),
+)
+
+sentry_private_header_set.add(
+    when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
+    if_true: files(
+    'stm32u5-pll.h',
+    'stm32u5-pwr.h',
     ),
 )
 

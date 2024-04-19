@@ -5,7 +5,7 @@
 #include <sentry/arch/asm-generic/tick.h>
 #include <sentry/sched.h>
 
-stack_frame_t *gate_log(stack_frame_t *frame, [[maybe_unused]] uint32_t log_len)
+stack_frame_t *gate_log(stack_frame_t *frame, __MAYBE_UNUSED uint32_t log_len)
 {
 #if CONFIG_BUILD_TARGET_RELEASE
     taskh_t current = sched_get_current();

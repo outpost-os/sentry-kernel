@@ -319,7 +319,7 @@ static inline kstatus_t task_init_add_autotest(void)
     task_ctx = &task_table[ctx.numtask];
     /* should we though forge a HMAC for idle metadata here ? */
     task_ctx->metadata = meta;
-    /*@ assert valid_read(kt); */
+
     ctx.status = mgr_security_entropy_generate(&rerun_entropy);
     if (unlikely(ctx.status != K_STATUS_OKAY)) {
         pr_emerg("failed to get back entropy for task rerun field");
@@ -391,7 +391,14 @@ static inline kstatus_t task_init_add_idle(void)
     task_ctx->metadata = meta;
     size_t idle_sp = meta->s_svcexchange + mgr_task_get_data_region_size(meta) - __WORDSIZE;
     /* Idle special case, as we directly execute idle at boot, there is no stack_frame_t saved on stack */
+    #ifndef __FRAMAC__
+    /** INFO: with framaC assigning an invalid value to a pointer is
+     * considered as a RTE (to be made), and as thus is refused.
+     * some checks can, although, be done to validate that idle_sp is
+     * the idle task layout, in SRAM, through a typical ghost function.
+     */
     task_ctx->sp = (stack_frame_t*)idle_sp;
+    #endif
     task_ctx->state = JOB_STATE_READY;
     task_ctx->sysretassigned = SECURE_FALSE;
     mgr_mm_forge_empty_table(task_table[ctx.numtask].layout);

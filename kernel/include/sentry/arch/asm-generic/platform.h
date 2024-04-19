@@ -9,7 +9,7 @@
 
 #include <stdbool.h>
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/platform.h>
 #elif defined(__x86_64__)
 #include <sentry/arch/asm-x86_64/platform.h>

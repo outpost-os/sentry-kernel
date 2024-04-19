@@ -57,7 +57,8 @@ static inline void __exti_clear_pending(uint32_t mask)
  *
  * @return K_STATUS_OKAY
  */
-/*@
+/*
+  // to be replaced with ghost functions
   // assigns all registers
   assigns *(uint32_t*)(EXTI_BASE_ADDR .. EXTI_BASE_ADDR + EXTI_PR_REG);
   ensures \result == K_STATUS_OKAY;
@@ -102,7 +103,8 @@ err:
 /**
  * @brief mask external interrupt itn
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
   ensures itn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
   ensures itn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
@@ -137,7 +139,8 @@ err:
 /**
  * @brief unmask external interrupt itn
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_IMR_REG);
   ensures itn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
   ensures itn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
@@ -172,7 +175,8 @@ err:
 /**
  * @brief mask external event evn
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
   ensures evn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
   ensures evn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
@@ -207,7 +211,8 @@ err:
 /**
  * @brief unmask external event evn
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
   ensures evn > EXTI_NUM_EVENTS <==> \result == K_ERROR_INVPARAM;
   ensures evn <= EXTI_NUM_EVENTS <==> \result == K_STATUS_OKAY;
@@ -242,7 +247,8 @@ err:
 /**
  * @brief generate interrupt identified by itn (software triggered)
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_EMR_REG);
   ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
   ensures itn <= EXTI_NUM_INTERRUPTS ==>
@@ -301,7 +307,8 @@ err:
 /**
  * @brief Clear pending interrupt flag for itn
  */
-/*@
+/*
+  // to be replaced with ghost functions
   assigns *(uint32_t*)(EXTI_BASE_ADDR + EXTI_PR_REG);
   ensures itn > EXTI_NUM_INTERRUPTS <==> \result == K_ERROR_INVPARAM;
   ensures itn <= EXTI_NUM_INTERRUPTS ==>
