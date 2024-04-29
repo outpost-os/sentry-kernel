@@ -19,6 +19,7 @@
 #ifndef __SENTRY_UAPI_HANDLE_H
 #define __SENTRY_UAPI_HANDLE_H
 
+#ifndef __cpluplus
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,5 +29,15 @@ typedef uint32_t devh_t;
 typedef uint32_t taskh_t;
 typedef uint32_t shmh_t;
 typedef uint32_t dmah_t;
+#else
+/*
+ * Use C++ types definition while compiled in C++
+ */
+#include <cstdint>
+using devh_t = uint32_t;
+using taskh_t = uint32_t;
+using shmh_t = uint32_t;
+using dmah_t = uint32_t;
+#endif /* __cpluplus */
 
 #endif /* __SENTRY_UAPI_HANDLE_H */
