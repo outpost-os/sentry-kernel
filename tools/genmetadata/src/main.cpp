@@ -27,9 +27,9 @@
 #include <nlohmann/json.hpp>
 #include <argparse/argparse.hpp>
 
-#include <sentry/managers/task.h>
-#include <sentry/managers/security.h>
-#include <sentry/job.h>
+#include "task_meta.hpp"
+#include "reflect.hpp"
+#include "arch/armv8m.hpp"
 
 using json = nlohmann::json;
 
@@ -43,8 +43,10 @@ int main(int argc, char *argv[])
     try {
         program.parse_args(argc, argv);
         std::istringstream in{program.get<std::string>("json_str")};
+        std::string out{program.get<std::string>("output")};
         auto data = json::parse(in);
-
+        auto meta = taskMetadata::from_json(data["task_meta"]);
+        reflect_to_bin<arch::armv8m::memory_spec>(meta, out);
     }
     catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
