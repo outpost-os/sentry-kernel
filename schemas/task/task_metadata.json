@@ -43,46 +43,55 @@
         },
         "s_text": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": "start address of task .text section"
         },
         "text_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": ".text section size"
         },
         "s_got": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": "start address of task .got section"
         },
         "got_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": ".got section size"
         },
         "rodata_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": ".rodata section size"
         },
         "data_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": ".data section size"
         },
         "bss_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": ".bss section size"
         },
         "heap_size": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": "process head size (can be 0, i.e. no heap)"
         },
         "s_svcexchange": {
             "c_type": "size_t",
+            "cpp_type": "uint32_t",
             "rust_type": "usize",
             "description": "SVC exchange start address in RAM"
         },
