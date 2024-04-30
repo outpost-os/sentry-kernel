@@ -8,6 +8,8 @@ task_capabilities_json = files('task_capabilities.json')
 # task_metadata_schema = files('task_metadata.schema.json')
 # package_metadata_schema = files('package_metadata.schema.json')
 #
+# Add a run_target that validate task_metadata.json
+# [...]
 
 task_metadata_schema = files(
     'metadata.schema.json.cpp',

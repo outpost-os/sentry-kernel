@@ -125,6 +125,16 @@ if with_idle_opt or with_autotest
     with_uapi_opt = true
 endif
 
+# Keep subdir order as-is, do not sort them.
+# In order to guanrantee build order and reproducibility,
+# Meson **DOES NOT** allow forward build target references by design.
+# This also prevent circular dependencies between targets.
+#
+# Firstly, we need to define arch relative variables.
+# and then schema and taskmetadata are required by uapi and kernel.
+# UAPI is a dependency for all app/kernel.
+# Tasks (idle and autotest) are required to build internal task meta.
+# Finally, kernel can be built and then tools that might need some kernel headers.
 subdir('support/arch')
 subdir('schemas')
 subdir('uapi')

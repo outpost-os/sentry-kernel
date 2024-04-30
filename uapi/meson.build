@@ -74,7 +74,6 @@ gen_cargo_hash = custom_target(
   install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
   install_tag: 'devel',
   build_by_default: true,
-  build_always_stale: true,
 )
 
 install_data(
