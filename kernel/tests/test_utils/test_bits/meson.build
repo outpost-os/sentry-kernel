@@ -3,7 +3,7 @@
 
 test_bits = executable(
     'test_bits',
-    sources: files('test_bits.cpp'),
+    sources: [ files('test_bits.cpp'), sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
     override_options: ['cpp_std=gnu++20'],
     cpp_args: [

@@ -9,6 +9,7 @@ test_bsp_exti = executable(
             join_paths(meson.project_source_root(), 'kernel/src/drivers/exti/stm32-exti.c'),
         ),
         exti_h, stm32_exti_dtsgen_h, stm32_exti_dtsgen_c,
+        sentry_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
     override_options: ['cpp_std=gnu++20'],

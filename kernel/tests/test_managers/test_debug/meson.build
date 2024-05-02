@@ -3,11 +3,14 @@
 
 test_printk = executable(
     'test_printk',
-    sources: files(
-        'test_printk.cpp',
-        join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log.c'),
-        join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
-    ),
+    sources: [
+        files(
+            'test_printk.cpp',
+            join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log.c'),
+            join_paths(meson.project_source_root(), 'kernel/src/managers/debug/log_lexer.c'),
+        ),
+        sentry_header_set_config.sources(),
+    ],
     include_directories: kernel_inc,
     override_options: ['cpp_std=gnu++20'],
     cpp_args: [

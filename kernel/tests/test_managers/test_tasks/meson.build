@@ -13,7 +13,7 @@ endif
 
 test_task = executable(
     'test_task',
-    sources: [ 'test_task.cpp', task_files ],
+    sources: [ 'test_task.cpp', task_files, sentry_header_set_config.sources() ],
     include_directories: kernel_inc,
     override_options: ['cpp_std=gnu++20'],
     cpp_args: [
