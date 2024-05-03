@@ -65,7 +65,7 @@ jobs:
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false'
+          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false -Dwith_idle=false'
       - name: Meson postcheck
         if: failure()
         run: |
