@@ -11,7 +11,7 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/memory.h>
 #include <uapi/handle.h>
-/* needed to get back private struct task_t for anaysis */
+/* needed to get back private struct task_t for analysis */
 #include "../../../src/managers/task/task_core.h"
 
 struct TaskMock {
@@ -26,7 +26,7 @@ task_meta_t task_full_context[CONFIG_MAX_TASKS];
 /* manager private tab (extern). Used for post-exec checks */
 extern task_t task_table[CONFIG_MAX_TASKS+1];
 
-static std::unique_ptr<TaskMock> taskMock;
+static std::weak_ptr<TaskMock> taskMock_weak;
 /* because thse variables are global static (because
   they are used in extern 'C'), tests can't be executed in
   parallel */
@@ -34,14 +34,11 @@ static std::unique_ptr<task_meta_t*> taskCtx;
 
 class TaskTest : public testing::Test {
     void SetUp() override {
-        if (std::getenv("CI")) {
-            GTEST_SKIP() << "Skipping in CI mode (OOM problem)";
-        }
-        taskMock = std::make_unique<TaskMock>();
+        taskMock = std::make_shared<TaskMock>();
+        taskMock_weak = taskMock;
     }
 
     void TearDown() override {
-        taskMock.reset();
         taskCtx.reset();
     }
 protected:
@@ -56,6 +53,8 @@ protected:
         std::uniform_int_distribution<> distrib(1, max);
         return (uint32_t)(distrib(gen));
     };
+
+    std::shared_ptr<TaskMock> taskMock;
 };
 
 
@@ -134,7 +133,10 @@ extern "C" {
      * test (autostart flag check)
      */
     kstatus_t sched_schedule(taskh_t t __attribute__((unused))) {
-        taskMock->on_task_schedule();
+        auto taskMock = taskMock_weak.lock();
+        if (taskMock != nullptr) {
+            taskMock->on_task_schedule();
+        }
         /* only idle is scheduled */
         return K_STATUS_OKAY;
     }
