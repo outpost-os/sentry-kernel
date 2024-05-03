@@ -66,13 +66,12 @@ extern "C" {
     size_t _autotest_svcexchange;
 
     /* sample idle function and associated infos */
-    void __attribute__((noreturn)) ut_idle(void) {
-        volatile int a = 12;
-        do { a %= 10; } while (1);
+    [[noreturn]] void ut_idle(void) {
+        while (1) { asm volatile ("nop" ::: "memory"); }
     }
-    void __attribute__((noreturn)) ut_autotest(void) {
-        volatile int a = 12;
-        do { a %= 10; } while (1);
+
+    [[noreturn]] void ut_autotest(void) {
+        while (1) { asm volatile ("nop" ::: "memory"); }
     }
 
     size_t _sidle = (size_t)ut_idle;
@@ -95,7 +94,7 @@ extern "C" {
         }
         return K_STATUS_OKAY;
     }
-    kstatus_t mgr_mm_map_svcexchange(taskh_t t)
+    kstatus_t mgr_mm_map_svcexchange(taskh_t t [[maybe_unused]])
     {
         return K_STATUS_OKAY;
     }
