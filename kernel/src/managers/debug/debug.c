@@ -50,7 +50,12 @@ kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
     return usart_tx(logbuf, len);
 #elif CONFIG_DEBUG_OUTPUT_SEMIHOSTING
     kstatus_t status = K_ERROR_NOENT;
-    const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
+    /*
+     * XXX:
+     * Filename must be aligned on word boundary as it is use as semi-hosted syscall arguments,
+     * Which is an array of int, and thus must be aligned.
+     */
+    _Alignas(size_t) static const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
     int fd;
 
     fd = arm_semihosting_open(filename, SYS_FILE_MODE_APPEND, sizeof(filename) - 1);
@@ -61,6 +66,9 @@ kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len)
     arm_semihosting_close(fd);
 err:
     return status;
+#else
+    /* in release mode, if called, just do nothing */
+    return K_STATUS_OKAY;
 #endif
 }
 

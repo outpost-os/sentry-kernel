@@ -12,6 +12,10 @@
 #include <uapi/handle.h>
 #include <uapi/device.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 kstatus_t mgr_io_init(void);
 
 kstatus_t mgr_io_set(uint8_t ioport, uint8_t iopin);
@@ -34,6 +38,10 @@ kstatus_t mgr_io_clear_pending_interrupt(uint8_t ioport, uint8_t iopin);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_io_autotest(void);
+#endif
+
+#ifdef __cplusplus
+} /* extern "C" */
 #endif
 
 #endif/*IO_MANAGER_H*/

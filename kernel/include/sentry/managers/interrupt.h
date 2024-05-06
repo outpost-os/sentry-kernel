@@ -1,14 +1,15 @@
 #ifndef INTERRUPT_MANAGER_H
 #define INTERRUPT_MANAGER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 /**
  * @file Sentry Debug manager
  */
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/interrupt.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * This is the interrupt handler for IRQ lines associated to ressources that
@@ -35,7 +36,7 @@ kstatus_t mgr_interrupt_autotest(void);
 #endif
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif/*!INTERRUPT_MANAGER_H*/

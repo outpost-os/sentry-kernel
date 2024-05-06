@@ -1,9 +1,16 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
+
+if not with_autotest
+    subdir_done()
+endif
 
 if meson.is_subproject()
 warning('!!! Are you sure you want to build the autotest task as a subproject ?')
 endif
+
+# local tool for easy ELF parsing to json file
+parseelf = find_program('parseelf.py', required: true, dirs: [meson.project_source_root() / 'tools'])
 
 autotest_task_name = 'autotest'
 
@@ -56,7 +63,6 @@ autotest_hex = custom_target(
         '@INPUT@',
         '@OUTPUT@'
     ],
-    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
     install_tag: 'runtime',
@@ -73,5 +79,3 @@ autotest_json = custom_target(
 )
 
 meson.add_install_script(sentry_install_script, autotest_map_file, get_option('infodir') / autotest_task_name)
-
-

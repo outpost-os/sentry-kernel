@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef JOB_H
-#define JOB_H
+#ifndef _SENTRY_JOB_H
+#define _SENTRY_JOB_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \file job types and generic definitions
@@ -71,4 +75,8 @@ static_assert((sizeof(job_flags_t) == sizeof(uint32_t)), "job_flags_t as invalid
 */
 #endif
 
-#endif/*!JOB_H*/
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* _SENTRY_JOB_H */

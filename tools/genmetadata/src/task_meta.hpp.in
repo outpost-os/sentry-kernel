@@ -1,0 +1,170 @@
+// SPDX-FileCopyrightText: 2024 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <tuple>
+#include <type_traits>
+#include <string>
+#include <vector>
+
+#include <uapi/handle.h>
+#include <sentry/job.h>
+
+#include "capability.hpp"
+
+{% macro get_type(desc) -%}
+{{- desc.cpp_type if desc.cpp_type else desc.c_type -}}
+{% endmacro -%}
+
+class taskMetadata {
+private:
+{% filter indent(4, true) -%}
+using layout_t = std::tuple<
+{% filter indent(4, true) -%}
+{% for name, field in task_meta.items() -%}
+{% set eol = "," if not loop.last else "" -%}
+{% if field.array -%}
+std::array<{{ get_type(field.element) -}}, {{ field.array_size }}>{{ eol }} ///< {{ name }}: {{ field.element.description }}
+{% else -%}
+{{ get_type(field) -}}{{ eol }} ///< {{ name }}: {{ field.description }}
+{% endif -%}
+{% endfor -%}
+{% endfilter -%}
+>;
+
+static inline std::vector<std::string> _field_names{
+{% filter indent(4, true) -%}
+{% for field in task_meta -%}
+"{{ field }}"{{ "," if not loop.last else "" }}
+{% endfor -%}
+{% endfilter -%}
+};
+{% endfilter %}
+    static constexpr auto _size{std::tuple_size_v<layout_t>};
+
+    template <size_t Idx>
+    auto& field() { return std::get<Idx>(_fields); }
+
+    /**
+     * @brief initialize field (scalar value type) from json
+     *
+     * Conversion for scalar is trivial
+     */
+    template<typename json_t, typename T, typename std::enable_if<std::is_scalar_v<T>, bool>::type = true>
+    void from_json(T& field, const json_t& json) {
+        field = json.template get<T>();
+    }
+
+    template<typename json_t>
+    void from_json(job_flags_t& field, const json_t& json) {
+        if (!json.is_array()) {
+            return; // throw
+        }
+
+        for (size_t idx = 0; idx < json.size(); ++idx) {
+            auto flag = json[idx].template get<std::string>();
+            if (flag.compare("auto_start") == 0) {
+                field.start_mode = JOB_FLAG_START_AUTO;
+            }
+            else if (flag.compare("exit_norestart") == 0) {
+                field.exit_mode = JOB_FLAG_EXIT_NORESTART;
+            }
+            else if (flag.compare("exit_restart") == 0) {
+                field.exit_mode = JOB_FLAG_EXIT_RESTART;
+            }
+            else if (flag.compare("exit_panic") == 0) {
+                field.exit_mode = JOB_FLAG_EXIT_PANIC;
+            }
+            else if (flag.compare("exit_reset") == 0) {
+                field.exit_mode = JOB_FLAG_EXIT_RESET;
+            }
+            else if (flag.compare("exit_periodicrestart") == 0) {
+                field.exit_mode = JOB_FLAG_EXIT_PERIODICRESTART;
+            }
+        }
+    }
+
+    /*
+     * capabilities are an array of cap in json file (likely from KConfig)
+     * convert each label to corresponding enum value
+     */
+    template<typename json_t>
+    void from_json(capability& field, const json_t& json) {
+        std::underlying_type_t<capability> tmp{};
+        if (!json.is_array()) {
+            return; // throw
+        }
+
+        for (size_t idx = 0; idx < json.size(); ++idx) {
+            tmp |= capability_from_label(json[idx].template get<std::string>());
+        }
+
+        field = static_cast<capability>(tmp);
+    }
+
+    template<typename json_t, typename T, std::size_t N>
+    void from_json(std::array<T, N>& field, const json_t& json) {
+        if (!json.is_array()) {
+            return; // throw
+        }
+
+        for (std::size_t idx = 0UL; idx < N; ++idx) {
+            if (idx < json.size()) {
+                field[idx] = json[idx];
+            }
+        }
+    }
+
+    /**
+     * @brief foreach field, get value from given json
+     */
+    template<typename json_t, std::size_t... Is>
+    void from_json(const json_t& json, std::index_sequence<Is...>) {
+        ((this->from_json(this->field<Is>(), json[this->_field_names[Is]]), ...));
+    }
+
+public:
+    taskMetadata() = default;
+    ~taskMetadata() = default;
+
+    /**
+     * @brief Initialize taskMetadata from json
+     */
+    template<typename json_t>
+    static taskMetadata from_json(const json_t& json) {
+        taskMetadata meta;
+        meta.from_json(json, std::make_index_sequence<_size>{});
+        return meta;
+    }
+
+    const std::string_view field_name(size_t id) const { return _field_names[id]; }
+    size_t size() const { return std::tuple_size_v<decltype(_fields)>; }
+
+    const auto& reflect() const { return _fields; }
+
+private:
+    layout_t _fields{};
+};

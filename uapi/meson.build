@@ -1,13 +1,27 @@
-# UAPI header generation is always required
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
 
-pkg_config = import('pkgconfig')
+if not with_uapi_opt
+    subdir_done()
+endif
+
+if not meson.has_external_property('rust_target')
+    error('missing rust_target property in cross-file')
+endif
+
+add_languages('rust', native: false, required: true)
+
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('uapi/lib.rs')
 
+global_rust_build_args = [
+    '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs),
+    '--target=@0@'.format(meson.get_external_property('rust_target')),
+    '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
+]
+
 subdir('include/uapi')
 subdir('uapi')
-
-if with_uapi_opt
 
 py3 = pymod.find_installation('python3', modules: ['git'])
 
@@ -22,6 +36,7 @@ sentry_c_uapi_dep = declare_dependency(
     include_directories: [ userspace_uapi_include_dir ],
 )
 
+pkg_config = import('pkgconfig')
 pkg_config.generate(
     uapi_rs_lib,
     filebase: 'uapi',
@@ -58,7 +73,7 @@ gen_cargo_hash = custom_target(
   install: true,
   install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
   install_tag: 'devel',
-  build_always: true,
+  build_by_default: true,
 )
 
 install_data(
@@ -70,5 +85,3 @@ install_data(
   '.cargo-checksum.json',
   install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
 )
-
-endif #with_uapi

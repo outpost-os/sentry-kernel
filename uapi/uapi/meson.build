@@ -1,8 +1,7 @@
-rust = import('rust')
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
 
-if not with_uapi_opt
-    subdir_done()
-endif
+rust = import('rust')
 
 uapi_rs_lib = static_library(
     'uapi',
@@ -17,9 +16,7 @@ libuapirs_dep = declare_dependency(link_with : uapi_rs_lib)
 
 cargo = find_program('cargo', required: true)
 
-with_doc_opt = get_option('with_doc')
 if with_doc_opt
-
 gen_cargo_doc = custom_target(
   'forge_cargo_doc',
   output: 'doc',
@@ -35,15 +32,12 @@ gen_cargo_doc = custom_target(
   env: {'CARGO_TARGET_DIR':meson.current_build_dir()},
   install_dir: get_option('datadir') / 'doc/sentry-uapi',
   install_tag: 'doc',
-  build_always: true,
+  build_by_default: true,
+  build_always_stale: true,
 )
-
 endif # with_doc
 
-with_tests_opt = get_option('with_tests')
-if with_tests_opt
-
-
+if with_tests
 cargo_options = [ '--manifest-path', meson.current_source_dir() / 'Cargo.toml' ]
 cargo_options += [ '--target-dir', meson.current_build_dir() ]
 
@@ -106,5 +100,3 @@ test(
 )
 
 endif #with_tests
-
-

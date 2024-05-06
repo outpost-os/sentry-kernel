@@ -4,9 +4,6 @@
 #ifndef DEBUG_MANAGER_H
 #define DEBUG_MANAGER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 /**
  * @file Sentry Debug manager
  */
@@ -15,6 +12,10 @@ extern "C" {
 #include <sentry/ktypes.h>
 #if CONFIG_BUILD_TARGET_AUTOTEST
 #include <sentry/arch/asm-generic/tick.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /**
@@ -218,7 +219,7 @@ kstatus_t mgr_debug_autotest(void);
 kstatus_t mgr_debug_init(void);
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif/*!DEBUG_MANAGER_H*/

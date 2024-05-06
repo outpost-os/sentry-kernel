@@ -1,5 +1,9 @@
-# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: LicenseRef-LEDGER
+
+if not with_doc_opt
+    subdir_done()
+endif
 
 pymod = import('python')
 sphinx = find_program('sphinx-build')
@@ -72,7 +76,6 @@ concepts = custom_target('doc-concepts',
     input: concepts_rst,
     depend_files: [files('concepts/conf.py')],
     output: 'concepts',
-    build_always: true,
     install: true,
     install_tag: 'doc',
     install_dir: get_option('datadir') / 'doc/sentry-kernel',

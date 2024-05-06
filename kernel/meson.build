@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
+if not with_kernel_opt
+    subdir_done()
+endif
 
 if meson.is_subproject()
 warning('!!! Are you sure you want to build the Sentry kernel as a subproject ?')
@@ -33,7 +39,7 @@ subdir('src')
 
 # there is no mean in building a target ELF file with coverage functions added.
 # It will not fit in target, and it will not be usable as is.
-if get_option('with_tests') == false and with_kernel_opt
+if with_kernel_opt and not with_tests
 # XXX:
 # For ldscript gen we use a custom target instead of the previously defined
 # generator as we need to know the outputed filename at link time
@@ -78,7 +84,6 @@ sentry_hex = custom_target(
         '@INPUT@',
         '@OUTPUT@'
     ],
-    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
 )
@@ -87,7 +92,6 @@ sentry_bin = custom_target(
     input: sentry_elf,
     output: '@BASENAME@.bin',
     command: [objcopy, '--output-target=binary', '@INPUT@', '@OUTPUT@'],
-    build_by_default: true,
     install: true,
     install_dir: get_option('bindir'),
     install_tag: 'runtime',
@@ -97,12 +101,10 @@ meson.add_install_script(sentry_install_script, sentry_map_file, get_option('inf
 
 endif
 
-with_tests_opt = get_option('with_tests')
-if with_tests_opt
+if with_tests
     subdir('tests')
 endif
 
-with_proof_opt = get_option('with_proof')
-if with_proof_opt
+if with_proof
   subdir('proof')
 endif

@@ -9,6 +9,10 @@
 #include <uapi/handle.h>
 #include <sentry/ktypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 kstatus_t mgr_device_init(void);
 
 kstatus_t mgr_device_watchdog(void);
@@ -48,5 +52,9 @@ kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id);
 kstatus_t mgr_device_get_devinfo_from_interrupt(uint16_t IRQn, const devinfo_t **devinfo);
 
 kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t *bus_id);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif/*SENTRY_MANAGERS_DEVICE_H*/
