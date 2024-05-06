@@ -6,10 +6,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sentry/ktypes.h>
-#include <bsp/drivers/usart/usart.h>
-#if CONFIG_DEBUG_OUTPUT_SEMIHOSTING
-#include <sentry/arch/asm-cortex-m/semihosting.h>
-#endif
+#include <sentry/managers/debug.h>
 #include "log_lexer.h"
 
 /***********************************************
@@ -33,7 +30,6 @@
  * the stdio functions, are implemented here.
  */
 
-
 /*
  * Print the ring buffer content (if there is some), and reset its
  * state to empty state.
@@ -43,26 +39,7 @@
  */
 kstatus_t dbgbuffer_display(void)
 {
-#if CONFIG_DEBUG_OUTPUT_USART
-    /* usart as no notion of the byte type it emit. sending unsigned content */
-    return usart_tx((uint8_t*)log_get_dbgbuf(), log_get_dbgbuf_offset());
-#elif CONFIG_DEBUG_OUTPUT_SEMIHOSTING
-    kstatus_t status = K_ERROR_NOENT;
-    const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
-    int fd;
-
-    fd = arm_semihosting_open(filename, SYS_FILE_MODE_APPEND, sizeof(filename) - 1);
-    if (fd < 0) {
-        goto err;
-    }
-    arm_semihosting_write(fd, (uint8_t*)log_get_dbgbuf(), log_get_dbgbuf_offset());
-    arm_semihosting_close(fd);
-err:
-    return status;
-#else
-    /* in release mode, if called, just do nothing */
-    return K_STATUS_OKAY;
-#endif
+    return debug_rawlog((uint8_t*)log_get_dbgbuf(), log_get_dbgbuf_offset());
 }
 
 
