@@ -104,7 +104,7 @@ static inline kstatus_t task_init_discover_sanitation(task_meta_t const * const 
         goto end;
     }
     /* maybe current cell is empty. In that case, we have finished to read the table */
-    if (unlikely(meta->magic != CONFIG_TASK_MAGIC_VALUE)) {
+    if (unlikely(meta->magic != CONFIG_TASK_MAGIC)) {
         ctx.state = TASK_MANAGER_STATE_FINALIZE;
         pr_err("invalid magic value found %llu, end of reading", meta->magic);
         status = K_ERROR_NOENT;

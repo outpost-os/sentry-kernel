@@ -8,14 +8,13 @@ config TASK_LABEL
 	help
 	  Task unique label identifier
 
-config TASK_MAGIC_VALUE
-	hex "task magic value number"
+config TASK_MAGIC
+	hex "task magic"
 	default 0xdeadcafe
 	help
-	  Default tasks magic number value to be set for all
-	  tasks. this value is specific to each project so
-	  that when building tasks for a given project, only these
-	  tasks can be added to the kernel bin
+	  Default tasks magic to be set for all tasks. this value is specific to
+	  each project so that when building tasks for a given project, only these
+	  tasks can be added to the kernel bin.
 
 config TASK_PRIORITY
 	int "Priority"

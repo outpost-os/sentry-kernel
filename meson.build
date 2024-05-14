@@ -61,6 +61,14 @@ global_build_args = [
     '-Wno-unused-parameter', # FIXME: while in early dev
 ]
 
+# Deprecated kconfig entry handling, to be removed on next major release
+if kconfig_data.has('CONFIG_TASK_MAGIC_VALUE')
+    warning('Deprecated kconfig entry CONFIG_TASK_MAGIC_VALUE, please update config file')
+    global_build_args += [
+        '-DCONFIG_TASK_MAGIC=@0@'.format(kconfig_data.get('CONFIG_TASK_MAGIC_VALUE'))
+    ]
+endif
+
 # these flags are overload by arch/<architecture> meson.build file
 target_arch_args = []
 
