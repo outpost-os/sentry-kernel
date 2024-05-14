@@ -191,7 +191,7 @@ TEST_F(TaskTest, TestForgeValidFullTable) {
     uint16_t base_id = 0x1000;
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         task_meta[i].label = (uint32_t)(base_id << 13);
-        task_meta[i].magic = CONFIG_TASK_MAGIC_VALUE;
+        task_meta[i].magic = CONFIG_TASK_MAGIC;
         task_meta[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_meta[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
         task_meta[i].s_svcexchange = (size_t)&task_data_section[0];
@@ -221,7 +221,7 @@ TEST_F(TaskTest, TestForgeValidUnorderedLabelsTable) {
 
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         task_meta[i].label = gen_label();
-        task_meta[i].magic = CONFIG_TASK_MAGIC_VALUE;
+        task_meta[i].magic = CONFIG_TASK_MAGIC;
         task_meta[i].flags.start_mode = JOB_FLAG_START_AUTO; /* implies sched_schedule() */
         task_meta[i].flags.exit_mode = JOB_FLAG_EXIT_NORESTART;
         task_meta[i].s_svcexchange = (size_t)&task_data_section[0];
