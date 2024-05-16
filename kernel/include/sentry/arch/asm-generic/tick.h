@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__FRAMAC__)
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/tick.h>
 #elif defined(__x86_64__)

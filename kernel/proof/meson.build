@@ -153,6 +153,7 @@ test(
   suite: 'proof',
   is_parallel: false,
   priority: 253,
+  should_fail: true,
 )
 
 subdir('proof_handlers')

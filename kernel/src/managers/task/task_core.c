@@ -310,6 +310,8 @@ stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size
 kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
 {
     kstatus_t status = K_ERROR_NOENT;
+    uint8_t num_devs;
+
     /* for all tasks... */
     for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
         if (unlikely(task_table[i].metadata == NULL)) {
@@ -317,8 +319,16 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
             status = K_SECURITY_CORRUPTION;
             goto end;
         }
+
+        /*
+         * XXX:
+         * - Ensure that metadata num_devs (resp. num_shms, num_dmas) are in range
+         */
+        num_devs = MIN(task_table[i].metadata->num_devs, CONFIG_MAX_DEV_PER_TASK);
+
         /* for all devices of a task... */
-        for (uint8_t dev = 0; dev < task_table[i].metadata->num_devs; ++i) {
+        /*@ assert(num_devs <= CONFIG_MAX_DEV_PER_TASK); */
+        for (uint8_t dev = 0; dev < num_devs; ++dev) {
             if (task_table[i].metadata->devs[dev] == d) {
                     /* task metadata hold the same dev handle as requested */
                     memcpy(t, &task_table[i].handle, sizeof(taskh_t));
