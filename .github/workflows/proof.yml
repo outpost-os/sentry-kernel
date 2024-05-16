@@ -94,5 +94,5 @@ jobs:
       - name: Meson postcheck
         if: failure()
         run: |
-          cat builddir/meson-logs/meson-log.txt
-          cat builddir/meson-logs/testlog.txt
+          cat builddir/meson-logs/meson-log.txt || true
+          cat builddir/meson-logs/testlog.txt || true
