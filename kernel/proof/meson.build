@@ -27,6 +27,7 @@ framac_rte_eva_opts = [
  '-warn-unsigned-overflow',
  '-warn-invalid-pointer',
  '-eva',
+ '-eva-builtins-auto',
  '-eva-show-perf',
  '-eva-slevel', '500',
  '-eva-split-limit', '256',
@@ -52,10 +53,8 @@ framac_md_opts = [
   '-mdr-gen', 'md',
   '-mdr-title', 'Sentry kernel noRTE report',
 ]
+
 #'-wp-prop="-@lemma"',
-kernel_entrypoint = files(
-  join_paths(meson.project_source_root(), 'kernel/src/startup/entrypoint.c'),
-)
 
 # Part 1: analysis from kernel entrypoint. These targets check the call graph from
 # the kernel entrypoint itelf, analysing the overall init sequence of the kernel.
@@ -75,6 +74,12 @@ framac_dep = custom_target(
     output: 'framac.dep',
 )
 
+kernel_entrypoint = files(
+  join_paths(meson.project_source_root(), 'kernel/src/startup/entrypoint.c'),
+
+)
+
+
 test(
   'frama-C-parsing',
   frama_c,
@@ -93,35 +98,7 @@ test(
   priority: 255,
 )
 
-# testing EVA/noRTE through kernel bootup entrypoint (init phase)
-test(
-  'frama-C-eva-entryoint',
- frama_c,
- args: [
-    kernel_entrypoint, sentry_source_set_config.sources(),
-    framac_gen_opts,
-    '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-user.log'),
-    '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-all.log'),
-    '-main', '_entrypoint',
-    framac_rte_eva_opts,
-    '-eva-flamegraph',join_paths(meson.current_build_dir(), 'frama-c-eva.flamegraph'),
-    '-eva-report-red-statuses',join_paths(meson.current_build_dir(), 'frama-c-eva.red'),
-    '-metrics',
-    '-metrics-eva-cover',
-    '-metrics-output',join_paths(meson.current_build_dir(), 'frama-c-eva-coverage.json'),
-    '-save',join_paths(meson.current_build_dir(), 'frama-c-eva.session'),
-    '-then',
-    framac_md_opts,
-    '-mdr-out', join_paths(meson.current_build_dir(), 'frama-c-eva-report.md'),
-    '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), 'frama-c-eva-md.log'),
-  ],
-  env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), 'frama-c-eva')},
-  depends: [ framac_dep ],
-  suite: 'proof',
-  timeout: 600,
-  is_parallel: false,
-  priority: 254,
-)
+
 
 # check the number of red alarms emitted by eva
 # the first line always describes result's columns type
@@ -141,19 +118,5 @@ with open(sys.argv[1], 'r') as fp:
 exit(lines-1)
 '''
 
-test(
-  'frama-C-eva-entryoint-redalarm',
-  py3,
-  args: [
-    '-c',
-    redalarmcount_py_wrapper,
-    join_paths(meson.current_build_dir(), 'frama-c-eva.red'),
-  ],
-  depends: [ framac_dep ],
-  suite: 'proof',
-  is_parallel: false,
-  priority: 253,
-  should_fail: true,
-)
-
+subdir('proof_entrypoint')
 subdir('proof_handlers')

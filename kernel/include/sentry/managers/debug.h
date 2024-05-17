@@ -96,6 +96,7 @@ static inline kstatus_t printk(const char* fmt __attribute__((unused)), ...) {
 #define pr_notice(fmt, ...)
 #define pr_info(fmt, ...)
 #define pr_debug(fmt, ...)
+#define pr_autotest(fmt, ...)
 
 #else
 /*
@@ -211,10 +212,16 @@ kstatus_t printk(const char* fmt, ...);
  */
 #define pr_autotest(fmt, ...) \
 	printk(COLOR_CYAN KERN_AUTOTEST " " pr_autotest_fmt(fmt), ##__VA_ARGS__)
+#else
+/* in debug mode, pr_autotest do nothing */
+#define pr_autotest(fmt, ...)
+
 #endif
 
 kstatus_t mgr_debug_autotest(void);
-#endif
+#endif/*autotest */
+
+
 
 kstatus_t mgr_debug_init(void);
 
