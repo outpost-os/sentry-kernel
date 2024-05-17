@@ -307,28 +307,45 @@ stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size
  *  K_SECURITY_CORRUPTION if task_table is corrupted
  *  K_ERROR_NOENT if devh is not found
  */
+/*@
+  @ requires \valid(t);
+  @ assigns *t;
+ */
 kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
 {
     kstatus_t status = K_ERROR_NOENT;
     uint8_t num_devs;
 
     /* for all tasks... */
+    /*@
+      @ loop invariant 0 <= i <= CONFIG_MAX_TASKS;
+      @ loop assigns task_table[i].handle;
+      @ loop assigns status;
+      @ loop variant (CONFIG_MAX_TASKS - i);
+     */
     for (uint8_t i = 0; i < mgr_task_get_num(); ++i) {
+        uint8_t num_devs = 0;
+
         if (unlikely(task_table[i].metadata == NULL)) {
             /* should not happen if init done (and thus numtask valid) */
             status = K_SECURITY_CORRUPTION;
             goto end;
         }
-
-        /*
-         * XXX:
-         * - Ensure that metadata num_devs (resp. num_shms, num_dmas) are in range
-         */
+        /*@ assert \valid_read(task_table[i].metadata); */
+        /** NOTE: some defense in depth here */
         num_devs = MIN(task_table[i].metadata->num_devs, CONFIG_MAX_DEV_PER_TASK);
-
+        if (unlikely(num_devs > CONFIG_MAX_DEV_PER_TASK)) {
+            panic(PANIC_CONFIGURATION_MISMATCH);
+        }
+        /* assert(num_devs <= CONFIG_MAX_DEV_PER_TASK); */
         /* for all devices of a task... */
-        /*@ assert(num_devs <= CONFIG_MAX_DEV_PER_TASK); */
-        for (uint8_t dev = 0; dev < num_devs; ++dev) {
+        /*@
+          @ loop invariant 0 <= dev <= CONFIG_MAX_DEV_PER_TASK;
+          @ loop assigns task_table[i].handle;
+          @ loop assigns status;
+          @ loop variant (CONFIG_MAX_DEV_PER_TASK - dev);
+          */
+        for (uint8_t dev = 0; (dev < num_devs) && (dev < CONFIG_MAX_DEV_PER_TASK); ++dev) {
             if (task_table[i].metadata->devs[dev] == d) {
                     /* task metadata hold the same dev handle as requested */
                     memcpy(t, &task_table[i].handle, sizeof(taskh_t));

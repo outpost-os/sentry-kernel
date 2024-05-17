@@ -8,6 +8,9 @@
 #include <sentry/thread.h>
 #include <sentry/managers/task.h>
 
+/*@
+  @ assigns \nothing;
+  */
 uint32_t mgr_task_get_num(void);
 
 void mgr_task_set_userspace_spawned(void);

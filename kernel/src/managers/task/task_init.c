@@ -80,7 +80,12 @@ static struct task_mgr_ctx ctx;
  * the kernel would 'search and copy' the tasks metadata in its own section at boot time.
  * Although, once copied, the table would store the very same content.
  */
-static task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
+#ifndef __FRAMAC__
+static
+#endif
+task_meta_t __task_meta_table[CONFIG_MAX_TASKS] __attribute__((used, section(".task_list")));
+
+
 #else
 /* UT provided */
 const task_meta_t *ut_get_task_meta_table(void);
@@ -494,6 +499,7 @@ kstatus_t mgr_task_init(void)
     ctx.status = K_STATUS_OKAY;
     ctx.userspace_spawned = SECURE_FALSE;
     task_t *tsk_ctx = NULL;
+
     pr_info("init idletask metadata");
     task_idle_init();
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
@@ -542,7 +548,7 @@ kstatus_t mgr_task_init(void)
     }
 #endif
     /* finalize, adding idle task */
-    task_init_finalize();
+    ctx.status = task_init_finalize();
 
     task_dump_table();
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST

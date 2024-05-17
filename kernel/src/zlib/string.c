@@ -102,6 +102,7 @@ err:
 
 #ifndef TEST_MODE
 #ifndef __FRAMAC__
+/** NOTE: FramaC requires that we use its own compiler builtins (see -eva-builtins-list for more info) */
 /* if not in the test suite case, aliasing to POSIX symbols, standard string.h header can be added */
 size_t strnlen(const char *s, size_t maxlen) __attribute__((alias("sentry_strnlen")));
 void* memset(void *s, int c, unsigned int n) __attribute__((alias("sentry_memset")));

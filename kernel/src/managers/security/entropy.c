@@ -46,9 +46,10 @@ kstatus_t mgr_security_entropy_init(void)
     status = rng_get(&seed);
     if (unlikely(status != K_STATUS_OKAY)) {
         pr_err("failed ro initialize RNG! status=%u", status);
-    } else {
-        pr_info("RNG init done.");
+        goto end;
     }
+    pr_info("RNG init done.");
+    status = K_STATUS_OKAY;
 end:
 #endif
     return status;
