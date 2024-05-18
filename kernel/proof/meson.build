@@ -120,3 +120,4 @@ exit(lines-1)
 
 subdir('proof_entrypoint')
 subdir('proof_handlers')
+subdir('proof_zlib')
