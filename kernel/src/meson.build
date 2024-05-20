@@ -7,10 +7,6 @@ sentry_handlers = files()
 sentry_linker_script = files()
 sentry_linker_script_path = files()
 
-sentry_private_gen_source_set = ssmod.source_set()
-sentry_private_gen_header_set = ssmod.source_set()
-sentry_private_header_set = ssmod.source_set()
-
 # arch-specific content
 subdir('arch')
 subdir('zlib')
@@ -40,38 +36,5 @@ subdir('sched')
 # XXX add the whole private gen header 'sourceset' to sentry sourceset
 # for compatibility (w/ frama-c)
 # TODO rework this properly
-sentry_generated_source_set.add_all(sentry_private_gen_header_set)
 sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
-sentry_generated_source_set_config = sentry_generated_source_set.apply(kconfig_data, strict: false)
-sentry_private_source_config = sentry_private_gen_source_set.apply(kconfig_data, strict: false)
-sentry_private_header_set_config = sentry_private_header_set.apply(kconfig_data, strict: false)
-sentry_private_gen_header_set_config = sentry_private_gen_header_set.apply(kconfig_data, strict: false)
-
-if with_kernel_opt
-# static part library
-sentry_lib = static_library('sentry',
-    sources: [
-        sentry_source_set_config.sources(),
-        sentry_generated_source_set_config.sources(),
-        sentry_header_set_config.sources(),
-        sentry_private_source_config.sources(),
-        sentry_private_header_set_config.sources(),
-    ],
-    include_directories: kernel_inc,
-    c_args: [ target_arch_args, global_build_args ],
-    dependencies: [
-        sentry_arch_dep,
-        sentry_zlib_dep,
-        sentry_bsp_dep,
-        sentry_sched_dep,
-        sentry_managers_dep,
-        sentry_source_set_config.dependencies(),
-        external_deps
-    ],
-)
-
-sentry_dep = declare_dependency(
-    link_with: sentry_lib,
-    include_directories: kernel_inc,
-)
-endif
+sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)

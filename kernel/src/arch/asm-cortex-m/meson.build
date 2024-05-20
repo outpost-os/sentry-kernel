@@ -7,14 +7,12 @@ arch_source_set.add(files(
   'systick.c',
   'tick.c',
   'semihosting.c',
+  'handler.c',
 ))
 
 # VTOR and handlers are not a part of the library, but instead hold in the
 # core kernel ELF generation.
 # The same rule is used for ldscripts, which have no meaning in library build
-sentry_handlers += files(
-  'handler.c',
-)
 
 sentry_vtor_template = files('vtor.c.in')
 
@@ -25,7 +23,7 @@ sentry_vtor_c = custom_target('gen_vtor',
   command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
-sentry_startup += sentry_vtor_c
+arch_source_set.add(sentry_vtor_c.to_list())
 
 
 if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1

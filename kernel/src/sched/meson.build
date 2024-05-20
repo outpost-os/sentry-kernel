@@ -16,6 +16,7 @@ sched_source_set_config = sched_source_set.apply(kconfig_data, strict: false)
 sentry_sched_lib = static_library('sentry_sched',
     sources: [
         sched_source_set_config.sources(),
+        sched_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
@@ -30,5 +31,6 @@ sentry_sched_lib = static_library('sentry_sched',
 
 sentry_sched_dep = declare_dependency(
     link_with: sentry_sched_lib,
+    sources: sched_header_set_config.sources(),
     include_directories: kernel_inc,
 )

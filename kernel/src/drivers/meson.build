@@ -42,6 +42,7 @@ sentry_bsp_lib = static_library(
         bsp_source_set_config.sources(),
         bsp_private_gen_source_set_config.sources(),
         bsp_private_gen_header_set_config.sources(),
+        bsp_header_set_config.sources(),
         bsp_private_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
@@ -52,5 +53,6 @@ sentry_bsp_lib = static_library(
 
 sentry_bsp_dep = declare_dependency(
     link_with: sentry_bsp_lib,
+    sources: bsp_header_set_config.sources(),
     include_directories: kernel_inc,
 )

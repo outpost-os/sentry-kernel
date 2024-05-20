@@ -75,11 +75,15 @@ framac_dep = custom_target(
     command: [ 'true' ],
     input: [
       sentry_header_set_config.sources(),
-      sentry_private_header_set_config.sources(),
-      sentry_private_gen_header_set_config.sources(),
+      arch_header_set_config.sources(),
+      bsp_header_set_config.sources(),
+      managers_header_set_config.sources(),
+      sched_header_set_config.sources(),
+      zlib_header_set_config.sources(),
     ],
     output: 'framac.dep',
 )
+
 
 kernel_entrypoint = files(
   join_paths(meson.project_source_root(), 'kernel/src/startup/entrypoint.c'),

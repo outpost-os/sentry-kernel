@@ -12,9 +12,9 @@ test_name = 'frama-c-eva-handler-svc'
 framac_stub_elf = executable(
     test_name + '-entrypoint',
     name_suffix: 'elf',
-    sources: [ frama_c_eva_norte_svc_entrypoint ],
+    sources: [ frama_c_eva_norte_svc_entrypoint, framac_dep ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
+    dependencies: [ external_deps],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,

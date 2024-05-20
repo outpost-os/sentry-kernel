@@ -11,9 +11,10 @@ framac_bsp_rcc_stub_elf = executable(
     name_suffix: 'elf',
     sources: [
       framac_bsp_rcc_stub_entrypoint,
-      arch_header_set_config.sources() ],
+      framac_dep,
+    ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps ],
+    dependencies: [ external_deps ],
     c_args: [ target_arch_args, global_build_args ],
     install: false,
     build_by_default: false,
