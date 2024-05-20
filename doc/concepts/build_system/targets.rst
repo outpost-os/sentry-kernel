@@ -122,6 +122,30 @@ It is possible to deactivate the kernel build with the following option:
 
    -Dwith_kernel=false
 
+The sentry kernel is composed of separated elements that are built as libraries,
+alowing easy testing, correctness checking and portability.
+
+To achieve that, the Sentry kernel is decomposed of the following libraries:
+
+   * `libsentry_arch`: This library hold all the architecture relative implementation.
+     This library API is defined in the `<sentry/arch>` subdirectory of the kernel include path.
+
+   * `libsentry_bsp`: This library hold all the device drivers implementation. This
+     library API is defined in the `<bsp>` subdirectory of the kernel include path.
+
+   * `libsentry_sched`: This library hold schedulers implementation. Its API is hold in the
+     `<sentry/sched.h>` header file.
+
+   * `libsentry_managers`: This library hold the portable, high level implementation of The
+     kernel features, denoted *managers*. This library API is defined in the `<sentry/managers>`
+     kernel include path.
+
+   * `libsentry_zlib`: This library hold portable-C, generic base tooling to be used kernel-wide.
+     This library API is defined in the `<sentry/zlib>` subdirectory of the kernel include path.
+
+   * `libsentry_syscalls`: This library hold the Sentry, portable, kernel syscall gate (not including
+     supervisor call handler, that is a part of `libsentry_arch`). This library API is defined in
+     the single header `<sentry/syscalls.h>` of the kernel include path.
 
 Sentry UAPI
 ~~~~~~~~~~~
