@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # list of statically defined headers
-sentry_header_set.add(files(
+arch_header_set.add(files(
     'io.h',
     'membarriers.h',
     'mpu.h',
@@ -17,8 +17,8 @@ sentry_header_set.add(files(
     'semihosting.h',
 ))
 
-sentry_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V7', if_true: files('mpu_pmsa_v7.h'))
-sentry_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V8', if_true: files('mpu_pmsa_v8.h'))
+arch_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V7', if_true: files('mpu_pmsa_v7.h'))
+arch_header_set.add(when: 'CONFIG_HAS_MPU_PMSA_V8', if_true: files('mpu_pmsa_v8.h'))
 
 irq_defs_in = files('irq_defs.h.in')
 # generated headers
@@ -65,7 +65,7 @@ buses_h = custom_target('gen_buses',
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'RCC', '@INPUT@' ],
 )
 
-sentry_header_set.add(
+arch_header_set.add(
     irq_def_h.to_list(),
     layout_h.to_list(),
     core_h.to_list(),

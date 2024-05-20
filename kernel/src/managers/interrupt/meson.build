@@ -1,3 +1,3 @@
-sentry_source_set.add(files(
+managers_source_set.add(files(
     'interrupt.c',
 ))

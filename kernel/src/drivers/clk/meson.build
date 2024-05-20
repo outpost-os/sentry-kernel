@@ -14,7 +14,7 @@ rcc_h = custom_target('gen_rcc',
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'RCC', '@INPUT@' ],
 )
-sentry_source_set.add(rcc_h.to_list())
+bsp_source_set.add(rcc_h.to_list())
 
 if kconfig_data.get('CONFIG_SOC_FAMILY_STM32', 0) == 1
 stm32_rcc_c_template = files('stm32-rcc.c.in')
@@ -29,15 +29,15 @@ stm32_rcc_h = dtsgen.process(stm32_rcc_h_template)
 stm32_rcc_dt_c = dtsgen.process(stm32_rcc_dt_c_template)
 stm32_rcc_dt_h = dtsgen.process(stm32_rcc_dt_h_template)
 
-sentry_private_gen_source_set.add(stm32_rcc_c, stm32_rcc_dt_c)
-sentry_private_gen_header_set.add(stm32_rcc_h, stm32_rcc_dt_h)
+bsp_private_gen_source_set.add(stm32_rcc_c, stm32_rcc_dt_c)
+bsp_private_gen_header_set.add(stm32_rcc_h, stm32_rcc_dt_h)
 endif
 
 # XXX: there is no OR clause in source set
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32x4-pll.c'))
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32x4-pll.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32x4-pll.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32x4-pll.c'))
 
-sentry_source_set.add(
+bsp_source_set.add(
     when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
     if_true: files(
         'stm32u5-pll.c',
@@ -48,7 +48,7 @@ sentry_source_set.add(
     ),
 )
 
-sentry_private_header_set.add(
+bsp_private_header_set.add(
     when: 'CONFIG_SOC_SUBFAMILY_STM32U5',
     if_true: files(
     'stm32u5-pll.h',
@@ -64,8 +64,8 @@ stm32f4_rcc_h_template = files('stm32f4-rcc.h.in')
 stm32f4_rcc_c = dtsgen.process(stm32f4_rcc_c_template)
 stm32f4_rcc_h = dtsgen.process(stm32f4_rcc_h_template)
 
-sentry_private_gen_source_set.add(stm32f4_rcc_c)
-sentry_private_gen_header_set.add(stm32f4_rcc_h)
+bsp_private_gen_source_set.add(stm32f4_rcc_c)
+bsp_private_gen_header_set.add(stm32f4_rcc_h)
 endif
 
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32L4', 0) == 1
@@ -75,14 +75,14 @@ stm32l4_rcc_h_template = files('stm32l4-rcc.h.in')
 stm32l4_rcc_c = dtsgen.process(stm32l4_rcc_c_template)
 stm32l4_rcc_h = dtsgen.process(stm32l4_rcc_h_template)
 
-sentry_private_gen_source_set.add(stm32l4_rcc_c)
-sentry_private_gen_header_set.add(stm32l4_rcc_h)
+bsp_private_gen_source_set.add(stm32l4_rcc_c)
+bsp_private_gen_header_set.add(stm32l4_rcc_h)
 endif
 
 if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32U5', 0) == 1
 stm32u5_rcc_h_template = files('stm32u5-rcc.h.in')
 stm32u5_rcc_h = dtsgen.process(stm32u5_rcc_h_template)
-sentry_private_gen_header_set.add(stm32u5_rcc_h)
+bsp_private_gen_header_set.add(stm32u5_rcc_h)
 endif
 
 pwr_h = custom_target('gen_pwr',
@@ -91,7 +91,7 @@ pwr_h = custom_target('gen_pwr',
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'PWR', '@INPUT@' ],
 )
-sentry_source_set.add(pwr_h.to_list())
+bsp_source_set.add(pwr_h.to_list())
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-pwr.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: files('stm32-pwr.c'))

@@ -2,7 +2,10 @@
 #include <sentry/ktypes.h>
 
 /* string related functions, for debug usage only */
-static size_t sentry_strnlen(const char *s, size_t maxlen)
+#ifndef __FRAMAC__
+static
+#endif
+size_t sentry_strnlen(const char *s, size_t maxlen)
 {
     size_t result = 0;
 
@@ -30,7 +33,10 @@ err:
  * Conforming to:
  * POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
  */
-static void   *sentry_memset(void *s, int c, unsigned int n)
+#ifndef __FRAMAC__
+static
+#endif
+void   *sentry_memset(void *s, int c, unsigned int n)
 {
     /* sanitation. This part can produce, as defined in the above
      * standard, an 'undefined behavior'. As a consequence, in all
@@ -68,7 +74,10 @@ err:
     return res;
 }
 
-static void   *sentry_memcpy(void * restrict dest, const void* restrict src, size_t n)
+#ifndef __FRAMAC__
+static
+#endif
+void   *sentry_memcpy(void * restrict dest, const void* restrict src, size_t n)
 {
     if (unlikely(!dest || !src)) {
         goto err;

@@ -1,41 +1,37 @@
-# specify an ELF including framaC main. This forges the correct flags in the
-# compile_commands.json so that framaC can use it. Although it should never be
-# built by meson, but instead json metadata being used by framaC to forge the
-# correct cpp args
-# this allows custom entrypoint for, typically, syscall entrypoints coverage
-frama_c_eva_norte_svc_entrypoint = files(
-  'handler.c',
+
+kernel_eva_zlib_entypoint = files(
+  'kernel_zlib.c',
 )
 
-test_name = 'frama-c-eva-handler-svc'
+test_name = 'frama-c-eva-zlib'
 
-framac_stub_elf = executable(
-    test_name + '-entrypoint',
+framac_stub_zlib_elf = executable(
+    test_name,
     name_suffix: 'elf',
-    sources: [ frama_c_eva_norte_svc_entrypoint, framac_dep ],
+    sources: [ kernel_eva_zlib_entypoint ],
     include_directories: kernel_inc,
-    dependencies: [ external_deps],
+    dependencies: [ sentry_zlib_dep, external_deps],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,
 )
 
-# testing EVA/noRTE through kernel svc handler
+# testing EVA/noRTE through kernel bootup entrypoint (init phase)
 test(
- test_name,
- frama_c,
- args: [
-    frama_c_eva_norte_svc_entrypoint, kernel_sources,
+  test_name,
+  frama_c,
+  args: [
+    kernel_eva_zlib_entypoint, zlib_source_set_config.sources(),
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), test_name + '-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), test_name + '-all.log'),
-    '-main', 'handler_entrypoint',
+    '-main', 'kernel_zlib',
     framac_rte_eva_opts,
     '-eva-flamegraph',join_paths(meson.current_build_dir(), test_name + '.flamegraph'),
     '-eva-report-red-statuses',join_paths(meson.current_build_dir(), test_name + '.red'),
     '-metrics',
     '-metrics-eva-cover',
-    '-metrics-output',join_paths(meson.current_build_dir(), test_name + '.json'),
+    '-metrics-output',join_paths(meson.current_build_dir(), test_name + '-coverage.json'),
     '-save',join_paths(meson.current_build_dir(), test_name + '.session'),
     '-then',
     framac_md_opts,
@@ -50,8 +46,6 @@ test(
   priority: 254,
 )
 
-# FIXME: the svc exchange manipulation is not yet proven, generating an exit 1 (1 RTE) as
-# this part is not demonstrated and accepted by frama-C by now
 test(
   test_name + '-redalarm',
   py3,
@@ -62,7 +56,6 @@ test(
   ],
   depends: [ framac_dep ],
   suite: 'proof',
-  should_fail: true,
   is_parallel: false,
   priority: 253,
 )

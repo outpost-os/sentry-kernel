@@ -28,7 +28,7 @@ stm32_gpio_dtsgen_c = dtsgen.process(stm32_gpio_dts_template_c)
 stm32_gpio_dtsgen_h = dtsgen.process(stm32_gpio_dts_template_h)
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: stm32_drivers_gpio_files)
+bsp_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: stm32_drivers_gpio_files)
 # XXX xxxx_h may be use in private gen header but not now ;-)
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_gpio_dtsgen_c, stm32_gpio_dtsgen_h ])
-sentry_private_gen_header_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ gpio_h ])
+bsp_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_gpio_dtsgen_c, stm32_gpio_dtsgen_h ])
+bsp_private_gen_header_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ gpio_h ])

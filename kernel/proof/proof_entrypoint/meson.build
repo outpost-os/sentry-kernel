@@ -8,9 +8,9 @@ test_name = 'frama-c-eva-entrypoint'
 framac_stub_entrypoint_elf = executable(
     test_name + '-entrypoint',
     name_suffix: 'elf',
-    sources: [ kernel_eva_entypoint, kernel_entrypoint ],
+    sources: [ kernel_eva_entypoint, kernel_entrypoint, framac_dep ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
+    dependencies: [ external_deps],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,
@@ -21,7 +21,9 @@ test(
   test_name,
  frama_c,
  args: [
-    kernel_entrypoint, kernel_eva_entypoint, sentry_source_set_config.sources(),
+    kernel_entrypoint,
+    kernel_eva_entypoint,
+    kernel_sources,
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), test_name + '-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), test_name + '-all.log'),

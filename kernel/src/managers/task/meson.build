@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # main kernel-relative content
-sentry_source_set.add(files(
+managers_source_set.add(files(
   'task_init.c',
   'task_core.c',
   'task_idle.c',
@@ -18,5 +18,5 @@ task_autotest = custom_target('gen_task_autotest',
   command: [ jinja_cli, '-d', autotest_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
-sentry_source_set.add(task_autotest)
+managers_source_set.add(task_autotest)
 endif

@@ -2,6 +2,7 @@
 #define SYSCALLS_H
 
 #include <uapi/handle.h>
+#include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/thread.h>
 
 stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len);

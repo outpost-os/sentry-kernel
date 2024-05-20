@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # list of statically defined headers
-sentry_header_set.add(files(
+arch_header_set.add(files(
     'interrupt.h',
     'membarriers.h',
     'platform.h',

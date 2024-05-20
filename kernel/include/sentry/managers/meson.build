@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-sentry_header_set.add(files(
+managers_header_set = ssmod.source_set()
+
+managers_header_set.add(files(
   'clock.h',
   'debug.h',
   'device.h',
@@ -27,4 +29,6 @@ capability_h = custom_target('capability_h',
     command: [ jinja_cli, '-d', task_capabilities_json, '-o', '@OUTPUT@', '@INPUT@' ],
 )
 
-sentry_header_set.add(task_metadata_h, capability_h)
+managers_header_set.add(task_metadata_h, capability_h)
+
+managers_header_set_config = managers_header_set.apply(kconfig_data, strict:false)

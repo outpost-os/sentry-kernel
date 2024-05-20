@@ -292,7 +292,11 @@ end:
  */
 stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size_t got)
 {
-    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc, got);
+    uint32_t seed = 0;
+    if (unlikely(mgr_security_entropy_generate(&seed) != K_STATUS_OKAY)) {
+        return NULL;
+    }
+    stack_frame_t *frame = __thread_init_stack_context(rerun, sp, pc, got, seed);
     return frame;
 }
 

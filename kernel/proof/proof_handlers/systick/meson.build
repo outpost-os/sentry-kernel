@@ -10,9 +10,9 @@ frama_c_norte_systick_entrypoint = files(
 framac_stub_elf = executable(
     'framac_norte_systick_entrypoint',
     name_suffix: 'elf',
-    sources: [frama_c_norte_systick_entrypoint ],
+    sources: [frama_c_norte_systick_entrypoint, framac_dep ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps],
+    dependencies: [ external_deps],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
     install: false,
     build_by_default: false,
@@ -23,7 +23,7 @@ test(
   'frama-C-eva-handler-systick',
  frama_c,
  args: [
-    frama_c_norte_systick_entrypoint, sentry_source_set_config.sources(),
+    frama_c_norte_systick_entrypoint, kernel_sources,
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-handler-systick-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-handler-systick-all.log'),

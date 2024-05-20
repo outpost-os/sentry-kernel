@@ -9,9 +9,12 @@ framac_bsp_rcc_stub_entrypoint = files(
 framac_bsp_rcc_stub_elf = executable(
     'framac_bsp_rcc_stub_exe',
     name_suffix: 'elf',
-    sources: [framac_bsp_rcc_stub_entrypoint, sentry_header_set_config.sources() ],
+    sources: [
+      framac_bsp_rcc_stub_entrypoint,
+      framac_dep,
+    ],
     include_directories: kernel_inc,
-    dependencies: [sentry_dep, external_deps ],
+    dependencies: [ external_deps ],
     c_args: [ target_arch_args, global_build_args ],
     install: false,
     build_by_default: false,
