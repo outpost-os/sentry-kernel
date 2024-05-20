@@ -3,6 +3,7 @@
 
 sched_header_set = ssmod.source_set()
 zlib_header_set = ssmod.source_set()
+syscall_header_set = ssmod.source_set()
 
 subdir('arch')
 
@@ -21,6 +22,11 @@ sentry_header_set.add(files(
 
 subdir('managers')
 
+# syscall headers
+syscall_header_set.add(files(
+  'syscalls.h',
+))
+
 # zlib headers
 zlib_header_set.add(files(
   'zlib/crypto.h',
@@ -28,9 +34,11 @@ zlib_header_set.add(files(
   'zlib/sort.h',
 ))
 
+# sched headers
 sched_header_set.add(files(
   'sched.h',
 ))
 
 sched_header_set_config = sched_header_set.apply(kconfig_data, strict:false)
 zlib_header_set_config = zlib_header_set.apply(kconfig_data, strict:false)
+syscall_header_set_config = syscall_header_set.apply(kconfig_data, strict:false)

@@ -3,9 +3,6 @@
 
 # updated in arch, depending on CONFIG value
 sentry_startup = files()
-sentry_handlers = files()
-sentry_linker_script = files()
-sentry_linker_script_path = files()
 
 # arch-specific content
 subdir('arch')
@@ -36,5 +33,4 @@ subdir('sched')
 # XXX add the whole private gen header 'sourceset' to sentry sourceset
 # for compatibility (w/ frama-c)
 # TODO rework this properly
-sentry_source_set_config = sentry_source_set.apply(kconfig_data, strict: false)
 sentry_header_set_config = sentry_header_set.apply(kconfig_data, strict: false)

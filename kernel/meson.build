@@ -10,9 +10,7 @@ warning('!!! Are you sure you want to build the Sentry kernel as a subproject ?'
 endif
 
 # sources, generated and effective
-sentry_source_set = ssmod.source_set()
 sentry_header_set = ssmod.source_set()
-
 sentry_header_set.add(kconfig_h)
 
 # kernel code include both its own headers and UAPI headers
@@ -21,6 +19,9 @@ kernel_inc = include_directories(
     '../uapi/include'
 )
 
+
+sentry_linker_script = files()
+sentry_linker_script_path = files()
 
 # populated in src
 sentry_ldscript_template = files()
@@ -67,8 +68,6 @@ sentry_elf = executable(
     name_suffix: 'elf',
     sources: [
         sentry_startup,
-        sentry_handlers,
-        sentry_source_set_config.sources(),
         sentry_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
@@ -78,7 +77,7 @@ sentry_elf = executable(
         sentry_bsp_dep,
         sentry_sched_dep,
         sentry_managers_dep,
-        sentry_source_set_config.dependencies(),
+        sentry_syscall_dep,
         external_deps
     ],
     c_args: [ target_arch_args, global_build_args, sentry_dts_args ],
