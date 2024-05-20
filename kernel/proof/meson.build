@@ -4,10 +4,12 @@ z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
 
 kernel_sources = [
-    sentry_source_set_config.sources(),
+    sentry_startup,
     bsp_source_set_config.sources(),
     arch_source_set_config.sources(),
     sched_source_set_config.sources(),
+    managers_source_set_config.sources(),
+    syscall_header_set_config.sources(),
     zlib_source_set_config.sources(),
 ]
 
@@ -79,6 +81,7 @@ framac_dep = custom_target(
       bsp_header_set_config.sources(),
       managers_header_set_config.sources(),
       sched_header_set_config.sources(),
+      syscall_header_set_config.sources(),
       zlib_header_set_config.sources(),
     ],
     output: 'framac.dep',

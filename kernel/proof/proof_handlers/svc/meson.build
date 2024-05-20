@@ -25,7 +25,7 @@ test(
  test_name,
  frama_c,
  args: [
-    frama_c_eva_norte_svc_entrypoint, sentry_handlers, sentry_source_set_config.sources(),
+    frama_c_eva_norte_svc_entrypoint, kernel_sources,
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), test_name + '-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), test_name + '-all.log'),

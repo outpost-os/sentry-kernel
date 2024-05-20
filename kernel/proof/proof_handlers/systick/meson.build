@@ -23,7 +23,7 @@ test(
   'frama-C-eva-handler-systick',
  frama_c,
  args: [
-    frama_c_norte_systick_entrypoint, sentry_source_set_config.sources(),
+    frama_c_norte_systick_entrypoint, kernel_sources,
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-handler-systick-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-eva-handler-systick-all.log'),
