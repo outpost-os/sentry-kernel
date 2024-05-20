@@ -125,6 +125,17 @@ bool Frama_C_interval_bool(void)
     return val;
 }
 
+/**
+ * NOTE: in non-proof mode, these symbols are aliased to corresponding compiler
+ * builtins, and as such resolvable by the compiler.
+ * Nonetheless, we want here to check their implementation, and thus be able
+ * to explicitly call them.
+ * These symbols are a part of the Sentry zlib
+ */
+void   *sentry_memcpy(void * restrict dest, const void* restrict src, size_t n);
+void   *sentry_memset(void *s, int c, unsigned int n);
+size_t sentry_strnlen(const char *s, size_t maxlen);
+
 void kernel_zlib(void)
 {
     uint32_t res;

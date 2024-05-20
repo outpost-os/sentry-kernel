@@ -9,6 +9,10 @@ jinja_gen = generator(jinja_cli,
                    '@INPUT@'],
        depends: [ svd_json ])
 
+bsp_source_set = ssmod.source_set()
+bsp_private_gen_source_set = ssmod.source_set()
+bsp_private_gen_header_set = ssmod.source_set()
+bsp_private_header_set = ssmod.source_set()
 
 subdir('clk')
 subdir('exti')
@@ -25,3 +29,27 @@ subdir('syscfg')
 if kconfig_data.get('CONFIG_DEBUG_OUTPUT_USART', 0) == 1
 subdir('usart')
 endif
+
+bsp_source_set_config = bsp_source_set.apply(kconfig_data, strict: false)
+bsp_private_gen_source_set_config = bsp_private_gen_source_set.apply(kconfig_data, strict: false)
+bsp_private_gen_header_set_config = bsp_private_gen_header_set.apply(kconfig_data, strict: false)
+bsp_private_header_set_config = bsp_private_header_set.apply(kconfig_data, strict: false)
+
+
+sentry_bsp_lib = static_library(
+    'sentry_bsp',
+    sources: [
+        bsp_source_set_config.sources(),
+        bsp_private_gen_source_set_config.sources(),
+        bsp_private_gen_header_set_config.sources(),
+        bsp_private_header_set_config.sources(),
+    ],
+    include_directories: kernel_inc,
+    c_args: [ target_arch_args, global_build_args ],
+    dependencies: [ sentry_arch_dep, bsp_source_set_config.dependencies(), external_deps],
+)
+
+sentry_bsp_dep = declare_dependency(
+    link_with: sentry_bsp_lib,
+    include_directories: kernel_inc,
+)

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-sentry_source_set.add(files(
+arch_source_set.add(files(
   'nvic.c',
   'thread.c',
   'systick.c',
@@ -9,6 +9,9 @@ sentry_source_set.add(files(
   'semihosting.c',
 ))
 
+# VTOR and handlers are not a part of the library, but instead hold in the
+# core kernel ELF generation.
+# The same rule is used for ldscripts, which have no meaning in library build
 sentry_handlers += files(
   'handler.c',
 )
@@ -23,6 +26,7 @@ sentry_vtor_c = custom_target('gen_vtor',
 )
 
 sentry_startup += sentry_vtor_c
+
 
 if kconfig_data.get('CONFIG_BUILD_TARGET_AUTOTEST', 0) == 1
 # adding autotest app sections to ldscript. autotest specific

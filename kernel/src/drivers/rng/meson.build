@@ -13,7 +13,7 @@ rng_h = custom_target('gen_rng',
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'RNG', '@INPUT@' ],
 )
-sentry_source_set.add(rng_h.to_list())
+bsp_source_set.add(rng_h.to_list())
 
 stm32_rng_dts_template_c = files(['stm32-rng-dt.c.in'])
 stm32_rng_dts_template_h = files(['stm32-rng-dt.h.in'])
@@ -21,8 +21,8 @@ stm32_rng_dts_template_h = files(['stm32-rng-dt.h.in'])
 stm32_rng_dtsgen_c = dtsgen.process(stm32_rng_dts_template_c)
 stm32_rng_dtsgen_h = dtsgen.process(stm32_rng_dts_template_h)
 
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_rng_dtsgen_c, stm32_rng_dtsgen_h ])
+bsp_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_rng_dtsgen_c, stm32_rng_dtsgen_h ])
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rng.c'))
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32U5', if_true: files('stm32f4-rng.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rng.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32U5', if_true: files('stm32f4-rng.c'))

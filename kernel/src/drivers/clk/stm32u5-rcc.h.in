@@ -28,7 +28,7 @@
 #endif
 
 #include <sentry/io.h>
-#include "layout.h"
+#include <sentry/arch/asm-generic/layout.h>
 #include "rcc_defs.h"
 
 /* XXX:

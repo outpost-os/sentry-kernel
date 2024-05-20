@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdlib.h>
 #include <sentry/zlib/crypto.h>
+#include <sentry/ktypes.h>
 
 static const uint32_t crc32_tab[] =
 {
@@ -71,6 +73,10 @@ uint32_t crc32(unsigned char const * const buf, uint32_t len, uint32_t init)
     uint32_t crc32;
     uint32_t i;
 
+    if (unlikely(buf == NULL)) {
+      return init;
+    }
+    /*@ assert \valid_read(buf + (0 .. len-1)); */
     crc32 = init;
     /*@
       @ loop invariant 0 <= i <= len;

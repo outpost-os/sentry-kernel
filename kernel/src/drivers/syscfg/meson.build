@@ -13,7 +13,7 @@ syscfg_h = custom_target('gen_syscfg',
     depends: [ svd_json ],
     command: [ jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME', 'SYSCFG', '@INPUT@' ],
 )
-sentry_source_set.add(syscfg_h.to_list())
+bsp_source_set.add(syscfg_h.to_list())
 
 stm32_syscfg_dts_template_c = files(['stm32-syscfg-dt.c.in'])
 stm32_syscfg_dts_template_h = files(['stm32-syscfg-dt.h.in'])
@@ -21,7 +21,7 @@ stm32_syscfg_dts_template_h = files(['stm32-syscfg-dt.h.in'])
 stm32_syscfg_dtsgen_c = dtsgen.process(stm32_syscfg_dts_template_c)
 stm32_syscfg_dtsgen_h = dtsgen.process(stm32_syscfg_dts_template_h)
 
-sentry_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_syscfg_dtsgen_c, stm32_syscfg_dtsgen_h ])
+bsp_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_syscfg_dtsgen_c, stm32_syscfg_dtsgen_h ])
 
 # driver source selection
-sentry_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-syscfg.c'))
+bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-syscfg.c'))

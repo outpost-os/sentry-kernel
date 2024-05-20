@@ -58,7 +58,13 @@ sentry_lib = static_library('sentry',
     ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
-    dependencies: [sentry_source_set_config.dependencies(), external_deps],
+    dependencies: [
+        sentry_zlib_dep,
+        sentry_arch_dep,
+        sentry_bsp_dep,
+        sentry_source_set_config.dependencies(),
+        external_deps
+    ],
 )
 
 sentry_dep = declare_dependency(
