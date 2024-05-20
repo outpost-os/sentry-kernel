@@ -9,7 +9,7 @@ kernel_sources = [
     arch_source_set_config.sources(),
     sched_source_set_config.sources(),
     managers_source_set_config.sources(),
-    syscall_header_set_config.sources(),
+    syscall_source_set_config.sources(),
     zlib_source_set_config.sources(),
 ]
 
