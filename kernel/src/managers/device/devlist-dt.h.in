@@ -20,8 +20,8 @@
 #include <uapi/device.h>
 #include <sentry/managers/security.h>
 #include <sentry/managers/device.h>
-/* as -dt generated file, the target dir is not the source dir. Using src/ relative path */
-#include "managers/device/device.h"
+/* as -dt generated file, the target dir is not the source dir. Using src/managers relative path */
+#include "device/device.h"
 
 {# get the 'compatible' field as a string table -#}
 {%- macro device_get_compatible(device) -%}

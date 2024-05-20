@@ -13,6 +13,7 @@ sentry_private_header_set = ssmod.source_set()
 
 # arch-specific content
 subdir('arch')
+subdir('zlib')
 # what can't be deseleted. source listing is dynamic (Kconfig-list)
 subdir('startup')
 subdir('drivers')
@@ -20,7 +21,7 @@ subdir('drivers')
 subdir('managers')
 subdir('syscalls')
 subdir('sched')
-subdir('zlib')
+
 
 #enclave_linker_script = files('m7fw.ld')
 #enclave_linker_args = [
@@ -59,10 +60,11 @@ sentry_lib = static_library('sentry',
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
     dependencies: [
-        sentry_zlib_dep,
         sentry_arch_dep,
+        sentry_zlib_dep,
         sentry_bsp_dep,
         sentry_sched_dep,
+        sentry_managers_dep,
         sentry_source_set_config.dependencies(),
         external_deps
     ],

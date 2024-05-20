@@ -9,9 +9,18 @@
 #include <sentry/arch/asm-cortex-m/core.h>
 #include <sentry/arch/asm-cortex-m/systick.h>
 #include <sentry/arch/asm-cortex-m/tick.h>
-#include <sentry/managers/time.h>
-#include <sentry/sched.h>
 #include <sentry/io.h>
+
+
+/**
+ *  NOTE:
+ * at library build time, no external dep. This means that these symbols
+ * need to be declared by others libraries (required, no weak)
+ */
+uint64_t systime_get_cycle(void);
+stack_frame_t *sched_refresh(stack_frame_t *frame);
+void mgr_time_delay_tick(void);
+
 
 
 // FIXME: systick registers defs is in cmsis (core.h)

@@ -3,7 +3,6 @@
 
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/debug.h>
-#include <sentry/managers/task.h>
 #include <uapi/uapi.h>
 #include <uapi/handle.h>
 
@@ -32,6 +31,9 @@ static const char* panic_events_name[] = {
 
 /**
  * @brief pretty printing of panic event, only in non-release mode
+ *
+ * FIXME: this function must be pushed back to libmanager (debug), not
+ * in libarch
  */
 void panic_print_event(panic_event_t ev) {
 #ifndef CONFIG_BUILD_TARGET_RELEASE
@@ -41,14 +43,3 @@ void panic_print_event(panic_event_t ev) {
     pr_debug("panic event: PANIC_%s", panic_events_name[ev]);
 #endif
 }
-
-#ifdef CONFIG_BUILD_TARGET_AUTOTEST
-/**
- * @brief emitting signal to autotest task corresponding to current panic event
- */
-kstatus_t panic_emit_signal(panic_event_t ev)
-{
-    taskh_t autotest = mgr_task_get_autotest();
-    return mgr_task_push_sig_event((uint32_t)(ev + SIGNAL_USR2 + 1), 0UL, autotest);
-}
-#endif

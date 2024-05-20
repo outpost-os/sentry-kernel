@@ -3,6 +3,13 @@ frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
 
+kernel_sources = [
+    sentry_source_set_config.sources(),
+    bsp_source_set_config.sources(),
+    arch_source_set_config.sources(),
+    sched_source_set_config.sources(),
+    zlib_source_set_config.sources(),
+]
 
 framac_gen_opts = [
   '-kernel-msg-key', 'pp',
@@ -84,7 +91,7 @@ test(
   'frama-C-parsing',
   frama_c,
   args: [
-    kernel_entrypoint, sentry_source_set_config.sources(),
+    kernel_entrypoint, kernel_sources,
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), 'frama-c-parsing-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), 'frama-c-parsing-sentry-all.log'),

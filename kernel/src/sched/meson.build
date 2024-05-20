@@ -20,7 +20,12 @@ sentry_sched_lib = static_library('sentry_sched',
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
     install: false,
-    dependencies: [sched_source_set_config.dependencies(), external_deps],
+    dependencies: [
+        sentry_arch_dep,
+        sentry_managers_dep,
+        sched_source_set_config.dependencies(),
+        external_deps
+    ],
 )
 
 sentry_sched_dep = declare_dependency(

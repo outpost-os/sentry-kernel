@@ -3,7 +3,7 @@
 
 
 # IO generic layer, over BSP (GPIO, EXTI...)
-sentry_source_set.add(files(
+managers_source_set.add(files(
   'entropy.c',
   'security.c',
 ))

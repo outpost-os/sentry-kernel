@@ -11,7 +11,6 @@
 #include <assert.h>
 
 #include <sentry/arch/asm-cortex-m/core.h>
-#include <sentry/managers/security.h>
 
 /*
  * TODO:
@@ -47,13 +46,9 @@ typedef struct stack_frame {
 static_assert(sizeof(stack_frame_t) == (17*sizeof(uint32_t)), "Invalid stack frame size");
 
 
-static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc, size_t got)
+static inline stack_frame_t *__thread_init_stack_context(uint32_t rerun, size_t sp, size_t pc, size_t got, uint32_t seed)
 {
     /* on ARM, 4 first arguments are passed using registers R0 -> r3 */
-    uint32_t seed = 0;
-    if (unlikely(mgr_security_entropy_generate(&seed) != K_STATUS_OKAY)) {
-        return NULL;
-    }
     stack_frame_t*  frame = (stack_frame_t*)(sp - sizeof(stack_frame_t));
     frame->r0 = rerun;
     frame->r1 = seed;

@@ -30,5 +30,6 @@ sentry_arch_lib = static_library(
 
 sentry_arch_dep = declare_dependency(
     link_with: sentry_arch_lib,
+    sources: arch_header_set_config.sources(),
     include_directories: kernel_inc,
 )
