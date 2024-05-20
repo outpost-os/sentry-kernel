@@ -3,6 +3,40 @@ frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
 
+# Part 1: analysis from kernel entrypoint. These targets check the call graph from
+# the kernel entrypoint itelf, analysing the overall init sequence of the kernel.
+# Here, all the probing, platform initialization, etc. is executed through the
+# real kernel entrypoint
+
+# overall kernel generated headers and/or sources must be made before testing
+# Although, they are not passed to framaC directly, which get back sources but not
+# headers themselves
+framac_dep = custom_target(
+    command: [ 'true' ],
+    input: [
+      arch_header_set_config.sources(),
+      arch_source_set_config.sources(),
+      bsp_header_set_config.sources(),
+      bsp_private_gen_header_set_config.sources(),
+      bsp_private_gen_source_set_config.sources(),
+      bsp_private_header_set_config.sources(),
+      bsp_source_set_config.sources(),
+      managers_header_set_config.sources(),
+      managers_private_gen_header_set_config.sources(),
+      managers_private_header_set_config.sources(),
+      managers_source_set_config.sources(),
+      sched_header_set_config.sources(),
+      sched_source_set_config.sources(),
+      sentry_header_set_config.sources(),
+      syscall_header_set_config.sources(),
+      syscall_source_set_config.sources(),
+      zlib_header_set_config.sources(),
+      zlib_source_set_config.sources(),
+    ],
+    output: 'framac.dep',
+)
+
+# Only kernel C sources here (not headers)
 kernel_sources = [
     sentry_startup,
     bsp_source_set_config.sources(),
@@ -13,6 +47,8 @@ kernel_sources = [
     zlib_source_set_config.sources(),
 ]
 
+# NOTE: in proof mode, if not generated in kernel library corresponding dep dir,
+# all generator's headers have been generated in framac.dep.d dir (see framac_dep definition above)
 framac_gen_opts = [
   '-kernel-msg-key', 'pp',
   '-kernel-warn-key', 'c11=inactive,parser:unsupported=feedback',
@@ -21,7 +57,7 @@ framac_gen_opts = [
   '-instantiate',
   '-json-compilation-database', join_paths(meson.project_build_root(), 'compile_commands.json'),
   '-config', join_paths(meson.current_build_dir(), '.sentry-config'),
-  '-cpp-extra-args=-nostdinc,-DDTS_FILE=\\"@0@\\"'.format(sentry_dts_file),
+  '-cpp-extra-args=-nostdinc,-I ' + meson.current_build_dir() + '/framac.dep.p' + ',-DDTS_FILE=\\"@0@\\"'.format(sentry_dts_file),
   '-frama-c-stdlib',
   '-absolute-valid-range', '40000000-0xE000F000',
 ]
@@ -65,27 +101,6 @@ framac_md_opts = [
 
 #'-wp-prop="-@lemma"',
 
-# Part 1: analysis from kernel entrypoint. These targets check the call graph from
-# the kernel entrypoint itelf, analysing the overall init sequence of the kernel.
-# Here, all the probing, platform initialization, etc. is executed through the
-# real kernel entrypoint
-
-# overall kernel generated headers must be made before testing
-# Although, they are not passed to framaC directly, which get back sources but not
-# headers themselves
-framac_dep = custom_target(
-    command: [ 'true' ],
-    input: [
-      sentry_header_set_config.sources(),
-      arch_header_set_config.sources(),
-      bsp_header_set_config.sources(),
-      managers_header_set_config.sources(),
-      sched_header_set_config.sources(),
-      syscall_header_set_config.sources(),
-      zlib_header_set_config.sources(),
-    ],
-    output: 'framac.dep',
-)
 
 
 kernel_entrypoint = files(
