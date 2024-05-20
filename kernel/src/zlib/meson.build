@@ -18,6 +18,7 @@ sentry_zlib_lib = static_library('sentry_zlib',
     ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],
+    install: false,
     dependencies: [zlib_source_set_config.dependencies(), external_deps],
 )
 

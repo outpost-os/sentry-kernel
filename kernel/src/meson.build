@@ -62,6 +62,7 @@ sentry_lib = static_library('sentry',
         sentry_zlib_dep,
         sentry_arch_dep,
         sentry_bsp_dep,
+        sentry_sched_dep,
         sentry_source_set_config.dependencies(),
         external_deps
     ],

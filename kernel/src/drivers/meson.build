@@ -45,6 +45,7 @@ sentry_bsp_lib = static_library(
         bsp_private_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
+    install: false,
     c_args: [ target_arch_args, global_build_args ],
     dependencies: [ sentry_arch_dep, bsp_source_set_config.dependencies(), external_deps],
 )
