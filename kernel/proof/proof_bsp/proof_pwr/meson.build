@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 # specify an ELF including framaC main. This forges the correct flags in the
 # compile_commands.json so that framaC can use it. Although it should never be
 # built by meson, but instead json metadata being used by framaC to forge the

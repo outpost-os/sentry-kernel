@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
 
 kernel_eva_entypoint = files(
   'kernel_entrypoint.c',
