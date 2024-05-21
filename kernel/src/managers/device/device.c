@@ -111,13 +111,11 @@ kstatus_t mgr_device_init(void)
          * impact runtime performances.
          */
 
-        devh = forge_devh(devices_state[i].device);
-
         if (mgr_task_get_handle(devices[i].owner, &owner) != K_STATUS_OKAY) {
             /* owner is not a task */
             owner = 0;
         } else {
-            if (unlikely(mgr_task_get_device_owner(devh, &owner_from_metadata) != K_STATUS_OKAY)) {
+            if (unlikely(mgr_task_get_device_owner(devices_state[i].device->devinfo.id, &owner_from_metadata) != K_STATUS_OKAY)) {
                 panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
             }
             if (unlikely(owner_from_metadata != owner)) {
