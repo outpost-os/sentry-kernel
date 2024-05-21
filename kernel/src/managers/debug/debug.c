@@ -56,7 +56,11 @@ kstatus_t debug_rawlog(__MAYBE_UNUSED const uint8_t *logbuf, __MAYBE_UNUSED size
      * Filename must be aligned on word boundary as it is use as semi-hosted syscall arguments,
      * Which is an array of int, and thus must be aligned.
      */
-    _Alignas(size_t) static const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
+#ifndef __FRAMAC__
+    /** NOTE: Frama-C do not yet support C11 _Alignas */
+    _Alignas(size_t)
+#endif
+    static const char filename[] = CONFIG_DEBUG_SEMIHOSTING_OUTPUT_FILE;
     int fd;
 
     fd = arm_semihosting_open(filename, SYS_FILE_MODE_APPEND, sizeof(filename) - 1);
