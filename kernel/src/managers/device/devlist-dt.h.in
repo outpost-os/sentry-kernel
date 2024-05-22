@@ -57,7 +57,8 @@
             'bxcan' in device_type or
             'fdcan' in device_type or
             'mipi-dsi' in device_type or
-            'exti' in device_type
+            'exti' in device_type or
+            'ltdc' in device_type
     -%}
     {% set capa = 'CAP_DEV_BUSES' -%}
     {% elif 'dma' in device_type or

@@ -111,7 +111,7 @@ secure_bool_t mgr_task_is_idletask(taskh_t t);
 
 secure_bool_t mgr_task_handle_exists(taskh_t t);
 
-kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t);
+kstatus_t mgr_task_get_device_owner(uint16_t d, taskh_t *t);
 
 size_t mgr_task_get_data_region_size(const task_meta_t *meta);
 

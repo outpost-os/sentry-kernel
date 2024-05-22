@@ -303,7 +303,7 @@ stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size
 /**
  * @brief return the task handler owner of the device handler d
  *
- * @param d: the device handler to search
+ * @param d: the device identifier of metadata, as forged when reading dts
  * @param t: the task handler reference to update
  *
  * @return:
@@ -315,7 +315,7 @@ stack_frame_t *mgr_task_initialize_sp(uint32_t rerun, size_t sp, size_t pc, size
   @ requires \valid(t);
   @ assigns *t;
  */
-kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
+kstatus_t mgr_task_get_device_owner(uint16_t d, taskh_t *t)
 {
     kstatus_t status = K_ERROR_NOENT;
     uint8_t num_devs;
@@ -351,7 +351,7 @@ kstatus_t mgr_task_get_device_owner(devh_t d, taskh_t *t)
           */
         for (uint8_t dev = 0; (dev < num_devs) && (dev < CONFIG_MAX_DEV_PER_TASK); ++dev) {
             if (task_table[i].metadata->devs[dev] == d) {
-                    /* task metadata hold the same dev handle as requested */
+                    /* task metadata hold the same dev identifier as requested */
                     memcpy(t, &task_table[i].handle, sizeof(taskh_t));
                     status = K_STATUS_OKAY;
                     goto end;
