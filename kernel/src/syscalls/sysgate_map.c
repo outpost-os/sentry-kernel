@@ -23,11 +23,13 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
     secure_bool_t is_configured;
 
     if (unlikely(mgr_device_get_owner(device, &task) != K_STATUS_OKAY)) {
+        pr_err("failed to find owner!");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
     /* device is valid */
     if (unlikely(current != task)) {
+        pr_err("you are not owner!");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -35,6 +37,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     if (unlikely(mgr_security_has_capa(current, capa) != SECURE_TRUE)) {
+        pr_err("you need capa!");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
@@ -47,6 +50,7 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
     }
     if (unlikely(is_mapped != SECURE_FALSE)) {
         /* invstate ? */
+        pr_err("already map ?");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
@@ -57,9 +61,11 @@ stack_frame_t *gate_map_dev(stack_frame_t *frame, devh_t device)
         mgr_device_configure(device);
     }
     if (unlikely(mgr_mm_map_device(current, device) != K_STATUS_OKAY)) {
+        pr_err("map failed!");
         mgr_task_set_sysreturn(current, STATUS_BUSY);
         goto end;
     }
+    pr_debug("mapping device %x for task %x", device, current);
     mgr_device_set_map_state(device, SECURE_TRUE);
     mgr_task_set_sysreturn(current, STATUS_OK);
 end:
