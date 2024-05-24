@@ -310,6 +310,10 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
         reg_base = RCC_BASE_ADDR;
     }
 
+    if (unlikely(!BUS_IS_VALID(busid))) {
+        /* FIXME: status (error) should be returned instead */
+        return 0;
+    }
     /*@ assert bus_is_valid(busid); */
     reg_base += busid;
 
@@ -336,9 +340,13 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
  */
 kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
 {
-    kstatus_t status = K_STATUS_OKAY;
+    kstatus_t status = K_ERROR_INVPARAM;
     size_t reg;
     if (unlikely((status = rcc_map()) != K_STATUS_OKAY)) {
+        goto err;
+    }
+
+    if (unlikely(!BUS_IS_VALID(busid))) {
         goto err;
     }
     /*@ assert bus_is_valid(busid); */
@@ -350,6 +358,7 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
     // Stall the pipeline to work around erratum 2.1.13 (DM00037591)
     arch_data_sync_barrier();
     rcc_unmap();
+    status = K_STATUS_OKAY;
 err:
     return status;
 }
