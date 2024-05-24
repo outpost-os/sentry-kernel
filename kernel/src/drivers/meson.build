@@ -35,7 +35,6 @@ bsp_private_gen_source_set_config = bsp_private_gen_source_set.apply(kconfig_dat
 bsp_private_gen_header_set_config = bsp_private_gen_header_set.apply(kconfig_data, strict: false)
 bsp_private_header_set_config = bsp_private_header_set.apply(kconfig_data, strict: false)
 
-
 sentry_bsp_lib = static_library(
     'sentry_bsp',
     sources: [
@@ -56,3 +55,14 @@ sentry_bsp_dep = declare_dependency(
     sources: bsp_header_set_config.sources(),
     include_directories: kernel_inc,
 )
+
+sentry_bsp_lib_builddir = meson.current_build_dir() / 'libsentry_bsp.a.p'
+#sentry_bsp_sources = custom_target(
+#    'bsp_sources',
+#    input: [
+#        bsp_source_set_config.sources(),
+#        bsp_private_gen_source_set_config.sources(),
+#    ],
+#    command: [ 'echo', '@INPUT@' ],
+#    output: '@INPUT@'
+#)

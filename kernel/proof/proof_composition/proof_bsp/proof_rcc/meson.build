@@ -23,26 +23,40 @@ framac_bsp_rcc_stub_elf = executable(
     build_by_default: false,
 )
 
+frama_c_rcc_source_set = ssmod.source_set()
+frama_c_rcc_source_set.add(
+  framac_bsp_rcc_stub_entrypoint,
+)
+# include Clock subcomponent private source set
+frama_c_rcc_source_set.add_all(bsp_clk_source_set, bsp_clk_private_gen_source_set)
+
+# forge the global resulting sources list
+frama_c_rcc_source_set_config = frama_c_rcc_source_set.apply(kconfig_data, strict: false)
+
+test_name = 'frama-c-wp-bsp-rcc'
+
 test(
-  'frama-C-wp-bsp-rcc',
+  test_name,
   frama_c,
   args: [
-    framac_bsp_rcc_stub_entrypoint,
-    meson.global_build_root() / 'kernel/src/libsentry.a.p/stm32-rcc.c',
+    frama_c_rcc_source_set_config.sources(),
     framac_gen_opts,
     framac_rte_eva_opts,
-    '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
-    '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
+    '-eva-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '.log'),
+    '-eva-report-red-statuses', join_paths(meson.current_build_dir(), test_name + '-statuses.log'),
     '-metrics',
-    '-metrics-eva-cover',meson.global_build_root() / 'kernel/src/libsentry.a.p/stm32-rcc.c',
-    '-then', framac_wp_opts,
-    '-wp-fct','rcc_probe,rcc_get_core_frequency,rcc_enable,rcc_disable,rcc_get_bus_clock',
-    '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
-    '-save',join_paths(meson.current_build_dir(), 'sentry-bsp-rcc.wp'),
+    '-metrics-eva-cover',frama_c_rcc_source_set_config.sources(),
+    '-then',
+    framac_wp_opts,
+    '-wp-fct','rcc_probe,rcc_get_core_frequency,rcc_enable,rcc_disable,rcc_get_bus_clock,rcc_mux_select_clock_source',
+    '-wp-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-wp.log'),
+    '-save',join_paths(meson.current_build_dir(), test_name + '.wp'),
     '-then',
     framac_md_opts,
+    '-mdr-out', join_paths(meson.current_build_dir(), test_name + '-report.md'),
+    '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-md.log'),
   ],
-  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+  env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
   depends: [ framac_dep ],
   suite: 'proof',
   timeout: 1200,

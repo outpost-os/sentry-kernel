@@ -24,11 +24,16 @@ framac_bsp_exti_stub_elf = executable(
     build_by_default: false,
 )
 
+framac_exti_sources = [
+  meson.current_source_dir() / 'main.c',
+  meson.project_source_root() /'kernel/src/drivers/exti/stm32-exti.c',
+]
+
 test(
   test_name,
   frama_c,
   args: [
-    framac_bsp_exti_stub_entrypoint, meson.project_source_root()+'/kernel/src/drivers/exti/stm32-exti.c',
+    framac_exti_sources,
     framac_gen_opts,
     framac_rte_eva_opts,
     '-eva-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '.log'),
