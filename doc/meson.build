@@ -8,6 +8,7 @@ endif
 pymod = import('python')
 sphinx = find_program('sphinx-build')
 doxygen = find_program('doxygen')
+pandoc = find_program('pandoc')
 py3 = pymod.find_installation(
     'python3',
     modules: [
@@ -61,7 +62,7 @@ concepts_rst = files(
     'concepts/uapi/syscalls/gpio_set.rst',
     'concepts/uapi/syscalls/gpio_toggle.rst',
     'concepts/uapi/syscalls/irq_acknowledge.rst',
-    'concepts/uapi/syscalls/get_devhandle.rst',
+    'concepts/uapi/syscalls/get_dev_handle.rst',
     'concepts/uapi/syscalls/waitforevent.rst',
     'concepts/sw_architecture/bsp.rst',
     'concepts/sw_architecture/schedulers.rst',
@@ -136,3 +137,8 @@ doc = alias_target(
     concepts,
     internals,
 )
+
+# man pages sources
+subdir('concepts/uapi/syscalls')
+# man pages target
+subdir('mans')

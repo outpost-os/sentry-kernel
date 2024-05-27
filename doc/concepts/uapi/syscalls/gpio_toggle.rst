@@ -1,5 +1,5 @@
-GPIO toggle
-"""""""""""
+sys_gpio_toggle
+"""""""""""""""
 
 **API definition**:
 

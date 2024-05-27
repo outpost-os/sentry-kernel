@@ -1,5 +1,5 @@
-PM Clock set
-""""""""""""
+sys_pm_clock_set
+""""""""""""""""
 
 **API definition**:
 

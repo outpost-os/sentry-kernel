@@ -1,5 +1,5 @@
-Send_Signal
-"""""""""""
+sys_send_signal
+"""""""""""""""
 
 **API definition**:
 

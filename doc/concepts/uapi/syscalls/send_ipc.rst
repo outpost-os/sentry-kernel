@@ -1,5 +1,5 @@
-Send_ipc
-""""""""
+sys_send_ipc
+""""""""""""
 .. _uapi_send_ipc:
 
 **API definition**:

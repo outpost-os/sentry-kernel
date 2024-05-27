@@ -1,5 +1,5 @@
-GPIO get
-""""""""
+sys_gpio_get
+""""""""""""
 
 **API definition**:
 

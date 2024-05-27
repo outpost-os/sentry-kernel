@@ -1,5 +1,5 @@
-Get_Task_Handle
-"""""""""""""""
+sys_get_task_handle
+"""""""""""""""""""
 .. _uapi_task_handle:
 
 **API definition**:

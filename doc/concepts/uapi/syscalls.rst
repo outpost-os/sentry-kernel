@@ -45,7 +45,7 @@ Syscall definition
 .. index::
   single: sys_get_dev_handle; definition
   single: sys_get_dev_handle; usage
-.. include:: syscalls/get_devhandle.rst
+.. include:: syscalls/get_dev_handle.rst
 
 .. index::
   single: sys_get_random; definition

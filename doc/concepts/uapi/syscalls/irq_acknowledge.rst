@@ -1,3 +1,6 @@
+sys_irq_acknowledge
+"""""""""""""""""""
+
 **API definition**:
 
 .. code-block:: rust

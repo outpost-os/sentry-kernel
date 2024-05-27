@@ -1,5 +1,5 @@
-GPIO reset
-""""""""""
+sys_gpio_reset
+""""""""""""""
 
 **API definition**:
 

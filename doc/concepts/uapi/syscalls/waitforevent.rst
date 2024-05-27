@@ -1,5 +1,5 @@
-Wait_For_Event
-""""""""""""""
+sys_wait_for_event
+""""""""""""""""""
 
 **API definition**:
 
@@ -113,7 +113,7 @@ This make the syscall usage easier:
          /* others are errors that should be handled */
          break;
    }
-   
+
 
 .. note::
    The wait_for_event() API is typically manipulated through the msgrcv() POSIX
@@ -122,4 +122,3 @@ This make the syscall usage easier:
 .. warning::
    Not that svc_exhchange area content is ephemeral upto the next syscall. The developper should
    copy its content to a safe area or manipulate it withtout any syscall in the between (including sys_log())
-

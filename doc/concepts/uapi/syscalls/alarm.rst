@@ -1,5 +1,5 @@
-Alarm
-"""""
+sys_alarm
+"""""""""
 
 **API definition**:
 

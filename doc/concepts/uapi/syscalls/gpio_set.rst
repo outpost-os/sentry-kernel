@@ -1,5 +1,5 @@
-GPIO set
-""""""""
+sys_gpio_set
+""""""""""""
 
 **API definition**:
 

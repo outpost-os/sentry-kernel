@@ -1,5 +1,5 @@
-Get_Random
-""""""""""
+sys_get_random
+""""""""""""""
 
 **API definition**:
 
