@@ -8,7 +8,7 @@ endif
 pymod = import('python')
 sphinx = find_program('sphinx-build')
 doxygen = find_program('doxygen')
-pandoc = find_program('pandoc')
+
 py3 = pymod.find_installation(
     'python3',
     modules: [
