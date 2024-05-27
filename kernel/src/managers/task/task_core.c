@@ -583,13 +583,13 @@ kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
         goto err;
     }
     /* now we are sure that dest exists and is valid */
-    const ktaskh_t *kdesth = taskh_to_ktaskh(&dest);
-    if (tsk->sigs[kdesth->id] != 0) {
+    const ktaskh_t *ksrch = taskh_to_ktaskh(&source);
+    if (tsk->sigs[ksrch->id] != 0) {
         /* a previous signal already exist */
         status = K_ERROR_BUSY;
         goto err;
     }
-    tsk->sigs[kdesth->id] = signal;
+    tsk->sigs[ksrch->id] = signal;
     if (likely(mgr_task_get_state(dest, &state) != K_STATUS_OKAY)) {
         goto err;
     }
