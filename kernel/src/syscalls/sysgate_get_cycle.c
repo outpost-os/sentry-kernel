@@ -14,11 +14,13 @@ stack_frame_t *gate_get_cycle(stack_frame_t *frame, uint32_t precision)
     uint64_t *svcexch;
 
     if (unlikely(precision > PRECISION_MILLISECONDS)) {
+        pr_err("invalid precision level");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
     if (unlikely(precision < PRECISION_NANOSECONDS)) {
         if (unlikely(mgr_security_has_capa(current, CAP_TIM_HP_CHRONO) != SECURE_TRUE)) {
+            pr_err("need capa for such a precision");
             mgr_task_set_sysreturn(current, STATUS_DENIED);
             goto end;
         }

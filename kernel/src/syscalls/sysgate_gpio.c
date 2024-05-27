@@ -19,6 +19,8 @@ static inline secure_bool_t do_own_dev(taskh_t owner, devh_t dev) {
     }
     if (likely(devowner == owner)) {
         res = SECURE_TRUE;
+    } else {
+        pr_err("GPIO device not owned");
     }
     return res;
 }
@@ -31,36 +33,36 @@ stack_frame_t *gate_gpio_set(stack_frame_t *frame, devh_t devhandle, uint8_t io,
     const devinfo_t *devinfo = NULL;
 
     if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
-        pr_err("b");
+        pr_err("invalid device");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
     /* disable ownership test in autotest only */
     if (unlikely(do_own_dev(current, devhandle) == SECURE_FALSE)) {
-        pr_err("c");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
     if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
+        pr_err("needs IO or BUSES capa");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
     if (unlikely(io >= devinfo->num_ios)) {
+        pr_err("invalid dev IO number");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
-        pr_err("d");
         goto end;
     }
     /* TODO: disallow setting GPIO not set in OUTPUT MODE */
     /* XXX: the dt header should abstract the stm32 prefix */
     if (val) {
         if (unlikely(mgr_io_set(devinfo->ios[io].port, devinfo->ios[io].pin) != K_STATUS_OKAY)) {
-            pr_err("e");
+            pr_err("IO set failed!");
             mgr_task_set_sysreturn(current, STATUS_INVALID);
             goto end;
         }
     } else {
         if (unlikely(mgr_io_reset(devinfo->ios[io].port, devinfo->ios[io].pin) != K_STATUS_OKAY)) {
-            pr_err("f");
+            pr_err("IO reset failed!");
             mgr_task_set_sysreturn(current, STATUS_INVALID);
             goto end;
         }
@@ -81,6 +83,7 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
 
 
     if (unlikely(mgr_device_get_info(devhandle, &devinfo) != K_STATUS_OKAY)) {
+        pr_err("invalid device handle");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
@@ -89,10 +92,12 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
         goto end;
     }
     if (unlikely(mgr_security_has_oneof_capas(current, CAP_DEV_IO | CAP_DEV_BUSES) != SECURE_TRUE)) {
+        pr_err("capa IO or BUSES required");
         mgr_task_set_sysreturn(current, STATUS_DENIED);
         goto end;
     }
     if (unlikely(io >= devinfo->num_ios)) {
+        pr_err("invalid dev IO number");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
@@ -100,6 +105,7 @@ stack_frame_t *gate_gpio_get(stack_frame_t *frame, devh_t devhandle, uint8_t io)
      * TODO: we should allow access for AF cases though
      */
     if (unlikely(mgr_io_read(devinfo->ios[io].port, devinfo->ios[io].pin, &val) != K_STATUS_OKAY)) {
+        pr_err("IO read failed");
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
