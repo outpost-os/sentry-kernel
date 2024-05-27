@@ -1,51 +1,51 @@
-Map
-"""
+sys_map_dev
+"""""""""""
 
-**API definition**:
+**API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for device mapping syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for device mapping syscall
 
-   mod uapi {
-      fn map_dev(devh: dev_handle) -> Status
-      fn unmap_dev(devh: dev_handle) -> Status
-   }
+      mod uapi {
+         fn map_dev(devh: dev_handle) -> Status
+         fn unmap_dev(devh: dev_handle) -> Status
+      }
 
-.. code-block:: c
-   :caption: C UAPI for device mapping syscall
+   .. code-block:: c
+      :caption: C UAPI for device mapping syscall
 
-   enum Status sys_map_dev(devh_t dev);
-   enum Status sys_unmap_dev(devh_t dev);
+      enum Status sys_map_dev(devh_t dev);
+      enum Status sys_unmap_dev(devh_t dev);
 
-**Usage**:
+**Usage**
 
-Map a given device into the task context.
-If the device has never been mapped before:
+   Map a given device into the task context.
+   If the device has never been mapped before:
 
-   * configure the device input clock(s).
-   * enable interrupts line associated to the device if set in the device node
+      * configure the device input clock(s).
+      * enable interrupts line associated to the device if set in the device node
 
-Once returning from this syscall, the device is mapped at its corresponding
-address (io-mapped address) as declared in its device tree node.
+   Once returning from this syscall, the device is mapped at its corresponding
+   address (io-mapped address) as declared in its device tree node.
 
-The `devh_t` device handle value is a property of the device driver library that
-has been forged at build time and must be used as an opaque field.
+   The `devh_t` device handle value is a property of the device driver library that
+   has been forged at build time and must be used as an opaque field.
 
-.. code-block:: C
-   :linenos:
-   :caption: sample bare usage of sys_map
+   .. code-block:: C
+      :linenos:
+      :caption: sample bare usage of sys_map
 
-   enum Status res = STATUS_INVALID;
-   devh_t mydriver_handle = mydriver_get_handle();
-   res = sys_map_dev(mydriver_handle);
-   // manipulating device registers.....
-   res = sys_unmap_dev(mydriver_handle);
+      enum Status res = STATUS_INVALID;
+      devh_t mydriver_handle = mydriver_get_handle();
+      res = sys_map_dev(mydriver_handle);
+      // manipulating device registers.....
+      res = sys_unmap_dev(mydriver_handle);
 
-.. note::
-   the libShield libc typically delivers a mmap() implementation with, for
-   example, the following usage type:
+   .. note::
+      the libShield libc typically delivers a mmap() implementation with, for
+      example, the following usage type:
 
-   ``addr = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, devh, 0);``
+      ``addr = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, devh, 0);``
 
 
 **Required capability**

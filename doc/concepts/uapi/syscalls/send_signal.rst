@@ -1,54 +1,54 @@
-Send_Signal
-"""""""""""
+sys_send_signal
+"""""""""""""""
 
-**API definition**:
+**API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for send_signal syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for send_signal syscall
 
-   mod uapi {
-      fn send_signal(target: taskh_t, signal: uapi::Signal) -> Status
-   }
+      mod uapi {
+         fn send_signal(target: taskh_t, signal: uapi::Signal) -> Status
+      }
 
-.. code-block:: c
-   :caption: C UAPI for send_signal syscall
+   .. code-block:: c
+      :caption: C UAPI for send_signal syscall
 
-   enum Status sys_send_signal(taskh_t target, enum Signal signal);
+      enum Status sys_send_signal(taskh_t target, enum Signal signal);
 
-**Usage**:
+**Usage**
 
-Emit a signal to the target identified by the `target` opaque, as received by the
-`sys_get_process_handle()` syscall.
+   Emit a signal to the target identified by the `target` opaque, as received by the
+   `sys_get_process_handle()` syscall.
 
-If the target exists and is running, the signal is added to its input signal queue.
-The syscall is a non-blocking, synchronous syscall and do not generate any
-scheduling impact.
-The signal management is an asynchronous communication mechanism, meaning that
-the syscall returns **before** that the target do actually receive the signal.
+   If the target exists and is running, the signal is added to its input signal queue.
+   The syscall is a non-blocking, synchronous syscall and do not generate any
+   scheduling impact.
+   The signal management is an asynchronous communication mechanism, meaning that
+   the syscall returns **before** that the target do actually receive the signal.
 
-.. warning::
-   Only one signal at a time is supported by a peer for a given source. If a source
-   send a new signal to a peer that did not already received the previous one, the
-   send_signal syscall will return a STATUS_BUSY flag
+   .. warning::
+      Only one signal at a time is supported by a peer for a given source. If a source
+      send a new signal to a peer that did not already received the previous one, the
+      send_signal syscall will return a STATUS_BUSY flag
 
-The Sentry supported list of signals are defined in :ref:`UAPI model definition <signals>`.
+   The Sentry supported list of signals are defined in :ref:`UAPI model definition <signals>`.
 
-.. code-block:: C
-   :linenos:
-   :caption: sample bare usage of sys_send_signal
+   .. code-block:: C
+      :linenos:
+      :caption: sample bare usage of sys_send_signal
 
-   uint32_t seed = 0;
-   if (sys_send_signal(target, SIGNAL_USR1) != STATUS_OK) {
-      // [...]
-   }
+      uint32_t seed = 0;
+      if (sys_send_signal(target, SIGNAL_USR1) != STATUS_OK) {
+         // [...]
+      }
 
-.. note::
-    If a previously working signal request starts to fail with an invalid return, this
-    is typically the consequence of a target respawn or termination
+   .. note::
+       If a previously working signal request starts to fail with an invalid return, this
+       is typically the consequence of a target respawn or termination
 
-.. note::
-    See :ref:`get_task_handle() <uapi_task_handle>` UAPI specification to learn about how to forge the target
-    variable value
+   .. note::
+       See :ref:`get_task_handle() <uapi_task_handle>` UAPI specification to learn about how to forge the target
+       variable value
 
 **Required capability**
 

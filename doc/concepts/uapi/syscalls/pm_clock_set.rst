@@ -1,29 +1,29 @@
-PM Clock set
-""""""""""""
+sys_pm_clock_set
+""""""""""""""""
 
-**API definition**:
+**API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for pm_clock_gate syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for pm_clock_gate syscall
 
-   mod uapi {
-      fn pm_clock_set(clk_reg_offset: u32, clk_reg_value: u32) -> Status
-   }
+      mod uapi {
+         fn pm_clock_set(clk_reg_offset: u32, clk_reg_value: u32) -> Status
+      }
 
-.. code-block:: c
-   :caption: C UAPI for pm_clock_set syscall
+   .. code-block:: c
+      :caption: C UAPI for pm_clock_set syscall
 
-   enum Status sys_pm_clock_set(uint32_t reg_offset, uint32_t reg_value);
+      enum Status sys_pm_clock_set(uint32_t reg_offset, uint32_t reg_value);
 
-**Usage**:
+**Usage**
 
-Set a given RCC clock register to a given value. This syscall is required only
-in specific devices usage such as MIPI-DSI bridges, that require successive
-consecutive input PLL configuration.
+   Set a given RCC clock register to a given value. This syscall is required only
+   in specific devices usage such as MIPI-DSI bridges, that require successive
+   consecutive input PLL configuration.
 
 **Required capability**
 
-    CAPA_SYS_POWER is required as this impact the overall system power configuration.
+   CAPA_SYS_POWER is required as this impact the overall system power configuration.
 
 **Return Values**
 
