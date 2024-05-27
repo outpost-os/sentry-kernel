@@ -1,51 +1,51 @@
 sys_gpio_reset
 """"""""""""""
 
-**API definition**:
+**API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for gpio_reset syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for gpio_reset syscall
 
-   mod uapi {
-      fn gpio_reset(device: devh_t, io_identifier: u8) -> Status
-   }
+      mod uapi {
+         fn gpio_reset(device: devh_t, io_identifier: u8) -> Status
+      }
 
-.. code-block:: c
-   :caption: C UAPI for gpio_reset syscall
+   .. code-block:: c
+      :caption: C UAPI for gpio_reset syscall
 
-   enum Status sys_gpio_reset(devh_t device, uint8_t io_identifier);
+      enum Status sys_gpio_reset(devh_t device, uint8_t io_identifier);
 
-**Usage**:
+**Usage**
 
-Resetting the value of a given I/O of a given device.
+   Resetting the value of a given I/O of a given device.
 
-Any I/O (including standalone I/Os such as buttons, leds, external interrupt lines...)
-are always declared as a device in the device tree, which always generate a dedicated
-device handle to which the I/O is associated.
-When the device is a SoC-device that requires I/O configuration, the very same
-mechanisms is used, through the standard definition and usage of pinctrl attribute.
+   Any I/O (including standalone I/Os such as buttons, leds, external interrupt lines...)
+   are always declared as a device in the device tree, which always generate a dedicated
+   device handle to which the I/O is associated.
+   When the device is a SoC-device that requires I/O configuration, the very same
+   mechanisms is used, through the standard definition and usage of pinctrl attribute.
 
-.. code-block:: dts
-    :linenos:
+   .. code-block:: dts
+       :linenos:
 
-    led0: led_0 {
-		compatible = "gpio-leds";
-    	outpost,owner = <0xbabe>;
-    	pinctrl-0 = <&led_pc7>;
-    	status = "okay";
-	};
+       led0: led_0 {
+   		compatible = "gpio-leds";
+       	outpost,owner = <0xbabe>;
+       	pinctrl-0 = <&led_pc7>;
+       	status = "okay";
+   	};
 
-If the I/O exists in the given device and if the device is owned by the application,
-this function reset the current GPIO value into the svc_exchange area if the
-I/O is in output mode.
+   If the I/O exists in the given device and if the device is owned by the application,
+   this function reset the current GPIO value into the svc_exchange area if the
+   I/O is in output mode.
 
-.. code-block:: C
-   :linenos:
-   :caption: getting I/O 0 from button
+   .. code-block:: C
+      :linenos:
+      :caption: getting I/O 0 from button
 
-   if (sys_gpio_reset(myhandle, 0) != STATUS_OK) {
-      // [...]
-   }
+      if (sys_gpio_reset(myhandle, 0) != STATUS_OK) {
+         // [...]
+      }
 
 **Required capability**
 

@@ -4,17 +4,17 @@ sys_get_device_handle
 
 **API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for get_task_handle syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for get_task_handle syscall
 
-   mod uapi {
-      fn get_device_handle(dev_label: u32) -> Status
-   }
+      mod uapi {
+         fn get_device_handle(dev_label: u32) -> Status
+      }
 
-.. code-block:: c
-   :caption: C UAPI for get_task_handle syscall
+   .. code-block:: c
+      :caption: C UAPI for get_task_handle syscall
 
-   enum Status sys_get_device_handle(uint32_t dev_label);
+      enum Status sys_get_device_handle(uint32_t dev_label);
 
 **Usage**
 

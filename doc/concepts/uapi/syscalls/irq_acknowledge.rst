@@ -1,41 +1,41 @@
 sys_irq_acknowledge
 """""""""""""""""""
 
-**API definition**:
+**API definition**
 
-.. code-block:: rust
-   :caption: Rust UAPI for irq_acknowledge syscall
+   .. code-block:: rust
+      :caption: Rust UAPI for irq_acknowledge syscall
 
-   mod uapi {
-      fn irq_acknowledge(irq: u16) -> Status
-    }
+      mod uapi {
+         fn irq_acknowledge(irq: u16) -> Status
+       }
 
-.. code-block:: c
-   :caption: C UAPI for irq_acknowledge syscall
+   .. code-block:: c
+      :caption: C UAPI for irq_acknowledge syscall
 
-   enum Status sys_irq_acknowledge(uint16_t IRQn);
+      enum Status sys_irq_acknowledge(uint16_t IRQn);
 
-**Usage**:
+**Usage**
 
-Acknowledge (clear pending) given IRQ line.
+   Acknowledge (clear pending) given IRQ line.
 
-This syscall is made in order to allow userspace driver to acknowledge a given IRQ
-when the IRQ handler is executed.
+   This syscall is made in order to allow userspace driver to acknowledge a given IRQ
+   when the IRQ handler is executed.
 
-This requires the interrupt line to be owned by a device of the given task.
+   This requires the interrupt line to be owned by a device of the given task.
 
-.. code-block:: C
-   :linenos:
-   :caption: acknowledge given IRQ of an owned device
+   .. code-block:: C
+      :linenos:
+      :caption: acknowledge given IRQ of an owned device
 
-   int my_handler(uint16_t IRQn) {
-      // executing the handler
-      // [...]
-      if (sys_irq_acknowledge(myIRQn) != STATUS_OK) {
+      int my_handler(uint16_t IRQn) {
+         // executing the handler
+         // [...]
+         if (sys_irq_acknowledge(myIRQn) != STATUS_OK) {
+            // [...]
+         }
          // [...]
       }
-      // [...]
-   }
 
 **Required capability**
 
