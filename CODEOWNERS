@@ -1,11 +1,8 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence.
-*       @florent-valette @philippe-thierry @victor-servant
+*       @florent-valette @philippe-thierry
 # configs are the mechanism that link .config to meson
 configs @florent-valette
 # tools are the subpart of meson and templates that allow generation of
 # kernel sources (headers, etc.) typically using jinja2 and json
 tools   @florent-valette
-# all rust code is under the ownership of Victor
-*.rs    @victor-servant
-*.toml    @victor-servant
