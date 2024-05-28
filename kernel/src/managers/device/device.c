@@ -41,8 +41,10 @@ static inline device_t const *device_get_device(devh_t d)
 {
     device_t const *dev = NULL;
     /* here we do not match only the id but also the capability and family
-     * (i.e. full opaque check)
+     * (i.e. full opaque check).
+     * If there is not at all userspace device, this loop is useless
      */
+#if DEVICE_LIST_SIZE > 0
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
@@ -50,6 +52,7 @@ static inline device_t const *device_get_device(devh_t d)
             break;
         }
     }
+#endif
     return dev;
 }
 
