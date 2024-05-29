@@ -1,6 +1,14 @@
 # SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
+#
+## kernel code include both its own headers and UAPI headers
+kernel_inc = include_directories(
+    'include',
+    '../uapi/include'
+)
 
+# while kernel inc are required for externals (tools), if kernel build
+# is not required, stop here
 if not with_kernel_opt
     subdir_done()
 endif
@@ -12,13 +20,6 @@ endif
 # sources, generated and effective
 sentry_header_set = ssmod.source_set()
 sentry_header_set.add(kconfig_h)
-
-# kernel code include both its own headers and UAPI headers
-kernel_inc = include_directories(
-    'include',
-    '../uapi/include'
-)
-
 
 sentry_linker_script = files()
 sentry_linker_script_path = files()
