@@ -82,7 +82,12 @@
 {%- set pll_p_div, pll_q_div, pll_r_div  = pll.pqr_div|map('int')|list %}
 
 {#- Handle special value for p_div in range(0,1) #}
-{%- set pll_p_div_fixup = (pll_p_div == 0)|ternary(7, (pll_p_div == 1)|ternary(17, pll_p_div)) %}
+{%- set pll_p_div_fixup = pll_p_div %}
+{%- if pll_p_div == 0 %}
+{%- set pll_p_div_fixup = 7 %}
+{%- elif pll_p_div == 1 %}
+{%- set pll_p_div_fixup = 17 %}
+{%- endif%}
 
 #define RCC_PLL_VCO_DIVIDER     {{ pll_vco_m_div|int }}UL
 #define RCC_PLL_VCO_MULTIPLIER  {{ pll_vco_n_mul|int }}UL
