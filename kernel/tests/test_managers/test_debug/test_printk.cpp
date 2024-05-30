@@ -21,11 +21,11 @@ class PrintkTest : public testing::Test {
 };
 
 extern "C" {
-    kstatus_t usart_tx(char *buf, uint16_t len) {
+    kstatus_t debug_rawlog(const uint8_t *logbuf, size_t len) {
         std::string s;
         //std::clog << "string len: " << len << std::endl;
         //std::clog << "buf is: " << buf << std::endl;
-        s.assign(buf, len);
+        s.assign(reinterpret_cast<const char *>(logbuf), len);
         printkMock->on_tx(s);
         //std::clog << s << std::endl;
         return K_STATUS_OKAY;
