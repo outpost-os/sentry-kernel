@@ -4,7 +4,7 @@ ninja
 kconfiglib~=14.1.0
 sphinx_rtd_theme
 exhale
-pyledger-svd2json>=0.1.3
+svd2json>=0.1.6
 dts-utils>=0.2.0
 jinja-cli
 swig
