@@ -23,8 +23,8 @@
 {% if port.status and port.status == "okay" -%}
 {%- set pinctrl_prop = port["pinctrl-0"] %}
 {%- if pinctrl_prop is none %}
-{{ PINCTRL_0|mandatory('pinctrl-0 not defined for usart node') }}
-{%- endif %}
+#error "pinctrl-0 not defined for usart node"
+{%- else %}
 {%- set pinctrl_tbl = [] %}
 {%- set _ = pinctrl_tbl.extend(pinctrl_prop) if pinctrl_prop is iterable else pinctrl_tbl.append(pinctrl_prop) %}
 static const gpio_pinctrl_desc_t {{ port.label }}_pinctrl_tbl[] = {
@@ -46,6 +46,7 @@ static const gpio_pinctrl_desc_t {{ port.label }}_pinctrl_tbl[] = {
 
 #define {{ port.label.upper() }}_PINCTRL_TBL_SIZE {{ pinctrl_tbl|length }}UL
 static_assert(ARRAY_SIZE({{ port.label }}_pinctrl_tbl) == {{ port.label.upper() }}_PINCTRL_TBL_SIZE, "pinctrl inconsistency !");
+{%- endif %}
 {%- endif %}
 {%- endfor %}
 
