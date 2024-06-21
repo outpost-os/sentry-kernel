@@ -52,6 +52,8 @@ config DEBUG_OUTPUT_USART
 config DEBUG_OUTPUT_SEMIHOSTING
 	bool "using jtag ARM semihosting as output"
 	depends on ARCH_ARM_CORTEX_M && WITH_JTAG_CONNECTED
+config DEBUG_OUTPUT_NONE
+	bool "using no log output"
 endchoice
 
 if DEBUG_OUTPUT_SEMIHOSTING

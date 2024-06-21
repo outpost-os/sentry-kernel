@@ -26,7 +26,7 @@ jobs:
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
             toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1' ]
-            config = [ 'nucleo_u5a5_autotest', 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'stm32f429i_disc1_autotest' ]
+            config = [ 'nucleo_u5a5_autotest', 'nucleo_u5a5_nooutput', 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'stm32f429i_disc1_autotest' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|12.3.Rel1' ]
