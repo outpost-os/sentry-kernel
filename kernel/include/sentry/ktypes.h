@@ -7,20 +7,7 @@
 /**
  * \file sentry kernel generic types
  */
-
-/*
- * INFO: here, the usage of GNU extension for attributes being unsupported by FramaC,
- * we inhibit them, as frama-c do not "compile" but instead generate a mathematical
- * abstraction of the code.
- * It is to note that this inhibition do not impact the soundess of the proof.
- */
-#ifdef __FRAMAC__
-# define __MAYBE_UNUSED
-# define __UNUSED
-#else
-# define __MAYBE_UNUSED [[maybe_unused]]
-# define __UNUSED [[gnu::unused]]
-#endif/*!__FRAMAC__*/
+#include <sentry/zlib/compiler.h>
 
 /*
  * INFO: the way atomics are manipulated is not the same in C (kernel build)

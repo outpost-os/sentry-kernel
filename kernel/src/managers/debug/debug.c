@@ -5,6 +5,7 @@
 #include <sentry/ktypes.h>
 #include <bsp/drivers/usart/usart.h>
 #include <bsp/drivers/clk/rcc.h>
+#include <sentry/zlib/compiler.h>
 #if CONFIG_DEBUG_OUTPUT_SEMIHOSTING
 #include <sentry/arch/asm-cortex-m/semihosting.h>
 #endif
@@ -43,7 +44,7 @@ end:
  * @param[in] logbuf: input log buffer
  * @param[in] len: log buffer len
  */
-kstatus_t debug_rawlog([[ __maybe_unused__ ]] const uint8_t *logbuf, [[ __maybe_unused__ ]] size_t len)
+kstatus_t debug_rawlog(__MAYBE_UNUSED const uint8_t *logbuf, __MAYBE_UNUSED size_t len)
 {
 #if CONFIG_DEBUG_OUTPUT_USART
     /* usart as no notion of the byte type it emit. sending unsigned content */
