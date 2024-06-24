@@ -59,6 +59,7 @@ pub unsafe extern "C" fn copy_from_user(from: *const u8, length: usize) -> Statu
 ///
 /// Callers must ensure memory pointed to by `from` up to `from + length` belongs to
 /// a valid variable.
+/// SVC Exchange area content is cleared after copy
 #[no_mangle]
 pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
     if check_bounds(to, length).is_err() {
@@ -69,6 +70,8 @@ pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
         to,
         length.min(SVC_EXCH_AREA_LEN),
     );
+    SVC_EXCHANGE_AREA.iter_mut().for_each(|x| *x = 0x0 );
+
     Status::Ok
 }
 
