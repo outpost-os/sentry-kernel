@@ -30,6 +30,13 @@ extern "C" {
 #endif // __cplusplus
 
 /**
+ * Return the effective max usable size in bytes in SVC Exchange area.
+ *
+ * a valid variable.
+ */
+size_t svcexchange_get_maxlen(void);
+
+/**
  * Copy data to svc_exchange area
  *
  * # Safety
