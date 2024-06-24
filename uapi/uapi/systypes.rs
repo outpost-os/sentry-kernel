@@ -182,6 +182,36 @@ impl From<EventType> for u32 {
 }
 
 
+#[repr(C)]
+pub enum EraseType {
+    Zeroify = 0x5a,
+    Random = 0xa5,
+}
+
+impl From<EraseType> for u32 {
+    fn from(etype: EraseType) -> u32 {
+        match etype {
+            EraseType::Zeroify => 0x5a,
+            EraseType::Random => 0xa5,
+        }
+    }
+}
+
+#[repr(C)]
+pub enum EraseMode {
+    UserErase = 0x72,
+    KernelErase = 0x27,
+}
+
+impl From<EraseMode> for u32 {
+    fn from(emode: EraseMode) -> u32 {
+        match emode {
+            EraseMode::UserErase => 0x72,
+            EraseMode::KernelErase => 0x27,
+        }
+    }
+}
+
 /// Sentry syscall return values
 /// NonSense must never be returned, as it means that an
 /// asynchronously updated return value.... has not been updated at all
