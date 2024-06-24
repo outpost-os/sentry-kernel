@@ -1,4 +1,5 @@
 rsource 'src/arch/Kconfig'
+rsource 'src/drivers/Kconfig'
 rsource 'src/startup/Kconfig'
 rsource 'src/managers/Kconfig'
 

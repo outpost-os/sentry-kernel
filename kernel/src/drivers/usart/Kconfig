@@ -1,0 +1,18 @@
+
+menu "Usart"
+
+choice
+	bool "Debug USART driver selection"
+	default DRV_STM32_USART
+
+config DRV_STM32_USART
+	bool "STM32_USART"
+	depends on SOC_FAMILY_STM32
+
+config DRV_STM32_LPUART
+	bool "STM32_LPUART"
+	depends on SOC_SUBFAMILY_STM32L4 || SOC_SUBFAMILY_STM32U5 || SOC_SUBFAMILY_STM32WB
+
+endchoice
+
+endmenu
