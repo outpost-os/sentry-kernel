@@ -50,6 +50,13 @@ Status copy_from_user(const uint8_t *from, size_t length);
 Status copy_to_user(uint8_t *to, size_t length);
 
 /**
+ * Clear overall svc_exchange area with default 0x0 pattern
+ *
+ * CAUTION: be sure that all required data has already been copied before calling this API
+ */
+Status clean_svcexchange(void);
+
+/**
  * Send a SIGALRM signal to the task after `timeout_ms` milliseconds.
  */
 Status sys_alarm(uint32_t timeout_ms);
