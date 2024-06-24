@@ -80,7 +80,7 @@ pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
 /// (e.g. when reading the header first, then the overall content)
 #[no_mangle]
 pub unsafe extern "C" fn clean_svcexchange() -> Status {
-    SVC_EXCHANGE_AREA.iter_mut().for_each(|x| *x = 0x0 );
+    core::ptr::write_volatile(&mut SVC_EXCHANGE_AREA as *mut [u8; SVC_EXCH_AREA_LEN], [0; SVC_EXCH_AREA_LEN]);
     Status::Ok
 }
 
