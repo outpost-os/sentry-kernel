@@ -181,7 +181,13 @@ impl From<EventType> for u32 {
     }
 }
 
-
+/// Erase type that can be used to clear the SVC_Exchange.
+///
+/// There are two types of erase model:
+/// - Zeroify, that write 0x0 pattern in the SVC exchange zone
+/// - Random, that write a random pattern
+///
+/// By now, only Zeroify ils supported.
 #[repr(C)]
 pub enum EraseType {
     Zeroify = 0x5a,
@@ -197,6 +203,14 @@ impl From<EraseType> for u32 {
     }
 }
 
+/// Erase mode that can be used to clear the SVC_Exchange.
+///
+/// There are two types of erase mode:
+/// - UserErase, leaving the write action to the UAPI crate, withtout kernel call
+/// - KernelErase, requiring the kernel to execute the erasing.
+///   This last mode ensure that the erasing is atomic while it is started.
+///
+/// By now, only UserErase ils supported.
 #[repr(C)]
 pub enum EraseMode {
     UserErase = 0x72,
