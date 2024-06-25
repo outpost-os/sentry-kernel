@@ -1,4 +1,4 @@
-use crate::systypes::Status;
+use crate::systypes::{EraseMode, EraseType, Status};
 
 pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
 
@@ -59,6 +59,7 @@ pub unsafe extern "C" fn copy_from_user(from: *const u8, length: usize) -> Statu
 ///
 /// Callers must ensure memory pointed to by `from` up to `from + length` belongs to
 /// a valid variable.
+/// SVC Exchange area content is not cleared after copy
 #[no_mangle]
 pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
     if check_bounds(to, length).is_err() {
@@ -69,6 +70,27 @@ pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
         to,
         length.min(SVC_EXCH_AREA_LEN),
     );
+    Status::Ok
+}
+
+/// SVC Exchange area content is cleared after copy
+///
+/// The cleaning part can't be done in the copy_to_user impl as
+/// userspace may copy svcechange() data with consecutive calls
+/// (e.g. when reading the header first, then the overall content)
+#[no_mangle]
+pub extern "C" fn clean_svcexchange(erasetype: EraseType, mode: EraseMode) -> Status {
+    match erasetype {
+        EraseType::Zeroify => (),
+        _ => return Status::Invalid,
+    }
+    match mode {
+        EraseMode::UserErase => (),
+        _ => return Status::Invalid,
+    }
+    unsafe {
+        core::ptr::write_volatile(&mut SVC_EXCHANGE_AREA as *mut [u8; SVC_EXCH_AREA_LEN], [0; SVC_EXCH_AREA_LEN]);
+    }
     Status::Ok
 }
 

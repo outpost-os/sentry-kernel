@@ -181,6 +181,50 @@ impl From<EventType> for u32 {
     }
 }
 
+/// Erase type that can be used to clear the SVC_Exchange.
+///
+/// There are two types of erase model:
+/// - Zeroify, that write 0x0 pattern in the SVC exchange zone
+/// - Random, that write a random pattern
+///
+/// By now, only Zeroify ils supported.
+#[repr(C)]
+pub enum EraseType {
+    Zeroify = 0x5a,
+    Random = 0xa5,
+}
+
+impl From<EraseType> for u32 {
+    fn from(etype: EraseType) -> u32 {
+        match etype {
+            EraseType::Zeroify => 0x5a,
+            EraseType::Random => 0xa5,
+        }
+    }
+}
+
+/// Erase mode that can be used to clear the SVC_Exchange.
+///
+/// There are two types of erase mode:
+/// - UserErase, leaving the write action to the UAPI crate, withtout kernel call
+/// - KernelErase, requiring the kernel to execute the erasing.
+///   This last mode ensure that the erasing is atomic while it is started.
+///
+/// By now, only UserErase ils supported.
+#[repr(C)]
+pub enum EraseMode {
+    UserErase = 0x72,
+    KernelErase = 0x27,
+}
+
+impl From<EraseMode> for u32 {
+    fn from(emode: EraseMode) -> u32 {
+        match emode {
+            EraseMode::UserErase => 0x72,
+            EraseMode::KernelErase => 0x27,
+        }
+    }
+}
 
 /// Sentry syscall return values
 /// NonSense must never be returned, as it means that an

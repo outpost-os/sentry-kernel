@@ -166,6 +166,18 @@ typedef enum SleepMode {
   SLEEP_MODE_DEEP,
 } SleepMode;
 
+
+typedef enum EraseType {
+    SVC_ERASETYPE_ZEROFIY = 0x5a,
+    SVC_ERASETYPE_RANDOM = 0xa5,
+} EraseType;
+
+typedef enum EraseMode {
+    SVC_ERASEMODE_USER = 0x72,
+    SVC_ERASEMODE_KERNEL = 0x27,
+} EraseMode;
+
+
 typedef enum AlarmFlag {
   O_ALRM_START,
   O_ALRM_START_PERIODIC,
