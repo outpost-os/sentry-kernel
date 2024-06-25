@@ -426,14 +426,16 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
         case BUS_APB2:
             *busclk = RCC_APB2_CLOCK_FREQUENCY;
             break;
-#if defined(BUS_APB3)
+#if defined(HAS_BUS_APB3)
         case BUS_APB3:
             *busclk = RCC_APB3_CLOCK_FREQUENCY;
             break;
 #endif
         case BUS_AHB1:
+#if defined(HAS_BUS_AHB2)
         case BUS_AHB2:
-#if defined(BUS_AHB3)
+#endif
+#if defined(HAS_BUS_AHB3)
         case BUS_AHB3:
 #endif
             *busclk = RCC_AHB_CLOCK_FREQUENCY;

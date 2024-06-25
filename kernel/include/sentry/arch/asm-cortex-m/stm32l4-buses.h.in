@@ -44,6 +44,22 @@ typedef enum bus_identifier {
     {% endfor -%}
 } bus_id_t;
 
+/*
+ * XXX:
+ *  Fixme with clock tree issue (188, 254)
+ */
+#if defined(STM32_CLOCK_BUS_APB3)
+#define HAS_BUS_APB3 1
+#endif
+
+#if defined(STM32_CLOCK_BUS_AHB2)
+#define HAS_BUS_AHB2 1
+#endif
+
+#if defined(STM32_CLOCK_BUS_AHB3)
+#define HAS_BUS_AHB3 1
+#endif
+
 /*@
   logic boolean bus_is_valid(uint32_t bus) =
     (
