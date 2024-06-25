@@ -48,6 +48,18 @@ CONFIG_SYSTICK_HZ=1000
 # end of Platform support
 
 #
+# Drivers
+#
+
+#
+# Usart
+#
+# CONFIG_DRV_STM32_USART is not set
+CONFIG_DRV_STM32_LPUART=y
+# end of Usart
+# end of Drivers
+
+#
 # Core functions
 #
 CONFIG_MAX_TASKS=8

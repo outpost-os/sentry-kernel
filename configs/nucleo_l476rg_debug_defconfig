@@ -52,6 +52,18 @@ CONFIG_SYSTICK_HZ=1000
 # end of Security
 
 #
+# Drivers
+#
+
+#
+# Usart
+#
+CONFIG_DRV_STM32_USART=y
+# CONFIG_DRV_STM32_LPUART is not set
+# end of Usart
+# end of Drivers
+
+#
 # Core functions
 #
 CONFIG_MAX_TASKS=8

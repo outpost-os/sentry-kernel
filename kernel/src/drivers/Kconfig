@@ -1,0 +1,5 @@
+menu "Drivers"
+
+rsource 'usart/Kconfig'
+
+endmenu

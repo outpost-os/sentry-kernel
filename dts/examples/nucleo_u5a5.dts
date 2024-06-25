@@ -12,7 +12,7 @@
 
 /{
 	chosen {
-		sentry,debug_stdout = <&usart1>;
+		sentry,debug_stdout = <&lpuart1>;
 	};
 
 	aliases {
@@ -119,6 +119,11 @@
 	pinctrl-0 = <&usart1_tx_pa9>, <&usart1_rx_pa10>;
 };
 
+&lpuart1{
+	status = "okay";
+	pinctrl-0 = <&lpuart1_tx>, <&lpuart1_rx>;
+};
+
 &pinctrl {
 	usart1_tx_pa9: usart1_tx_pa9  {
 		pinmux = <&gpioa 9 STM32_DT_PIN_MODE_ALTFUNC(7)>;
@@ -129,6 +134,20 @@
 
 	usart1_rx_pa10: usart1_rx_pa10  {
 		pinmux = <&gpioa 10 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	lpuart1_tx: lpuart1_tx  {
+		pinmux = <&gpioc 1 STM32_DT_PIN_MODE_ALTFUNC(8)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	lpuart1_rx: lpuart1_rx  {
+		pinmux = <&gpioc 0 STM32_DT_PIN_MODE_ALTFUNC(8)>;
 		pincfg = <STM32_OTYPER_PUSH_PULL \
 				  STM32_OSPEEDR_VERY_HIGH_SPEED \
 				  STM32_PUPDR_NO_PULL>;
