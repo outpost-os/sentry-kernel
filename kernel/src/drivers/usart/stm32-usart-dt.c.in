@@ -4,11 +4,10 @@
 #include <sentry/ktypes.h>
 
 #include <bsp/drivers/gpio/pinctrl.h>
-#include "usart_defs.h"
 #include "stm32-gpio-dt.h"
 #include "stm32-usart-dt.h"
 
-{% set usart_ports = dts.get_compatible("st,stm32-usart") -%}
+{% set usart_ports = dts.get_compatible("st,stm32-usart") + dts.get_compatible("st,stm32-lpuart") -%}
 
 {%- set debug_usart = dts.chosen["sentry,debug_stdout"] %}
 {%- if not debug_usart %}

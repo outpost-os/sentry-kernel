@@ -9,7 +9,7 @@
 #include <sentry/arch/asm-cortex-m/buses.h>
 #include <bsp/drivers/gpio/pinctrl.h>
 
-{% set usart_ports = dts.get_compatible("st,stm32-usart") -%}
+{% set usart_ports = dts.get_compatible("st,stm32-usart") + dts.get_compatible("st,stm32-lpuart") -%}
 
 typedef enum stm32_usart_id {
     {% for port in usart_ports -%}
