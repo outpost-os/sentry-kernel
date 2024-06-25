@@ -58,6 +58,18 @@ CONFIG_SECU_LOOP_DBLE_IDX=y
 # end of Security
 
 #
+# Drivers
+#
+
+#
+# Usart
+#
+CONFIG_DRV_STM32_USART=y
+# CONFIG_DRV_STM32_LPUART is not set
+# end of Usart
+# end of Drivers
+
+#
 # Core functions
 #
 CONFIG_MAX_TASKS=8
