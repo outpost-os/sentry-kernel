@@ -1,6 +1,7 @@
 use crate::systypes::{EraseMode, EraseType, Status};
 
 pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
+pub const SVC_EXCH_AREA_HEADER: usize = 8; // TODO: associated to types.h based header definition
 
 /// This SVC exchange area is always defined for all apps, so it is declared
 /// here in UAPI.rs. `copy_from_user` and `copy_to_user` functions are provided
@@ -32,6 +33,11 @@ unsafe fn check_bounds(pointer: *const u8, length: usize) -> Result<(), ()> {
     }
 
     Ok(())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn svcexchange_get_maxlen() -> usize {
+    return SVC_EXCH_AREA_LEN - SVC_EXCH_AREA_HEADER;
 }
 
 /// Copy data to svc_exchange area
