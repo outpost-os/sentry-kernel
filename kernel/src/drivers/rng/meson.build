@@ -24,5 +24,4 @@ stm32_rng_dtsgen_h = dtsgen.process(stm32_rng_dts_template_h)
 bsp_private_gen_source_set.add(when: 'CONFIG_SOC_FAMILY_STM32', if_true: [ stm32_rng_dtsgen_c, stm32_rng_dtsgen_h ])
 
 # driver source selection
-bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32F4', if_true: files('stm32f4-rng.c'))
-bsp_source_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32U5', if_true: files('stm32f4-rng.c'))
+bsp_source_set.add(when: 'CONFIG_HAS_RNG', if_true: files('stm32f4-rng.c'))
