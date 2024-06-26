@@ -71,12 +71,15 @@ jobs:
       - name: Install local deps
         run: |
           pip3 install -r requirements.txt
+      - name: defconfig
+        run: |
+          defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup"]'
-          options: '-Dconfig=configs/nucleo_u5a5_autotest_defconfig -Ddts=dts/examples/nucleo_u5a5.dts -Ddts-include-dirs=dts -Dwith_proof=true'
+          options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5.dts -Ddts-include-dirs=dts -Dwith_proof=true'
       - name: run framaC
         run: |
           why3 config detect

@@ -75,12 +75,15 @@ jobs:
         run: |
           pip3 install -U setuptools setuptools_scm
           pip3 install -r requirements.txt
+      - name: defconfig
+        run: |
+          defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Setup
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
-          options: '-Doptimization=0 -Db_coverage=true -Dwith_tests=true -Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts'
+          options: '-Doptimization=0 -Db_coverage=true -Dwith_tests=true -Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts'
       - name: Sonar Scanner
         uses: embedded-devops/action-codequal@main
         with:
