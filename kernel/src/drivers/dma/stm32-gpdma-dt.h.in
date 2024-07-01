@@ -10,6 +10,26 @@
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
 
+{% for port in gpdma_ports -%}
+{% if port is owned or port is not enabled -%}
+    {% continue -%}
+{% endif -%}
+{% set num_chan = port['dma-channels']|int -%}
+{% set num_req = port['dma-requests']|int -%}
+/*@
+
+predicate {{ port.label }}_channel_is_valid(ℤ chan) = (
+    chan < {{ num_chan}}
+);
+
+predicate {{ port.label }}_request_is_valid(ℤ req) = (
+    req < {{ num_req }}
+);
+
+*/
+{% endfor -%}
+
+
 /**
  * \brief STM32 GPDMA IP descriptor
  *

@@ -12,11 +12,12 @@
  */
 static const stm32_gpdma_desc_t stm32_gpdmas[] = {
     {% for port in gpdma_ports -%}
-    {% if port.status and port.status == "okay" -%}
+    {% if port is owned or port is not enabled -%}
+    {% continue -%}
+    {% endif -%}
     {% set _, clk_offset, clk_msk = port.clocks -%}
-    {%- set num_chan = port['dma-channels'] %}
-    {%- set num_req = port['dma-requests'] %}
-
+    {%- set num_chan = port['dma-channels'] -%}
+    {%- set num_req = port['dma-requests'] -%}
     /* {{ port.label }} port configuration */
     {
         .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
@@ -26,8 +27,7 @@ static const stm32_gpdma_desc_t stm32_gpdmas[] = {
         .num_chan = {{ num_chan|int }},
         .num_req = {{ num_req|int }},
     },
-    {% endif -%}
-    {% endfor %}
+    {% endfor -%}
     {} /* sentinel */
 };
 
