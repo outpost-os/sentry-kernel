@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_GPDMA_DT_GENERATED_H
+#define __STM32_GPDMA_DT_GENERATED_H
+
+#include <stddef.h>
+
+#include <sentry/arch/asm-cortex-m/buses.h>
+
+{% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
+
+/**
+ * \brief STM32 GPDMA IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-usart" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_gpdma_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP base address */
+    uint32_t clk_offset; /**< RCC clock register offset */
+    uint32_t clk_msk;   /**< IP clocks mask on the given bus */
+    uint16_t num_chan;  /***< IP number of channels */
+    uint16_t num_req;   /**< IP number of requests */
+} stm32_gpdma_desc_t;
+
+const stm32_gpdma_desc_t * stm32_gpdma_get_desc(void);
+
+#endif /* __STM32_GPDMA_DT_GENERATED_H */

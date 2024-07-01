@@ -1,0 +1,46 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include <sentry/ktypes.h>
+
+#include "stm32-gpdma-dt.h"
+
+{% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
+
+/**
+ * \brief .rodata field: list of current platform GPDMA ports
+ */
+static const stm32_gpdma_desc_t stm32_gpdmas[] = {
+    {% for port in gpdma_ports -%}
+    {% if port.status and port.status == "okay" -%}
+    {% set _, clk_offset, clk_msk = port.clocks -%}
+    {%- set num_chan = port['dma-channels'] %}
+    {%- set num_req = port['dma-requests'] %}
+
+    /* {{ port.label }} port configuration */
+    {
+        .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
+        .size = {{ "%#08xUL"|format(port.reg[1]) }},
+        .clk_offset = {{ "%#02xUL"|format(clk_offset) }},
+        .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+        .num_chan = {{ num_chan|int }},
+        .num_req = {{ num_req|int }},
+    },
+    {% endif -%}
+    {% endfor %}
+    {} /* sentinel */
+};
+
+/**
+ * @warning this is a private function, port id must be valid and checked by caller
+ */
+const stm32_gpdma_desc_t * stm32_usartport_get_desc(void)
+{
+    const stm32_gpdma_desc_t *desc = NULL;
+    if (unlikely(stm32_gpdmas[0].base_addr == 0)) {
+        goto end;
+    }
+    desc = &stm32_gpdmas[0];
+end:
+    return desc;
+}
