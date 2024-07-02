@@ -1,9 +1,11 @@
 
 menu "Usart"
+	depends on DEBUG_OUTPUT_USART
 
 choice
 	bool "Debug USART driver selection"
 	default DRV_STM32_USART
+
 
 config DRV_STM32_USART
 	bool "STM32_USART"

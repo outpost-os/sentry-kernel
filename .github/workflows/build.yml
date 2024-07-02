@@ -117,12 +117,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+      - name: defconfig
+        run: |
+          defconfig configs/${{matrix.config}}_defconfig
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
-          options: '-Dconfig=configs/${{matrix.config}}_defconfig -Ddts=dts/examples/${{ matrix.config }}.dts -Ddts-include-dirs=dts'
+          options: '-Dconfig=.config -Ddts=dts/examples/${{ matrix.config }}.dts -Ddts-include-dirs=dts'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -185,12 +188,15 @@ jobs:
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
+      - name: defconfig
+        run: |
+          defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Build
         uses: embedded-devops/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_tests=true -Db_coverage=false -Doptimization=0'
+          options: '-Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_tests=true -Db_coverage=false -Doptimization=0'
       - name: Meson postcheck
         if: failure()
         run: |
@@ -250,11 +256,14 @@ jobs:
         uses: embedded-devops/action-install-pkg@v2.0
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
+      - name: defconfig
+        run: |
+          defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Doc
         uses: embedded-devops/action-meson@main
         with:
           actions: '["prefetch", "setup"]'
-          options: '-Dconfig=configs/stm32f429i_disc1_debug_defconfig -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false -Dwith_idle=false'
+          options: '-Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false -Dwith_idle=false'
       - name: Meson postcheck
         if: failure()
         run: |

@@ -119,6 +119,12 @@
 	};
 };
 
+&rng {
+	/* XXX: badly defined in orig dts */
+	clocks = <&rcc STM32_CLOCK_BUS_AHB2 0x00040000>;
+	status = "okay";
+};
+
 &syscfg {
 	status = "okay";
 };
