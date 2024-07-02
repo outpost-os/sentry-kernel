@@ -75,6 +75,8 @@
 &i2c1 {
 	status = "okay";
 	outpost,owner = <0xbabe>;
+	dma-rx = <&gpdma1 13>;
+	dma-tx = <&gpdma1 12>;
 };
 
 &rcc {

@@ -10,25 +10,37 @@
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
 
+{% set ns = namespace() -%}
+{% set ns.num_gpdma=0 -%}
+{% set ns.num_req=0 -%}
+{% set ns.num_chan=0 -%}
+
 {% for port in gpdma_ports -%}
 {% if port is owned or port is not enabled -%}
     {% continue -%}
 {% endif -%}
-{% set num_chan = port['dma-channels']|int -%}
-{% set num_req = port['dma-requests']|int -%}
-/*@
-
-predicate {{ port.label }}_channel_is_valid(ℤ chan) = (
-    chan < {{ num_chan}}
-);
-
-predicate {{ port.label }}_request_is_valid(ℤ req) = (
-    req < {{ num_req }}
-);
-
-*/
+{% set ns.num_chan = port['dma-channels']|int -%}
+{% set ns.num_req = port['dma-requests']|int -%}
+{% set ns.num_gpdma = ns.num_gpdma + 1 -%}
 {% endfor -%}
 
+#define GPDMA_NUMBER {{ "%uUL"|format(ns.num_gpdma) }}
+
+/*@
+
+// it is assumed here that when multiple GP DMA controlers
+// exists, they have the same requests and chan numbers
+// (like, for e.g. in STM32F4 (3 GPDMAs), and only the
+// request type may vary
+logic gpdma_request_is_valid(ℤ req) = req < {{ ns.num_req }};
+
+// again we consider here that all GPDMA has the same channel
+// number
+logic gpdma_channel_is_valid(ℤ chan) = chan < {{ ns.num_chan }};
+
+logic gpdma_controler_exists(ℤ ctrlid) = ctrlid < {{ "%u"|format(ns.num_gpdma) }};
+
+*/
 
 /**
  * \brief STM32 GPDMA IP descriptor
@@ -41,12 +53,12 @@ predicate {{ port.label }}_request_is_valid(ℤ req) = (
 typedef struct stm32_gpdma_desc {
     uint32_t base_addr; /**< IP base address */
     size_t   size;      /**< IP base address */
-    uint32_t clk_offset; /**< RCC clock register offset */
+    bus_id_t bus_id;    /**< Bus on which the DMA controller is connected, needed for RCC config */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
     uint16_t num_chan;  /***< IP number of channels */
     uint16_t num_req;   /**< IP number of requests */
 } stm32_gpdma_desc_t;
 
-const stm32_gpdma_desc_t * stm32_gpdma_get_desc(void);
+const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl);
 
 #endif /* __STM32_GPDMA_DT_GENERATED_H */

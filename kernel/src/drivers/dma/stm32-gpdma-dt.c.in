@@ -6,7 +6,6 @@
 #include "stm32-gpdma-dt.h"
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
-
 /**
  * \brief .rodata field: list of current platform GPDMA ports
  */
@@ -15,14 +14,14 @@ static const stm32_gpdma_desc_t stm32_gpdmas[] = {
     {% if port is owned or port is not enabled -%}
     {% continue -%}
     {% endif -%}
-    {% set _, clk_offset, clk_msk = port.clocks -%}
+    {% set _, bus_id, clk_msk = port.clocks -%}
     {%- set num_chan = port['dma-channels'] -%}
     {%- set num_req = port['dma-requests'] -%}
     /* {{ port.label }} port configuration */
     {
         .base_addr = {{ "%#08xUL"|format(port.reg[0]) }},
         .size = {{ "%#08xUL"|format(port.reg[1]) }},
-        .clk_offset = {{ "%#02xUL"|format(clk_offset) }},
+        .bus_id = {{ bus_id }},
         .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
         .num_chan = {{ num_chan|int }},
         .num_req = {{ num_req|int }},
@@ -34,10 +33,10 @@ static const stm32_gpdma_desc_t stm32_gpdmas[] = {
 /**
  * @warning this is a private function, port id must be valid and checked by caller
  */
-const stm32_gpdma_desc_t * stm32_usartport_get_desc(void)
+const stm32_gpdma_desc_t * stm32_usartport_get_desc(uint8_t ctrl)
 {
     const stm32_gpdma_desc_t *desc = NULL;
-    if (unlikely(stm32_gpdmas[0].base_addr == 0)) {
+    if (unlikely(ctrl >= GPDMA_NUMBER)) {
         goto end;
     }
     desc = &stm32_gpdmas[0];
