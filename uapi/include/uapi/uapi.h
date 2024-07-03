@@ -128,9 +128,20 @@ Status sys_gpio_set(uint32_t resource, uint8_t io, bool val);
 Status sys_gpio_toggle(uint32_t resource, uint8_t io);
 
 /**
- * get value of given GPIO associated to given  device ressource
+ * acknowledge at interrupt controller level the given interrupt
  */
 Status sys_irq_acknowledge(uint16_t irq);
+
+/**
+ * enable (unmask) at interrupt controller level the given interrupt
+ */
+Status sys_irq_enable(uint16_t irq);
+
+/**
+ * disable (mask) at interrupt controller level the given interrupt
+ */
+Status sys_irq_disable(uint16_t irq);
+
 
 /**
  * Send a message from the current task's 'svc_exchange area' through

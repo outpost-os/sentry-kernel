@@ -15,6 +15,8 @@ syscalls_src = files(
   'gpio_get.rst',
   'gpio_set.rst',
   'irq_acknowledge.rst',
+  'irq_enable.rst',
+  'irq_disable.rst',
   'map.rst',
   'send_ipc.rst',
   'waitforevent.rst',
