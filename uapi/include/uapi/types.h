@@ -207,7 +207,7 @@ typedef enum Status {
 } Status;
 
 typedef enum Syscall {
-  SYSCALL_EXIT,
+  SYSCALL_EXIT = 0,
   SYSCALL_GET_PROCESS_HANDLE,
   SYSCALL_GET_DEVICE_HANDLE,
   SYSCALL_YIELD,
