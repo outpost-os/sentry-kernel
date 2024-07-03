@@ -40,7 +40,6 @@ stack_frame_t *gate_int_acknowledge(stack_frame_t *frame, uint16_t IRQn)
         /* should not rise while IRQ ownership has been checked! see dts file */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
-    mgr_interrupt_acknowledge_irq(IRQn);
     mgr_task_set_sysreturn(current, STATUS_OK);
 end:
     return frame;
