@@ -12,6 +12,7 @@ arch_source_set.add(files(
   'asm-generic/platform.c',
   'asm-generic/sync.c',
   'asm-generic/panic.c',
+  'asm-generic/handler-svc-lut.c',
 ))
 
 arch_source_set_config = arch_source_set.apply(kconfig_data, strict:false)

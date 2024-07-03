@@ -7,4 +7,9 @@ arch_header_set.add(files(
     'membarriers.h',
     'platform.h',
     'sync.h',
+    'handler-svc-lut.h',
+    'layout.h',
+    'panic.h',
+    'thread.h',
+    'tick.h',
 ))

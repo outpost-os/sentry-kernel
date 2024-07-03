@@ -19,6 +19,8 @@
 
 #include <uapi/types.h>
 
+#define HANDLER_SVC_ENTRY
+#include <sentry/arch/asm-generic/handler-svc-lut.h>
 /**
  * @file ARM Cortex-M generic handlers
  */
@@ -200,156 +202,22 @@ __STATIC_FORCEINLINE
 stack_frame_t *svc_handler(stack_frame_t *frame)
 {
     /* C implementation first */
-    uint8_t syscall_num = 0;
+    uint8_t syscall_id = 0;
     stack_frame_t *next_frame = frame;
+    const lut_svc_handler *svc_lut;
 
 #ifndef __FRAMAC__
-    __GET_SVCNUM(frame->pc, syscall_num);
+    __GET_SVCNUM(frame->pc, syscall_id);
 #else
-    syscall_num = Frama_C_entropy_source_u8;
+    syscall_id = Frama_C_entropy_source_u8;
 #endif
-    switch (syscall_num) {
-        case SYSCALL_SEND_IPC: {
-            taskh_t target = frame->r0;
-            uint32_t len = frame->r1;
-            next_frame = gate_send_ipc(frame, target, len);
-            break;
-        }
-        case SYSCALL_SEND_SIGNAL: {
-            taskh_t target = frame->r0;
-            uint32_t signal = frame->r1;
-            next_frame = gate_send_signal(frame, target, signal);
-            break;
-        }
-        case SYSCALL_WAIT_FOR_EVENT: {
-            uint8_t event_mask = frame->r0;
-            int32_t timeout = frame->r1;
-            next_frame = gate_waitforevent(frame, event_mask, timeout);
-            break;
-        }
-        case SYSCALL_GPIO_SET: {
-            devh_t device = frame->r0;
-            uint8_t io = frame->r1;
-            bool val = frame->r2;
-            next_frame = gate_gpio_set(frame, device, io, val);
-            break;
-        }
-        case SYSCALL_GPIO_GET: {
-            devh_t device = frame->r0;
-            uint8_t io = frame->r1;
-            next_frame = gate_gpio_get(frame, device, io);
-            break;
-        }
-        case SYSCALL_GPIO_RESET: {
-            devh_t device = frame->r0;
-            uint8_t io = frame->r1;
-            next_frame = gate_gpio_reset(frame, device, io);
-            break;
-        }
-        case SYSCALL_GPIO_TOGGLE: {
-            devh_t device = frame->r0;
-            uint8_t io = frame->r1;
-            next_frame = gate_gpio_toggle(frame, device, io);
-            break;
-        }
-        case SYSCALL_GPIO_CONFIGURE: {
-            devh_t device = frame->r0;
-            uint8_t io = frame->r1;
-            next_frame = gate_gpio_configure(frame, device, io);
-            break;
-        }
-        case SYSCALL_GET_DEVICE_HANDLE: {
-            uint8_t devid = frame->r0;
-            next_frame = gate_get_devhandle(frame, devid);
-            break;
-        }
-        case SYSCALL_IRQ_ACKNOWLEDGE: {
-            uint16_t IRQn = frame->r0;
-            next_frame = gate_int_acknowledge(frame, IRQn);
-            break;
-        }
-        case SYSCALL_IRQ_ENABLE: {
-            uint16_t IRQn = frame->r0;
-            next_frame = gate_int_enable(frame, IRQn);
-            break;
-        }
-        case SYSCALL_IRQ_DISABLE: {
-            uint16_t IRQn = frame->r0;
-            next_frame = gate_int_disable(frame, IRQn);
-            break;
-        }
-        case SYSCALL_MAP_DEV: {
-            devh_t dev = frame->r0;
-            next_frame = gate_map_dev(frame, dev);
-            break;
-        }
-        case SYSCALL_UNMAP_DEV: {
-            devh_t dev = frame->r0;
-            next_frame = gate_unmap_dev(frame, dev);
-            break;
-        }
-        case SYSCALL_EXIT: {
-            uint32_t exit_code = frame->r0;
-            next_frame = gate_exit(frame, exit_code);
-            break;
-        }
-        case SYSCALL_GET_PROCESS_HANDLE: {
-            uint32_t label = frame->r0;
-            next_frame = gate_get_prochandle(frame, label);
-            break;
-        }
-        case SYSCALL_YIELD: {
-            next_frame = gate_yield(frame);
-            break;
-        }
-        case SYSCALL_SLEEP: {
-            uint32_t duration_ms = frame->r0;
-            uint32_t sleep_mode = frame->r1;
-            next_frame = gate_sleep(frame, duration_ms, sleep_mode);
-            break;
-        }
-        case SYSCALL_START: {
-            uint32_t target_label = frame->r0;
-            next_frame = gate_start(frame, target_label);
-            break;
-        }
-        case SYSCALL_GET_RANDOM: {
-            next_frame = gate_get_random(frame);
-            break;
-        }
-        case SYSCALL_PM_MANAGE: {
-            uint32_t pm_cmd = frame->r0;
-            next_frame = gate_pm_manage(frame, pm_cmd);
-            break;
-        }
-        case SYSCALL_PM_SET_CLOCK: {
-            uint32_t clkreg = frame->r0;
-            uint32_t clkmsk = frame->r1;
-            uint32_t val = frame->r2;
-            next_frame = gate_pm_clock_set(frame, clkreg, clkmsk, val);
-            break;
-        }
-        case SYSCALL_ALARM: {
-            uint32_t delay_ms = frame->r0;
-            uint32_t flag = frame->r1;
-            next_frame = gate_alarm(frame, delay_ms, flag);
-            break;
-        }
-        case SYSCALL_GET_CYCLE: {
-            uint32_t precision = frame->r0;
-            next_frame = gate_get_cycle(frame, precision);
-            break;
-        }
-        case SYSCALL_LOG: {
-            uint32_t len = frame->r0;
-            next_frame = gate_log(frame, len);
-            break;
-        }
-        default:
-            /* TODO: define response to invalid svc id */
-            panic(PANIC_UNEXPECTED_BRANCH_EXEC);
-            break;
+    if (unlikely(syscall_id >= svc_lut_size())) {
+        mgr_task_set_sysreturn(sched_get_current(), STATUS_INVALID);
+        goto err;
     }
+    svc_lut = svc_lut_get();
+    next_frame = (svc_lut[syscall_id])(frame);
+err:
     return next_frame;
 }
 
