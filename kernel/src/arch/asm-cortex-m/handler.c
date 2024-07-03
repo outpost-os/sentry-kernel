@@ -265,7 +265,17 @@ stack_frame_t *svc_handler(stack_frame_t *frame)
         }
         case SYSCALL_IRQ_ACKNOWLEDGE: {
             uint16_t IRQn = frame->r0;
-            next_frame = gate_get_devhandle(frame, IRQn);
+            next_frame = gate_int_acknowledge(frame, IRQn);
+            break;
+        }
+        case SYSCALL_IRQ_ENABLE: {
+            uint16_t IRQn = frame->r0;
+            next_frame = gate_int_enable(frame, IRQn);
+            break;
+        }
+        case SYSCALL_IRQ_DISABLE: {
+            uint16_t IRQn = frame->r0;
+            next_frame = gate_int_disable(frame, IRQn);
             break;
         }
         case SYSCALL_MAP_DEV: {
