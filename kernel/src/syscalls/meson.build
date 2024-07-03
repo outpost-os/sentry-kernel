@@ -7,6 +7,8 @@ syscalls = files(
     'sysgate_gpio.c',
     'sysgate_get_devhandle.c',
     'sysgate_int_acknowledge.c',
+    'sysgate_int_enable.c',
+    'sysgate_int_disable.c',
     'sysgate_map.c',
     'sysgate_exit.c',
     'sysgate_get_prochandle.c',
