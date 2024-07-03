@@ -204,16 +204,18 @@ stack_frame_t *svc_handler(stack_frame_t *frame)
     /* C implementation first */
     uint8_t syscall_id = 0;
     stack_frame_t *next_frame = frame;
+    const lut_svc_handler *svc_lut;
 
 #ifndef __FRAMAC__
     __GET_SVCNUM(frame->pc, syscall_id);
 #else
     syscall_id = Frama_C_entropy_source_u8;
 #endif
-    if (unlikely(syscall_id >= SYSCALL_NUM)) {
+    if (unlikely(syscall_id >= svc_lut_size())) {
         mgr_task_set_sysreturn(sched_get_current(), STATUS_INVALID);
         goto err;
     }
+    svc_lut = svc_lut_get();
     next_frame = (svc_lut[syscall_id])(frame);
 err:
     return next_frame;
