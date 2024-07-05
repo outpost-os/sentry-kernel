@@ -41,11 +41,14 @@ holds the complete kernel configuration, and that is used at build time to selec
 
 #### Using defconfigs
 
-defconfig files are stored in configs/ directory and can be used directly. In that case, the `config` option can be used at setup time:
+defconfig files are stored in configs/ directory and can be used directly. In that case, the defconfig must be parsed in order to
+forge a `.config` file. This file is then passed to the `config` option at setup time:
 
 ```console
-meson setup -Dconfig=configs/stm32f4_debug_defconfig [...]
+defconfig configs/stm32f4_debug_defconfig
+meson setup -Dconfig=.config [...]
 ```
+If a complete config file is used, it can be directly passed to the `config` option.
 
 #### Setting custom configurations
 
