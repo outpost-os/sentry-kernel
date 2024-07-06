@@ -73,6 +73,17 @@ kstatus_t mgr_mm_unmap_device(taskh_t tsk, devh_t dev);
 
 kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resource_t *ressource);
 
+/** about SHM management */
+kstatus_t mgr_mm_shm_is_mappable(shmh_t handle, secure_bool_t *result);
+
+kstatus_t memory_shm_is_owned_by(shmh_t shm, taskh_t taskh, secure_bool_t*result);
+
+kstatus_t mgr_mm_shm_is_used_by(shmh_t shm, taskh_t taskh, secure_bool_t *result);
+
+kstatus_t mgr_mm_shm_is_shared(shmh_t shm, secure_bool_t * result);
+
+kstatus_t mgr_mm_shm_get_handle(uint32_t shm_id, shmh_t *handle);
+
 /*
  * XXX:
  *  In order to restore task mpu config w/ fast loading, region configuration
