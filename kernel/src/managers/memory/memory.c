@@ -70,8 +70,8 @@ kstatus_t mgr_mm_init(void)
         goto err;
     }
     mpu_enable();
-    mm_configured = SECURE_TRUE;
 #endif
+    mm_configured = SECURE_TRUE;
 err:
     return status;
 }

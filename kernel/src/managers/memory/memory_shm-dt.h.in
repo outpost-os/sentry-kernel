@@ -12,52 +12,25 @@
 #include <sentry/ktypes.h>
 
 typedef struct shm_meta {
-    uint16_t        id;
+    size_t          baseaddr;
+    size_t          size;
     secure_bool_t   is_dma_pool;
     secure_bool_t   is_mappable;
     uint32_t        shm_label;
     uint32_t        owner_label;
 } shm_meta_t;
 
+
 {% set ns = namespace() -%}
 {% set ns.total_shm=0 -%}
-static const shm_meta_t shms[] = {
-    {% for node in dts.get_mappable() -%}
-    {% if node|has_property("outpost,shm") -%}
-    {
-        /* {{ node.label }} */
-        .id = {{ ns.total_shm }},
-        {% if node|has_property("dma-pool") -%}
-        .is_dma_pool = SECURE_TRUE,
-        {% else -%}
-        .is_dma_pool = SECURE_FALSE,
-        {% endif -%}
-        {% if node|has_property("outpost,no-map") -%}
-        .is_mappable = SECURE_FALSE,
-        {% else -%}
-        .is_mappable = SECURE_TRUE,
-        {% endif -%}
-        {% set label = node["outpost,label"] -%}
-        .shm_label = {{ "%#xUL"|format(label) }},
-        {% set owner = node["outpost,owner"] -%}
-        .owner_label = {{ "%#xUL"|format(owner) }}
-    {% set ns.total_shm = ns.total_shm + 1 -%}
-    },
-    {% endif -%}
+{% for node in dts.get_mappable() -%}
+{% if node|has_property("outpost,shm") -%}
+{% set ns.total_shm = ns.total_shm + 1 -%}
+{% endif -%}
 {% endfor -%}
-};
 
 #define SHM_LIST_SIZE {{ "%uUL"|format(ns.total_shm) }}
 
-static inline shm_meta_t const *memory_shm_get_meta(size_t id)
-{
-    shm_meta_t const *meta = NULL;
-    if (unlikely(id >= SHM_LIST_SIZE)) {
-        goto end;
-    }
-    meta = &shms[id];
-end:
-    return meta;
-}
+shm_meta_t const *memory_shm_get_meta(size_t id);
 
 #endif/*!MEMORY_SHM_DT_H*/

@@ -215,6 +215,136 @@ err:
 }
 
 
+kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const shm_meta_t *shm_meta;
+    struct mpu_region_desc mpu_cfg;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    secure_bool_t result;
+    shm_user_t user;
+
+    if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
+        pr_err("failed to get shm meta from shm handle %x", shm);
+        goto err;
+    }
+    status = mgr_mm_shm_is_mappable(shm, &result);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(result == SECURE_FALSE)) {
+        /* this SHM is not mappable ! */
+        pr_err("this SHM is declared as not mappable");
+        goto err;
+    }
+    /* detect if tsk is owner or user. must not fail */
+    status = mgr_mm_shm_is_owned_by(shm, tsk, &result);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(result == SECURE_FALSE)) {
+        /* not owned ? maybe used then */
+        status = mgr_mm_shm_is_used_by(shm, tsk, &result);
+        /*@ assert (status == K_STATUS_OKAY); */
+        if (unlikely(result == SECURE_FALSE)) {
+            /* neither used nor owned */
+            goto err;
+        }
+        user = SHM_TSK_USER;
+    } else {
+        user = SHM_TSK_OWNER;
+    }
+    /* now that we know who is requesting, check user-related flags */
+    status = mgr_mm_shm_is_mapped_by(shm, user, &result);
+    /*@ assert (result == K_STATUS_OKAY); */
+    if (result == SECURE_TRUE) {
+        /* already mapped ! */
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        pr_err("failed to get task ressource layout from task handle %x", tsk);
+        goto err;
+    }
+    if (unlikely((status = mpu_get_free_id(layout_tab, TASK_MAX_RESSOURCES_NUM, &mpu_cfg.id)) != K_STATUS_OKAY)) {
+        pr_err("no free slot to map shm");
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    mpu_cfg.addr = (uint32_t)shm_meta->baseaddr;
+    mpu_cfg.size = mpu_convert_size_to_region(shm_meta->size);
+
+    /* used writeable flags declared in config */
+    if (unlikely((status = mgr_mm_shm_is_writeable_by(shm, user, &result)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (result == SECURE_TRUE) {
+        mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
+    } else {
+        mpu_cfg.access_perm = MPU_REGION_PERM_RO; /* RO for priv+user */
+    }
+    mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+    mpu_cfg.mask = 0x0;
+    mpu_cfg.noexec = true;
+    mpu_cfg.shareable = false;
+    status = mpu_forge_resource(&mpu_cfg, &layout);
+    /*@ assert status == K_STATUS_OKAY; */
+    status = mgr_task_add_resource(tsk, mpu_cfg.id, layout);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        /* should not happen as already checked when getting free id */
+        /*@ assert false; */
+        pr_err("no free slot to map shm");
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_FALSE);
+    /*@ assert status == K_STATUS_OKAY; */
+err:
+    return status;
+}
+
+kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const shm_meta_t *shm_meta;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    secure_bool_t result;
+    uint8_t id;
+
+    if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
+        pr_err("failed to get shm meta from shm handle %x", shm);
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        pr_err("failed to get task ressource layout from task handle %x", tsk);
+        goto err;
+    }
+    if (unlikely((status = mpu_get_id_from_address(layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)shm_meta->baseaddr, &id)) != K_STATUS_OKAY)) {
+        pr_err("shm %x not found in mapped layout", shm);
+        goto err;
+    }
+    status = mgr_task_remove_resource(tsk, mgr_mm_region_to_layout_id(id));
+    /*@ assert (status == K_STATUS_OKAY); */
+
+    /* set unmap for local task, being user or owner */
+    status = mgr_mm_shm_is_owned_by(shm, tsk, &result);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (result == SECURE_FALSE) {
+        status = mgr_mm_shm_is_used_by(shm, tsk, &result);
+        /*@ assert (status == K_STATUS_OKAY); */
+        if (unlikely(result == SECURE_FALSE)) {
+            goto err;
+        }
+        status = mgr_mm_shm_set_mapflag(shm, SHM_TSK_USER, SECURE_FALSE);
+        /*@ assert (status == K_STATUS_OKAY); */
+    } else {
+        status = mgr_mm_shm_set_mapflag(shm, SHM_TSK_OWNER, SECURE_FALSE);
+        /*@ assert (status == K_STATUS_OKAY); */
+    }
+err:
+    return status;
+}
+
+
+
 /**
  * @brief forge an empty task memory layout
  *
