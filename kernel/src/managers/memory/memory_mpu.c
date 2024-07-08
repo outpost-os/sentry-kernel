@@ -237,19 +237,10 @@ kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
         goto err;
     }
     /* detect if tsk is owner or user. must not fail */
-    status = mgr_mm_shm_is_owned_by(shm, tsk, &result);
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
     /*@ assert (status == K_STATUS_OKAY); */
-    if (unlikely(result == SECURE_FALSE)) {
-        /* not owned ? maybe used then */
-        status = mgr_mm_shm_is_used_by(shm, tsk, &result);
-        /*@ assert (status == K_STATUS_OKAY); */
-        if (unlikely(result == SECURE_FALSE)) {
-            /* neither used nor owned */
-            goto err;
-        }
-        user = SHM_TSK_USER;
-    } else {
-        user = SHM_TSK_OWNER;
+    if (unlikely(user == SHM_TSK_NONE)) {
+        goto err;
     }
     /* now that we know who is requesting, check user-related flags */
     status = mgr_mm_shm_is_mapped_by(shm, user, &result);
@@ -307,6 +298,7 @@ kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm)
     layout_resource_t layout;
     const layout_resource_t *layout_tab;
     secure_bool_t result;
+    shm_user_t user;
     uint8_t id;
 
     if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
@@ -321,24 +313,18 @@ kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm)
         pr_err("shm %x not found in mapped layout", shm);
         goto err;
     }
+    /* detect if tsk is owner or user. must not fail */
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(user == SHM_TSK_NONE)) {
+        /* this should not happen ! */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
     status = mgr_task_remove_resource(tsk, mgr_mm_region_to_layout_id(id));
     /*@ assert (status == K_STATUS_OKAY); */
 
-    /* set unmap for local task, being user or owner */
-    status = mgr_mm_shm_is_owned_by(shm, tsk, &result);
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_FALSE);
     /*@ assert (status == K_STATUS_OKAY); */
-    if (result == SECURE_FALSE) {
-        status = mgr_mm_shm_is_used_by(shm, tsk, &result);
-        /*@ assert (status == K_STATUS_OKAY); */
-        if (unlikely(result == SECURE_FALSE)) {
-            goto err;
-        }
-        status = mgr_mm_shm_set_mapflag(shm, SHM_TSK_USER, SECURE_FALSE);
-        /*@ assert (status == K_STATUS_OKAY); */
-    } else {
-        status = mgr_mm_shm_set_mapflag(shm, SHM_TSK_OWNER, SECURE_FALSE);
-        /*@ assert (status == K_STATUS_OKAY); */
-    }
 err:
     return status;
 }

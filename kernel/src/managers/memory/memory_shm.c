@@ -7,14 +7,7 @@
 #include "memory_shm-dt.h"
 #include "memory.h"
 
-/**
- * shared memory configuration. This config is set by the owner.
- * at boot time, all fields are set to SECURE_FALSE
- */
-typedef struct shm_config {
-    secure_bool_t rw; /**< is SHM writable by the user ? */
-    secure_bool_t transferable; /**< is SHM transferable by user to another ? */
-} shm_config_t;
+
 
 typedef struct shm_user_state {
     shm_config_t       config;
@@ -77,6 +70,40 @@ kstatus_t mgr_mm_shm_init(void)
         /* at init time, shm is not shared and user is owner */
         shm_table[id].user.task = shm_table[id].owner.task;
     }
+end:
+    return status;
+}
+
+kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accessor)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+    /*@ assert \valid_read(kshm); */
+
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (unlikely(accessor == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(accessor); */
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* check that handle matches */
+    if (unlikely(shm_table[kshm->id].handle != task)) {
+        goto end;
+    }
+    if (shm_table[kshm->id].owner.task == task) {
+        *accessor = SHM_TSK_OWNER;
+    } else if (shm_table[kshm->id].user.task == task) {
+        *accessor = SHM_TSK_USER;
+    } else {
+        *accessor = SHM_TSK_NONE;
+    }
+    status = K_STATUS_OKAY;
 end:
     return status;
 }
@@ -379,6 +406,44 @@ kstatus_t mgr_mm_shm_get_meta(shmh_t handle, shm_meta_t const ** meta)
         goto end;
     }
     *meta = shm_table[kshm->id].meta;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const *config)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+
+    /*@ assert \valid_read(kshm); */
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* is this a real handle ? */
+    if (unlikely(shm != shm_table[kshm->id].handle)) {
+        goto end;
+    }
+    if (unlikely(config == NULL)) {
+        goto end;
+    }
+    switch (target) {
+        case SHM_TSK_OWNER:
+            shm_table[kshm->id].owner.config.rw = config->rw;
+            shm_table[kshm->id].owner.config.transferable = config->transferable;
+            break;
+        case SHM_TSK_USER:
+            shm_table[kshm->id].user.config.rw = config->rw;
+            shm_table[kshm->id].user.config.transferable = config->transferable;
+            break;
+        default:
+            goto end;
+    }
     status = K_STATUS_OKAY;
 end:
     return status;
