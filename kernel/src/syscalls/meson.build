@@ -21,6 +21,7 @@ syscalls = files(
     'sysgate_alarm.c',
     'sysgate_get_cycle.c',
     'sysgate_log.c',
+    'sysgate_get_shmhandle.c',
 )
 
 syscall_source_set.add(syscalls)

@@ -59,6 +59,11 @@ static stack_frame_t *lut_get_devhandle(stack_frame_t *frame) {
     return gate_get_devhandle(frame, devid);
 }
 
+static stack_frame_t *lut_get_shmhandle(stack_frame_t *frame) {
+    uint32_t shmid = frame->r0;
+    return gate_get_shmhandle(frame, shmid);
+}
+
 static stack_frame_t *lut_int_acknowledge(stack_frame_t *frame) {
     uint16_t IRQn = frame->r0;
     return gate_int_acknowledge(frame, IRQn);
@@ -187,6 +192,7 @@ static const lut_svc_handler svc_lut[] = {
     lut_int_acknowledge,
     lut_int_enable,
     lut_int_disable,
+    lut_get_shmhandle,
 };
 
 #define SYSCALL_NUM ARRAY_SIZE(svc_lut)
