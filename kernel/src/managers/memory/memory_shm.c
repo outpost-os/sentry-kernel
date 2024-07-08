@@ -24,7 +24,7 @@ typedef struct shm_info {
     shm_user_state_t   user;
 } shm_info_t;
 
-static shm_info_t shm_table[SHM_LIST_SIZE];
+static _Alignas(uint64_t) shm_info_t shm_table[SHM_LIST_SIZE];
 
 /**
  * @fn initialize the SHM dynamic table
@@ -37,10 +37,6 @@ kstatus_t mgr_mm_shm_init(void)
     kstatus_t status = K_STATUS_OKAY;
     kshmh_t ksh;
 
-    if (unlikely(mgr_mm_configured() == SECURE_TRUE)) {
-        status = K_ERROR_BADSTATE;
-        goto end;
-    }
     for (size_t id = 0; id < SHM_LIST_SIZE; ++id) {
         uint32_t entropy;
 
@@ -60,16 +56,14 @@ kstatus_t mgr_mm_shm_init(void)
         shm_table[id].owner.is_mapped = SECURE_FALSE;
         shm_table[id].owner.config.rw = SECURE_FALSE;
         shm_table[id].owner.config.transferable = SECURE_FALSE;
-        status = mgr_task_get_handle(shm_table[id].meta->owner_label, &shm_table[id].owner.task);
-        if (unlikely(status != K_STATUS_OKAY)) {
-            goto end;
-        }
+        shm_table[id].owner.task = 0; /* not known at boot time, as task mgr not started */
         shm_table[id].user.is_mapped = SECURE_FALSE;
         shm_table[id].user.config.rw = SECURE_FALSE;
         shm_table[id].user.config.transferable = SECURE_FALSE;
         /* at init time, shm is not shared and user is owner */
         shm_table[id].user.task = shm_table[id].owner.task;
     }
+    status = K_STATUS_OKAY;
 end:
     return status;
 }
@@ -96,6 +90,18 @@ kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accesso
     if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
+    /* at boot time, task handle is not link as not yet forged. At first call, this
+     * function cache it in local table to avoid task requests from label
+     */
+     #if 1
+    if (unlikely(shm_table[kshm->id].owner.task == 0)) {
+        /* handle not yet set after task init, set it using task label instead */
+        status = mgr_task_get_handle(shm_table[kshm->id].meta->owner_label, &shm_table[kshm->id].owner.task);
+        if (unlikely(status != K_STATUS_OKAY)) {
+            goto end;
+        }
+    }
+    #endif
     if (shm_table[kshm->id].owner.task == task) {
         *accessor = SHM_TSK_OWNER;
     } else if (shm_table[kshm->id].user.task == task) {
