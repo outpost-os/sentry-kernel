@@ -70,6 +70,9 @@ __attribute__((noreturn)) void _entrypoint(void)
     if (unlikely(mgr_device_init() != K_STATUS_OKAY)) {
         panic(PANIC_CONFIGURATION_MISMATCH);
     }
+    if (unlikely(mgr_mm_shm_init() != K_STATUS_OKAY)) {
+        panic(PANIC_CONFIGURATION_MISMATCH);
+    }
     /* finishing platform init. platform init flag is set */
     pr_info("Platform initialization done, continuing with upper layers");
     platform_init();

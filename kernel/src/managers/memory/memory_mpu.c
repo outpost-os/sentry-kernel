@@ -35,12 +35,24 @@ extern uint32_t _svtor;
 extern uint32_t _ram_start;
 
 
+static secure_bool_t mm_configured;
+
+
+
+secure_bool_t mgr_mm_configured(void)
+{
+    if (mm_configured == SECURE_TRUE) {
+        return mm_configured;
+    }
+    return SECURE_FALSE;
+}
+
 /*
  * Per region function implementation, forced inline, but
  * clearer.
  */
 
-kstatus_t mgr_mm_map_kernel_txt(void)
+__STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     struct mpu_region_desc kernel_txt_config = {
@@ -57,7 +69,7 @@ kstatus_t mgr_mm_map_kernel_txt(void)
     return status;
 }
 
-kstatus_t mgr_mm_map_kernel_data(void)
+__STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     struct mpu_region_desc kernel_data_config = {
@@ -330,6 +342,55 @@ err:
 }
 
 
+/*
+ * @brief initialize MPU and configure kernel layout
+ *
+ * layout is the following:
+ *
+ * In kernel mode (syscalls):
+ *                                                     S     U
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---]
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---]
+ * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
+ * [MPU REG 3] [ task Data SVC-exchange region     ] [RW-] [RW-]
+ * [MPU REG 4] [                                   ] [---] [---]
+ * [MPU REG 5] [                                   ] [---] [---]
+ * [MPU REG 6] [                                   ] [---] [---]
+ * [MPU REG 7] [                                   ] [---] [---]
+ *
+ * In User mode:
+ *
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---] // syscall gate
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---] // syscall gate
+ * [MPU REG 2] [ task TXT section                  ] [R-X] [R-X]
+ * [MPU REG 3] [ task Data section                 ] [RW-] [RW-]
+ * [MPU REG 4] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 5] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
+ *
+ */
+kstatus_t mgr_mm_init(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    mm_configured = SECURE_FALSE;
+
+#ifdef CONFIG_HAS_MPU
+    mpu_disable();
+    status = mgr_mm_map_kernel_txt();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = mgr_mm_map_kernel_data();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    mpu_enable();
+    mm_configured = SECURE_TRUE;
+err:
+#endif
+    return status;
+}
 
 /**
  * @brief forge an empty task memory layout

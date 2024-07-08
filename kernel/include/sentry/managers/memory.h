@@ -38,6 +38,8 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target);
 
 kstatus_t mgr_mm_init(void);
 
+kstatus_t mgr_mm_shm_init(void);
+
 kstatus_t mgr_mm_watchdog(void);
 
 /* BSP related, not for syscalls */

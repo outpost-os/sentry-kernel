@@ -60,10 +60,6 @@ kstatus_t mgr_mm_shm_get_meta(shmh_t handle, shm_meta_t const ** meta);
 
 kstatus_t mgr_mm_shm_set_mapflag(shmh_t handle, shm_user_t accessor, secure_bool_t mapflag);
 
-kstatus_t mgr_mm_map_kernel_txt(void);
-
-kstatus_t mgr_mm_map_kernel_data(void);
-
 secure_bool_t mgr_mm_configured(void);
 
 #endif/*!MEMORY_PRIVATE_H*/

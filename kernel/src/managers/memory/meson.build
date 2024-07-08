@@ -14,4 +14,3 @@ managers_private_gen_header_set.add(shm_dtsgen_c)
 
 managers_source_set.add(files('memory_shm.c'))
 managers_source_set.add(files('memory_mpu.c'))
-managers_source_set.add(files('memory.c'))
