@@ -24,7 +24,7 @@ typedef struct shm_info {
     shm_user_state_t   user;
 } shm_info_t;
 
-static _Alignas(uint64_t) shm_info_t shm_table[SHM_LIST_SIZE];
+static shm_info_t shm_table[SHM_LIST_SIZE];
 
 /**
  * @fn initialize the SHM dynamic table
@@ -56,7 +56,10 @@ kstatus_t mgr_mm_shm_init(void)
         shm_table[id].owner.is_mapped = SECURE_FALSE;
         shm_table[id].owner.config.rw = SECURE_FALSE;
         shm_table[id].owner.config.transferable = SECURE_FALSE;
-        shm_table[id].owner.task = 0; /* not known at boot time, as task mgr not started */
+        if (unlikely(mgr_task_get_handle( shm_table[id].meta->owner_label, &shm_table[id].owner.task) != K_STATUS_OKAY)) {
+            /* this should never happen: dts task label invalid! */
+            panic(PANIC_CONFIGURATION_MISMATCH);
+        }
         shm_table[id].user.is_mapped = SECURE_FALSE;
         shm_table[id].user.config.rw = SECURE_FALSE;
         shm_table[id].user.config.transferable = SECURE_FALSE;
@@ -93,15 +96,6 @@ kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accesso
     /* at boot time, task handle is not link as not yet forged. At first call, this
      * function cache it in local table to avoid task requests from label
      */
-     #if 1
-    if (unlikely(shm_table[kshm->id].owner.task == 0)) {
-        /* handle not yet set after task init, set it using task label instead */
-        status = mgr_task_get_handle(shm_table[kshm->id].meta->owner_label, &shm_table[kshm->id].owner.task);
-        if (unlikely(status != K_STATUS_OKAY)) {
-            goto end;
-        }
-    }
-    #endif
     if (shm_table[kshm->id].owner.task == task) {
         *accessor = SHM_TSK_OWNER;
     } else if (shm_table[kshm->id].user.task == task) {

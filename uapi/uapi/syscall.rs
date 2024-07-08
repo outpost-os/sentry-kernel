@@ -103,11 +103,11 @@ pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
 /// POSIX upper layer(s): shmctl(3),
 #[no_mangle]
 pub extern "C" fn sys_shm_set_credential(
-    resource: u32,
-    id: ProcessID,
-    shm_perm: SHMPermission,
+    shm: shmh_t,
+    id: taskh_t,
+    shm_perm: u32,
 ) -> Status {
-    syscall!(Syscall::SHMSetCredential, resource, id, u32::from(shm_perm)).into()
+    syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
 /// Send events to another process

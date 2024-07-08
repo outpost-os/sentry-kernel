@@ -71,10 +71,11 @@ void test_shm_mapunmap(void) {
     LOG("handle is %lx", shm);
     ASSERT_EQ(res, STATUS_OK);
     /* give full write to myself */
-    res = sys_shm_set_credential(shm, myself,
-      (SHMPermission)(SHM_PERMISSION_READ | SHM_PERMISSION_WRITE | SHM_PERMISSION_TRANSFER)
-    );
+    uint32_t perms = 0;
+    perms |= SHM_PERMISSION_WRITE;
+    res = sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
+    LOG("creds set");
     /* map SHM */
     res = sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_OK);

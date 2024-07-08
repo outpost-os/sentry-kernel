@@ -297,7 +297,7 @@ kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
         status = K_ERROR_BUSY;
         goto err;
     }
-    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_FALSE);
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_TRUE);
     /*@ assert status == K_STATUS_OKAY; */
 err:
     return status;
