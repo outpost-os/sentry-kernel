@@ -141,6 +141,16 @@ static stack_frame_t *lut_log(stack_frame_t *frame) {
     return gate_log(frame, len);
 }
 
+static stack_frame_t *lut_map_shm(stack_frame_t *frame) {
+    shmh_t shm = frame->r0;
+    return gate_map_shm(frame, shm);
+}
+
+static stack_frame_t *lut_unmap_shm(stack_frame_t *frame) {
+    shmh_t shm = frame->r0;
+    return gate_unmap_shm(frame, shm);
+}
+
 /* For reserved yet not yet implemented syscall ids */
 static stack_frame_t *lut_notsup(stack_frame_t *f) {
     mgr_task_set_sysreturn(sched_get_current(), STATUS_NO_ENTITY);
@@ -156,9 +166,9 @@ static const lut_svc_handler svc_lut[] = {
     lut_sleep,
     lut_start,
     lut_map_dev,
-    lut_notsup, /* map shm, not supported yet */
+    lut_map_shm, /* map shm, not supported yet */
     lut_unmap_dev,
-    lut_notsup, /* unmap shm, not supported yet */
+    lut_unmap_shm, /* unmap shm, not supported yet */
     lut_notsup, /* shm_set_creds, not supported yet */
     lut_send_ipc,
     lut_send_signal,
