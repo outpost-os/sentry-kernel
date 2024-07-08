@@ -156,6 +156,14 @@ static stack_frame_t *lut_unmap_shm(stack_frame_t *frame) {
     return gate_unmap_shm(frame, shm);
 }
 
+static stack_frame_t *lut_shm_set_perms(stack_frame_t *frame) {
+    shmh_t shm = frame->r0;
+    taskh_t tsk = frame->r1;
+    SHMPermission perms = frame->r2;
+    return gate_shm_setcreds(frame, shm, tsk, perms);
+}
+
+
 /* For reserved yet not yet implemented syscall ids */
 static stack_frame_t *lut_notsup(stack_frame_t *f) {
     mgr_task_set_sysreturn(sched_get_current(), STATUS_NO_ENTITY);
@@ -171,10 +179,10 @@ static const lut_svc_handler svc_lut[] = {
     lut_sleep,
     lut_start,
     lut_map_dev,
-    lut_map_shm, /* map shm, not supported yet */
+    lut_map_shm,
     lut_unmap_dev,
-    lut_unmap_shm, /* unmap shm, not supported yet */
-    lut_notsup, /* shm_set_creds, not supported yet */
+    lut_unmap_shm,
+    lut_shm_set_perms,
     lut_send_ipc,
     lut_send_signal,
     lut_waitfoeevent,

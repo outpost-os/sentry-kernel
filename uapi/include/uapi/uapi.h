@@ -81,9 +81,14 @@ Status sys_exit(int32_t status);
 Status sys_get_cycle(Precision precision);
 
 /**
- * configure value of given GPIO associated to given  device ressource
+ * Get back a given device handle from DTS auto-generated device identifier
  */
 Status sys_get_device_handle(uint8_t devlabel);
+
+/**
+ * Get back a given SHM handle from SHM label defined in DTS
+ */
+Status sys_get_shm_handle(uint32_t shmlabel);
 
 /**
  * Get global identifier for a given process label

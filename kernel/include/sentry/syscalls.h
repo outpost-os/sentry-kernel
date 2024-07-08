@@ -2,6 +2,7 @@
 #define SYSCALLS_H
 
 #include <uapi/handle.h>
+#include <uapi/types.h>
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/thread.h>
 
@@ -38,6 +39,8 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device);
 stack_frame_t *gate_map_shm(stack_frame_t *frame, shmh_t shm);
 
 stack_frame_t *gate_unmap_shm(stack_frame_t *frame, shmh_t shm);
+
+stack_frame_t *gate_shm_setcreds(stack_frame_t *frame, shmh_t shm, taskh_t target, SHMPermission perms);
 
 stack_frame_t *gate_exit(const stack_frame_t *frame, uint32_t result);
 
