@@ -88,6 +88,7 @@ typedef enum shm_user {
  * at boot time, all fields are set to SECURE_FALSE
  */
 typedef struct shm_config {
+    secure_bool_t mappable; /**< is SHM mappable by user ? if dts-decl is not mappable, ignored */
     secure_bool_t rw; /**< is SHM writable by the user ? */
     secure_bool_t transferable; /**< is SHM transferable by user to another ? */
 } shm_config_t;
@@ -98,7 +99,7 @@ kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm);
 
 /* global SHM properties relative requests */
 
-kstatus_t mgr_mm_shm_is_mappable(shmh_t handle, secure_bool_t *result);
+kstatus_t mgr_mm_shm_is_mappable_by(shmh_t shm, shm_user_t tsk, secure_bool_t *result);
 
 kstatus_t mgr_mm_shm_is_shared(shmh_t shm, secure_bool_t * result);
 
