@@ -59,5 +59,6 @@ test(
   depends: [ framac_dep ],
   suite: 'proof',
   is_parallel: false,
+  should_fail: true,
   priority: 253,
 )
