@@ -8,13 +8,17 @@
  * Note: in autotest-based DTS, the following SHM are defined
  * (see local dts example files)
  */
-#define SHM_MAP_DMAPOOL 0xf00UL
-#define SHM_NOMAP_DMAPOOL 0xf01UL
-#define SHM_MAP_NODMAPOOL 0xf02UL
+#include <shms-dt.h>
+
+static_assert(SHM_LIST_SIZE == 3, "invalid autotest SHM list");
+
+#define SHM_MAP_DMAPOOL shms[0].id
+#define SHM_NOMAP_DMAPOOL shms[1].id
+#define SHM_MAP_NODMAPOOL shms[2].id
 
 /* TODO: use generated instead */
-#define SHM_MAP_DMAPOOL_BASEADDR 0x2000a000UL
-#define SHM_MAP_DMAPOOL_SIZE 0x256UL
+#define SHM_MAP_DMAPOOL_BASEADDR shms[0].baseaddr
+#define SHM_MAP_DMAPOOL_SIZE shms[0].size
 
 static taskh_t myself;
 static taskh_t idle;
