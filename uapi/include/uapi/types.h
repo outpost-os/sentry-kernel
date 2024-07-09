@@ -69,19 +69,19 @@ typedef enum SHMPermission {
   /**
    * allows target process to map the SHM. No read nor write though
    */
-  SHM_PERMISSION_MAP,
+  SHM_PERMISSION_MAP = 1,
   /**
    * allows target process to read the mapped SHM. Requires MAP
    */
-  SHM_PERMISSION_READ,
+  SHM_PERMISSION_READ = 1 << 1,
   /**
    * allows target process to write shared memory. Requires MAP
    */
-  SHM_PERMISSION_WRITE,
+  SHM_PERMISSION_WRITE = 1 << 2,
   /**
    * allows target process to transfer SHM to another, pre-allowed, process
    */
-  SHM_PERMISSION_TRANSFER,
+  SHM_PERMISSION_TRANSFER = 1 << 3,
 } SHMPermission;
 
 /**
@@ -235,6 +235,7 @@ typedef enum Syscall {
   SYSCALL_IRQ_ACKNOWLEDGE,
   SYSCALL_IRQ_ENABLE,
   SYSCALL_IRQ_DISABLE,
+  SYSCALL_GET_SHM_HANDLE,
 } Syscall;
 
 /**

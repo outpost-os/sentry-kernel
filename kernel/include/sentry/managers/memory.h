@@ -114,6 +114,8 @@ kstatus_t mgr_mm_shm_is_writeable_by(shmh_t shm, shm_user_t accessor, secure_boo
 
 kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const *config);
 
+kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task);
+
 /*
  * XXX:
  *  In order to restore task mpu config w/ fast loading, region configuration

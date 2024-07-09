@@ -93,7 +93,7 @@ kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accesso
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != task)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     if (shm_table[kshm->id].owner.task == task) {
@@ -108,15 +108,38 @@ end:
     return status;
 }
 
+kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+    /*@ assert \valid_read(kshm); */
+
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* check that handle matches */
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
+        goto end;
+    }
+    shm_table[kshm->id].user.task = task;
+end:
+    return status;
+}
+
 /**
  * @brief specify if the given SHM can be mapped by owner or user
  *
  * the secure boolean information is set through result argument
  */
-kstatus_t mgr_mm_shm_is_mappable(shmh_t handle, secure_bool_t *result)
+kstatus_t mgr_mm_shm_is_mappable(shmh_t shm, secure_bool_t *result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -132,7 +155,7 @@ kstatus_t mgr_mm_shm_is_mappable(shmh_t handle, secure_bool_t *result)
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     *result = shm_table[kshm->id].meta->is_mappable;
@@ -146,10 +169,10 @@ end:
  *
  * the secure boolean information is set through result argument
  */
-kstatus_t mgr_mm_shm_is_owned_by(shmh_t handle, taskh_t taskh, secure_bool_t*result)
+kstatus_t mgr_mm_shm_is_owned_by(shmh_t shm, taskh_t taskh, secure_bool_t*result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -165,7 +188,7 @@ kstatus_t mgr_mm_shm_is_owned_by(shmh_t handle, taskh_t taskh, secure_bool_t*res
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     if (shm_table[kshm->id].owner.task == taskh) {
@@ -178,10 +201,10 @@ end:
     return status;
 }
 
-kstatus_t mgr_mm_shm_is_writeable_by(shmh_t handle, shm_user_t accessor, secure_bool_t*result)
+kstatus_t mgr_mm_shm_is_writeable_by(shmh_t shm, shm_user_t accessor, secure_bool_t*result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -197,7 +220,7 @@ kstatus_t mgr_mm_shm_is_writeable_by(shmh_t handle, shm_user_t accessor, secure_
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     switch (accessor) {
@@ -221,10 +244,10 @@ end:
  *
  * the secure boolean information is set through result argument
  */
-kstatus_t mgr_mm_shm_is_used_by(shmh_t handle, taskh_t taskh, secure_bool_t *result)
+kstatus_t mgr_mm_shm_is_used_by(shmh_t shm, taskh_t taskh, secure_bool_t *result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -240,7 +263,7 @@ kstatus_t mgr_mm_shm_is_used_by(shmh_t handle, taskh_t taskh, secure_bool_t *res
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     if (shm_table[kshm->id].user.task == taskh) {
@@ -258,10 +281,10 @@ end:
  *
  * the secure boolean information is set through result argument
  */
-kstatus_t mgr_mm_shm_is_shared(shmh_t handle, secure_bool_t * result)
+kstatus_t mgr_mm_shm_is_shared(shmh_t shm, secure_bool_t * result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -277,7 +300,7 @@ kstatus_t mgr_mm_shm_is_shared(shmh_t handle, secure_bool_t * result)
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     *result = shm_table[kshm->id].is_shared;
@@ -286,10 +309,10 @@ end:
     return status;
 }
 
-kstatus_t mgr_mm_shm_is_mapped_by(shmh_t handle, shm_user_t accessor, secure_bool_t * result)
+kstatus_t mgr_mm_shm_is_mapped_by(shmh_t shm, shm_user_t accessor, secure_bool_t * result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -305,7 +328,7 @@ kstatus_t mgr_mm_shm_is_mapped_by(shmh_t handle, shm_user_t accessor, secure_boo
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     switch (accessor) {
@@ -323,10 +346,10 @@ end:
     return status;
 }
 
-kstatus_t mgr_mm_shm_set_mapflag(shmh_t handle, shm_user_t accessor, secure_bool_t mapflag)
+kstatus_t mgr_mm_shm_set_mapflag(shmh_t shm, shm_user_t accessor, secure_bool_t mapflag)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
     /*@ assert \valid_read(kshm); */
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
@@ -338,7 +361,7 @@ kstatus_t mgr_mm_shm_set_mapflag(shmh_t handle, shm_user_t accessor, secure_bool
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     switch (accessor) {
@@ -385,10 +408,10 @@ end:
 }
 
 
-kstatus_t mgr_mm_shm_get_meta(shmh_t handle, shm_meta_t const ** meta)
+kstatus_t mgr_mm_shm_get_meta(shmh_t shm, shm_meta_t const ** meta)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    kshmh_t const *kshm = shmh_to_kshmh(&handle);
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
 
     if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
         status = K_ERROR_BADSTATE;
@@ -402,7 +425,7 @@ kstatus_t mgr_mm_shm_get_meta(shmh_t handle, shm_meta_t const ** meta)
         goto end;
     }
     /* check that handle matches */
-    if (unlikely(shm_table[kshm->id].handle != handle)) {
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
     *meta = shm_table[kshm->id].meta;
