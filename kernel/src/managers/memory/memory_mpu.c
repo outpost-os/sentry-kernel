@@ -29,15 +29,17 @@
 #include <uapi/handle.h>
 
 #include <sentry/managers/memory.h>
+#include "memory.h"
 
 extern uint32_t _svtor;
 extern uint32_t _ram_start;
+
 
 static secure_bool_t mm_configured;
 
 
 
-static inline secure_bool_t mgr_mm_configured(void)
+secure_bool_t mgr_mm_configured(void)
 {
     if (mm_configured == SECURE_TRUE) {
         return mm_configured;
@@ -225,6 +227,171 @@ err:
 }
 
 
+kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const shm_meta_t *shm_meta;
+    struct mpu_region_desc mpu_cfg;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    secure_bool_t result;
+    shm_user_t user;
+
+    if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = mgr_mm_shm_is_mappable_by(shm, user, &result);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(result == SECURE_FALSE)) {
+        /* this SHM is not mappable ! */
+        status = K_ERROR_DENIED;
+        goto err;
+    }
+    /* detect if tsk is owner or user. must not fail */
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(user == SHM_TSK_NONE)) {
+        goto err;
+    }
+    /* now that we know who is requesting, check user-related flags */
+    status = mgr_mm_shm_is_mapped_by(shm, user, &result);
+    /*@ assert (result == K_STATUS_OKAY); */
+    if (result == SECURE_TRUE) {
+        /* already mapped ! */
+        status = K_ERROR_BADSTATE;
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (unlikely((status = mpu_get_free_id(layout_tab, TASK_MAX_RESSOURCES_NUM, &mpu_cfg.id)) != K_STATUS_OKAY)) {
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    mpu_cfg.addr = (uint32_t)shm_meta->baseaddr;
+    mpu_cfg.size = mpu_convert_size_to_region(shm_meta->size);
+
+    /* used writeable flags declared in config */
+    if (unlikely((status = mgr_mm_shm_is_writeable_by(shm, user, &result)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (result == SECURE_TRUE) {
+        mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
+    } else {
+        mpu_cfg.access_perm = MPU_REGION_PERM_RO; /* RO for priv+user */
+    }
+    mpu_cfg.access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE;
+    mpu_cfg.mask = 0x0;
+    mpu_cfg.noexec = true;
+    mpu_cfg.shareable = false;
+    status = mpu_forge_resource(&mpu_cfg, &layout);
+    /*@ assert status == K_STATUS_OKAY; */
+    status = mgr_task_add_resource(tsk, mpu_cfg.id, layout);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        /* should not happen as already checked when getting free id */
+        /*@ assert false; */
+        status = K_ERROR_BUSY;
+        goto err;
+    }
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_TRUE);
+    /*@ assert status == K_STATUS_OKAY; */
+err:
+    return status;
+}
+
+kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const shm_meta_t *shm_meta;
+    layout_resource_t layout;
+    const layout_resource_t *layout_tab;
+    secure_bool_t result;
+    shm_user_t user;
+    uint8_t id;
+
+    if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    if (unlikely((status = mpu_get_id_from_address(layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)shm_meta->baseaddr, &id)) != K_STATUS_OKAY)) {
+        goto err;
+    }
+    /* detect if tsk is owner or user. must not fail */
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
+    /*@ assert (status == K_STATUS_OKAY); */
+    if (unlikely(user == SHM_TSK_NONE)) {
+        /* this should not happen ! */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    status = mgr_task_remove_resource(tsk, mgr_mm_region_to_layout_id(id));
+    /*@ assert (status == K_STATUS_OKAY); */
+
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_FALSE);
+    /*@ assert (status == K_STATUS_OKAY); */
+err:
+    return status;
+}
+
+
+/*
+ * @brief initialize MPU and configure kernel layout
+ *
+ * layout is the following:
+ *
+ * In kernel mode (syscalls):
+ *                                                     S     U
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---]
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---]
+ * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
+ * [MPU REG 3] [ task Data SVC-exchange region     ] [RW-] [RW-]
+ * [MPU REG 4] [                                   ] [---] [---]
+ * [MPU REG 5] [                                   ] [---] [---]
+ * [MPU REG 6] [                                   ] [---] [---]
+ * [MPU REG 7] [                                   ] [---] [---]
+ *
+ * In User mode:
+ *
+ * [MPU REG 0] [ kernel TXT section                ] [R-X] [---] // syscall gate
+ * [MPU REG 1] [ kernel DATA section               ] [RW-] [---] // syscall gate
+ * [MPU REG 2] [ task TXT section                  ] [R-X] [R-X]
+ * [MPU REG 3] [ task Data section                 ] [RW-] [RW-]
+ * [MPU REG 4] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 5] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
+ * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
+ *
+ */
+kstatus_t mgr_mm_init(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    mm_configured = SECURE_FALSE;
+
+#ifdef CONFIG_HAS_MPU
+    mpu_disable();
+    status = mgr_mm_map_kernel_txt();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = mgr_mm_map_kernel_data();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    mpu_enable();
+    mm_configured = SECURE_TRUE;
+err:
+#endif
+    return status;
+}
+
 /**
  * @brief forge an empty task memory layout
  *
@@ -294,55 +461,6 @@ kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resourc
     }
     status = K_STATUS_OKAY;
 err:
-    return status;
-}
-
-/*
- * @brief initialize MPU and configure kernel layout
- *
- * layout is the following:
- *
- * In kernel mode (syscalls):
- *                                                     S     U
- * [MPU REG 0] [ kernel TXT section                ] [R-X] [---]
- * [MPU REG 1] [ kernel DATA section               ] [RW-] [---]
- * [MPU REG 2] [ kernel current device, if needed  ] |RW-] [---] SO
- * [MPU REG 3] [ task Data SVC-exchange region     ] [RW-] [RW-]
- * [MPU REG 4] [                                   ] [---] [---]
- * [MPU REG 5] [                                   ] [---] [---]
- * [MPU REG 6] [                                   ] [---] [---]
- * [MPU REG 7] [                                   ] [---] [---]
- *
- * In User mode:
- *
- * [MPU REG 0] [ kernel TXT section                ] [R-X] [---] // syscall gate
- * [MPU REG 1] [ kernel DATA section               ] [RW-] [---] // syscall gate
- * [MPU REG 2] [ task TXT section                  ] [R-X] [R-X]
- * [MPU REG 3] [ task Data section                 ] [RW-] [RW-]
- * [MPU REG 4] [ task ressources bank 1, if needed ] [---] [---]
- * [MPU REG 5] [ task ressources bank 1, if needed ] [---] [---]
- * [MPU REG 6] [ task ressources bank 1, if needed ] [---] [---]
- * [MPU REG 7] [ task ressources bank 1, if needed ] [---] [---]
- *
- */
-kstatus_t mgr_mm_init(void)
-{
-    kstatus_t status = K_STATUS_OKAY;
-    mm_configured = SECURE_FALSE;
-#ifdef CONFIG_HAS_MPU
-    mpu_disable();
-    status = mgr_mm_map_kernel_txt();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
-    status = mgr_mm_map_kernel_data();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
-    mpu_enable();
-    mm_configured = SECURE_TRUE;
-err:
-#endif
     return status;
 }
 

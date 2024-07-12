@@ -1,0 +1,36 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef MEMORY_SHM_DT_H
+#define MEMORY_SHM_DT_H
+
+/**
+ * @file Sentry memory manager shared-memory manipulation API
+ */
+
+#include <inttypes.h>
+#include <sentry/ktypes.h>
+
+typedef struct shm_meta {
+    size_t          baseaddr;
+    size_t          size;
+    secure_bool_t   is_dma_pool;
+    secure_bool_t   is_mappable;
+    uint32_t        shm_label;
+    uint32_t        owner_label;
+} shm_meta_t;
+
+
+{% set ns = namespace() -%}
+{% set ns.total_shm=0 -%}
+{% for node in dts.get_mappable() -%}
+{% if node|has_property("outpost,shm") -%}
+{% set ns.total_shm = ns.total_shm + 1 -%}
+{% endif -%}
+{% endfor -%}
+
+#define SHM_LIST_SIZE {{ "%uUL"|format(ns.total_shm) }}
+
+shm_meta_t const *memory_shm_get_meta(size_t id);
+
+#endif/*!MEMORY_SHM_DT_H*/

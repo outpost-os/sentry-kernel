@@ -38,6 +38,8 @@ kstatus_t mgr_mm_resize_taskdata_to_svcexchange(taskh_t target);
 
 kstatus_t mgr_mm_init(void);
 
+kstatus_t mgr_mm_shm_init(void);
+
 kstatus_t mgr_mm_watchdog(void);
 
 /* BSP related, not for syscalls */
@@ -72,6 +74,48 @@ kstatus_t mgr_mm_unmap_device(taskh_t tsk, devh_t dev);
 
 
 kstatus_t mgr_mm_forge_ressource(mm_region_t reg_type, taskh_t t, layout_resource_t *ressource);
+
+/** about SHM management */
+
+typedef enum shm_user {
+    SHM_TSK_OWNER,
+    SHM_TSK_USER,
+    SHM_TSK_NONE,
+} shm_user_t;
+
+/**
+ * shared memory per-user configuration. This config is set by the owner for both.
+ * at boot time, all fields are set to SECURE_FALSE
+ */
+typedef struct shm_config {
+    secure_bool_t mappable; /**< is SHM mappable by user ? if dts-decl is not mappable, ignored */
+    secure_bool_t rw; /**< is SHM writable by the user ? */
+    secure_bool_t transferable; /**< is SHM transferable by user to another ? */
+} shm_config_t;
+
+kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm);
+
+kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm);
+
+/* global SHM properties relative requests */
+
+kstatus_t mgr_mm_shm_is_mappable_by(shmh_t shm, shm_user_t tsk, secure_bool_t *result);
+
+kstatus_t mgr_mm_shm_is_shared(shmh_t shm, secure_bool_t * result);
+
+kstatus_t mgr_mm_shm_get_handle(uint32_t shm_id, shmh_t *handle);
+
+/* per user/owner properties requests */
+
+kstatus_t mgr_mm_shm_is_mapped_by(shmh_t shm, shm_user_t accessor, secure_bool_t * result);
+
+kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accessor);
+
+kstatus_t mgr_mm_shm_is_writeable_by(shmh_t shm, shm_user_t accessor, secure_bool_t*result);
+
+kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const *config);
+
+kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task);
 
 /*
  * XXX:

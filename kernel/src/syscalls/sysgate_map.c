@@ -118,3 +118,91 @@ stack_frame_t *gate_unmap_dev(stack_frame_t *frame, devh_t device)
 end:
     return frame;
 }
+
+/**
+ * @fn gate_map_dev - Map a device in current task layout
+ *
+ * @param[in] frame current job's frame. Not updated here
+ * @param[in] device device handle to map
+ *
+ * @return current job frame (no modification)
+ */
+stack_frame_t *gate_map_shm(stack_frame_t *frame, shmh_t shm)
+{
+    taskh_t current = sched_get_current();
+    kstatus_t status;
+    shm_user_t user;
+
+    status = mgr_mm_shm_get_task_type(shm, current, &user);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        /* shm is invalid */
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    if (unlikely(user == SHM_TSK_NONE)) {
+        /* shm is not accessible for current */
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    /* current task is an owner or user of the shm */
+    if (unlikely((status = mgr_mm_map_shm(current, shm)) != K_STATUS_OKAY)) {
+        /* already mapped or memory backend error */
+        switch (status) {
+            case K_ERROR_INVPARAM:
+                mgr_task_set_sysreturn(current, STATUS_NO_ENTITY);
+                break;
+            case K_ERROR_BADSTATE:
+                mgr_task_set_sysreturn(current, STATUS_ALREADY_MAPPED);
+                break;
+            case K_ERROR_DENIED:
+                mgr_task_set_sysreturn(current, STATUS_DENIED);
+                break;
+            default:
+                mgr_task_set_sysreturn(current, STATUS_BUSY);
+        }
+        goto end;
+    }
+    pr_debug("mapping shm %x for task %x", shm, current);
+    mgr_task_set_sysreturn(current, STATUS_OK);
+end:
+    return frame;
+}
+
+stack_frame_t *gate_unmap_shm(stack_frame_t *frame, shmh_t shm)
+{
+    kstatus_t status;
+    taskh_t current = sched_get_current();
+    secure_bool_t is_mapped;
+    shm_user_t user;
+
+    status = mgr_mm_shm_get_task_type(shm, current, &user);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        /* shm is invalid */
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    if (unlikely(user == SHM_TSK_NONE)) {
+        /* shm is not accessible for current */
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    if (mgr_mm_shm_is_mapped_by(shm, user, &is_mapped) != K_STATUS_OKAY) {
+        /* should not happen with a valid shm */
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    if (unlikely(is_mapped != SECURE_TRUE)) {
+        /* not mapped, and thus can't be unmapped */
+        mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto end;
+    }
+    if (unlikely(mgr_mm_unmap_shm(current, shm) != K_STATUS_OKAY)) {
+        /* should not happen with a valid, mapped and accessible shm */
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    pr_debug("unmapping shm %x for task %x", shm, current);
+    mgr_task_set_sysreturn(current, STATUS_OK);
+end:
+    return frame;
+}

@@ -23,6 +23,19 @@ pub extern "C" fn sys_get_process_handle(process: ProcessLabel) -> Status {
     syscall!(Syscall::GetProcessHandle, process).into()
 }
 
+/// Get global identifier for a given shm label
+///
+/// This mechanism allows respawn detection, as the label is fixed but the resource identifier
+/// is regenerated.
+/// A shm is a resource like any other and manipulating it requires to get
+/// back its resource handle from its label.
+///
+/// POSIX upper layer(s): N/A
+#[no_mangle]
+pub extern "C" fn sys_get_shm_handle(shm: ShmLabel) -> Status {
+    syscall!(Syscall::GetShmHandle, shm).into()
+}
+
 /// Release the processor before the end of the current quantum.
 /// Allows triggering a schedule() even if not in the process's central blocking point
 ///
@@ -90,11 +103,11 @@ pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
 /// POSIX upper layer(s): shmctl(3),
 #[no_mangle]
 pub extern "C" fn sys_shm_set_credential(
-    resource: u32,
-    id: ProcessID,
-    shm_perm: SHMPermission,
+    shm: shmh_t,
+    id: taskh_t,
+    shm_perm: u32,
 ) -> Status {
-    syscall!(Syscall::SHMSetCredential, resource, id, u32::from(shm_perm)).into()
+    syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
 /// Send events to another process

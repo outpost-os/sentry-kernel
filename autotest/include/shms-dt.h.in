@@ -1,0 +1,53 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * XXX:
+ *  !!!! Generated header, DO NOT EDIT !!!!
+ */
+
+#ifndef AUTOTEST_SHMLIST_H
+#define AUTOTEST_SHMLIST_H
+
+/*
+ * XXX:
+ *  !!! Do not include this header in multiple compilation units, as it
+ *    contain a huge const structure that should not be duplicated in memory !!!
+ */
+#include <uapi/handle.h>
+#include <uapi/device.h>
+
+{% set ns = namespace() -%}
+{% set ns.total_shm=0 -%}
+static const shminfo_t shms[] = {
+    {% for node in dts.get_mappable() -%}
+    {% if node|has_property("outpost,shm") -%}
+    {% set owner = "%#xUL"|format(node|owner) -%}
+    {% if owner != "0xbabeUL" -%}
+    {% continue -%}
+    {% endif -%}
+    {
+        {% set label = node["outpost,label"] -%}
+        .id = {{ "%#xUL"|format(label) }},
+        {% if node|has_property("outpost,no-map") -%}
+        .mappable = false,
+        {% else -%}
+        .mappable = true,
+        {% endif -%}
+        {% if node|has_property("dma-pool") -%}
+        .dmapool = true,
+        {% else -%}
+        .dmapool = false,
+        {% endif -%}
+        .baseaddr = {{ "0x%08x"|format(node.reg[0]) }},
+        .size = {{ "0x%08x"|format(node.reg[1]) }}
+    {% set ns.total_shm = ns.total_shm + 1 -%}
+    },
+    {% endif -%}
+    {% endfor -%}
+    {} /* sentinel */
+};
+
+#define SHM_LIST_SIZE {{ "%uUL"|format(ns.total_shm) }}
+
+#endif/*!AUTOTEST_DEVLIST_H*/

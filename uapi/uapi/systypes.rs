@@ -80,6 +80,7 @@ pub enum Syscall {
     IrqAcknowledge,
     IrqEnable,
     IrqDisable,
+    GetShmHandle,
 }
 }
 
@@ -149,6 +150,12 @@ impl From<u32> for Status {
 ///  in the source code. This can be used in order to get back remote process effective
 /// identifier from label at any time in order to communicate
 pub type ProcessLabel = u32;
+
+/// A shm label is a development-time fixed identifier that can be used hardcoded
+/// in the source code. This label is set in the device-tree in the shm declaration,
+/// and can be used in order to get back the effective shm handler from it in order
+/// to manipulate it
+pub type ShmLabel = u32;
 
 /// List of Sentry resource types
 ///
