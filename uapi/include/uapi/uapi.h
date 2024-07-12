@@ -199,7 +199,7 @@ Status sys_send_signal(uint32_t resource, Signal signal_type);
  *
  * POSIX upper layer(s): shmctl(3),
  */
-Status sys_shm_set_credential(uint32_t resource, ProcessID id, SHMPermission shm_perm);
+Status sys_shm_set_credential(shmh_t shm, taskh_t target, uint32_t shm_perm);
 
 /**
  * Sleep for a given amount of time

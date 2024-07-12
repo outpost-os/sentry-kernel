@@ -37,10 +37,6 @@ kstatus_t mgr_mm_shm_init(void)
     kstatus_t status = K_STATUS_OKAY;
     kshmh_t ksh;
 
-    if (unlikely(mgr_mm_configured() == SECURE_TRUE)) {
-        status = K_ERROR_BADSTATE;
-        goto end;
-    }
     for (size_t id = 0; id < SHM_LIST_SIZE; ++id) {
         uint32_t entropy;
 
@@ -60,16 +56,19 @@ kstatus_t mgr_mm_shm_init(void)
         shm_table[id].owner.is_mapped = SECURE_FALSE;
         shm_table[id].owner.config.rw = SECURE_FALSE;
         shm_table[id].owner.config.transferable = SECURE_FALSE;
-        status = mgr_task_get_handle(shm_table[id].meta->owner_label, &shm_table[id].owner.task);
-        if (unlikely(status != K_STATUS_OKAY)) {
-            goto end;
+        shm_table[id].owner.config.mappable = SECURE_FALSE;
+        if (unlikely(mgr_task_get_handle( shm_table[id].meta->owner_label, &shm_table[id].owner.task) != K_STATUS_OKAY)) {
+            /* this should never happen: dts task label invalid! */
+            panic(PANIC_CONFIGURATION_MISMATCH);
         }
         shm_table[id].user.is_mapped = SECURE_FALSE;
         shm_table[id].user.config.rw = SECURE_FALSE;
         shm_table[id].user.config.transferable = SECURE_FALSE;
+        shm_table[id].user.config.mappable = SECURE_FALSE;
         /* at init time, shm is not shared and user is owner */
         shm_table[id].user.task = shm_table[id].owner.task;
     }
+    status = K_STATUS_OKAY;
 end:
     return status;
 }
@@ -96,6 +95,9 @@ kstatus_t mgr_mm_shm_get_task_type(shmh_t shm, taskh_t task, shm_user_t *accesso
     if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
+    /* at boot time, task handle is not link as not yet forged. At first call, this
+     * function cache it in local table to avoid task requests from label
+     */
     if (shm_table[kshm->id].owner.task == task) {
         *accessor = SHM_TSK_OWNER;
     } else if (shm_table[kshm->id].user.task == task) {
@@ -127,6 +129,12 @@ kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task)
         goto end;
     }
     shm_table[kshm->id].user.task = task;
+    if (task != shm_table[kshm->id].owner.task) {
+        shm_table[kshm->id].is_shared = SECURE_TRUE;
+    } else {
+        /* unsharing */
+        shm_table[kshm->id].is_shared = SECURE_FALSE;
+    }
 end:
     return status;
 }
@@ -136,7 +144,7 @@ end:
  *
  * the secure boolean information is set through result argument
  */
-kstatus_t mgr_mm_shm_is_mappable(shmh_t shm, secure_bool_t *result)
+kstatus_t mgr_mm_shm_is_mappable_by(shmh_t shm, shm_user_t tsk, secure_bool_t *result)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     kshmh_t const *kshm = shmh_to_kshmh(&shm);
@@ -158,7 +166,18 @@ kstatus_t mgr_mm_shm_is_mappable(shmh_t shm, secure_bool_t *result)
     if (unlikely(shm_table[kshm->id].handle != shm)) {
         goto end;
     }
-    *result = shm_table[kshm->id].meta->is_mappable;
+    /* whatever the local map flag is, when not mappable, just not mappable */
+    if (shm_table[kshm->id].meta->is_mappable == SECURE_FALSE) {
+        *result = SECURE_FALSE;
+        status = K_STATUS_OKAY;
+        goto end;
+    }
+    /* otherwise, check for requester */
+    if (tsk == SHM_TSK_OWNER) {
+        *result = shm_table[kshm->id].owner.config.mappable;
+    } else {
+        *result = shm_table[kshm->id].user.config.mappable;
+    }
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -459,10 +478,12 @@ kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const
         case SHM_TSK_OWNER:
             shm_table[kshm->id].owner.config.rw = config->rw;
             shm_table[kshm->id].owner.config.transferable = config->transferable;
+            shm_table[kshm->id].owner.config.mappable = config->mappable;
             break;
         case SHM_TSK_USER:
             shm_table[kshm->id].user.config.rw = config->rw;
             shm_table[kshm->id].user.config.transferable = config->transferable;
+            shm_table[kshm->id].user.config.mappable = config->mappable;
             break;
         default:
             goto end;

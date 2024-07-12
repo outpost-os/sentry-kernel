@@ -147,10 +147,18 @@ stack_frame_t *gate_map_shm(stack_frame_t *frame, shmh_t shm)
     /* current task is an owner or user of the shm */
     if (unlikely((status = mgr_mm_map_shm(current, shm)) != K_STATUS_OKAY)) {
         /* already mapped or memory backend error */
-        if (status == K_ERROR_BADSTATE) {
-            mgr_task_set_sysreturn(current, STATUS_ALREADY_MAPPED);
-        } else {
-            mgr_task_set_sysreturn(current, STATUS_BUSY);
+        switch (status) {
+            case K_ERROR_INVPARAM:
+                mgr_task_set_sysreturn(current, STATUS_NO_ENTITY);
+                break;
+            case K_ERROR_BADSTATE:
+                mgr_task_set_sysreturn(current, STATUS_ALREADY_MAPPED);
+                break;
+            case K_ERROR_DENIED:
+                mgr_task_set_sysreturn(current, STATUS_DENIED);
+                break;
+            default:
+                mgr_task_set_sysreturn(current, STATUS_BUSY);
         }
         goto end;
     }

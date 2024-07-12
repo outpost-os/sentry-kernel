@@ -50,5 +50,19 @@ typedef struct devinfo {
     io_info_t ios[8];       /**< device I/O list */
 } devinfo_t;
 
+/**
+ * @brief userspace oriented device definition
+ *
+ * In Outpost is device is
+ */
+typedef struct shminfo {
+    uint32_t id;
+    bool     mappable;        /**< mappable device. Direct-IO (LED...) are not */
+    bool     dmapool;        /**< mappable device. Direct-IO (LED...) are not */
+    size_t   baseaddr;        /**< for mappable devices, base address */
+    size_t   size;            /**< for mappable devices, mapped size */
+} shminfo_t;
+
+
 
 #endif/*UAPI_DEVICE_H*/

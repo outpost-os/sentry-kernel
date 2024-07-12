@@ -238,14 +238,20 @@ kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
     shm_user_t user;
 
     if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
-        pr_err("failed to get shm meta from shm handle %x", shm);
         goto err;
     }
-    status = mgr_mm_shm_is_mappable(shm, &result);
+    status = mgr_mm_shm_get_task_type(shm, tsk, &user);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    status = mgr_mm_shm_is_mappable_by(shm, user, &result);
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
     /*@ assert (status == K_STATUS_OKAY); */
     if (unlikely(result == SECURE_FALSE)) {
         /* this SHM is not mappable ! */
-        pr_err("this SHM is declared as not mappable");
+        status = K_ERROR_DENIED;
         goto err;
     }
     /* detect if tsk is owner or user. must not fail */
@@ -263,11 +269,9 @@ kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
         goto err;
     }
     if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
-        pr_err("failed to get task ressource layout from task handle %x", tsk);
         goto err;
     }
     if (unlikely((status = mpu_get_free_id(layout_tab, TASK_MAX_RESSOURCES_NUM, &mpu_cfg.id)) != K_STATUS_OKAY)) {
-        pr_err("no free slot to map shm");
         status = K_ERROR_BUSY;
         goto err;
     }
@@ -293,11 +297,10 @@ kstatus_t mgr_mm_map_shm(taskh_t tsk, shmh_t shm)
     if (unlikely(status != K_STATUS_OKAY)) {
         /* should not happen as already checked when getting free id */
         /*@ assert false; */
-        pr_err("no free slot to map shm");
         status = K_ERROR_BUSY;
         goto err;
     }
-    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_FALSE);
+    status = mgr_mm_shm_set_mapflag(shm, user, SECURE_TRUE);
     /*@ assert status == K_STATUS_OKAY; */
 err:
     return status;
@@ -314,15 +317,12 @@ kstatus_t mgr_mm_unmap_shm(taskh_t tsk, shmh_t shm)
     uint8_t id;
 
     if (unlikely((status = mgr_mm_shm_get_meta(shm, &shm_meta)) != K_STATUS_OKAY)) {
-        pr_err("failed to get shm meta from shm handle %x", shm);
         goto err;
     }
     if (unlikely((status = mgr_task_get_layout_from_handle(tsk, &layout_tab)) != K_STATUS_OKAY)) {
-        pr_err("failed to get task ressource layout from task handle %x", tsk);
         goto err;
     }
     if (unlikely((status = mpu_get_id_from_address(layout_tab, TASK_MAX_RESSOURCES_NUM, (uint32_t)shm_meta->baseaddr, &id)) != K_STATUS_OKAY)) {
-        pr_err("shm %x not found in mapped layout", shm);
         goto err;
     }
     /* detect if tsk is owner or user. must not fail */

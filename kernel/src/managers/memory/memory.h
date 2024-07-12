@@ -47,7 +47,6 @@ static inline const kshmh_t *shmh_to_kshmh(const shmh_t * const sh) {
   * @return converted handler to opaque value
   */
 static inline const shmh_t *kshmh_to_shmh(const kshmh_t * const ksh) {
-    /*@ assert \valid(kdh); */
     union ush converter = {
         .ksh = ksh
     };
