@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
+test_name = 'frama-c-wp-bsp-pwr'
+
 # specify an ELF including framaC main. This forges the correct flags in the
 # compile_commands.json so that framaC can use it. Although it should never be
 # built by meson, but instead json metadata being used by framaC to forge the
@@ -7,7 +12,7 @@ framac_bsp_pwr_stub_entrypoint = files(
 )
 
 framac_bsp_pwr_stub_elf = executable(
-  'framac_bsp_pwr_stub_exe',
+  test_name + '_stub_exe',
   name_suffix: 'elf',
   sources: [
     framac_bsp_pwr_stub_entrypoint,
@@ -21,25 +26,26 @@ framac_bsp_pwr_stub_elf = executable(
 )
 
 test(
-  'frama-C-wp-bsp-pwr',
+  test_name,
   frama_c,
   args: [
     framac_bsp_pwr_stub_entrypoint,
     meson.project_source_root()+'/kernel/src/drivers/clk/stm32-pwr.c',
     framac_gen_opts,
     framac_rte_eva_opts,
-    '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
-    '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),
+    '-eva-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-eva.log'),
+    '-eva-report-red-statuses', join_paths(meson.current_build_dir(), test_name + '-red-statuses.log'),
     '-metrics',
     '-metrics-eva-cover',meson.project_source_root()+'/kernel/src/drivers/clk/stm32-pwr.c',
     '-then', framac_wp_opts,
-    '-wp-fct','pwr_probe,pwr_set_voltage_regulator_scaling',
-    '-wp-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-wp.log'),
-    '-save',join_paths(meson.current_build_dir(), 'sentry-bsp-pwr.wp'),
+    '-wp-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-wp.log'),
+    '-save',join_paths(meson.current_build_dir(), test_name + '.wp.session'),
     '-then',
     framac_md_opts,
+    '-mdr-out', join_paths(meson.current_build_dir(), test_name + '-report.md'),
+    '-mdr-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-md.log'),
   ],
-  env: {'FRAMAC_SESSIfON': join_paths(meson.current_build_dir(), '.frama-c')},
+  env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
   depends: [ framac_dep ],
   suite: 'proof',
   timeout: 1200,

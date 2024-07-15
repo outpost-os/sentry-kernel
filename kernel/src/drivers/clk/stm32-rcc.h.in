@@ -4,6 +4,8 @@
 #ifndef RCC_STM32_H
 #define RCC_STM32_H
 
+#include <sentry/ktypes.h>
+
 /* AHB/APB prescaler range are in power of 2 */
 #define RCC_AHB_PRESCALER_RANGE RANGE(0,9)
 #define RCC_APB_PRESCALER_MAX 4

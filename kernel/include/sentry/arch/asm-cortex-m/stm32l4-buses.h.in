@@ -54,6 +54,17 @@ typedef enum bus_identifier {
 {% endif -%}
 {% endfor %}
 
+#define BUS_IS_VALID(bus) ( \
+    {% for register in peripheral.registers -%}
+    {% if register.name.endswith('RSTR') -%}
+    (bus == BUS_{{register.name[0:4]}}) || \
+    {% endif -%}
+    {% if register.name.endswith('RSTR1') -%}
+    (bus == BUS_{{register.name[0:4]}}) || \
+    {% endif -%}
+    {% endfor -%}
+    false)
+
 /*@
   logic boolean bus_is_valid(uint32_t bus) =
     (

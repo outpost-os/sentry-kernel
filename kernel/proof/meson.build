@@ -1,4 +1,7 @@
 
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
 cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
@@ -36,6 +39,8 @@ framac_dep = custom_target(
     output: 'framac.dep',
 )
 
+framac_dep_tree = meson.current_build_dir() / 'framac.dep.p'
+
 # Only kernel C sources here (not headers)
 kernel_sources = [
     sentry_startup,
@@ -57,7 +62,7 @@ framac_gen_opts = [
   '-instantiate',
   '-json-compilation-database', join_paths(meson.project_build_root(), 'compile_commands.json'),
   '-config', join_paths(meson.current_build_dir(), '.sentry-config'),
-  '-cpp-extra-args=-nostdinc,-I ' + meson.current_build_dir() + '/framac.dep.p' + ',-DDTS_FILE=\\"@0@\\"'.format(sentry_dts_file),
+  '-cpp-extra-args=-nostdinc,-I ' + framac_dep_tree + ',-DDTS_FILE=\\"@0@\\"'.format(sentry_dts_file),
   '-frama-c-stdlib',
   '-absolute-valid-range', '40000000-0xE000F000',
 ]
@@ -149,4 +154,4 @@ exit(lines-1)
 
 subdir('proof_entrypoint')
 subdir('proof_handlers')
-subdir('proof_zlib')
+subdir('proof_composition')

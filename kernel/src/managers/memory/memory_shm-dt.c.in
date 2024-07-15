@@ -46,6 +46,7 @@ shm_meta_t const *memory_shm_get_meta(size_t id)
         goto end;
     }
     meta = &shms[id];
+    /*@ assert \valid_read(meta); */
 end:
     return meta;
 }

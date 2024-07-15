@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
 
 kernel_eva_entypoint = files(
   'kernel_entrypoint.c',
@@ -59,6 +61,6 @@ test(
   depends: [ framac_dep ],
   suite: 'proof',
   is_parallel: false,
-  should_fail: true,
+  should_fail: false,
   priority: 253,
 )

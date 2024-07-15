@@ -8,10 +8,13 @@ volatile uint32_t regvalue;
 
 int main(void)
 {
-    uint8_t busid = Frama_C_interval_8(0, 42);
+    uint8_t busid = Frama_C_interval_8(0, 0xff);
     uint32_t clkid = Frama_C_interval_32(0, 0x0a0b0c0dUL);
     uint8_t flag = Frama_C_interval_8(0, 42);
+    volatile uint8_t val = 0;
+    volatile uint8_t clkmsk = 0;
     uint32_t clk;
+    uint32_t busclk;
 
     /* Initialize device with randomness (over-approximation of
        all content possibilities, avoid first device access ioread32()
@@ -24,14 +27,13 @@ int main(void)
      */
     rcc_probe();
 
-    rcc_enable_apbx();
-    rcc_disable_apbx();
-    rcc_disable(busid, clkid, flag);
+    rcc_get_core_frequency();
+
     rcc_enable(busid, clkid, flag);
     rcc_disable(busid, clkid, flag);
-
+    rcc_get_bus_clock(busid, &busclk);
     rcc_get_bus_clock(busid, NULL);
-    rcc_get_bus_clock(busid, &clk);
+    rcc_mux_select_clock_source(clkid, clkmsk, val);
 
     return 0;
 }
