@@ -52,6 +52,7 @@ kstatus_t mgr_mm_shm_init(void)
             /* this should never happen */
             panic(PANIC_CONFIGURATION_MISMATCH);
         }
+        /*@ assert \valid_read(shm_table[id].meta); */
         shm_table[id].is_shared = SECURE_FALSE;
         shm_table[id].owner.is_mapped = SECURE_FALSE;
         shm_table[id].owner.config.rw = SECURE_FALSE;

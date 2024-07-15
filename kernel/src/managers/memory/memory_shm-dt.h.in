@@ -31,6 +31,19 @@ typedef struct shm_meta {
 
 #define SHM_LIST_SIZE {{ "%uUL"|format(ns.total_shm) }}
 
+/*@
+    behavior invalidid:
+        assumes id >= SHM_LIST_SIZE;
+        assigns \nothing;
+        ensures \result == NULL;
+    behavior validid:
+        assumes id < SHM_LIST_SIZE;
+        assigns \nothing;
+        ensures \valid_read(\result);
+
+    complete behaviors;
+    disjoint behaviors;
+  */
 shm_meta_t const *memory_shm_get_meta(size_t id);
 
 #endif/*!MEMORY_SHM_DT_H*/
