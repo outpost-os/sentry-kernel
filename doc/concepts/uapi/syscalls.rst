@@ -48,6 +48,11 @@ Syscall definition
 .. include:: syscalls/get_dev_handle.rst
 
 .. index::
+  single: sys_get_shm_handle; definition
+  single: sys_get_shm_handle; usage
+.. include:: syscalls/get_shm_handle.rst
+
+.. index::
   single: sys_get_random; definition
   single: sys_get_random; usage
 .. include:: syscalls/get_random.rst
@@ -83,6 +88,16 @@ Syscall definition
 .. include:: syscalls/irq_acknowledge.rst
 
 .. index::
+  single: sys_irq_enable; definition
+  single: sys_irq_enable; usage
+.. include:: syscalls/irq_enable.rst
+
+.. index::
+  single: sys_irq_disable; definition
+  single: sys_irq_disable; usage
+.. include:: syscalls/irq_disable.rst
+
+.. index::
   single: sys_log; definition
   single: sys_log; usage
 .. include:: syscalls/log.rst
@@ -93,6 +108,16 @@ Syscall definition
   single: sys_unmap_dev; definition
   single: sys_unmap_dev; usage
 .. include:: syscalls/map.rst
+
+.. index::
+  single: sys_map_shm; definition
+  single: sys_map_shm; usage
+.. include:: syscalls/shm_map.rst
+
+.. index::
+  single: sys_unmap_shm; definition
+  single: sys_unmap_shm; usage
+.. include:: syscalls/shm_unmap.rst
 
 .. index::
   single: sys_pm_clock_set; definition
@@ -108,6 +133,11 @@ Syscall definition
   single: sys_send_signal; definition
   single: sys_send_signal; usage
 .. include:: syscalls/send_signal.rst
+
+.. index::
+  single: sys_shm_set_credential; definition
+  single: sys_shm_set_credential; usage
+.. include:: syscalls/shm_set_credential.rst
 
 .. index::
   single: sys_wait_for_event; definition

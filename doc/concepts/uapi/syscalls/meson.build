@@ -5,6 +5,7 @@ syscalls_src = files(
   'alarm.rst',
   'get_dev_handle.rst',
   'get_task_handle.rst',
+  'get_shm_handle.rst',
   'gpio_reset.rst',
   'gpio_toggle.rst',
   'log.rst',
@@ -18,6 +19,9 @@ syscalls_src = files(
   'irq_enable.rst',
   'irq_disable.rst',
   'map.rst',
+  'shm_map.rst',
+  'shm_unmap.rst',
+  'shm_set_credential.rst',
   'send_ipc.rst',
   'waitforevent.rst',
 )
