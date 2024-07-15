@@ -133,7 +133,7 @@ stm32l4_rcc_h = dtsgen.process(
     preserve_path_from: meson.current_source_dir(),
 )
 
-bsp_rcc_private_gen_source_set.add(stm32l4_rcc_c)
+bsp_clk_private_gen_source_set.add(stm32l4_rcc_c)
 bsp_clk_private_gen_header_set.add(stm32l4_rcc_h)
 endif
 
