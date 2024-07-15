@@ -72,6 +72,10 @@ concepts_rst = files(
     'concepts/tests/autotest.rst',
     'concepts/tests/index.rst',
     'concepts/tests/unittests.rst',
+    'concepts/proof/index.rst',
+    'concepts/proof/basics.rst',
+    'concepts/proof/eva.rst',
+    'concepts/proof/wp.rst',
 )
 concepts = custom_target('doc-concepts',
     input: concepts_rst,

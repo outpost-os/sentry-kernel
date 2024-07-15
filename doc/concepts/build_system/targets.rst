@@ -425,3 +425,49 @@ A typical test execution is the following:
 .. note::
    More about the way unit testing Sentry is designed in described in a dedicated
    :ref:`chapter <unittest>`.
+
+
+Prooving Sentry
+"""""""""""""""
+
+Sentry kernel is using Frama-C framework in order to include noRTE and functional correctness
+into the Kernel. For correctness analysis, Sentry is using:
+
+   * EVA (Evaluated Value Analysis) and RTE (Run Time Error) plugins to determine any potential RTE for all possible inputs
+   * WP (Weakest Precondition) plugin to validate subprogram contracts based on ACSL specifications of their behavior
+
+Calling Frama-C analysus is done using proof dedicated est suite denoted `proof`, while the `with_proof` option is set to true.
+
+.. code-block:: shell
+
+    meson test -C builddir --suite proof
+
+Executing the test frama-C analysisgenerates a lot of reports, measurement, analysis in the `kernel/proof` build subdirectory.
+
+A typical test execution is the following:
+
+.. code-block:: shell
+
+    meson test -C builddir --suite proof
+    [1/1] Generating kernel/proof/framac.dep with a custom command
+    1/10 frama-C-parsing                              OK               20.04s
+    2/10 frama-c-eva-entrypoint                       OK              170.30s
+    3/10 frama-C-eva-handler-systick                  OK               66.74s
+    4/10 frama-c-eva-handler-svc                      OK              212.47s
+    5/10 frama-c-eva-zlib                             OK                1.25s
+    6/10 frama-c-eva-entrypoint-redalarm              OK                0.03s
+    7/10 frama-C-eva-handler-systick-redalarm         OK                0.04s
+    8/10 frama-c-eva-handler-svc-redalarm             EXPECTEDFAIL      0.03s   exit status 10
+    9/10 frama-c-eva-zlib-redalarm                    OK                0.03s
+    10/10 frama-c-wp-bsp-rcc                           OK               57.52s
+
+    Ok:                 9
+    Expected Fail:      1
+    Fail:               0
+    Unexpected Pass:    0
+    Skipped:            0
+    Timeout:            0
+
+.. note::
+   More about the way unit testing Sentry is designed in described in a dedicated
+   :ref:`chapter <proof>`.
