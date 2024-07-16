@@ -108,24 +108,34 @@
 /** MPU Region Size 4 GBytes */
 #define MPU_REGION_SIZE_4GB ARM_MPU_REGION_SIZE_4GB
 
+/*@
+  assigns \nothing;
+ */
 __STATIC_FORCEINLINE void __mpu_initialize(void)
 {
     /* Nothing to do for PMSAv7 */
 }
 
-__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_resource_t* ressource)
+/*@
+   requires \valid(resource);
+   assigns *resource;
+ */
+__STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_resource_t* resource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    if (unlikely(ressource == NULL)) {
-        goto end;
-    }
-    ressource->RBAR = ARM_MPU_RBAR(id + TASK_FIRST_REGION_NUMBER, 0x0UL);
-    ressource->RASR = 0x0UL;
+
+    resource->RBAR = ARM_MPU_RBAR(id + TASK_FIRST_REGION_NUMBER, 0x0UL);
+    resource->RASR = 0x0UL;
     status = K_STATUS_OKAY;
-end:
     return status;
 }
 
+/*@
+  requires \valid_read(desc);
+  requires \valid(resource);
+  assigns *resource;
+  ensures (\result == K_STATUS_OKAY);
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *desc,
                                                    layout_resource_t *resource)
 {
@@ -133,9 +143,9 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
     uint32_t rbar;
     uint32_t rasr;
 
-    if (unlikely((desc == NULL) || (resource == NULL))) {
-        goto end;
-    }
+    /* W^X conformity */
+    /*@ assert desc->noexec == 0 ==> desc->access_perm != MPU_REGION_PERM_FULL; */
+    /*@ assert desc->access_perm == MPU_REGION_PERM_FULL ==> desc->noexec == 1; */
     resource->RBAR = ARM_MPU_RBAR(desc->id, desc->addr);
     resource->RASR = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
                            desc->access_perm,
@@ -143,7 +153,6 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
                            desc->mask,
                            desc->size);
     status = K_STATUS_OKAY;
-end:
     return status;
 }
 
@@ -157,6 +166,10 @@ end:
  * @note for PMSAv7, resource ID is encoded in RBAR register,
  * thus, first_region_number is unused.
  */
+/*@
+  requires \valid_read(resource + (0 .. num_resources-1));
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_fastload(
     uint32_t first_region_number __attribute__((unused)),
     const layout_resource_t *resource,
@@ -165,6 +178,10 @@ __STATIC_FORCEINLINE void __mpu_fastload(
     ARM_MPU_Load(resource, num_resources);
 }
 
+/*@
+   requires \valid_read(resource);
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE secure_bool_t __mpu_is_resource_free(const layout_resource_t* resource)
 {
     secure_bool_t is_free = SECURE_FALSE;
@@ -176,6 +193,10 @@ __STATIC_FORCEINLINE secure_bool_t __mpu_is_resource_free(const layout_resource_
     return is_free;
 }
 
+/*@
+   requires \valid_read(resource);
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resource_t *resource)
 {
     return resource->RBAR & MPU_RBAR_ADDR_Msk;
@@ -185,6 +206,9 @@ __STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resou
  * @brief PMSAv7 MPU region size alignment
  * @param size memory size to map
  * @return size aligned the next power of 2 boundary if unaligned
+ */
+/*@
+   assigns \nothing;
  */
 __STATIC_FORCEINLINE uint32_t __mpu_region_align_size(uint32_t size)
 {
@@ -206,6 +230,9 @@ __STATIC_FORCEINLINE uint32_t __mpu_region_align_size(uint32_t size)
  *
  * @return the value to write into the RASR
  */
+/*@
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t __mpu_size_to_region(uint32_t size)
 {
     uint8_t shift = __builtin_ffsl(size) - 1;
@@ -217,7 +244,11 @@ __STATIC_FORCEINLINE uint32_t __mpu_size_to_region(uint32_t size)
     return shift - 1;
 }
 
-
+/*@
+  // TODO: get back local SoC max RNR to control region_id value
+  requires \valid_read(resource);
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_set_region(
     uint32_t region_id __attribute__((unused)),
     const layout_resource_t *resource

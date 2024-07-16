@@ -43,12 +43,18 @@ kstatus_t mgr_mm_shm_init(void);
 kstatus_t mgr_mm_watchdog(void);
 
 /* BSP related, not for syscalls */
+/*@
+    assigns (*(MPU_Type*)MPU_BASE);
+ */
 kstatus_t mgr_mm_map_kdev(uint32_t address, size_t len);
 
 kstatus_t mgr_mm_unmap_kdev(void);
 
 /* kernel case only: map another task than current svc echange area to
  * allow single-copy of exchange data between tasks
+ */
+/*@
+    assigns (*(MPU_Type*)MPU_BASE);
  */
 kstatus_t mgr_mm_map_svcexchange(taskh_t t);
 
