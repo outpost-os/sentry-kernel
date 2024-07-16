@@ -18,9 +18,12 @@ specified input set is equal (bigger in the real life) to the effective possible
 This means that the analysis is based on a over-definition of the input set in order to cover all the possibilities
 and ensure the correctness of the analysis results.
 
-EVA results, when being analyzed with the RTE plugin, are useful to check that there is no step in the program execution
-for which a given (set of) values violate the RTE Checks. RTE checks are automatically added as C code annotation when building the
-Abstract Syntax Tree, while EVA delivers all potential values that may trigger these RTE check.
+EVA results are generated in collaboration with RTE plugin. RTE checks are automatically added as C code annotation
+when building the Abstract Syntax Tree, while EVA delivers all potential values that may trigger these RTE checks.
+
+These results are useful to check that there is no step in the program execution for which a given (set of) values
+violate the local RTE checks.
+
 
 Here is a typical AST representation of a Sentry peace of code, with RTE annotations added:
 
@@ -43,7 +46,7 @@ EVA then delivers all the possible values of the locally acceded memory cells (h
 while RTE check that all assertions are valid.
 
 
-This model, that include both RTE and EVA, highly reduce the number of ACSL code to write. Moreover, as EVA and RTE are sound,
+This model, that includes both RTE and EVA, highly reduces the number of ACSL code to write. Moreover, as EVA and RTE are sound,
 no annotation is forgotten.
 
 EVA integration with Sentry kernel

@@ -20,6 +20,14 @@ Frama-C can be used to:
 In Sentry, both (noRTE and correctness) analysis are made. Although, including Frama-C in the Kernel
 requires some specific considerations.
 
+Frama-C is able to parse C code. In order to help Frama-C plugin with the considered requirements at any step of the program,
+the Frama-C framework use a dedicated syntax denoted ACSL.
+
+
+.. tip::
+  ACSL (or ANSI ISO/C Specification Language) is a language made for behavioral specification of C programs.
+  See `ACSL description <https://frama-c.com/acsl.html>`_ for more information
+
 
 Frama-C integration in Sentry
 """""""""""""""""""""""""""""
@@ -39,16 +47,16 @@ is made on smaller sub-components, in order to demonstrate separately each of th
 
 Sentry kernel has the following entrypoints:
 
-   * Kernel bootup entrypoint, that start with the Reset Handler, which directly call the effective kernel
-     entrypoint, responsible for initialize overall kernel contexts and managers
+   * Kernel bootup entrypoint, that starts with the Reset Handler, which directly calls the effective kernel
+     entrypoint, responsible for overall kernel contexts and managers initialization
    * Run time handlers, being:
 
-      * supervisor calls (syscall) handler
+      * Supervisor calls (syscall) root handler
       * Systick handler (periodically executed)
       * Fault handlers (in case of user or kernel-space faults)
 
-In order to analyze all these entrypoint, the corresponding execution plane is analyzed in a separated, dedicated test.
-By now the following tests exists:
+In order to analyze all these entrypoints, the corresponding execution path is analyzed in a separated, dedicated test.
+By now the following tests exist:
 
    * frama-c-parsing: validate that no annotation error exists. Executed as first test
    * frama-c-eva-entrypoint: Execute value analysis of the kernel entrypoint, using the effective ``_entrypoint`` kernel
@@ -78,7 +86,12 @@ Once executed, the corresponding Frama-C analysis is hold and accessible through
    * ``testname.red``: Any *Red Alarm* found (RTE that has been demonstrated as effective), to be fixed at first
    * ``testname-report.md``: Analysis report, in markdown format for pdf or website generation
    * ``testname.flamegraph``: Flamegraph of the analysis, that shows relative analysis cost (in time) of each element
-   * ``testname.session``: Global session file that hold analyzed source code, AST and all alarms, values and useful elements of the analysis. To be used with ``frama-c-gui`` or ``ivette`` for post-processing
+   * ``testname.session``: Global session file that hold analyzed source code, :ref:`AST <ast_def>` and all alarms, values and useful elements of the analysis. To be used with ``frama-c-gui`` or ``ivette`` for post-processing
+
+.. _ast_def:
+
+.. tip::
+  AST, or Abstract Syntax Tree, is an internal representation of a program structure when any language specific sugars and abstractions are removed
 
 Impact of formal proofness in kernel design
 """""""""""""""""""""""""""""""""""""""""""
