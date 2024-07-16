@@ -158,15 +158,16 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_r
 end:
     return status;
 }
-
+/*@
+  requires \valid_read(desc);
+  requires \valid(resource);
+  assigns *resource;
+  ensures (\result == K_STATUS_OKAY);
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *desc,
                                                    layout_resource_t *resource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-
-    if (unlikely((desc == NULL) || (resource == NULL))) {
-        goto end;
-    }
 
     resource->RBAR = ARM_MPU_RBAR_AP(
         desc->addr,
@@ -178,6 +179,7 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
 
     status = K_STATUS_OKAY;
 end:
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
@@ -192,6 +194,10 @@ end:
  * In case of fast loading, write RNR reg to the first region number, fast load up
  * to 4 region, refresh RNR, write next 4 regions and so one. This is handle by CMSIS
  * intrinsics.
+ */
+/*@
+  requires \valid_read(resource + (0 .. num_resources-1));
+  assigns (*(MPU_Type*)MPU_BASE);
  */
 __STATIC_FORCEINLINE void __mpu_fastload(
     uint32_t first_region_number,
@@ -234,6 +240,9 @@ __STATIC_FORCEINLINE uint32_t __mpu_size_to_region(uint32_t size)
     return size;
 }
 
+/*@
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_set_region(
     uint32_t region_id,
     const layout_resource_t *resource

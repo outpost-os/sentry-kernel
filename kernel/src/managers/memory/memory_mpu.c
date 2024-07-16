@@ -66,6 +66,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
         .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_txt_config, 1);
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
@@ -83,6 +84,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
         .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_data_config, 1);
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
@@ -378,17 +380,13 @@ kstatus_t mgr_mm_init(void)
 #ifdef CONFIG_HAS_MPU
     mpu_disable();
     status = mgr_mm_map_kernel_txt();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
+    /*@ assert (status == K_STATUS_OKAY); */
     status = mgr_mm_map_kernel_data();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
+    /*@ assert (status == K_STATUS_OKAY); */
     mpu_enable();
     mm_configured = SECURE_TRUE;
-err:
 #endif
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 

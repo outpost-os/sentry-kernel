@@ -88,11 +88,15 @@ __STATIC_FORCEINLINE void mpu_disable(void)
  */
 __STATIC_FORCEINLINE void mpu_clear_region(uint32_t rnr)
 {
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
     ARM_MPU_ClrRegion(rnr);
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
 }
 
 __STATIC_FORCEINLINE void mpu_fastload(
@@ -179,6 +183,11 @@ __STATIC_FORCEINLINE uint32_t mpu_convert_size_to_region(uint32_t size)
 /**
  * Load memory regions description table in MPU
  */
+/*@
+    // any call of this function MUST be done with valid inputs
+    requires \valid_read(region_descs);
+    requires \valid_read(region_descs + (0 .. count-1));
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_load_descriptors(
     const struct mpu_region_desc *region_descs,
     size_t count
@@ -187,25 +196,32 @@ __STATIC_FORCEINLINE kstatus_t mpu_load_descriptors(
     kstatus_t status = K_ERROR_INVPARAM;
     const struct mpu_region_desc *desc = NULL;
     layout_resource_t resource;
-
-    if (region_descs == NULL) {
-        goto end;
-    }
-
+    /*@ assert \valid_read(region_descs); */
+#ifndef __FRAMAC__
+    /* no meaning with Frama-C*/
     __ISB();
     __DSB();
+#endif
 
+    /*@
+       loop invariant 0<= i <= count;
+       loop assigns desc;
+       loop assigns resource;
+       loop variant count - i;
+     */
     for (size_t i = 0UL; i < count; i++) {
         desc = region_descs + i;
         mpu_forge_resource(desc, &resource);
         __mpu_set_region(desc->id,  &resource);
     }
-
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
 
     status = K_STATUS_OKAY;
 end:
+    /*@ assert(status == K_STATUS_OKAY); */
     return status;
 }
 
