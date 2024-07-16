@@ -95,6 +95,8 @@ the way to specify, implement and separate various kernel sub-components:
    * All memory cell must be, except for very specific cases, strictly typed. This means that there is no union at API level. Moreover,
      all variable must have a strictly typed semantic (e.g. a returned status code... must not be semantically something else than a
      status code)
+   * There must not have infinite loops (for e.g. waiting for an external event), as such loops can't be traversed by EVA. Such loop must
+     be implemented with timeout mechanism.
 
 Once these requirements fulfill, it is highly easier to validate memory manipulation, detect Run-Time Errors and reduce
 false positives.
