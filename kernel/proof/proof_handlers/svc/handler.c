@@ -19,7 +19,6 @@ void handler_entrypoint(void)
     dwt_enable_cyccnt();
     dwt_reset_cyccnt();
     systick_stop_and_clear();
-    systick_init();
     /* security, time and task managers must be initialized first */
     mgr_clock_init();
     mgr_io_init();
