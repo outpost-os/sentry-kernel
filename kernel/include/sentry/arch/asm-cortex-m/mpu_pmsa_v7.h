@@ -143,9 +143,16 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
     uint32_t rbar;
     uint32_t rasr;
 
+
     /* W^X conformity */
-    /*@ assert desc->noexec == 0 ==> desc->access_perm != MPU_REGION_PERM_FULL; */
-    /*@ assert desc->access_perm == MPU_REGION_PERM_FULL ==> desc->noexec == 1; */
+    /*@
+      assert desc->noexec == 0 ==>
+        (desc->access_perm == MPU_REGION_PERM_RO || desc->access_perm == MPU_REGION_PERM_PRIV_RO);
+     */
+    /*@
+      assert (desc->access_perm != MPU_REGION_PERM_RO && desc->access_perm != MPU_REGION_PERM_PRIV_RO) ==>
+        desc->noexec == 1;
+    */
     resource->RBAR = ARM_MPU_RBAR(desc->id, desc->addr);
     resource->RASR = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
                            desc->access_perm,
