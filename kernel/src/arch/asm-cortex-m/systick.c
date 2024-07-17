@@ -122,13 +122,15 @@ uint64_t systime_get_jiffies(void)
 }
 
 /*@
+    assigns ghost_systick_initialized;
+    assigns *((SysTick_Type*)SysTick_BASE);
     assigns jiffies;
  */
 void systick_init(void)
 {
     uint32_t reg;
-    /* assert ! \initialized(ghost_systick_initialized); */
-    /* ghost ghost_systick_initialized = true; */
+    /*@ assert ghost_systick_initialized == false; */
+    /*@ ghost ghost_systick_initialized = true; */
 
     static_assert(CONFIG_SYSTICK_HZ > 0, "system tick frequency MUST NOT be null");
 
