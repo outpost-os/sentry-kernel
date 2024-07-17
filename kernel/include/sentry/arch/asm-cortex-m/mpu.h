@@ -58,6 +58,7 @@ typedef ARM_MPU_Region_t layout_resource_t;
 /**
  * Number of supported region in current MPU
  */
+/*@ assigns \nothing; */
 __STATIC_FORCEINLINE uint32_t mpu_get_nr_regions(void)
 {
     return (MPU->TYPE & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos;
@@ -65,6 +66,9 @@ __STATIC_FORCEINLINE uint32_t mpu_get_nr_regions(void)
 
 /**
  * Enable cortex-m (PMSAv7/PMSAv8) MPU
+ */
+/*@
+  assigns (*(MPU_Type*)MPU_BASE);
  */
 __STATIC_FORCEINLINE void mpu_enable(void)
 {
@@ -78,6 +82,9 @@ __STATIC_FORCEINLINE void mpu_enable(void)
 /**
  * Disable cortex-m (PMSAv7/PMSAv8) MPU
  */
+/*@
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void mpu_disable(void)
 {
     ARM_MPU_Disable();
@@ -86,15 +93,29 @@ __STATIC_FORCEINLINE void mpu_disable(void)
 /**
  * Clear (and disable) MPU region configuration
  */
+/*@
+  requires rnr < CONFIG_NUM_MPU_REGIONS;
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void mpu_clear_region(uint32_t rnr)
 {
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
     ARM_MPU_ClrRegion(rnr);
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
 }
 
+/*@
+  requires (first_region_number < CONFIG_NUM_MPU_REGIONS);
+  requires \valid_read(resource);
+  requires ((first_region_number + num_resources) < CONFIG_NUM_MPU_REGIONS);
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void mpu_fastload(
     uint32_t first_region_number,
     const layout_resource_t *resource,
@@ -120,6 +141,12 @@ __STATIC_FORCEINLINE void mpu_fastload(
  *  Hackish for now, make assumption that this tab belongs to a task and applied
  *  an hardcoded offset.
  */
+/*@
+  requires \valid(id);
+  requires (num_resources < CONFIG_NUM_MPU_REGIONS);
+  requires \valid_read(resource + (0 .. num_resources - 1));
+  assigns *id;
+ */
 #ifndef CONFIG_BUILD_TARGET_AUTOTEST
 __STATIC_FORCEINLINE
 #else
@@ -129,6 +156,12 @@ kstatus_t mpu_get_free_id(const layout_resource_t* resource, uint8_t num_resourc
 {
     kstatus_t status = K_ERROR_NOENT;
 
+    /*@
+      loop invariant 0 <= i <= num_resources;
+      loop assigns *id, status;
+      loop assigns resource;
+      loop variant (num_resources - i);
+     */
     for (uint8_t i = 0; i < num_resources; ++i) {
         if (__mpu_is_resource_free(resource) == SECURE_TRUE) {
             *id = i;
@@ -147,6 +180,12 @@ kstatus_t mpu_get_free_id(const layout_resource_t* resource, uint8_t num_resourc
  *  Hackish for now, make assumption that this tab belongs to a task and applied
  *  an hardcoded offset.
  */
+/*@
+  requires \valid(id);
+  requires (num_resources < CONFIG_NUM_MPU_REGIONS);
+  requires \valid_read(resource + (0 .. num_resources - 1));
+  assigns *id;
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_get_id_from_address(
     const layout_resource_t* resource,
     uint8_t num_resources,
@@ -155,6 +194,12 @@ __STATIC_FORCEINLINE kstatus_t mpu_get_id_from_address(
 {
     kstatus_t status = K_ERROR_NOENT;
 
+    /*@
+      loop invariant 0 <= i <= num_resources;
+      loop assigns *id, status;
+      loop assigns resource;
+      loop variant (num_resources - i);
+     */
     for (uint8_t i = 0; i < num_resources; ++i) {
         if (__mpu_get_resource_base_address(resource) == addr) {
             *id = i + TASK_FIRST_REGION_NUMBER;
@@ -166,6 +211,9 @@ __STATIC_FORCEINLINE kstatus_t mpu_get_id_from_address(
     return status;
 }
 
+/*@
+  assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t mpu_convert_size_to_region(uint32_t size)
 {
     if (unlikely(size < 32)) {
@@ -179,6 +227,12 @@ __STATIC_FORCEINLINE uint32_t mpu_convert_size_to_region(uint32_t size)
 /**
  * Load memory regions description table in MPU
  */
+/*@
+    // any call of this function MUST be done with valid inputs
+    requires \valid_read(region_descs);
+    requires \valid_read(region_descs + (0 .. count-1));
+    assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_load_descriptors(
     const struct mpu_region_desc *region_descs,
     size_t count
@@ -187,25 +241,31 @@ __STATIC_FORCEINLINE kstatus_t mpu_load_descriptors(
     kstatus_t status = K_ERROR_INVPARAM;
     const struct mpu_region_desc *desc = NULL;
     layout_resource_t resource;
-
-    if (region_descs == NULL) {
-        goto end;
-    }
-
+    /*@ assert \valid_read(region_descs); */
+#ifndef __FRAMAC__
+    /* no meaning with Frama-C*/
     __ISB();
     __DSB();
+#endif
 
+    /*@
+       loop invariant 0 <= i <= count;
+       loop assigns desc;
+       loop assigns resource;
+       loop variant count - i;
+     */
     for (size_t i = 0UL; i < count; i++) {
         desc = region_descs + i;
         mpu_forge_resource(desc, &resource);
-        __mpu_set_region(desc->id,  &resource);
+        __mpu_set_region(desc->id, &resource);
     }
-
+#ifndef __FRAMAC__
     __ISB();
     __DSB();
+#endif
 
     status = K_STATUS_OKAY;
-end:
+    /*@ assert(status == K_STATUS_OKAY); */
     return status;
 }
 

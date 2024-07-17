@@ -59,8 +59,7 @@ test(
     join_paths(meson.current_build_dir(), test_name + '.red'),
   ],
   depends: [ framac_dep ],
-  suite: 'proof',
+  suite: 'proof-postanalysis',
   is_parallel: false,
-  should_fail: false,
-  priority: 253,
+  priority: 1,
 )

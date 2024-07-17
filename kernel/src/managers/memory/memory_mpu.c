@@ -51,7 +51,10 @@ secure_bool_t mgr_mm_configured(void)
  * Per region function implementation, forced inline, but
  * clearer.
  */
-
+/*@
+    assigns (*(MPU_Type*)MPU_BASE);
+    ensures \result == K_STATUS_OKAY;
+ */
 __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -59,16 +62,21 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_txt(void)
         .id = MM_REGION_KERNEL_TXT,
         .addr = (uint32_t)&_svtor, /* starting at vtor for ^2 size vs base alignment */
         .size = MPU_REGION_SIZE_32KB,
-        .access_perm = MPU_REGION_PERM_PRIV,
+        .access_perm = MPU_REGION_PERM_PRIV_RO,
         .access_attrs = MPU_REGION_ATTRS_NORMAL_NOCACHE,
         .mask = 0x0,
         .noexec = false,
         .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_txt_config, 1);
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
+/*@
+    assigns (*(MPU_Type*)MPU_BASE);
+    ensures \result == K_STATUS_OKAY;
+ */
 __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -83,6 +91,7 @@ __STATIC_INLINE kstatus_t mgr_mm_map_kernel_data(void)
         .shareable = false,
     };
     status = mpu_load_descriptors(&kernel_data_config, 1);
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
@@ -115,7 +124,9 @@ err:
 }
 
 
-
+/*@
+    assigns (*(MPU_Type*)MPU_BASE);
+ */
 kstatus_t mgr_mm_map_task(taskh_t t)
 {
     kstatus_t status = K_ERROR_INVPARAM;
@@ -378,17 +389,13 @@ kstatus_t mgr_mm_init(void)
 #ifdef CONFIG_HAS_MPU
     mpu_disable();
     status = mgr_mm_map_kernel_txt();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
+    /*@ assert (status == K_STATUS_OKAY); */
     status = mgr_mm_map_kernel_data();
-    if (unlikely(status != K_STATUS_OKAY)) {
-        goto err;
-    }
+    /*@ assert (status == K_STATUS_OKAY); */
     mpu_enable();
     mm_configured = SECURE_TRUE;
-err:
 #endif
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 

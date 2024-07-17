@@ -125,8 +125,13 @@
   (((AP) << MPU_RBAR_AP_Pos) & MPU_RBAR_AP_Msk) | \
   (((XN) << MPU_RBAR_XN_Pos) & MPU_RBAR_XN_Msk))
 
+
+/*@
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_initialize(void)
 {
+    size_t mpu_attr_size;
     /*
      * Fixme: we may define flags closer to the real configuration
      * e.g. write-back/write-through, read_allocate, write_allocate.
@@ -139,45 +144,63 @@ __STATIC_FORCEINLINE void __mpu_initialize(void)
         /** MPU Access attribute for cached normal memory w/ write back and read allocate cache policy */
         ARM_MPU_ATTR(ARM_MPU_ATTR_NON_CACHEABLE, ARM_MPU_ATTR_NON_CACHEABLE),
     };
-    static_assert(ARRAY_SIZE(_mpu_attrs) <= 8, "PMSAv8 MPU attribute array size too big");
 
-    for (uint8_t idx = 0; idx < ARRAY_SIZE(_mpu_attrs); idx++) {
+    static_assert(ARRAY_SIZE(_mpu_attrs) <= 8, "PMSAv8 MPU attribute array size too big");
+    mpu_attr_size = ARRAY_SIZE(_mpu_attrs);
+    /*@
+        loop invariant 0 <= idx <= mpu_attr_size;
+        loop assigns (*(MPU_Type*)MPU_BASE);
+        loop variant mpu_attr_size - idx;
+    */
+    for (uint8_t idx = 0; idx < mpu_attr_size; idx++) {
         ARM_MPU_SetMemAttr(idx, _mpu_attrs[idx]);
     }
 }
 
+/*@
+   requires \valid(resource);
+   assigns *resource;
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_forge_unmapped_ressource(uint8_t id, layout_resource_t *resource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    if (unlikely(resource == NULL)) {
-        goto end; /* At this point we should panic, it is up to the upper layer to handle this */
-    }
     resource->RBAR = 0x0UL;
     resource->RLAR = 0x0UL;
     status = K_STATUS_OKAY;
-end:
     return status;
 }
 
+/*@
+  requires \valid_read(desc);
+  requires \valid(resource);
+  assigns *resource;
+  ensures (\result == K_STATUS_OKAY);
+ */
 __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *desc,
                                                    layout_resource_t *resource)
 {
     kstatus_t status = K_ERROR_INVPARAM;
 
-    if (unlikely((desc == NULL) || (resource == NULL))) {
-        goto end;
-    }
-
+    /* W^X conformity */
+    /*@
+      assert desc->noexec == 0 ==>
+        (desc->access_perm == MPU_REGION_PERM_RO || desc->access_perm == MPU_REGION_PERM_PRIV_RO);
+     */
+    /*@
+      assert (desc->access_perm != MPU_REGION_PERM_RO && desc->access_perm != MPU_REGION_PERM_PRIV_RO) ==>
+        desc->noexec == 1;
+    */
     resource->RBAR = ARM_MPU_RBAR_AP(
         desc->addr,
         desc->shareable ? ARM_MPU_SH_INNER : ARM_MPU_SH_NON,
         desc->access_perm,
         desc->noexec ? 1UL : 0UL
     );
+
     resource->RLAR = ARM_MPU_RLAR(desc->addr + desc->size - 1, desc->access_attrs);
 
     status = K_STATUS_OKAY;
-end:
+    /*@ assert (status == K_STATUS_OKAY); */
     return status;
 }
 
@@ -193,6 +216,10 @@ end:
  * to 4 region, refresh RNR, write next 4 regions and so one. This is handle by CMSIS
  * intrinsics.
  */
+/*@
+  requires \valid_read(resource + (0 .. num_resources-1));
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_fastload(
     uint32_t first_region_number,
     const layout_resource_t *resource,
@@ -202,6 +229,10 @@ __STATIC_FORCEINLINE void __mpu_fastload(
     ARM_MPU_Load(first_region_number, resource, num_resources);
 }
 
+/*@
+   requires \valid_read(resource);
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE secure_bool_t __mpu_is_resource_free(const layout_resource_t *resource)
 {
     secure_bool_t is_free = SECURE_FALSE;
@@ -213,6 +244,10 @@ __STATIC_FORCEINLINE secure_bool_t __mpu_is_resource_free(const layout_resource_
     return is_free;
 }
 
+/*@
+   requires \valid_read(resource);
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resource_t *resource)
 {
     return resource->RBAR & MPU_RBAR_BASE_Msk;
@@ -223,17 +258,28 @@ __STATIC_FORCEINLINE uint32_t __mpu_get_resource_base_address(const layout_resou
  * @param size memory size to map
  * @return size aligned the next 32 bytes boundary if unaligned
  */
+/*@
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t __mpu_region_align_size(uint32_t size)
 {
     return ROUND_UP_POW2(size, _PMSAv8_MEM_ALIGNMENT);
 }
 
+/*@
+   assigns \nothing;
+ */
 __STATIC_FORCEINLINE uint32_t __mpu_size_to_region(uint32_t size)
 {
     /* Nothing to do for PMSAv8 */
     return size;
 }
 
+/*@
+  requires region_id < CONFIG_NUM_MPU_REGIONS;
+  requires \valid_read(resource);
+  assigns (*(MPU_Type*)MPU_BASE);
+ */
 __STATIC_FORCEINLINE void __mpu_set_region(
     uint32_t region_id,
     const layout_resource_t *resource
