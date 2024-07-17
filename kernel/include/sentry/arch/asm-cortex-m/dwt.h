@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include <sentry/arch/asm-cortex-m/core.h>
+#include <sentry/io.h>
 
 /*@
   assigns CoreDebug->DEMCR, DWT->CTRL;
@@ -25,7 +26,7 @@ __STATIC_FORCEINLINE void dwt_disable_cyccnt(void)
 }
 
 /*@
-  assigns DWT->CTRL;
+  assigns DWT->CYCCNT;
  */
 __STATIC_FORCEINLINE void dwt_reset_cyccnt(void)
 {

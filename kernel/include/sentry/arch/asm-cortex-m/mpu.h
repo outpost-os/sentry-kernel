@@ -113,7 +113,7 @@ __STATIC_FORCEINLINE void mpu_clear_region(uint32_t rnr)
 /*@
   requires (first_region_number < CONFIG_NUM_MPU_REGIONS);
   requires \valid_read(resource);
-  requires ((first_region_number + num_resources) < CONFIG_NUM_MPU_REGIONS);
+  requires ((first_region_number + num_resources) <= CONFIG_NUM_MPU_REGIONS);
   assigns (*(MPU_Type*)MPU_BASE);
  */
 __STATIC_FORCEINLINE void mpu_fastload(
