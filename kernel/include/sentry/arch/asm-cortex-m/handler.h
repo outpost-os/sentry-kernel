@@ -13,15 +13,23 @@
  * panic triggered functions (TBD)
  * Do **not** return.
  */
+/*@
+  // the unterminated loop here is kept as this is a panic() function
+  assigns \nothing;
+ */
 static inline __attribute__((noreturn)) void __do_panic(void) {
     /* XXX: here, a security policy should be considered. The do_panic() should call security manager
       primitive (potential cleanups) and other things to define */
+#ifndef __FRAMAC__
 #if defined(CONFIG_WITH_JTAG_CONNECTED)
     /* explicit breakpoint in jtag mode (JTAG connected) s*/
     asm volatile("bkpt");
 #endif
+#endif/*__FRAMAC__*/
     do {
+#ifndef __FRAMAC__
         asm volatile("nop");
+#endif
     } while (1);
 }
 

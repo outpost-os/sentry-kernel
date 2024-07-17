@@ -15,6 +15,9 @@
 
   @return SECURE_TRUE if the probe is detected using this method, or SECURE_FALSE
   */
+/*@
+  assigns \nothing;
+ */
 static inline secure_bool_t __dbg_debugger_is_connected(void) {
     secure_bool_t   res = SECURE_FALSE;
     CoreDebug_Type* debug = CoreDebug;

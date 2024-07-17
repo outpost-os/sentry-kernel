@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * \file I/O manipulation primitive
+ * \file I/O manipulation primitive. should never be used directly, use <sentry/io.h instead
+ *
+ * NOTE: in Frama-C mode, these API is not traversed as it contains only ASM
  */
 
 #ifndef __ASM_IO_H
@@ -14,6 +16,7 @@
 #ifndef IO_H
 #error "must not be included directly, used sentry/io.h instead"
 #endif
+
 
 /**
  * @brief  ARM asm implementation of iowrite8
