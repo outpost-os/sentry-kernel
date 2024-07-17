@@ -41,6 +41,7 @@ test(
   args: [
     frama_c_rcc_source_set_config.sources(),
     framac_gen_opts,
+    '-absolute-valid-range', '0x40000000-0xE000F000',
     framac_rte_eva_opts,
     '-eva-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '.log'),
     '-eva-report-red-statuses', join_paths(meson.current_build_dir(), test_name + '-statuses.log'),

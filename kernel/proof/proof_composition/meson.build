@@ -7,3 +7,5 @@
 
 subdir('proof_bsp')
 subdir('proof_zlib')
+# WP being veerryyy long to execute, wait a little before enabling it
+#subdir('proof_arch')

@@ -32,6 +32,7 @@ test(
     framac_bsp_pwr_stub_entrypoint,
     meson.project_source_root()+'/kernel/src/drivers/clk/stm32-pwr.c',
     framac_gen_opts,
+    '-absolute-valid-range', '0x40000000-0xE000F000',
     framac_rte_eva_opts,
     '-eva-log', 'a:'+join_paths(meson.current_build_dir(), test_name + '-eva.log'),
     '-eva-report-red-statuses', join_paths(meson.current_build_dir(), test_name + '-red-statuses.log'),
