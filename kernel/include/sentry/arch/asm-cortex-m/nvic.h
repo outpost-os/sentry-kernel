@@ -14,6 +14,14 @@
 
 #include "soc.h"
 
+#ifdef CONFIG_ARCH_ARM_ARMV8M
+#define NVIC_MAX_ALLOWED_IRQS 240UL
+#endif
+
+#ifdef CONFIG_ARCH_ARM_ARMV7M
+#define NVIC_MAX_ALLOWED_IRQS 480UL
+#endif
+
 /**
  * Each SoC has its own NVIC configuration depending on its IP list
  */
@@ -35,6 +43,7 @@ uint32_t nvig_get_prioritygrouping(void);
 /*@
 
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
 
   behavior invalid_irq:
     assumes IRQn >= NUM_IRQS;
@@ -54,6 +63,7 @@ kstatus_t     nvic_enableirq(uint32_t IRQn);
 /*@
 
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
 
   behavior invalid_irq:
     assumes IRQn >= NUM_IRQS;
@@ -73,6 +83,7 @@ kstatus_t     nvic_disableirq(uint32_t IRQn);
 /*@
 
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
   assigns \nothing;
 
   behavior invalid_irq:
@@ -91,6 +102,7 @@ uint32_t    nvic_get_pendingirq(uint32_t IRQn);
 /*@
 
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
 
   behavior invalid_irq:
     assumes IRQn >= NUM_IRQS;
@@ -110,6 +122,7 @@ kstatus_t     nvic_set_pendingirq(uint32_t IRQn);
 /*@
 
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
 
   behavior invalid_irq:
     assumes IRQn >= NUM_IRQS;
@@ -128,6 +141,7 @@ kstatus_t     nvic_clear_pendingirq(uint32_t IRQn);
 
 /*@
   requires IRQn < NUM_IRQS;
+  requires NUM_IRQS <= NVIC_MAX_ALLOWED_IRQS;
   assigns \nothing;
  */
 uint32_t nvic_get_active(uint32_t IRQn);
@@ -206,10 +220,11 @@ static inline void interrupt_enable(void) {
 }
 
 /*@
+  requires __NVIC_VECTOR_LEN <= NVIC_MAX_ALLOWED_IRQS;
   assigns *NVIC;
  */
 static inline void interrupt_init(void) {
-    for (size_t i = 0UL; i < __NVIC_VECTOR_LEN; ++i) {
+    for (size_t i = 0UL; i < NUM_IRQS; ++i) {
         nvic_disableirq(i);
         nvic_clear_pendingirq(i);
     }
