@@ -132,7 +132,7 @@ static void Frama_C_task_init_meta(void)
     }
 }
 
-void _entrypoint(void);
+void Reset_Handler(void);
 
 void kernel_entrypoint(void)
 {
@@ -143,5 +143,6 @@ void kernel_entrypoint(void)
      */
     Frama_C_task_init_meta();
     /* calling kernel entrypoint */
-    _entrypoint();
+    Reset_Handler();
+    //_entrypoint();
 }

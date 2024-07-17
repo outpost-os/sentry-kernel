@@ -17,8 +17,22 @@
  * at library build time, no external dep. This means that these symbols
  * need to be declared by others libraries (required, no weak)
  */
+/*@
+  // TODO: by do, no border effect as managers not yet proven
+  assigns \nothing;
+ */
 uint64_t systime_get_cycle(void);
+
+/*@
+  // TODO: by do, no border effect as managers not yet proven
+  assigns \nothing;
+ */
 stack_frame_t *sched_refresh(stack_frame_t *frame);
+
+/*@
+  // TODO: by do, no border effect as managers not yet proven
+  assigns \nothing;
+ */
 void mgr_time_delay_tick(void);
 
 
@@ -87,7 +101,10 @@ typedef enum scb_systick_clkref {
 
 static uint64_t jiffies;
 
-
+/*@
+   requires CONFIG_SYSTICK_HZ > 0;
+   assigns *((SysTick_Type*)SysTick_BASE);
+ */
 static void systick_calibrate(void)
 {
     uint32_t freq = rcc_get_core_frequency();
@@ -98,14 +115,20 @@ static void systick_calibrate(void)
     iowrite32(SCB_SYSTICK_RVR, (uint32_t)reload - 1);
 }
 
+
 uint64_t systime_get_jiffies(void)
 {
     return jiffies;
 }
 
+/*@
+    assigns jiffies;
+ */
 void systick_init(void)
 {
     uint32_t reg;
+    /* assert ! \initialized(ghost_systick_initialized); */
+    /* ghost ghost_systick_initialized = true; */
 
     static_assert(CONFIG_SYSTICK_HZ > 0, "system tick frequency MUST NOT be null");
 
@@ -128,7 +151,9 @@ void systick_stop_and_clear(void)
     SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 }
 
-
+/*@
+  assigns jiffies;
+ */
 stack_frame_t *systick_handler(stack_frame_t * stack_frame)
 {
     jiffies++;

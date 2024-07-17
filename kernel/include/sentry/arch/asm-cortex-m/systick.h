@@ -11,6 +11,13 @@
 #include <sentry/arch/asm-cortex-m/system.h>
 
 
+/*
+ * the use of ghost allows to validate temporal behavior and local globals states
+ * without the need of real code inclusion. ghosts do not exist out of the Frama-C
+ * context
+ */
+/*@ ghost bool ghost_systick_initialized = false; */
+
 /* FIXME to set*/
 #define CONFIG_SYSTICK_HZ 1000
 
@@ -21,6 +28,10 @@
 
 typedef uint64_t jiffies_t;
 
+/*@
+  requires ghost_systick_initialized;
+  assigns \nothing;
+ */
 jiffies_t systime_get_jiffies(void);
 
 //#include "handler.h"
@@ -94,9 +105,24 @@ jiffies_t systime_get_jiffies(void);
 #define STK_TENMS_Msk		(0xffffffu << STK_TENMS_Pos)
 
 
+/*@
+    assigns ghost_systick_initialized;
+    assigns *((SysTick_Type*)SysTick_BASE);
+ */
 void systick_init(void);
+
+
+/*@
+    requires ghost_systick_initialized;
+    assigns *((SysTick_Type*)SysTick_BASE);
+ */
 stack_frame_t *systick_handler(stack_frame_t * stack_frame);
+
 void wait(unsigned long long time_ms);
+
+/*@
+    assigns *((SysTick_Type*)SysTick_BASE);
+ */
 void systick_stop_and_clear(void);
 
 

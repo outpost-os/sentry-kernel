@@ -27,13 +27,21 @@
  */
 #define SECTION_ALIGNMENT_LEN 0x4UL
 
+/*@
+   // Used at boot time to print out startup SP
+   // can be, in Frama-C use case, deactivated (pr_info need only)
+   assigns \nothing;
+   ensures \result == 0;
+ */
 static inline uint32_t __platform_get_current_sp(void) {
-  uint32_t sp;
+  uint32_t sp = 0;
+#ifndef __FRAMAC__
   asm volatile(
     "mov %0, sp"
     : "=r" (sp)
     :
     :);
+#endif
     return sp;
 }
 
@@ -46,11 +54,20 @@ static inline uint32_t __platform_get_current_sp(void) {
  *
  * when activated, unaligned access generates UsageFault
  */
+/*@
+  assigns ((SCB_Type*)SCB_BASE)->CCR;
+ */
 static inline void __platform_enforce_alignment(void) {
     SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
     request_data_membarrier();
 }
 
+
+/*@
+  // NOTE: in Frama-C mode, the kernel do not spawn a user task, but just "leave", as the coverage of the
+  // entrypoint is complete
+  assigns *NVIC;
+*/
 static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entrypoint, stack_frame_t *stack_pointer, uint32_t flag) {
   /*
    * Initial context switches to main core thread (idle_thread).
@@ -72,6 +89,7 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
    */
   interrupt_enable();
 
+#ifndef __FRAMAC__
   asm volatile
        ("mov r0, %[SP]      \n\t"   \
         "msr psp, r0        \n\t"   \
@@ -89,7 +107,8 @@ static inline void __attribute__((noreturn)) __platform_spawn_thread(size_t entr
           [THREADID] "r" (runlevel),
           [SEED] "r" (seed)
         : "r0", "r1", "r5", "memory");
-        __builtin_unreachable();
+  __builtin_unreachable();
+#endif
 }
 
 static inline void __platform_clear_flags(void) {
