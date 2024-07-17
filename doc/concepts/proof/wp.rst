@@ -202,10 +202,42 @@ possible to define clean behaviors for upper layer API of a given device driver 
 
 When defining a public contract for a given library interface though, some internal-specific
 elements (private context manipulation, etc.) may requires to define separated public and private
-contracts than need to be fusionned at proof time.
+contracts than need to be unified at proof time.
 This may, then, requires to define higher grain, publicly defined behaviors, while local,
 private specific behavior are kept hidden from external callers, as they have no meaning out of
 the local compilation unit.
 The usage of ghost functions and ghost variables are a useful helper for such cases, so that
 sequential behaviors (context setting, locks, etc.) can be demonstrated through ghost code.
 As ghost code is specific to Frama-C execution, they do not impact the target execution.
+
+Correctness of security model
+"""""""""""""""""""""""""""""
+
+Some specific critical security behaviors are also demonstrated, such as, for example, the
+``W^X``:
+
+.. code-block:: c
+  :linenos:
+  :caption: MPU configuration correctness analysis
+
+  __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *desc,
+                                                   layout_resource_t *resource)
+  {
+    //[...]
+    /*@ assert desc->noexec == 0 ==> desc->access_perm != MPU_REGION_PERM_FULL; */
+    /*@ assert desc->access_perm == MPU_REGION_PERM_FULL ==> desc->noexec == 1; */
+    resource->RBAR = ARM_MPU_RBAR(desc->id, desc->addr);
+    resource->RASR = ARM_MPU_RASR_EX(desc->noexec ? 1UL : 0UL,
+                           desc->access_perm,
+                           desc->access_attrs,
+                           desc->mask,
+                           desc->size);
+    //[...]
+
+When using EVA to cover overall kernel paths (entrypoint and handlers), such a dual implication assertion
+allows to demonstrate that in any call stack, this subprogram is called with both write and execute flags
+set at the same time, demonstrating the ``W^X`` property for both user and kernel spaces whatever the
+execution context is.
+
+Such a behavior check is to be added for all security properties that are implemented in
+Sentry kernel.
