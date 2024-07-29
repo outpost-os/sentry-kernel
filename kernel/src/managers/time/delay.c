@@ -163,6 +163,8 @@ end:
  */
 void mgr_time_delay_tick(void)
 {
+    job_state_t job_state;
+
     for (uint8_t i = 0; i < CONFIG_MAX_TASKS; ++i) {
         if (delay_ctx.joblist[i].active == true) {
             uint32_t num_ms = JIFFIES_TO_MSEC(1);
@@ -170,6 +172,18 @@ void mgr_time_delay_tick(void)
                 delay_ctx.joblist[i].remaining_time_ms -= num_ms;
             } else {
                 delay_ctx.joblist[i].remaining_time_ms = 0;
+
+                mgr_task_get_state(delay_ctx.joblist[i].handler, &job_state);
+                if (unlikely((job_state != JOB_STATE_SLEEPING)
+                          && (job_state != JOB_STATE_SLEEPING_DEEP)
+                          && (job_state != JOB_STATE_WAITFOREVENT))
+                ) {
+                    /*
+                     * If we reach this point, this is a bug and the task was not
+                     * removed from the delay joblist.
+                     */
+                    panic(PANIC_KERNEL_INVALID_MANAGER_STATE);
+                }
                 /* delay terminated for current delayed task */
                 mgr_task_set_state(delay_ctx.joblist[i].handler, JOB_STATE_READY);
                 mgr_task_set_sysreturn(delay_ctx.joblist[i].handler, STATUS_TIMEOUT);
