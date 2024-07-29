@@ -269,37 +269,4 @@ jobs:
         run: |
           cat builddir/meson-logs/meson-log.txt
           cat builddir/meson-logs/testlog.txt
-      - name: Deploy documentation
-        run: |
-          ninja -C builddir doc-concepts doc-concepts-pdf
-          case "${{ github.event_name }}" in
-                "push")
-                    current_version=${{ github.ref_name }}
-                    if test "$current_version" = "main"; then
-                      push_to_nexus=1
-                      subdir="staging"
-                    else
-                      push_to_nexus=0
-                    fi
-                    ;;
-                "pull_request")
-                    current_version=pr-$(echo $GITHUB_REF| cut -d '/' -f 3)
-                    push_to_nexus=1
-                    subdir="staging"
-                    ;;
-          esac
-          HTML_BUILD_DIR=builddir/doc/concepts
-          ARTIFACT_ARCHIVE_HTML_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/html/
-          ARTIFACT_ARCHIVE_URL=${{secrets.NEXUS_SERVICE_URL}}/${{secrets.NEXUS_DOC_REPO}}/outpost/sentry/concepts/$subdir/$current_version/
-          if test $push_to_nexus -eq 1; then
-            tar -C builddir/doc -czvf sentry-concepts-$subdir.tar.gz concepts
-            file=sentry-concepts-$subdir.tar.gz
-            pdf=builddir/doc/concepts_pdf/sentry.pdf
-            cp $pdf sentry-concepts-${subdir}.pdf
-            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file sentry-concepts-${subdir}.pdf "${ARTIFACT_ARCHIVE_URL}/sentry-concepts-${subdir}.pdf"
-            curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${file} "${ARTIFACT_ARCHIVE_URL}/${file}"
-            cd ${HTML_BUILD_DIR}
-            for file in $(find . -type f); do
-              curl --insecure -u "${{secrets.NEXUS_CI_RW_USER}}:${{ secrets.NEXUS_CI_RW_PASSWORD }}" --upload-file ${file} "${ARTIFACT_ARCHIVE_HTML_URL}/${file}"
-            done
-          fi
+
