@@ -14,6 +14,7 @@ Welcome to Sentry documentation!
    build_system/index.rst
    sw_architecture/index.rst
    tests/index.rst
+   proof/index.rst
 
 .. toctree::
    :hidden:
