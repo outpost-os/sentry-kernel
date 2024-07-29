@@ -1,0 +1,47 @@
+if BUILD_TARGET_AUTOTEST
+
+menu "Autotest configuration"
+
+config TEST_YIELD
+    bool "yield test suite"
+    default y
+
+config TEST_HANDLES
+    bool "handles access test suite"
+    default y
+
+config TEST_SIGNALS
+    bool "Signal snd/receive test suite"
+    default y
+
+config TEST_IPC
+    bool "IPC snd/receive test suite"
+    default y
+
+config TEST_RANDOM
+    bool "KRNG test suite"
+    default y
+
+config TEST_CYCLES
+    bool "Cycle measurement test suite"
+    default y
+
+config TEST_SLEEP
+    bool "Various slepping mode test suite"
+    default y
+
+config TEST_GPIO
+    bool "GPIO kernel API test suite"
+    default n
+
+config TEST_DEVICES
+    bool "devices (un)mapping and access API test suite"
+    default n
+
+config TEST_SHM
+    bool "Shared memory manipulation test suite"
+    default y
+
+endmenu
+
+endif

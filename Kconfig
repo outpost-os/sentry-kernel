@@ -1,3 +1,5 @@
 mainmenu "Sentry kernel"
 
 rsource 'kernel/Kconfig'
+
+rsource 'autotest/Kconfig'
