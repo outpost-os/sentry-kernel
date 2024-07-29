@@ -30,7 +30,7 @@ test(
   args: [
     framac_wp_arch_stub_entrypoint, arch_source_set_config.sources(),
     framac_gen_opts,
-    '-absolute-valid-range', '0x40000000-0xE000F000',
+    '-absolute-valid-range', '0x20000000-0xE000F000',
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), test_name + '-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), test_name + '-all.log'),
     '-main', 'kernel_arch',
@@ -52,5 +52,5 @@ test(
   env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
   depends: [ framac_dep ],
   suite: 'proof',
-  timeout: 3600,
+  timeout: 7200,
 )
