@@ -44,16 +44,36 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
     printf(welcommsg);
     printf(testmsg);
     LOG("AUTOTEST START");
+#ifdef CONFIG_TEST_YIELD
     test_yield();
+#endif
+#ifdef CONFIG_TEST_HANDLES
     test_handle();
+#endif
+#ifdef CONFIG_TEST_SIGNALS
     test_signal();
+#endif
+#ifdef CONFIG_TEST_IPC
     test_ipc();
+#endif
+#ifdef CONFIG_TEST_RANDOM
     test_random();
+#endif
+#ifdef CONFIG_TEST_CYCLES
     test_cycles();
+#endif
+#ifdef CONFIG_TEST_SLEEP
     test_sleep();
+#endif
+#ifdef CONFIG_TEST_GPIO
     test_gpio();
+#endif
+#ifdef CONFIG_TEST_DEVICES
     test_map();
+#endif
+#ifdef CONFIG_TEST_SHM
     test_shm();
+#endif
     LOG("AUTOTEST END");
 
 
