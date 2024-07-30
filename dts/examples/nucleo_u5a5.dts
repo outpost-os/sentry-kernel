@@ -70,6 +70,10 @@
 	reg = <0x20000000 DT_SIZE_K(2514)>;
 };
 
+&gpdma1 {
+	status = "okay";
+};
+
 &clk_lsi {
 	status = "okay";
 };
@@ -102,6 +106,8 @@
 &i2c1 {
 	status = "okay";
 	outpost,owner = <0xbabe>;
+	dma-rx = <&gpdma1 13>;
+	dma-tx = <&gpdma1 12>;
 };
 
 &rcc {

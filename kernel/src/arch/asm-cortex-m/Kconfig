@@ -106,6 +106,9 @@ config HAS_DWT
 config HAS_RNG
 	bool
 
+config HAS_GPDMA
+	bool
+
 config HAS_FLASH_DUAL_BANK
 	bool
 
@@ -150,6 +153,7 @@ config SOC_SUBFAMILY_STM32U5
 	select HAS_DCACHE
 	select HAS_ICACHE
 	select HAS_RNG
+	select HAS_GPDMA
 	help
 	  STM32U5 family is based on Cortex-M33 with FPU, PMSAv8 MPU and TrustZone
 

@@ -30,6 +30,11 @@ if kconfig_data.get('CONFIG_DEBUG_OUTPUT_USART', 0) == 1
 subdir('usart')
 endif
 
+if kconfig_data.get('CONFIG_HAS_GPDMA', 0) == 1
+subdir('dma')
+endif
+
+
 bsp_source_set_config = bsp_source_set.apply(kconfig_data, strict: false)
 bsp_private_gen_source_set_config = bsp_private_gen_source_set.apply(kconfig_data, strict: false)
 bsp_private_gen_header_set_config = bsp_private_gen_header_set.apply(kconfig_data, strict: false)

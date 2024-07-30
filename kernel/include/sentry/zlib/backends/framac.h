@@ -10,5 +10,7 @@
 
 #define __MAYBE_UNUSED __attribute__((unused))
 #define __UNUSED __attribute__((unused))
+#define __ALIGNAS(x)
+#define __PACKED __attribute__((packed, aligned(1)))
 
 #endif/*!ZLIB_GCC_H */
