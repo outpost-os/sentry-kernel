@@ -218,6 +218,7 @@ __STATIC_FORCEINLINE kstatus_t mpu_forge_resource(const struct mpu_region_desc *
  */
 /*@
   requires \valid_read(resource + (0 .. num_resources-1));
+  requires ((first_region_number + num_resources) <= CONFIG_NUM_MPU_REGIONS);
   assigns (*(MPU_Type*)MPU_BASE);
  */
 __STATIC_FORCEINLINE void __mpu_fastload(

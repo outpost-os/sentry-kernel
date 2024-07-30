@@ -25,7 +25,7 @@ kstatus_t perfo_init(void)
 
     perfo_cycle_per_usec = (uint32_t)(tmp & 0xffffffffUL);
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__FRAMAC__)
     /* start carry (number of dwt loops) at 0, to support complete cycle
      * count with 64bit length, supporting, with 168Mhz core, upto ~3300 years of counting
      */
@@ -47,7 +47,7 @@ uint32_t mgr_clock_get_cycle_per_usec(void)
 uint64_t mgr_clock_get_cycle(void)
 {
     uint64_t cycles;
-#if defined(__arm__)
+#if defined(__arm__) || defined(__FRAMAC__)
     cycles = dwt_cyccnt();
 #elif defined(__x86_64__) || defined (__i386__)
     uint32_t lo, hi;

@@ -359,14 +359,12 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
      * the current cpu state, so disable and clear any pending irq,
      * relocate vtor and set msp to the given value.
      */
-#if 1
     for (uint32_t irqnum = 0; irqnum < __NVIC_VECTOR_LEN; irqnum++) {
         nvic_disableirq(irqnum);
         nvic_clear_pendingirq(irqnum);
     }
 
     systick_stop_and_clear();
-#endif
 
     /* relocate vtor table */
     SCB->VTOR = (uint32_t)&__vtor_table[0];
@@ -379,6 +377,8 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
                    (3U << 11U*2U)  );   /* enable CP11 Full Access */
 #endif
 
+#ifndef __FRAMAC__
+    /** NOTE: there is no notion of link time based memory information in Frama-C AST */
     /* clear bss */
     for (p = &_sbss; p < &_ebss; p++) {
         *p = 0UL;
@@ -391,6 +391,7 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     for (src = &_sidata, p = &_sdata; p < &_edata; p++) {
         *p = *src++;
     }
+#endif
 
     /* enable supported fault handlers */
     shcsr = SCB_SHCSR_USGFAULTENA_Msk |
@@ -399,8 +400,9 @@ __attribute__((noreturn, used)) void Reset_Handler(void)
     /* branch to sentry kernel entry point */
     _entrypoint();
 
-    /* should never return */
-    /*@ assert \false; */
+    /* should never return in nominal mode */
+    /* in Frama-C, this function do return */
+    /*@ assert \true; */
 }
 
 /**

@@ -1,6 +1,9 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include <sentry/managers/task.h>
+#include <sentry/arch/asm-generic/interrupt.h>
+
+/** TODO: expose sentry_xxx of string.h instead of using externs here */
+
 /*
  * Frama-C entropy sources. This variables have their value changed each time
  * they are read
@@ -121,28 +124,41 @@ bool Frama_C_interval_bool(void)
     return val;
 }
 
-extern task_meta_t __task_meta_table[CONFIG_MAX_TASKS];
+/**
+ * NOTE: in non-proof mode, these symbols are aliased to corresponding compiler
+ * builtins, and as such resolvable by the compiler.
+ * Nonetheless, we want here to check their implementation, and thus be able
+ * to explicitly call them.
+ * These symbols are a part of the Sentry zlib
+ */
+void   *sentry_memcpy(void * restrict dest, const void* restrict src, size_t n);
+void   *sentry_memset(void *s, int c, unsigned int n);
+size_t sentry_strnlen(const char *s, size_t maxlen);
 
-static void Frama_C_task_init_meta(void)
+/**
+ * Here we call all the arch-relative API, in the way initial early init do.
+ * We cover overall API (arch/ headers) so that EVA is able to cover all libarch.
+ * Then, we use WP to demonstrate that all subprogram contracts are true, and to
+ * analyse and validate all border effects.
+ */
+void kernel_arch(void)
 {
-    uint32_t *target = (uint32_t*)&__task_meta_table[0];
-    for (uint32_t offset = 0; offset < (sizeof(task_meta_t)*CONFIG_MAX_TASKS) / sizeof(uint32_t); ++offset)
-    {
-        target[offset] = ghost_Frama_C_get_random_u32();
-    }
-}
+    uint32_t prio;
 
-void Reset_Handler(void);
+    system_reset();
+    interrupt_init();
+    prio = nvig_get_prioritygrouping();
+    nvic_set_prioritygrouping(prio);
 
-void kernel_entrypoint(void)
-{
-    /** INFO: inject garbage in metadata. This structure is build system forged.
-     * This allows to:
-     * 1. avoid uninitialized error from frama-C
-     * 2. generate potential invalid inputs values from corrupted build system
-     */
-    Frama_C_task_init_meta();
-    /* calling kernel entrypoint */
-    Reset_Handler();
-    //_entrypoint();
+    uint16_t irq = Frama_C_interval_u16(0, NUM_IRQS-1);
+    nvic_enableirq(irq);
+    nvic_disableirq(irq);
+    nvic_get_pendingirq(irq);
+    nvic_set_pendingirq(irq);
+    nvic_clear_pendingirq(irq);
+    wait_for_interrupt();
+    wait_for_event();
+    notify_event();
+    interrupt_disable();
+    interrupt_enable();
 }

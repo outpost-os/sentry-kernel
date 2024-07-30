@@ -30,6 +30,7 @@ test(
     framac_bsp_rng_stub_entrypoint,
     meson.project_source_root()+'/kernel/src/drivers/rng/stm32f4-rng.c',
     framac_gen_opts,
+    '-absolute-valid-range', '0x40000000-0xE000F000',
     framac_rte_eva_opts,
     '-eva-log', 'a:'+join_paths(meson.current_build_dir(), 'sentry-rte-eva.log'),
     '-eva-report-red-statuses', join_paths(meson.current_build_dir(), 'sentry-red-statuses.log'),

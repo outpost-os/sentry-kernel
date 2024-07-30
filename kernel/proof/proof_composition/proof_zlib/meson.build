@@ -23,7 +23,7 @@ test(
   test_name,
   frama_c,
   args: [
-    kernel_eva_zlib_entypoint, zlib_source_set_config.sources(),
+    kernel_eva_zlib_entypoint, arch_source_set_config.sources(),
     framac_gen_opts,
     '-kernel-log','iu:'+ join_paths(meson.current_build_dir(), test_name + '-user.log'),
     '-kernel-log','a:'+ join_paths(meson.current_build_dir(), test_name + '-all.log'),

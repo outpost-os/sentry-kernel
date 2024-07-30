@@ -11,6 +11,10 @@ void handler_entrypoint(void)
 {
     taskh_t autotest_handle;
 
+    /* reset handler init */
+    dwt_enable_cyccnt();
+    dwt_reset_cyccnt();
+    systick_stop_and_clear();
     /* security, time and task managers must be initialized first */
     mgr_security_init();
     mgr_time_init();
