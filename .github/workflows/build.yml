@@ -60,7 +60,7 @@ jobs:
       image: ${{ matrix.operating_system }}
     steps:
       - name: Clone cross-files
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:  'main'
           repository: 'outpost-os/meson-cross-files'
@@ -96,7 +96,7 @@ jobs:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
           ref: ${{ env.compiler_version }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -128,7 +128,7 @@ jobs:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
       - name: Clone cross-files
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:  'main'
           repository: 'outpost-os/meson-cross-files'
@@ -155,7 +155,7 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -187,7 +187,7 @@ jobs:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
       - name: Clone cross-files
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:  'main'
           repository: 'outpost-os/meson-cross-files'
@@ -206,7 +206,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true

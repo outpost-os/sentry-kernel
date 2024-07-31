@@ -21,14 +21,14 @@ jobs:
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:
-          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3'
+          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3,graphviz,libgmp-dev,libgtksourceview-3.0-dev'
       - name: install frama-C
         run: |
-          opam init --compiler 4.14.1 --disable-sandboxing -y
+          opam init --compiler 4.14.1 --disable-sandboxing --yes --confirm-level=yes
           eval $(opam env)
-          opam install frama-c
+          opam install --yes --confirm-level=yes frama-c
       - name: Clone cross-files
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref:  'main'
           repository: 'outpost-os/meson-cross-files'
@@ -51,7 +51,7 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
       - name: checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
