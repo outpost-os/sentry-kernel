@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   forge_matrix:
-    runs-on: self-hosted
+    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container:
       image: python:3.9.14-alpine3.16
     steps:
@@ -55,27 +55,24 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
+    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container:
       image: ${{ matrix.operating_system }}
     steps:
-      - name: Clear GITHUB_HOME at job start
-        shell: bash
+      - name: Clone cross-files
+        uses: actions/checkout@v4
+        with:
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
         run: |
-          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
-      - name: Setup git
-        uses: embedded-devops/action-setup-git@main
-        with:
-          ssh_key: ${{ secrets.GHE_SSH_KEY }}
-          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
-      - name: Setup Meson
-        uses: embedded-devops/action-setup-meson@main
-        with:
-          token: ${{ secrets.GHE_CI_TOKEN }}
-          crossfiles_git: 'outpost/meson-cross-files'
-          crossfiles_ref: 'main'
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install prerequisites pkg
-        uses: embedded-devops/action-install-pkg@v2.0
+        uses: outpost-os/action-install-pkg@v1
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld,srecord'
       - name: Split compiler reference
@@ -93,23 +90,13 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - name: Install bindgen
-        run: |
-          cargo install bindgen-cli --locked
       - name: Setup C toolchain
         uses: embedded-devops/action-setup-compiler@main
         with:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
           ref: ${{ env.compiler_version }}
-      - name: Set pypi credentials
-        uses: embedded-devops/action-pypi@main
-        with:
-          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
-          pypi_server_need_authentication: true
-          pypi_server_login: ${{ secrets.KULOS_NEXUS_CI_RO_USER }}
-          pypi_server_password: ${{ secrets.KULOS_NEXUS_CI_RO_PASSWORD }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -121,7 +108,7 @@ jobs:
         run: |
           defconfig configs/${{matrix.config}}_defconfig
       - name: Meson Build
-        uses: embedded-devops/action-meson@main
+        uses: outpost-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
@@ -136,31 +123,28 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
+    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
-      - name: Clear GITHUB_HOME at job start
-        shell: bash
+      - name: Clone cross-files
+        uses: actions/checkout@v4
+        with:
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
         run: |
-          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
-      - name: Setup git
-        uses: embedded-devops/action-setup-git@main
-        with:
-          ssh_key: ${{ secrets.GHE_SSH_KEY }}
-          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
-      - name: Setup Meson
-        uses: embedded-devops/action-setup-meson@main
-        with:
-          token: ${{ secrets.GHE_CI_TOKEN }}
-          crossfiles_git: 'outpost/meson-cross-files'
-          crossfiles_ref: 'main'
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install curl pkg
-        uses: embedded-devops/action-install-pkg@v2.0
+        uses: outpost-os/action-install-pkg@v1
         with:
           packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup compiler
-        uses: embedded-devops/action-setup-compiler@main
+        uses: outpost-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -171,17 +155,7 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - name: Install bindgen
-        run: |
-          cargo install bindgen-cli --locked
-      - name: Set pypi credentials
-        uses: embedded-devops/action-pypi@main
-        with:
-          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
-          pypi_server_need_authentication: true
-          pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
-          pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -192,7 +166,7 @@ jobs:
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Build
-        uses: embedded-devops/action-meson@main
+        uses: outpost-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "test"]'
@@ -208,54 +182,37 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
+    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
-      - name: Clear GITHUB_HOME at job start
-        shell: bash
+      - name: Clone cross-files
+        uses: actions/checkout@v4
+        with:
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
         run: |
-          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
-      - name: Setup git
-        uses: embedded-devops/action-setup-git@main
-        with:
-          ssh_key: ${{ secrets.GHE_SSH_KEY }}
-          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
-      - name: Setup Meson
-        uses: embedded-devops/action-setup-meson@main
-        with:
-          token: ${{ secrets.GHE_CI_TOKEN }}
-          crossfiles_git: 'outpost/meson-cross-files'
-          crossfiles_ref: 'main'
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install prerequisites pkg
-        uses: embedded-devops/action-install-pkg@v2.0
+        uses: outpost-os/action-install-pkg@v1
         with:
           packages: 'pandoc,dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-      - name: Install bindgen
-        run: |
-          cargo install bindgen-cli --locked
-      - name: Set pypi credentials
-        uses: embedded-devops/action-pypi@main
-        with:
-          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
-          pypi_server_need_authentication: true
-          pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
-          pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
-      - name: install dtc pkg
-        uses: embedded-devops/action-install-pkg@v2.0
-        with:
-          packages: 'dtc|device-tree-compiler,libssh2-1|libssh2,curl,lld'
       - name: defconfig
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
@@ -269,4 +226,3 @@ jobs:
         run: |
           cat builddir/meson-logs/meson-log.txt
           cat builddir/meson-logs/testlog.txt
-
