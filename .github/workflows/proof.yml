@@ -27,6 +27,7 @@ jobs:
           opam init --compiler 4.14.1 --disable-sandboxing --yes --confirm-level=yes
           eval $(opam env)
           opam install --yes --confirm-level=yes frama-c
+          echo "$HOME/.opam/default/bin/frama-c" >> $GITHUB_PATH
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
