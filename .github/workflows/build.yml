@@ -100,6 +100,11 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          set-safe-directory: true
+      - name: set safe dir for dunami (to be removed)
+        run: |
+          git config --global --add safe.directory '*'
+        shell: bash
       - name: deploy local deps
         run: |
           pip install --upgrade pip
@@ -159,6 +164,11 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          set-safe-directory: true
+      - name: set safe dir for dunami (to be removed)
+        run: |
+          git config --global --add safe.directory '*'
+        shell: bash
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
@@ -210,12 +220,17 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          set-safe-directory: true
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
       - name: defconfig
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
+      - name: set safe dir for dunami (to be removed)
+        run: |
+          git config --global --add safe.directory '*'
+        shell: bash
       - name: Meson Doc
         uses: outpost-os/action-meson@v1
         with:

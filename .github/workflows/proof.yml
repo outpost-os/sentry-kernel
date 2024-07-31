@@ -55,12 +55,18 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
+          set-safe-directory: true
+
       - name: Install local deps
         run: |
           pip3 install -r requirements.txt
       - name: defconfig
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
+      - name: set safe dir for dunami (to be removed)
+        run: |
+          git config --global --add safe.directory '*'
+        shell: bash
       - name: Meson Build
         uses: outpost-os/action-meson@main
         with:
