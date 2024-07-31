@@ -16,10 +16,16 @@ jobs:
     runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container: 'pthierry38/framac-runner:29'
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          set-safe-directory: true
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:
-          packages: 'dtc|device-tree-compiler,curl,lld'
+          packages: 'device-tree-compiler,curl,lld,graphviz,lsb-release,libglib2.0-dev-bin,python3,python3-pip'
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -43,14 +49,9 @@ jobs:
         with:
           compiler: gcc
           triple: arm-none-eabi
-      - name: checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
-          set-safe-directory: true
       - name: Install local deps
         run: |
+          rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED
           pip3 install -r requirements.txt
       - name: defconfig
         run: |
