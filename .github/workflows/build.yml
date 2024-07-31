@@ -59,11 +59,18 @@ jobs:
     container:
       image: ${{ matrix.operating_system }}
     steps:
-      - name: Setup Meson
-        uses: outpost-os/action-setup-meson@v1
+      - name: Clone cross-files
+        uses: actions/checkout@v3
         with:
-          crossfiles_git: 'outpost-os/meson-cross-files'
-          crossfiles_ref: 'main'
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
+        run: |
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:
@@ -120,11 +127,18 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
-      - name: Setup Meson
-        uses: outpost-os/action-setup-meson@v1
+      - name: Clone cross-files
+        uses: actions/checkout@v3
         with:
-          crossfiles_git: 'outpost-os/meson-cross-files'
-          crossfiles_ref: 'main'
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
+        run: |
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install curl pkg
         uses: outpost-os/action-install-pkg@v1
         with:
@@ -172,11 +186,18 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
-      - name: Setup Meson
-        uses: outpost-os/action-setup-meson@v1
+      - name: Clone cross-files
+        uses: actions/checkout@v3
         with:
-          crossfiles_git: 'outpost/meson-cross-files'
-          crossfiles_ref: 'main'
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
+        run: |
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:

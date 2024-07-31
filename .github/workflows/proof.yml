@@ -16,6 +16,7 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    container: 'mesonbuild/ubuntu-rolling'
     steps:
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
@@ -26,11 +27,18 @@ jobs:
           opam init --compiler 4.14.1 --disable-sandboxing -y
           eval $(opam env)
           opam install frama-c
-      - name: Setup Meson
-        uses: outpost-os/action-setup-meson@v1
+      - name: Clone cross-files
+        uses: actions/checkout@v3
         with:
-          crossfiles_git: 'outpost/meson-cross-files'
-          crossfiles_ref: 'main'
+          ref:  'main'
+          repository: 'outpost-os/meson-cross-files'
+          path: crossfiles
+      - name: Deploy cross-files
+        run: |
+          mkdir -p $HOME/.local/share/meson/cross
+          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
+          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+        shell: bash
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
