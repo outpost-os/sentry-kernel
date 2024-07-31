@@ -18,6 +18,7 @@ jobs:
         shell: bash
     runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
     container: 'pthierry38/framac-runner:29'
+    timeout-minutes: 60
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
