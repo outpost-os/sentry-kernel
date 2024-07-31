@@ -91,7 +91,7 @@ jobs:
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
-        uses: embedded-devops/action-setup-compiler@main
+        uses: outpost-os/action-setup-compiler@v1
         with:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
@@ -217,7 +217,7 @@ jobs:
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
       - name: Meson Doc
-        uses: embedded-devops/action-meson@main
+        uses: outpost-os/action-meson@v1
         with:
           actions: '["prefetch", "setup"]'
           options: '-Dconfig=.config -Ddts=dts/examples/stm32f429i_disc1_debug.dts -Ddts-include-dirs=dts -Dwith_doc=true -Dwith_uapi=false -Dwith_idle=false'
