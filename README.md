@@ -2,15 +2,7 @@
 
 ## Current project state
 
-![Build-n-test](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/build.yml/badge.svg)
-![Quality](https://git.orange.ledgerlabs.net/outpost/sentry-kernel/actions/workflows/codequal.yml/badge.svg)
-
-[![Quality Gate Status](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?branch=main&project=sentry-kernel&metric=alert_status&token=cb81b19de8549e9c2701899ecba06d9526bf5513)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel&branch=main)
-[![Reliability Rating](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?branch=main&project=sentry-kernel&metric=reliability_rating&token=cb81b19de8549e9c2701899ecba06d9526bf5513)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel&branch=main)
-[![Security Rating](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?branch=main&project=sentry-kernel&metric=security_rating&token=cb81b19de8549e9c2701899ecba06d9526bf5513)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel&branch=main)
-[![Technical Debt](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?branch=main&project=sentry-kernel&metric=sqale_index&token=cb81b19de8549e9c2701899ecba06d9526bf5513)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel&branch=main)
-[![Vulnerabilities](https://sonarqube.orange.ledgerlabs.net/api/project_badges/measure?branch=main&project=sentry-kernel&metric=vulnerabilities&token=cb81b19de8549e9c2701899ecba06d9526bf5513)](https://sonarqube.orange.ledgerlabs.net/dashboard?id=sentry-kernel&branch=main)
-
+TBD
 
 ## About
 
