@@ -15,51 +15,30 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: self-hosted
-    container:
-      image: docker-kulos-nexus.orange.ledgerlabs.net/framac-27:latest
-      credentials:
-        username: ${{ secrets.NEXUS_CI_RO_USER }}
-        password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Clear GITHUB_HOME at job start
-        shell: bash
+      - name: install prerequisites pkg
+        uses: outpost-os/action-install-pkg@v1
+        with:
+          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3'
+      - name: install frama-C
         run: |
-          find $HOME -mindepth 1 -maxdepth 1 -not -name '.' -exec rm -rf {} \;
-      - name: Setup git
-        uses: embedded-devops/action-setup-git@main
-        with:
-          ssh_key: ${{ secrets.GHE_SSH_KEY }}
-          ssh_known_hosts: ${{ secrets.GHE_HOST_KEY }}
+          opam init --compiler 4.14.1 --disable-sandboxing -y
+          eval $(opam env)
+          opam install frama-c
       - name: Setup Meson
-        uses: embedded-devops/action-setup-meson@main
+        uses: outpost-os/action-setup-meson@v1
         with:
-          token: ${{ secrets.GHE_CI_TOKEN }}
           crossfiles_git: 'outpost/meson-cross-files'
           crossfiles_ref: 'main'
-      - name: Set pypi credentials
-        uses: embedded-devops/action-pypi@main
-        with:
-          pypi_server_url: 'https://nexus.orange.ledgerlabs.net/repository/kulos-pypi'
-          pypi_server_need_authentication: true
-          pypi_server_login: ${{ secrets.NEXUS_CI_RO_USER }}
-          pypi_server_password: ${{ secrets.NEXUS_CI_RO_PASSWORD }}
-      - name: install prerequisites pkg
-        uses: embedded-devops/action-install-pkg@v2.0
-        with:
-          packages: 'dtc|device-tree-compiler,curl,lld'
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - name: Install bindgen
-        run: |
-          cargo install bindgen-cli --locked
       - name: Setup C toolchain
-        uses: embedded-devops/action-setup-compiler@main
+        uses: outpost-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -75,7 +54,7 @@ jobs:
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
-        uses: embedded-devops/action-meson@main
+        uses: outpost-os/action-meson@main
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup"]'
@@ -85,12 +64,6 @@ jobs:
           why3 config detect
           frama-c -wp-detect
           cd builddir && meson test --suite proof
-      - name: Archive proof artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: framac-eva-results
-          path: |
-            builddir/proof/*.*
       - name: Meson postcheck
         if: failure()
         run: |
