@@ -1,9 +1,7 @@
 name: Sentry kernel proof
 
 on:
-  pull_request:
-    branches:
-    - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,13 +19,7 @@ jobs:
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:
-          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3,graphviz,libgmp-dev,libgtksourceview-3.0-dev'
-      - name: install frama-C
-        run: |
-          opam init --compiler 4.14.1 --disable-sandboxing --yes --confirm-level=yes
-          eval $(opam env)
-          opam install --yes --confirm-level=yes frama-c
-          echo "$HOME/.opam/default/bin/frama-c" >> $GITHUB_PATH
+          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3,graphviz,frama-c-base,z3'
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -77,7 +69,6 @@ jobs:
       - name: run framaC
         run: |
           why3 config detect
-          frama-c -wp-detect
           cd builddir && meson test --suite proof
       - name: Meson postcheck
         if: failure()
