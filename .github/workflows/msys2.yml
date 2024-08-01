@@ -21,6 +21,11 @@ jobs:
         shell: msys2 {0}
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          set-safe-directory: true
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -33,11 +38,20 @@ jobs:
             git
             cmake
             mingw-w64-x86_64-srecord
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-python-pip
-            mingw-w64-x86_64-python-cffi
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-libxml2
             mingw-w64-x86_64-ninja
-
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-setuptools
+            mingw-w64-x86_64-python-pip
+            mingw-w64-x86_64-python-fastjsonschema
+            mingw-w64-x86_64-objfw
+      - name: deploy local deps
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip --disable-pip-version-check install -r requirements.txt
       - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
       - name: Clone cross-files
         uses: actions/checkout@v4
@@ -60,25 +74,17 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: 13.2.Rel1
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          set-safe-directory: true
+
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
-      - name: deploy local deps
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip --disable-pip-version-check install -r requirements.txt
       - name: defconfig
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
         uses: outpost-os/action-meson@support-custom-pip-bin-name
         with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'darwin-arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'mingw64-arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
           options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
           pip: 'python3 -m pip'
