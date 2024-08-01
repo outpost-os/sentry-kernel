@@ -40,9 +40,7 @@ jobs:
           path: crossfiles
       - name: Deploy cross-files
         run: |
-          mkdir -p $HOME/.local/share/meson/cross
-          cp -a $GITHUB_WORKSPACE/crossfiles/*.ini $HOME/.local/share/meson/cross
-          echo "MESON_CROSS_FILES=$HOME/.local/share/meson/cross" >> $GITHUB_ENV
+          echo "MESON_CROSS_FILES=$GITHUB_WORKSPACE\crossfiles" >> $GITHUB_ENV
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
