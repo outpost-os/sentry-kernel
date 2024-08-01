@@ -31,10 +31,11 @@ jobs:
             curl
             bash
             git
+            cmake
             mingw-w64-x86_64-srecord
             mingw-w64-x86_64-python
             mingw-w64-x86_64-python-pip
-            mingw-w64-x86_64-gcc
+
       - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
       - name: Clone cross-files
         uses: actions/checkout@v4
