@@ -15,11 +15,11 @@ concurrency:
 # This allows the usage of automated ssh key installation step
 
 jobs:
-  build_u5_macosX:
+  build_u5_w10:
     defaults:
       run:
         shell: msys2 {0}
-    runs-on: windows-10
+    runs-on: windows-latest
     steps:
       - run: |
           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
