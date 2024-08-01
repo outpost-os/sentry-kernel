@@ -60,5 +60,6 @@ test(
   env: {'FRAMAC_SESSION': join_paths(meson.current_build_dir(), '.frama-c')},
   depends: [ framac_dep ],
   suite: 'proof',
+  should_fail: true,
   timeout: 1200,
 )

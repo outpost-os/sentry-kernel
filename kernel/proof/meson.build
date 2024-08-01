@@ -4,7 +4,7 @@
 
 frama_c = find_program('frama-c', required: true, native: true)
 z3 = find_program('z3', required: true, native: true)
-cvc4 = find_program('cvc4', 'cvc4-1.8', required: true, native: true)
+cvc4 = find_program('cvc4', 'cvc4-1.7', required: true, native: true)
 
 # Part 1: analysis from kernel entrypoint. These targets check the call graph from
 # the kernel entrypoint itelf, analysing the overall init sequence of the kernel.

@@ -72,7 +72,8 @@ autotest_json = custom_target(
     input: autotest_elf,
     output: '@BASENAME@.json',
     command: [
-        parseelf,
+        py3,
+        parseelf.full_path(),
         '@INPUT@',
     ],
     build_by_default: true,

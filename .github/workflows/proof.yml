@@ -1,7 +1,10 @@
 name: Sentry kernel proof
 
 on:
-  workflow_dispatch:
+  push:
+  pull_request:
+    branches:
+    - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,12 +17,23 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
-    container: 'mesonbuild/ubuntu-rolling'
+    container: 'pthierry38/framac-runner:29'
+    timeout-minutes: 60
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          set-safe-directory: true
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1
         with:
-          packages: 'dtc|device-tree-compiler,curl,lld,opam,why3,graphviz,frama-c-base,z3'
+          packages: 'device-tree-compiler,curl,lld,graphviz,lsb-release,libglib2.0-dev-bin,python3,python3-pip,python3-venv'
+      - name: Spawn and use python venv
+        run: |
+          python3 -m venv venv
+          echo "$PWD/venv/bin" >> $GITHUB_PATH
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -43,13 +57,6 @@ jobs:
         with:
           compiler: gcc
           triple: arm-none-eabi
-      - name: checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
-          set-safe-directory: true
-
       - name: Install local deps
         run: |
           pip3 install -r requirements.txt
