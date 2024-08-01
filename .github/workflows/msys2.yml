@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  MSYSTEM: MINGW64
+
 # using /home/build as home, as buildbot is using user build. Cache is still in /cache
 # This allows the usage of automated ssh key installation step
 
@@ -20,6 +23,7 @@ jobs:
       run:
         shell: msys2 {0}
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,27 +35,52 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
+            base-devel
             dtc
             libssh2
             curl
             bash
             git
+            mercurial
             cmake
+            unzip
+            python-brotli
             mingw-w64-x86_64-srecord
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-glib2
             mingw-w64-x86_64-libxml2
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pdcurses
+            mingw-w64-x86_64-swig
             mingw-w64-x86_64-python
             mingw-w64-x86_64-python-setuptools
             mingw-w64-x86_64-python-pip
             mingw-w64-x86_64-python-fastjsonschema
+            mingw-w64-x86_64-python-cffi
+            mingw-w64-x86_64-python-lxml
+            mingw-w64-x86_64-python-pillow
+            mingw-w64-x86_64-python-types-pyyaml
+            mingw-w64-x86_64-python-libsass
+            mingw-w64-x86_64-libjpeg-turbo
+            mingw-w64-x86_64-python-lief
             mingw-w64-x86_64-objfw
-      - name: deploy local deps
+            mingw-w64-x86_64-meson
+            mingw-w64-x86_64-meson-python
+        env:
+          MSYS2_ARCH: x86_64
+          MSYS2_CURSES: pdcurses
+          COMPILER: gcc
+          TOOLCHAIN: toolchain
+      - name: Install local dependencies
         run: |
-          python3 -m pip install --upgrade pip
           python3 -m pip --disable-pip-version-check install -r requirements.txt
+        env:
+          MSYS2_ARCH: x86_64
+          MSYS2_CURSES: pdcurses
+          COMPILER: gcc
+          TOOLCHAIN: toolchain
       - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
       - name: Clone cross-files
         uses: actions/checkout@v4
@@ -88,6 +117,11 @@ jobs:
           actions: '["prefetch", "setup", "compile"]'
           options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
           pip: 'python3 -m pip'
+        env:
+          MSYS2_ARCH: x86_64
+          MSYS2_CURSES: pdcurses
+          COMPILER: gcc
+          TOOLCHAIN: toolchain
       - name: Meson postcheck
         if: failure()
         run: |
