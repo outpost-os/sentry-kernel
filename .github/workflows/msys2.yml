@@ -21,10 +21,6 @@ jobs:
         shell: msys2 {0}
     runs-on: windows-latest
     steps:
-      - run: |
-          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-        shell: pwsh
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -33,8 +29,9 @@ jobs:
             dtc
             libssh2
             curl
+            bash
             mingw-w64-x86_64-srecord
-      - run: scoop install rustup
+      - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
