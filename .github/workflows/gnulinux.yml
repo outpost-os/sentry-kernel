@@ -1,4 +1,4 @@
-name: Sentry kernel build
+name: Sentry kernel build on GNU/Linux distros
 
 on:
   push:

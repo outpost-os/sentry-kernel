@@ -1,4 +1,4 @@
-name: Sentry kernel build on MacOS
+name: Sentry kernel build on MacOS X
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: Sentry kernel proof
+name: Sentry kernel proof with Frama-C
 
 on:
   push:
