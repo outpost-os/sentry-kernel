@@ -37,7 +37,9 @@ fs = import('fs')
 pymod = import('python')
 ssmod = import('sourceset')
 
-py3 = pymod.find_installation('python3', modules: ['dunamai'])
+
+dunamai = find_program('dunamai', required: true)
+py3 = pymod.find_installation('python3')
 
 kconfig_file = meson.current_source_dir() / 'Kconfig'
 kconfig_proj = subproject('kconfig', default_options: ['kconfig=@0@'.format(kconfig_file)])
