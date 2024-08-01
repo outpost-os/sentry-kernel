@@ -90,20 +90,23 @@ jobs:
           path: crossfiles
       - name: Deploy cross-files
         run: |
-          echo "MESON_CROSS_FILES=$GITHUB_WORKSPACE\crossfiles" >> $GITHUB_ENV
+          cp $GITHUB_WORKSPACE\\crossfiles\\mingw64-arm-none-eabi-gcc.ini $GITHUB_WORKSPACE
+          echo "MESON_CROSS_FILES=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-          targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
+          targets: x86_64-pc-windows-msvc,thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
+      - name: Set default rust target to x86_64-windows-msvc
+        run: rustup set default-host x86_64-pc-windows-gnu
+        shell: bash
       - name: Setup C toolchain
         uses: outpost-os/action-setup-compiler@use-local-dir
         with:
           compiler: gcc
           triple: arm-none-eabi
           ref: 13.2.Rel1
-
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
@@ -111,12 +114,15 @@ jobs:
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@support-custom-pip-bin-name
-        with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'mingw64-arm-none-eabi-gcc.ini') }}
-          actions: '["prefetch", "setup", "compile"]'
-          options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
-          pip: 'python3 -m pip'
+        run: |
+          meson subprojects download || true
+          meson subprojects foreach python3 -m pip install -r requirements.txt || true
+          meson setup -Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts --cross-file mingw64-arm-none-eabi-gcc.ini builddir
+          ninja -C builddir
+          ninja -C builddir test
+          ninja -C builddir coverage
+          ninja -C builddir install
+          meson dist --no-tests --include-subprojects
         env:
           MSYS2_ARCH: x86_64
           MSYS2_CURSES: pdcurses
