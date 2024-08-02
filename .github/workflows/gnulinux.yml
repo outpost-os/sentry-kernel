@@ -1,4 +1,4 @@
-name: Sentry kernel build
+name: Sentry kernel build on GNU/Linux distros
 
 on:
   push:
@@ -59,6 +59,11 @@ jobs:
     container:
       image: ${{ matrix.operating_system }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          set-safe-directory: true
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -96,11 +101,7 @@ jobs:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
           ref: ${{ env.compiler_version }}
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          set-safe-directory: true
+          workspace: $GITHUB_WORKSPACE
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
@@ -132,6 +133,11 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          set-safe-directory: true
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -154,17 +160,13 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: '12.3.Rel1'
+          workspace: $GITHUB_WORKSPACE
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          set-safe-directory: true
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
@@ -196,6 +198,11 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          set-safe-directory: true
       - name: Clone cross-files
         uses: actions/checkout@v4
         with:
@@ -216,11 +223,6 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          set-safe-directory: true
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
