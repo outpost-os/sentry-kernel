@@ -101,6 +101,7 @@ jobs:
           compiler: ${{ env.compiler }}
           triple: arm-none-eabi
           ref: ${{ env.compiler_version }}
+          workspace: $GITHUB_WORKSPACE
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
@@ -159,6 +160,7 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: '12.3.Rel1'
+          workspace: $GITHUB_WORKSPACE
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:

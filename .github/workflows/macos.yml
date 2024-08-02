@@ -62,6 +62,7 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: 13.2.Rel1
+          workspace: ${{ github.workspace }}
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
