@@ -87,10 +87,11 @@ Some cross-files describing toolchain configuration are set in `support/meson` d
 meson setup [-Doption ...] --cross-file=</path/to/cross/file> <builddir>
 ```
 
-A typical setup of the Sentry kernel can then be, in a standalone mode:
+A typical complete setup of the Sentry kernel can then be, in a standalone mode:
 
 ```console
-meson setup -Dwith_doc=true -Dwith_tests=true -Ddts=dts/examples/stm32f429i_disc1_autotest.dts -Dconfig=configs/stm32f429i_disc1_autotest_defconfig --cross-file support/meson/armv7m.ini --cross-file support/meson/cortex-m4.ini builddir
+defconfig configs/stm32f429i_disc1_autotest_defconfig
+meson setup -Dwith_doc=true -Dwith_tests=true -Ddts=dts/examples/stm32f429i_disc1_autotest.dts -Dconfig=.config --cross-file support/meson/armv7m.ini --cross-file support/meson/cortex-m4.ini builddir
 ```
 
 ## build
