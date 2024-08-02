@@ -57,7 +57,7 @@ jobs:
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
       - name: Setup C toolchain
-        uses: outpost-os/action-setup-compiler@use-local-dir
+        uses: outpost-os/action-setup-compiler@v1
         with:
           compiler: gcc
           triple: arm-none-eabi
@@ -75,12 +75,11 @@ jobs:
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
       - name: Meson Build
-        uses: outpost-os/action-meson@support-custom-pip-bin-name
+        uses: outpost-os/action-meson@v1
         with:
           cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
           options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
-          pip: 'python3 -m pip'
       - name: Meson postcheck
         if: failure()
         run: |
