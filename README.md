@@ -23,6 +23,9 @@ pip3 install -r requirements.txt
 
 This kernel aims to be fully portable. Its initial target are ARM Cortex-M MCUs (starting with STM32) and thus one needs a cross toolchain for such target. One can use any cross toolchain as long as this is a GNU compatible compiler for Cortex-M. The reference toolchain used for `CI/CD` is bundled in this project using `meson` wrap mechanism.
 
+Cross-toolchain relative need to be declared so that the `meson` build system is able to detect overall cross-compilers and associated tools. This is
+done by defining `cross-files`. The meson build system describes these cross file [here](https://mesonbuild.com/Cross-compilation.html).
+
 ### Project bootstrap
 
 A common good practice is `do not inject environment variable for build configuration`. For this purpose, `meson` does not allow using relative path in toolchain definition. Toolchain path **_must_** be absolute.
@@ -58,17 +61,41 @@ menuconfig
 
 # How to build
 
+## About build options
+
+The Sentry kernel has the following configuration options, that can be added at `meson setup` time using `-D<optname>=<optvalue>`
+
+   * `with_doc` (boolean, false): Enable support for building docs
+   * `with_tests` (boolean, false): Enable unit test suite support through `meson test`
+   * `with_proof` (boolean, false): Enable support for frama-C analysis through `meson test`
+   * `with_kernel` (boolean, true): Enable kernel binary build
+   * `with_uapi` (boolean, true): Enable kernel UAPI library build
+   * `with_idle` (boolean, true): Enable kernel Idle task build
+   * `with_tools` (boolean, true): Enable build host native tooling build
+   * `config`: (string): path to the defconfig file. Can be externally provided, while respecting the kernel Kconfig
+   * `dts` (string): DTS file path, may be local or any externaly provided DTS file
+   * `dts-include-dirs` (array): DTS file include dir for dtsi resolution, depending on the DTS file content
+
+It is to note that all the `with_` options are not mandatory, while others are.
+
 ## meson setup
 The first step in meson build is project setup, this will create a specific build directory for the given options. This step also configures the toolchain to use.
+
 Some cross-files describing toolchain configuration are set in `support/meson` directory. More than one cross file can be used if needed.
 
 ```console
 meson setup [-Doption ...] --cross-file=</path/to/cross/file> <builddir>
 ```
 
+A typical setup of the Sentry kernel can then be, in a standalone mode:
+
+```console
+meson setup -Dwith_doc=true -Dwith_tests=true -Ddts=dts/examples/stm32f429i_disc1_autotest.dts -Dconfig=configs/stm32f429i_disc1_autotest_defconfig --cross-file support/meson/armv7m.ini --cross-file support/meson/cortex-m4.ini builddir
+```
+
 ## build
 
-The build step is as simple as calling ninja.
+Once meson build directory is setup, the build step is as simple as calling ninja.
 ```console
 ninja -C builddir
 ```
@@ -98,18 +125,20 @@ then be called separatelly by calling only the proof suite.
 FramaC tests can be listed using:
 
 ```console
-$ meson test -C builddir_framac/ --list
-frama-C-parsing
-frama-C-eva
-frama-C-wp-bsp-exti
-frama-C-wp-bsp-pwr
-frama-C-wp-bsp-rcc
-frama-C-wp-bsp-rng
+$ meson test -C builddir/ --list
+sentry-kernel:proof / frama-C-parsing
+sentry-kernel:proof / frama-c-eva-entrypoint
+sentry-kernel:proof / frama-C-eva-handler-systick
+sentry-kernel:proof / frama-c-eva-handler-svc
+sentry-kernel:proof / frama-c-eva-zlib
+sentry-kernel:proof / frama-C-eva-handler-systick-redalarm
+sentry-kernel:proof / frama-c-eva-handler-svc-redalarm
+sentry-kernel:proof / frama-c-eva-zlib-redalarm
 [...]
 ```
 
-EVA and WP targets generate `.eva` and `.wp` files in the corresponding test build directory that can then be opened with `ivette` and the Frama-C GUI for analysis.
-In the same time, red-alarms file holding detected RTE are also stored for each test.
+Each Frama-C execution is stored in a dedicated build directory that hold all usual files such as session file, red alarms, flamgraph and so on,
+that allows various post-processing, such as results analysis or Frama-C tools usage such as `ivette` or `frama-c-gui`.
 
 ## tests
 
@@ -141,5 +170,19 @@ meson test -C <builddir> --suite ut-utils
 [...]
 ```
 
-## doc
-TBD
+## Documentation
+
+Sentry documentation is written in the `doc/` subdirectory.
+It can be build if the `with_doc` flag is set to true.
+
+There are multiple doc types:
+
+   * concepts: Overall Sentry concepts definition, and high level documentation, targetting the user or application developer
+   * internals: Sentry internal code hierarchy, mostly built using doxygen. This doc is for kernel developers
+   * mandb: Sentry UAPI manuals, in groff (man) format, so that it can be used with the `man` utitily
+
+The ninja targets associated to these documentations are `doc-concepts` (`doc-concepts-pdf` for PDF generation), `doc-internals` and `mandb`.
+
+Generated documentation is in the `$BUILDDIR/doc` directory, and are also deployed in `/usr/share/doc` in case of the usage of the `install` target.
+
+More information about the various concepts of the Sentry-kernel and its build system can be found in the `concepts` documentation.
