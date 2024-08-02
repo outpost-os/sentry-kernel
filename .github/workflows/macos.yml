@@ -77,7 +77,7 @@ jobs:
       - name: Meson Build
         uses: outpost-os/action-meson@support-custom-pip-bin-name
         with:
-          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'darwin-arm-none-eabi-gcc.ini') }}
+          cross_files: ${{ format('{0}/{1}', env.MESON_CROSS_FILES, 'arm-none-eabi-gcc.ini') }}
           actions: '["prefetch", "setup", "compile"]'
           options: '-Dconfig=.config -Ddts=dts/examples/nucleo_u5a5_autotest.dts -Ddts-include-dirs=dts'
           pip: 'python3 -m pip'
