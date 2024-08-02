@@ -66,8 +66,7 @@ jobs:
             mingw-w64-x86_64-libjpeg-turbo
             mingw-w64-x86_64-python-lief
             mingw-w64-x86_64-objfw
-            mingw-w64-x86_64-meson
-            mingw-w64-x86_64-meson-python
+            mingw-w64-x86_64-rust
         env:
           MSYS2_ARCH: x86_64
           MSYS2_CURSES: pdcurses
