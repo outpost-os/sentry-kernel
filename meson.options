@@ -7,5 +7,5 @@ option('with_idle', type: 'boolean', value: true, description: 'Sentry Idle task
 option('with_tools', type: 'boolean', value: true, description: 'compile naitive tools')
 option('config', type: 'string', description: 'Configuration file to use', yield: true)
 option('dts', type: 'string', description: 'Top level DTS file', yield: true)
-option('dts-include-dirs', type: 'array', yield: true,
+option('dts-include-dirs', type: 'array', value: ['dts'], yield: true,
        description: 'Directories to add to resolution path for dtsi inclusion')
