@@ -20,11 +20,10 @@ jobs:
     container: 'pthierry38/framac-runner:29'
     timeout-minutes: 60
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
           fetch-depth: 0
+          fetch-tags: true
           set-safe-directory: true
       - name: install prerequisites pkg
         uses: outpost-os/action-install-pkg@v1

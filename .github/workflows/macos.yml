@@ -21,6 +21,11 @@ jobs:
         shell: bash
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          set-safe-directory: true
       - name: unbreak python in github actions
         run: |
           find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
@@ -57,11 +62,6 @@ jobs:
           compiler: gcc
           triple: arm-none-eabi
           ref: 13.2.Rel1
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-          set-safe-directory: true
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
