@@ -174,6 +174,11 @@ kstatus_t gpdma_channel_configure(gpdma_stream_cfg_t const*const desc);
  */
 kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc);
 
+/**
+ * @brief given a stream, get back the associated IRQn
+ */
+kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn);
+
 #ifdef __cplusplus
 }
 #endif

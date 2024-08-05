@@ -6,6 +6,23 @@
 #include "stm32-gpdma-dt.h"
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
+
+{% for port in gpdma_ports -%}
+{% if port is owned or port is not enabled -%}
+{% continue -%}
+{% endif -%}
+/* channel ordered interrupts for controller {{ port.label }} */
+static const uint16_t stm32_{{ port.label}}_interrupts[] = {
+    /* {{ port['dma-channels']|int }} DMA channels */
+    {% for chanirq in range((2*port['dma-channels'])) -%}
+    {% if port['interrupts'][chanirq]|int != 0 -%}
+    {{ port['interrupts'][chanirq] }}, /* channel {{ (chanirq / 2)|int }} interrupt identifier */
+    {% endif -%}
+    {% endfor -%}
+};
+
+{% endfor -%}
+
 /**
  * \brief .rodata field: list of current platform GPDMA ports
  */
@@ -25,15 +42,17 @@ static const stm32_gpdma_desc_t stm32_gpdmas[] = {
         .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
         .num_chan = {{ num_chan|int }},
         .num_req = {{ num_req|int }},
+        .interrupts = &stm32_{{ port.label}}_interrupts[0],
     },
     {% endfor -%}
     {} /* sentinel */
 };
 
+
 /**
  * @warning this is a private function, port id must be valid and checked by caller
  */
-const stm32_gpdma_desc_t * stm32_usartport_get_desc(uint8_t ctrl)
+const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl)
 {
     const stm32_gpdma_desc_t *desc = NULL;
     if (unlikely(ctrl >= GPDMA_NUMBER)) {

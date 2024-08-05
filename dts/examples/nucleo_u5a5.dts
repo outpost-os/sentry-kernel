@@ -58,6 +58,10 @@
 	};
 };
 
+&gpdma1 {
+	status = "okay";
+};
+
 &led0 {
 	status = "okay";
 };
