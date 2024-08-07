@@ -45,12 +45,7 @@ stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len)
          * function only if needed
          */
         mgr_time_delay_del_job(target);
-        /* FIXME: define a dedicated return code */
-        if (dest_state == JOB_STATE_WAITFOREVENT) {
-            mgr_task_set_sysreturn(target, STATUS_INTR);
-        } else {
-            mgr_task_set_sysreturn(target, STATUS_OK);
-        }
+        mgr_task_set_sysreturn(target, STATUS_INTR);
         mgr_task_set_state(target, JOB_STATE_READY);
         sched_schedule(target);
     }

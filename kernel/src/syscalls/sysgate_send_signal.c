@@ -47,7 +47,7 @@ stack_frame_t *gate_send_signal(stack_frame_t *frame,
          */
         mgr_time_delay_del_job(target);
         /* FIXME: define a dedicated return code */
-        mgr_task_set_sysreturn(target, STATUS_OK);
+        mgr_task_set_sysreturn(target, STATUS_INTR);
         mgr_task_set_state(target, JOB_STATE_READY);
         sched_schedule(target);
     }
