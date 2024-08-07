@@ -203,6 +203,7 @@ typedef enum Status {
   STATUS_CRITICAL,
   STATUS_TIMEOUT,
   STATUS_AGAIN,
+  STATUS_INTR,
   STATUS_NON_SENSE,
 } Status;
 

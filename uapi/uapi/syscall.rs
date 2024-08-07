@@ -219,7 +219,10 @@ pub extern "C" fn sys_irq_disable(irq: u16) -> Status {
 /// POSIX upper layer(s): select(2), poll(2)
 #[no_mangle]
 pub extern "C" fn sys_wait_for_event(mask: u8, timeout: i32) -> Status {
-    syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into()
+    match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into() {
+        Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into(),
+        any => return any,
+    }
 }
 
 /// Configure the CPU's sleep behaviour.

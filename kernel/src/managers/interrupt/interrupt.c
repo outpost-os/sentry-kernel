@@ -48,7 +48,7 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
          * function only if needed
          */
         mgr_time_delay_del_job(owner);
-        mgr_task_set_sysreturn(owner, STATUS_OK);
+        mgr_task_set_sysreturn(owner, STATUS_INTR);
         mgr_task_set_state(owner, JOB_STATE_READY);
         sched_schedule(owner);
     }
