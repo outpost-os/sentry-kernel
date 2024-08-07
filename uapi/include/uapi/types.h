@@ -204,6 +204,7 @@ typedef enum Status {
   STATUS_TIMEOUT,
   STATUS_AGAIN,
   STATUS_INTR,
+  STATUS_DEADLK,
   STATUS_NON_SENSE,
 } Status;
 

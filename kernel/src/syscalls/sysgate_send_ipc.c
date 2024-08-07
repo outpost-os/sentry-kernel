@@ -4,6 +4,66 @@
 #include <sentry/sched.h>
 
 
+/*
+ * direct and indirect deadlock detection
+ */
+typedef struct deadlock_check_frame {
+    taskh_t peer;
+    uint8_t idx;
+} deadlock_check_frame_t;
+
+/**
+ * @fn iterative (stack based) implementation of direct and indirect deadlock detection.
+ *
+ * The kernel check that when emitting an IPC to a given target, this do not generate
+ * an IPC deadlock, with a direct (1 step) or indirect (multisteps) path.
+ * Deadlock happen if the ipc emission chain is a closed path.
+ */
+secure_bool_t ipc_generates_deadlock(taskh_t current, taskh_t target)
+{
+    secure_bool_t result = SECURE_TRUE;
+    kstatus_t status;
+    taskh_t peer;
+    taskh_t next_peer;
+    deadlock_check_frame_t stack[CONFIG_MAX_TASKS];
+    int stack_top = -1;
+
+    // Initialize the stack with the initial state
+    stack[++stack_top] = (deadlock_check_frame_t){current, 0};
+
+    while (stack_top >= 0) {
+        deadlock_check_frame_t *frame = &stack[stack_top];
+        peer = frame->peer;
+
+        // Iterate through the peers
+        status = mgr_task_local_ipc_iterate(peer, &next_peer, &frame->idx);
+        if (unlikely(status == K_STATUS_OKAY)) {
+            /* peer have an IPC input from next_peer, checking him */
+            if (next_peer == target) {
+                /* deadlock found */
+                goto deadlock;
+            } else {
+                /* next peer is not initial target. Do it as input IPCs from
+                 * someone else ?
+                 */
+                if ((stack_top + 1) >= CONFIG_MAX_TASKS) {
+                    /* this MUST not happen: the IPC chain is bigger that
+                     * the effective number of task !!!
+                     */
+                     panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+                }
+                stack[++stack_top] = (deadlock_check_frame_t){next_peer, 0};
+            }
+        } else {
+            /* No IPC input found for that peer, unstack context */
+            --stack_top;
+        }
+    }
+    result = SECURE_FALSE;
+deadlock:
+    return result;
+}
+
 stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len)
 {
     stack_frame_t *next_frame = frame;
@@ -13,6 +73,15 @@ stack_frame_t *gate_send_ipc(stack_frame_t *frame, taskh_t target, uint32_t len)
     /* sanitize first */
     if (unlikely(len > (CONFIG_SVC_EXCHANGE_AREA_LEN - sizeof(exchange_event_t)))) {
         mgr_task_set_sysreturn(current, STATUS_INVALID);
+        goto err;
+    }
+    /*
+     * if emitting IPC generates a direct (current <-> target) or indirect
+     * (current -> target -> any_others -> current) deadlock, this syscall
+     * must not initiate an IPC and return STATUS_DEADLK instead.
+     */
+    if (unlikely(ipc_generates_deadlock(current, target) == SECURE_TRUE)) {
+        mgr_task_set_sysreturn(current, STATUS_DEADLK);
         goto err;
     }
     if (unlikely(mgr_task_handle_exists(target) == SECURE_FALSE)) {

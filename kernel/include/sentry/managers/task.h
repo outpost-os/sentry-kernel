@@ -187,6 +187,12 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context);
 kstatus_t mgr_task_load_sig_event(taskh_t context);
 kstatus_t mgr_task_load_int_event(taskh_t context);
 
+/* get back peer that has emitted IPC to owner, in iterative way
+ * if status = K_STATUS_NOENT, no more IPC, if status = OKAY, peer hold the emitter handle
+ * idx is incremented as an opaque, to continue checking.
+ */
+kstatus_t mgr_task_local_ipc_iterate(taskh_t owner, taskh_t *peer, uint8_t *idx);
+
 #ifdef __cplusplus
 }
 #endif
