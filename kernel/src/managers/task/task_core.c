@@ -515,6 +515,33 @@ err:
 static uint8_t autotest_exchangebuf[CONFIG_SVC_EXCHANGE_AREA_LEN];
 #endif
 
+kstatus_t mgr_task_local_ipc_iterate(taskh_t owner, taskh_t *peer, uint8_t *idx)
+{
+    kstatus_t status = K_ERROR_NOENT;
+    task_t * current = task_get_from_handle(owner);
+
+    if (unlikely(idx == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    if (unlikely(peer == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    for (uint8_t local_idx = *idx; local_idx < mgr_task_get_num(); ++local_idx) {
+        if (current->ipcs[local_idx] > 0) {
+            taskh_t const * task;
+            task = ktaskh_to_taskh(&task_table[local_idx].handle);
+            *peer = *task;
+            *idx = local_idx + 1;
+            status = K_STATUS_OKAY;
+            break;
+        }
+    }
+end:
+    return status;
+}
+
 kstatus_t mgr_task_load_ipc_event(taskh_t context)
 {
     kstatus_t status = K_ERROR_NOENT;

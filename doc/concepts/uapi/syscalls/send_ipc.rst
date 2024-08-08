@@ -36,8 +36,8 @@ sys_send_ipc
    target (see sys_recv_event for more information).
 
    Sentry IPC support direct and indirect deadlock detection, and thus allows to
-   avoid any potential cycles that may generate userspace communication automaton
-   locks. This is done by checking IPC cycles beetween tasks each time an IPC send
+   avoid any potential cycles that may generate user-space communication automaton
+   locks. This is done by checking IPC cycles between tasks each time an IPC send
    syscall is executed.
 
    IPC do not require specific capability, but use task handles as target, requiring
@@ -96,3 +96,9 @@ sys_send_ipc
    .. note::
       IPCs are considered as a slow path. For high performance exchanges, use
       signals or shared memories
+
+**Return values**
+
+    STATUS_OK: IPC has been emitted and received (read) by peer.
+    STATUS_INVALID: The IPC arguments are not valid.
+    STATUS_DEADLK: emitting this IPC would generate an inter-task deadlock. Please check your own input IPC before emitting one.

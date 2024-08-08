@@ -66,6 +66,29 @@ void test_ipc_sendrecv(void)
     TEST_END();
 }
 
+void test_ipc_deadlock(void)
+{
+    static const char *msg = "hello it's autotest";
+    Status ret;
+    taskh_t handle = 0;
+    uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
+    uint32_t timeout = 100UL; /* milisecond timeout */
+    exchange_event_t *header;
+
+    ret = sys_get_process_handle(0xbabeUL);
+    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    ASSERT_EQ(ret, STATUS_OK);
+    TEST_START();
+    LOG("sending IPC to myself");
+    copy_from_user(msg, 20);
+    ret = sys_send_ipc(handle, 20);
+    ASSERT_EQ(ret, STATUS_OK);
+    LOG("sending another IPC, should lead to STATUS_DEADLK");
+    ret = sys_send_ipc(handle, 20);
+    ASSERT_EQ(ret, STATUS_DEADLK);
+    TEST_END();
+}
+
 void test_ipc(void)
 {
     TEST_SUITE_START("sys_ipc");
@@ -73,6 +96,7 @@ void test_ipc(void)
     test_ipc_sendrecv();
     test_ipc_send_invalidtarget();
     test_ipc_send_toobig();
+    test_ipc_deadlock();
 
     TEST_SUITE_END("sys_ipc");
 }
