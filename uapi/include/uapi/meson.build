@@ -20,4 +20,14 @@ foreach header: uapi_h
     )
 endforeach
 
+platform_h = configure_file(input : 'platform.h.in',
+               output : 'platform.h',
+               configuration : kconfig_data)
+
+install_headers(platform_h,
+        preserve_path: true,
+        install_dir: get_option('includedir'),
+        follow_symlinks: false,
+    )
+
 userspace_uapi_include_dir = include_directories('.')
