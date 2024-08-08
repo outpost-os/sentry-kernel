@@ -99,6 +99,6 @@ sys_send_ipc
 
 **Return values**
 
-    STATUS_OKAY: IPC has been emitted and received (read) by peer.
+    STATUS_OK: IPC has been emitted and received (read) by peer.
     STATUS_INVALID: The IPC arguments are not valid.
     STATUS_DEADLK: emitting this IPC would generate an inter-task deadlock. Please check your own input IPC before emitting one.

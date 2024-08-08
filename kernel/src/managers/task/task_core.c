@@ -520,7 +520,6 @@ kstatus_t mgr_task_local_ipc_iterate(taskh_t owner, taskh_t *peer, uint8_t *idx)
     kstatus_t status = K_ERROR_NOENT;
     task_t * current = task_get_from_handle(owner);
 
-
     if (unlikely(idx == NULL)) {
         status = K_ERROR_INVPARAM;
         goto end;
