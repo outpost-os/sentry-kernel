@@ -73,6 +73,7 @@ static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
     return frame;
 }
 
+#if CONFIG_HAS_GPDMA
 static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
 {
     taskh_t owner = 0;
@@ -93,6 +94,7 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
     int_push_and_schedule(owner, IRQn);
     return frame;
 }
+#endif
 
 stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
 {
@@ -100,11 +102,16 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
      * DMA IRQn are associated to dma handles (bijection with a dts stream),
      * while user devices IRQn are associated to dev handle (bijection with a device)
      */
+#if CONFIG_HAS_GPDMA
     if (gpdma_irq_is_dma_owned(IRQn)) {
         frame = dmaisr_handler(frame, IRQn);
-    } else {
-        frame = devisr_handler(frame, IRQn);
+        goto end;
     }
+#endif
+    frame = devisr_handler(frame, IRQn);
+#if CONFIG_HAS_GPDMA
+end:
+#endif
     return frame;
 }
 
