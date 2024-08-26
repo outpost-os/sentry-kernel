@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <sentry/ktypes.h>
+#include <stdbool.h>
 
 #include "stm32-gpdma-dt.h"
 
@@ -21,7 +22,29 @@ static const uint16_t stm32_{{ port.label}}_interrupts[] = {
     {% endfor -%}
 };
 
+#define IRQ_IS_{{ port.label|upper }}_OWNED(x) ( \
+{% for chanirq in range((2*port['dma-channels'])) -%}
+{% if port['interrupts'][chanirq]|int != 0 -%}
+    {{ port['interrupts'][chanirq] }} == x || \
+{% endif -%}
 {% endfor -%}
+  0 \
+)
+
+{% endfor -%}
+
+
+bool stm32_gpdma_irq_is_dma_owned(int IRQn)
+{
+    return ( \
+        {% for port in gpdma_ports -%}
+        {% if port is owned or port is not enabled -%}
+        {% continue -%}
+        {% endif -%}
+            IRQ_IS_{{ port.label|upper }}_OWNED(IRQn) || \
+        {% endfor -%}
+            0);
+}
 
 /**
  * \brief .rodata field: list of current platform GPDMA ports
@@ -62,3 +85,5 @@ const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl)
 end:
     return desc;
 }
+
+bool gpdma_irq_is_dma_owned(int IRQn) __attribute__((alias("stm32_gpdma_irq_is_dma_owned")));

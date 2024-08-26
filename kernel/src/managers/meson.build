@@ -18,6 +18,7 @@ subdir('clock')
 subdir('interrupt')
 subdir('memory')
 subdir('device')
+subdir('dma')
 
 managers_source_set_config = managers_source_set.apply(kconfig_data, strict: false)
 managers_private_header_set_config = managers_private_header_set.apply(kconfig_data, strict: false)

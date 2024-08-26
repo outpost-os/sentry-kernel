@@ -1,0 +1,135 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/**
+ * @file Sentry memory manager shared-memory dts-defined information storage
+ */
+
+#include <inttypes.h>
+#include <sentry/ktypes.h>
+#include <sentry/managers/task.h>
+#include <bsp/drivers/dma/gpdma.h>
+
+/**
+ * @brief Manager level stream configuration
+ *
+ * This structure associate a hardware DMA stream configuration (dts-based) to
+ * the stream owner (also dts-based, using associated channel owner)
+ */
+typedef struct dma_meta {
+    gpdma_stream_cfg_t  config; /**< Hardware configuration of the stream */
+    taskh_t             owner;  /**< stream owner */
+} dma_meta_t;
+
+{% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
+
+{%- macro stream_get_transfer_type(node) -%}
+{% set source = node["source"] -%}
+{% set dest = node["dest"] -%}
+{% if not source|has_property("outpost,shm") and not dest|has_property("outpost,shm") -%}
+GPDMA_TRANSFER_DEVICE_TO_DEVICE
+{%- endif -%}
+{% if source|has_property("outpost,shm") and dest|has_property("outpost,shm") -%}
+GPDMA_TRANSFER_MEMORY_TO_MEMORY
+{%- endif -%}
+{% if not source|has_property("outpost,shm") and dest|has_property("outpost,shm") -%}
+GPDMA_TRANSFER_DEVICE_TO_MEMORY
+{%- endif -%}
+{% if source|has_property("outpost,shm") and not dest|has_property("outpost,shm") -%}
+GPDMA_TRANSFER_MEMORY_TO_DEVICE
+{%- endif -%}
+{%- endmacro %}
+
+{%- macro stream_get_transfer_source(node) -%}
+{% set source = node["source"] -%}
+{% if source|has_property("outpost,shm") -%}
+{{ "0x%08x"|format(source["reg"][0]) }}
+{%- else -%}
+0
+{%- endif -%}
+{%- endmacro %}
+
+{%- macro stream_get_transfer_dest(node) -%}
+{% set dest = node["dest"] -%}
+{% if dest|has_property("outpost,shm") -%}
+{{ "0x%08x"|format(dest["reg"][0]) }}
+{%- else -%}
+0
+{%- endif -%}
+{%- endmacro %}
+
+{%- macro stream_get_ctrl_id(ctrl) -%}
+    {% set ns.ctrlid = 99 -%}
+    {% for port in gpdma_ports -%}
+    {% if port is owned or port is not enabled -%}
+    {% continue -%}
+    {% endif -%}
+    {% if port.name == ctrl.name -%}
+    {% set ns.ctrlid = loop.index - 1 -%}
+    {% endif -%}
+    {% endfor -%}
+    {% if ns.ctrlid == 99 -%}
+    INVALID_PARENT_CTRL
+    {%- else -%}
+    {{ ns.ctrlid }}
+    {%- endif -%}
+{%- endmacro %}
+
+{% set ns = namespace() -%}
+{% set ns.total_streams=0 -%}
+static const dma_meta_t streams[] = {
+    {% for node in dts.get_compatible("dma-stream") -%}
+    {% if node|has_property("outpost,label") -%}
+    {% set gpdma_chan = node["channel"] -%}
+    {% set gpdma_ctrl = gpdma_chan.parent -%}
+    /* stream {{ node.name }} definition */
+    {
+        .config = {
+            .channel = {{ gpdma_chan.unit_addr }},
+            {% if node["streamid"] -%}
+            .stream = {{ "%u"|format(node["streamid"]) }}UL,
+            {% else -%}
+            .stream = 0UL,
+            {% endif -%}
+            .controller = {{ stream_get_ctrl_id(gpdma_ctrl) }},
+            .transfer_type = {{ stream_get_transfer_type(node) }},
+            .source = {{ stream_get_transfer_source(node) }},
+            .dest = {{ stream_get_transfer_dest(node) }},
+            {% if node["length"] -%}
+            .transfer_len = {{ "%08u"|format(node["length"]) }}UL,
+            {% else -%}
+            .transfer_len = 0UL,
+            {% endif -%}
+            {% if node["circular"] -%}
+            .circular_source = {{ node["circular"][0] }},
+            .circular_dest = {{ node["circular"][1] }},
+            {% else -%}
+            .circular_source = 0,
+            .circular_dest = 0,
+            {% endif -%}
+            .interrupts = GPDMA_INT_TC | GPDMA_INT_ERROR,
+            .is_triggered = false, /** WARN: not yet supported */
+            .trigger = 0, /** WARN: not yet supported */
+            {% if node|has_property("priority") -%}
+            .priority = {{ node["priority"]}},
+            {% else -%}
+            .priority = GPDMA_PRIORITY_MEDIUM,
+            {% endif -%}
+            /* TODO: how to define a dts-visible clean transfer mode (incr src/dst) ?*/
+            {% if node|has_property("tansfer_mode") -%}
+            .transfer_mode = 0,
+            {% else -%}
+            .transfer_mode = 0,
+            {% endif -%}
+            .src_beat_len = 0,
+            .dest_beat_len = 0,
+        },
+        .owner = {{ "0x%x"|format(gpdma_chan["outpost,owner"]) }},
+    {% set ns.total_streams = ns.total_streams + 1 -%}
+    },
+    {% endif -%}
+{% endfor -%}
+    {} /* sentinel */
+};
+
+#define STREAM_LIST_SIZE {{ "%uUL"|format(ns.total_streams) }}
