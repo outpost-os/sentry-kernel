@@ -18,7 +18,9 @@ subdir('clock')
 subdir('interrupt')
 subdir('memory')
 subdir('device')
+if kconfig_data.get('CONFIG_HAS_GPDMA', 0) == 1
 subdir('dma')
+endif
 
 managers_source_set_config = managers_source_set.apply(kconfig_data, strict: false)
 managers_private_header_set_config = managers_private_header_set.apply(kconfig_data, strict: false)
