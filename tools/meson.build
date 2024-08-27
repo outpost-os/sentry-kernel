@@ -5,4 +5,5 @@ if not with_tools
     subdir_done()
 endif
 
+subdir('robot')
 subdir('genmetadata')
