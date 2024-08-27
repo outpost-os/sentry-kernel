@@ -143,6 +143,8 @@ that allows various post-processing, such as results analysis or Frama-C tools u
 
 ## tests
 
+### Unit testing
+
 Sentry kernel supports unit testing. This is done using the gtest framework.
 Analysis of various components of the Sentry kernel is made by emulating, for each subcomponent, the ecosystem it needs in order to simulate the target.
 For e.g., the EXTI driver is unit-tested using an emulated EXTI device mapped at the very same memory address map as the effective device, so that the device driver do not need any modifiacations while tested.
@@ -170,6 +172,18 @@ Each test suite (or even test) can be executed independently if needed:
 meson test -C <builddir> --suite ut-utils
 [...]
 ```
+
+### Pre-integration tests with autotest
+
+Sentry support a special applications named autotest (see concepts) that is built in autotest mode in order to execute and validate the
+overall Sentry UAPI for efficient performance and anti-regression testing.
+
+When build in autotest mode, the build system generate a dedicated `firmware.hex` file, in which Sentry kernel automatically load and
+start the autotest application.
+Autotest results can be manually read from serial output, or can be
+parsed, generating a full report using **robotframework**. The robot files are written in the `tools/robot` subdir and can be directly called by robotframework, generating a complete report.
+
+When installed, the kernel build system install target deploy the robot files in the `$datadir/robotframework` directory
 
 ## Documentation
 
