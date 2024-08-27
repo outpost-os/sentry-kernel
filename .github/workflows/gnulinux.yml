@@ -108,7 +108,6 @@ jobs:
         shell: bash
       - name: deploy local deps
         run: |
-          pip install --upgrade pip
           pip install -r requirements.txt
       - name: defconfig
         run: |
