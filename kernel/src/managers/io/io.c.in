@@ -47,7 +47,16 @@ kstatus_t mgr_io_init(void)
      *let's walk over devices to get back I/O port used, in order to probe() them
      *  at boot. We consider that there are at most 16 GPIO ports
      */
-    uint8_t port_to_enable[16] = {0};
+    {%- set gpio_ports = dts.soc.pinctrl|peripherals|with_property('gpio-controller') %}
+    uint8_t port_to_enable[{{ gpio_ports|length }}] = {
+    {%- for port in gpio_ports %}
+        {%- if port is enabled %}
+        1,
+        {%- else %}
+        0,
+        {%- endif %}
+    {%- endfor %}
+    };
     uint8_t iterator = 0;
     const devinfo_t *devinfo;
     do {
@@ -58,15 +67,16 @@ kstatus_t mgr_io_init(void)
         if (devinfo->num_ios > 0) {
             /* device has I/O: associated GPIO port to probe */
             for (uint8_t io = 0; io < devinfo->num_ios; ++io) {
-                /*@ assert(devinfo->ios[io].port < 16); */
+                /*@ assert(devinfo->ios[io].port < {{ gpio_ports|length }}); */
                 /* we only flag the port for probing, to avoid multiple probe() of the same port */
                 port_to_enable[devinfo->ios[io].port] = 1;
             }
         }
         ++iterator;
     } while (status == K_STATUS_OKAY);
+
     /* all ports that do have a configured pinmux in device list are flagged to 1 */
-    for (uint8_t i = 0; i < 16; ++i) {
+    for (uint8_t i = 0; i < {{ gpio_ports|length }}; ++i) {
         if (port_to_enable[i] == 1) {
             gpio_probe(i);
         }
