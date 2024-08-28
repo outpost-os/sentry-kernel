@@ -12,7 +12,7 @@
 
 /{
 	chosen {
-		sentry,debug_stdout = <&lpuart1>;
+		sentry,debug_stdout = <&usart1>;
 	};
 
 	aliases {
@@ -157,7 +157,7 @@
 };
 
 &lpuart1{
-	status = "okay";
+	status = "disabled";
 	pinctrl-0 = <&lpuart1_tx>, <&lpuart1_rx>;
 };
 

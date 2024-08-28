@@ -3,6 +3,7 @@
 
 managers_source_set = ssmod.source_set()
 managers_private_header_set = ssmod.source_set()
+managers_private_gen_source_set = ssmod.source_set()
 managers_private_gen_header_set = ssmod.source_set()
 
 # Sentry managers list
@@ -20,12 +21,14 @@ subdir('device')
 
 managers_source_set_config = managers_source_set.apply(kconfig_data, strict: false)
 managers_private_header_set_config = managers_private_header_set.apply(kconfig_data, strict: false)
+managers_private_gen_source_set_config = managers_private_gen_source_set.apply(kconfig_data, strict: false)
 managers_private_gen_header_set_config = managers_private_gen_header_set.apply(kconfig_data, strict: false)
 
 sentry_managers_lib = static_library('sentry_managers',
     sources: [
         managers_source_set_config.sources(),
         managers_private_header_set_config.sources(),
+        managers_private_gen_source_set_config.sources(),
         managers_private_gen_header_set_config.sources(),
         managers_header_set_config.sources(),
     ],
