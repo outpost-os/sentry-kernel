@@ -26,6 +26,7 @@ framac_dep = custom_target(
       bsp_source_set_config.sources(),
       managers_header_set_config.sources(),
       managers_private_gen_header_set_config.sources(),
+      managers_private_gen_source_set_config.sources(),
       managers_private_header_set_config.sources(),
       managers_source_set_config.sources(),
       sched_header_set_config.sources(),
