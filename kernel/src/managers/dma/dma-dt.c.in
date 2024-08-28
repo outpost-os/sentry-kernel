@@ -19,6 +19,7 @@
 typedef struct dma_meta {
     gpdma_stream_cfg_t  config; /**< Hardware configuration of the stream */
     taskh_t             owner;  /**< stream owner */
+    size_t              label; /**< stream unique label to identify the stream at userspace level */
 } dma_meta_t;
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
@@ -125,6 +126,7 @@ static const dma_meta_t streams[] = {
             .dest_beat_len = 0,
         },
         .owner = {{ "0x%x"|format(gpdma_chan["outpost,owner"]) }},
+        .label = {{ "0x%x"|format(node["outpost,label"]) }},
     {% set ns.total_streams = ns.total_streams + 1 -%}
     },
     {% endif -%}
@@ -133,3 +135,51 @@ static const dma_meta_t streams[] = {
 };
 
 #define STREAM_LIST_SIZE {{ "%uUL"|format(ns.total_streams) }}
+
+kstatus_t dma_stream_get_owner(size_t streamid, taskh_t * owner)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(streamid >= STREAM_LIST_SIZE)) {
+        goto end;
+    }
+    if (unlikely(owner == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(owner); */
+    *owner = streams[streamid].owner;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t dma_stream_get_config(size_t streamid, gpdma_stream_cfg_t const ** cfg)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(streamid >= STREAM_LIST_SIZE)) {
+        goto end;
+    }
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(cfg); */
+    *cfg = &streams[streamid].config;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t dma_stream_get_label(size_t streamid, size_t * label)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(streamid >= STREAM_LIST_SIZE)) {
+        goto end;
+    }
+    if (unlikely(label == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(label); */
+    *label = streams[streamid].label;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}

@@ -77,9 +77,8 @@ static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
 static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
 {
     taskh_t owner = 0;
-#if 0
     dmah_t dma;
-
+#if 0
     /* get the dmah owning the interrupt */
     if (unlikely(mgr_dma_get_dmah_from_interrupt(IRQn, &dma) != K_STATUS_OKAY)) {
         /* interrupt with no known stream ???? */

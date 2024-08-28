@@ -22,8 +22,6 @@ kstatus_t mgr_dma_init(void);
 
 kstatus_t mgr_dma_watchdog(void);
 
-secure_bool_t mgr_dma_controller_exists(dmah_t d);
-
 kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner);
 
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
