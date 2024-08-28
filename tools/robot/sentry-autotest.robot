@@ -9,6 +9,7 @@ Documentation   Sentry Autotest report generation
 Library         SerialLibrary
 Library         String
 Library         DependencyLibrary
+Library         PyocdLibrary
 
 Suite Setup     Open Serial Port
 Suite Teardown  Close Serial Port
@@ -23,6 +24,8 @@ ${SOCLINE}             _entrypoint: booting on SoC
 Load Autotest
     [Documentation]     Read autotest content from serial line
 
+    Load Firmware       builddir/firmware.hex
+    Resume
     ${read_all}         Read Until  terminator=AUTOTEST END
     ${read_AT}          Get Lines Containing String     ${read_all}	[AT]
     Set Suite Variable  ${AT_LOG}  ${read_AT}
@@ -114,7 +117,7 @@ Autotest Totals
 *** Keywords ***
 
 Open Serial Port
-    Connect        /dev/ttyUSB0    115200
+    Connect        /dev/ttyACM0    115200
     Set Timeout    10
 
 Close Serial Port
