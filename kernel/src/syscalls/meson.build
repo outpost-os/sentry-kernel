@@ -22,6 +22,7 @@ syscalls = files(
     'sysgate_get_cycle.c',
     'sysgate_log.c',
     'sysgate_get_shmhandle.c',
+    'sysgate_get_dmahandle.c',
     'sysgate_shm_set_creds.c',
 )
 

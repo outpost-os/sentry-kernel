@@ -65,12 +65,13 @@ kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle)
 
 #if STREAM_LIST_SIZE
     for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
-        if (stream_state[kdmah->streamid].meta.label == label) {
-            *handle = stream_state[kdmah->streamid].handle;
+        if (stream_state[streamid].meta->label == label) {
+            *handle = stream_state[streamid].handle;
             status = K_STATUS_OKAY;
             goto end;
         }
     }
+#endif
 end:
     return status;
 }
