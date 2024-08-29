@@ -139,6 +139,15 @@ AT Map
     Should Not Contain      ${suite}   FAILURE
     Suite Result            ${suite}
 
+AT DMAs
+    [Documentation]     Parse DMA API autotest results
+
+    Depends on test     Load Autotest
+    ${suite}            Get Lines Containing String	${AT_LOG}	test_dma
+    Log                 ${suite}
+    Should Not Contain  ${suite}   FAILURE
+    Suite Result        ${suite}
+
 Autotest Totals
     [Documentation]         Calculate total numbers of Success and Failures
 
