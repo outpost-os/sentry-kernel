@@ -22,6 +22,10 @@ typedef struct dma_stream_state {
 
 static dma_stream_state_t stream_state[STREAM_LIST_SIZE];
 
+#ifndef CONFIG_HAS_GPDMA
+static_assert(STREAM_LIST_SIZE, "Can't have streams when no GPDMA supported!");
+#endif
+
 kstatus_t mgr_dma_init(void)
 {
     kstatus_t status = K_STATUS_OKAY;
@@ -51,6 +55,26 @@ kstatus_t mgr_dma_watchdog(void)
     kstatus_t status = K_STATUS_OKAY;
     return status;
 }
+
+kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(handle == NULL)) {
+        goto end;
+    }
+
+#if STREAM_LIST_SIZE
+    for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
+        if (stream_state[kdmah->streamid].meta.label == label) {
+            *handle = stream_state[kdmah->streamid].handle;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+end:
+    return status;
+}
+
 
 kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner)
 {
