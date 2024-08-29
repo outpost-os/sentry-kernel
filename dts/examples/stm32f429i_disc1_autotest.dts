@@ -1,1 +1,160 @@
-stm32f429i_disc1.dts
+/*
+ * Copyright (c) 2023,Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <st/f4/stm32f429Xi.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
+#include <sentry.dtsi>
+
+/{
+	chosen {
+		sentry,debug_stdout = <&usart1>;
+	};
+
+	reserved-memory {
+		shm_autotest_1: memory@2000a000 {
+			// mappable, dma allowed
+			reg = <0x2000a000 0x256>;
+			dma-pool;
+			outpost,shm;
+			outpost,label = <0xf00>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_2: memory@2000b000 {
+			// not mappable, dma allowed
+			reg = <0x2000b000 0x100>;
+			outpost,shm;
+			dma-pool;
+			outpost,no-map;
+			outpost,label = <0xf01>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_3: memory@2000b100 {
+			// mappable, dma refused
+			reg = <0x2000b100 0x100>;
+			outpost,shm;
+			outpost,label = <0xf02>;
+			outpost,owner = <0xbabe>;
+		};
+	};
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+/* TODO: checks binding, this is our very own property for plls */
+&pll {
+	vco_m_div = <8>;
+	vco_n_mul = <144>;
+	pq_div = <2>, <6>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+	compatible = "st,stm32f4xx-pll";
+};
+
+&flash {
+	wait-state = <5>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(144)>;
+	bus-prescalers = <0>, <2>, <1>;
+	bus-names = "ahb", "apb1", "apb2";
+	status = "okay";
+
+	mco1 {
+		pinctrl-0 = <&rcc_mco1_pa8>;
+		clockout = <&pll>; /* XXX use reg value from svd */
+		prescaler = <5>;
+		status = "okay";
+	};
+};
+
+&exti {
+	events = <22>;
+	status = "okay";
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+&gpiof {
+	status = "okay";
+};
+
+&gpiog {
+	status = "okay";
+};
+
+&pinctrl {
+	rcc_mco1_pa8: rcc_mco1_pa8  {
+		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	rcc_mco2_pc9: rcc_mco2_pc9 {
+		pinmux = <&gpioc 9 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	usart1_tx_pb6: usart1_tx_pb6  {
+		pinmux = <&gpiob 6 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	usart1_rx_pb7: usart1_rx_pb7  {
+		pinmux = <&gpiob 7 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};
+
+&usart1 {
+	status = "okay";
+	pinctrl-0 = <&usart1_tx_pb6>, <&usart1_rx_pb7>;
+};
+
+&rng {
+	status = "okay";
+};
+
+&syscfg {
+	status = "okay";
+};
