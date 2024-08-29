@@ -8,6 +8,7 @@
 #include <sentry/arch/asm-generic/thread.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/device.h>
+#include <sentry/managers/dma.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/time.h>
 #include <sentry/sched.h>
@@ -16,22 +17,16 @@
 #include <bsp/drivers/clk/pwr.h>
 #include <bsp/drivers/flash/flash.h>
 
-stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
+/**
+ * @brief push IRQn to owner's input queue, and schedule it if all hypothesis are valid
+ *
+ * This function is agnostic of the IRQn properties (DMA IRQ, shared IRQ, etc.) and
+ * only push the IRQ to the target task input IRQ FIFO.
+ */
+static inline void int_push_and_schedule(taskh_t owner, int IRQn)
 {
-    devh_t dev;
-    taskh_t owner;
     job_state_t owner_state;
 
-    /* get the device owning the interrupt */
-    if (unlikely(mgr_device_get_devh_from_interrupt(IRQn, &dev) != K_STATUS_OKAY)) {
-        /* interrupt with no known device ???? */
-        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
-    }
-    /* get the task owning the device */
-    if (unlikely(mgr_device_get_owner(dev, &owner) != K_STATUS_OKAY)) {
-        /* user interrupt with no owning task ???? */
-        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
-    }
     if (unlikely(mgr_task_get_state(owner, &owner_state) != K_STATUS_OKAY)) {
        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
@@ -52,6 +47,69 @@ stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
         mgr_task_set_state(owner, JOB_STATE_READY);
         sched_schedule(owner);
     }
+}
+
+static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
+{
+    devh_t dev;
+    taskh_t owner;
+
+    /* get the device owning the interrupt */
+    if (unlikely(mgr_device_get_devh_from_interrupt(IRQn, &dev) != K_STATUS_OKAY)) {
+        /* interrupt with no known device ???? */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    /* get the task owning the device */
+    if (unlikely(mgr_device_get_owner(dev, &owner) != K_STATUS_OKAY)) {
+        /* user interrupt with no owning task ???? */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    int_push_and_schedule(owner, IRQn);
+
+    /** NOTE: we do not elect here, meaning that if the owner is not the current task, it
+     * it do not synchronously preempt the task, but instead let the quantum management
+     * execute the election. This generates potential latency
+     */
+    return frame;
+}
+
+#if CONFIG_HAS_GPDMA
+static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
+{
+    dmah_t dma;
+    taskh_t owner = 0;
+
+    /* get the dmah owning the interrupt */
+    if (unlikely(mgr_dma_get_dmah_from_interrupt(IRQn, &dma) != K_STATUS_OKAY)) {
+        /* interrupt with no known stream ???? */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    /* get the task owning the device */
+    if (unlikely(mgr_dma_get_owner(dma, &owner) != K_STATUS_OKAY)) {
+        /* user interrupt with no owning task ???? */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    int_push_and_schedule(owner, IRQn);
+    return frame;
+}
+#endif
+
+stack_frame_t *userisr_handler(stack_frame_t *frame, int IRQn)
+{
+    /* differentiate DMA IRQ from devices IRQ
+     * DMA IRQn are associated to dma handles (bijection with a dts stream),
+     * while user devices IRQn are associated to dev handle (bijection with a device)
+     */
+#if CONFIG_HAS_GPDMA
+    if (gpdma_irq_is_dma_owned(IRQn)) {
+        frame = dmaisr_handler(frame, IRQn);
+        goto end;
+    }
+#endif
+    frame = devisr_handler(frame, IRQn);
+#if CONFIG_HAS_GPDMA
+end:
+#endif
     return frame;
 }
 

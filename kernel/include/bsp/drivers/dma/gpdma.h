@@ -15,6 +15,7 @@
 #endif
 
 #include <sentry/zlib/compiler.h>
+#include <dt-bindings/dma/stm32_dma.h>
 
 /**
  * @brief generic state value definition for a DMA channel
@@ -173,6 +174,16 @@ kstatus_t gpdma_channel_configure(gpdma_stream_cfg_t const*const desc);
  * @brief enable a previously configured DMA channel
  */
 kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc);
+
+/**
+ * @brief given a stream, get back the associated IRQn
+ */
+kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn);
+
+/**
+ * @brief return true if the IRQn is owned by a DMA controller
+ */
+bool gpdma_irq_is_dma_owned(uint16_t IRQn);
 
 #ifdef __cplusplus
 }

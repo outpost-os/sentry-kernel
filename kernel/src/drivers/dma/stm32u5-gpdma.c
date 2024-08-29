@@ -64,6 +64,7 @@ typedef union gpdma_register {
     gpdma_c12br2_t    cxbr2;
 } gpdma_register_t;
 
+
 /**
  * @fn check given channel idle flag
  *
@@ -82,6 +83,55 @@ static inline bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
     gpdma_c0sr_t const *sr = (gpdma_c0sr_t const *)(desc->base_addr + GPDMA_CxSR(chanid));
 
     return !!sr->idlef;
+}
+
+kstatus_t stm32u5_gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    stm32_gpdma_desc_t const * ctrl = NULL;
+
+    if (unlikely(desc == NULL)) {
+        goto end;
+    }
+    if (unlikely(IRQn == NULL)) {
+        goto end;
+    }
+    ctrl = stm32_gpdma_get_desc(desc->controller);
+    if (unlikely(ctrl == NULL)) {
+        goto end;
+    }
+    *IRQn = ctrl->interrupts[desc->channel];
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
+ * @fn clear GPDMA global interrupt
+ *
+ * clear both GPDMA interrupt status register for given channel and
+ * NVIC related interrupt.
+ *
+ * This is the driver level clear
+ */
+kstatus_t stm32u5_gpdma_interrupt_clear(gpdma_stream_cfg_t const*const desc)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    const stm32_gpdma_desc_t * ctrl = NULL;
+
+    uint16_t IRQn;
+    if (unlikely(desc == NULL)) {
+        goto end;
+    }
+    ctrl = stm32_gpdma_get_desc(desc->controller);
+    if (unlikely(ctrl == NULL)) {
+        goto end;
+    }
+    /* FCR is in write1_clear mode, clearing channel CR  */
+    iowrite32(ctrl->base_addr + GPDMA_CxFCR(desc->channel), (0xF7FUL << 8));
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 kstatus_t stm32u5_gpdma_probe(uint8_t controller)
@@ -142,7 +192,8 @@ kstatus_t smt32u5_gpdma_channel_clear_status(gpdma_stream_cfg_t const*const desc
     if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
         goto end;
     }
-    iowrite32(ctrl_desc->base_addr + GPDMA_CxFCR(desc->channel), 0x0UL);
+    /* FCR is in write1_clear mode */
+    iowrite32(ctrl_desc->base_addr + GPDMA_CxFCR(desc->channel), (0xF7FUL << 8));
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -393,7 +444,8 @@ kstatus_t stm32u5_gpdma_channel_restart(void)
 
 /* aliasing functions to generic API */
 kstatus_t gpdma_probe(uint8_t controller) __attribute((alias("stm32u5_gpdma_probe")));
-kstatus_t gpdma_channel_clear_status(gpdma_stream_cfg_t const*const desc) __attribute((alias("smt32u5_gpdma_channel_clear_status")));
-kstatus_t gpdma_channel_get_status(gpdma_stream_cfg_t const*const desc, gpdma_chan_status_t * status) __attribute((alias("smt32u5_gpdma_channel_get_status")));
-kstatus_t gpdma_channel_configure(gpdma_stream_cfg_t const*const desc) __attribute((alias("stm32u5_gpdma_channel_configure")));
-kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc) __attribute((alias("stm32u5_gpdma_channel_enable")));
+kstatus_t gpdma_channel_clear_status(gpdma_stream_cfg_t const*const desc) __attribute__((alias("smt32u5_gpdma_channel_clear_status")));
+kstatus_t gpdma_channel_get_status(gpdma_stream_cfg_t const*const desc, gpdma_chan_status_t * status) __attribute__((alias("smt32u5_gpdma_channel_get_status")));
+kstatus_t gpdma_channel_configure(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_configure")));
+kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_enable")));
+kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn) __attribute__((alias("stm32u5_gpdma_get_interrupt")));
