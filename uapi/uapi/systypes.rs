@@ -81,6 +81,10 @@ pub enum Syscall {
     IrqEnable,
     IrqDisable,
     GetShmHandle,
+    GetDmaStreamHandle,
+    DmaStartStream,
+    DmaStopStream,
+    DmaGetStreamStatus,
 }
 }
 
@@ -160,6 +164,13 @@ pub type ProcessLabel = u32;
 /// and can be used in order to get back the effective shm handler from it in order
 /// to manipulate it
 pub type ShmLabel = u32;
+
+/// A stream label is a development-time fixed identifier that can be used hardcoded
+/// in the source code in order to dientify declared DMA streams.
+/// This label is set in the device-tree in the stream declaration,
+/// and can be used in order to get back the effective DMA stream handler from it in order
+/// to manipulate it
+pub type StreamLabel = u32;
 
 /// List of Sentry resource types
 ///
