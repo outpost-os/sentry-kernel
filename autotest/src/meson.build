@@ -17,5 +17,6 @@ autotest_sources = files(
   'tests/test_gpio.c',
   'tests/test_map.c',
   'tests/test_shm.c',
+  'tests/test_dma.c',
   '../../kernel/src/managers/debug/log_lexer.c',
 )

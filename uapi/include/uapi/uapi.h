@@ -86,6 +86,11 @@ Status sys_get_cycle(Precision precision);
 Status sys_get_device_handle(uint8_t devlabel);
 
 /**
+ * Get back a given DMA stream handle from DTS auto-generated device identifier
+ */
+Status sys_get_dma_stream_handle(uint32_t label);
+
+/**
  * Get back a given SHM handle from SHM label defined in DTS
  */
 Status sys_get_shm_handle(uint32_t shmlabel);
@@ -259,6 +264,12 @@ Status sys_wait_for_event(uint8_t mask, uint32_t timeout);
 Status sys_yield(void);
 
 Status sys_pm_set_clock(uint32_t clk_reg, uint32_t regmsk, uint32_t val);
+
+Status sys_dma_start_stream(dmah_t stream);
+
+Status sys_dma_stop_stream(dmah_t stream);
+
+Status sys_dma_get_stream_status(dmah_t stream);
 
 #ifdef __cplusplus
 } // extern "C"

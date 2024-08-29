@@ -31,40 +31,6 @@
 	reserved-memory {
 	};
 
-	dma-streams {
-		// device-to-memory DMA stream
-		stream1 {
-			compatible = "dma-stream";
-			channel = <&gpdma1_1>;
-			streamid = <112>; // channel stream (af) identifier
-			prio = <STM32_DMA_PRIORITY_MEDIUM>;
-			source = <&usart1>;
-			dest = <&shm_autotest_1>;
-			size = <42>;
-			circular = <1 0>; // circular source, linear dest
-			outpost,label = <0x1>; // task-level unique identifier
-		};
-		// memory-to-memory DMA stream
-		stream2 {
-			compatible = "dma-stream";
-			channel = <&gpdma1_1>;
-			prio = <STM32_DMA_PRIORITY_HIGH>;
-			source = <&shm_autotest_1>;
-			dest = <&shm_autotest_2>;
-			length = <64>;
-			// no circular, linear for both source and dest
-			outpost,label = <0x2>; // task-level unique identifier
-		};
-	};
-};
-
-&gpdma1 {
-	status = "okay";
-	// About channels that are used
-	gpdma1_1: dma-channel@1 {
-		status = "okay";
-		outpost,owner = <0xbabe>;
-	};
 };
 
 &led0 {

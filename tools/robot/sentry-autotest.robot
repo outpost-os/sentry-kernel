@@ -47,7 +47,7 @@ AT Yield
     ${suite}                Get Lines Containing String	${AT_LOG}	test_yield
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT Get Handle
@@ -57,7 +57,7 @@ AT Get Handle
     ${suite}                Get Lines Containing String	${AT_LOG}	test_gethandle
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT Signals
@@ -67,7 +67,7 @@ AT Signals
     ${suite}                Get Lines Containing String	${AT_LOG}	test_signal
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT IPCs
@@ -77,7 +77,7 @@ AT IPCs
     ${suite}                Get Lines Containing String	${AT_LOG}	test_ipc
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            {suite}
 
 AT KRNG
@@ -87,7 +87,7 @@ AT KRNG
     ${suite}                Get Lines Containing String	${AT_LOG}	test_random
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT Sleep
@@ -97,7 +97,7 @@ AT Sleep
     ${suite}                Get Lines Containing String	${AT_LOG}	test_sleep
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT GPIOs
@@ -107,7 +107,7 @@ AT GPIOs
     ${suite}                Get Lines Containing String	${AT_LOG}	test_gpio
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT Cycles measurment
@@ -117,7 +117,7 @@ AT Cycles measurment
     ${suite}                Get Lines Containing String	${AT_LOG}	test_cycles
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT SHM
@@ -127,7 +127,7 @@ AT SHM
     ${suite}                Get Lines Containing String	${AT_LOG}	test_shm
     Log                     ${suite}
     Should Not Be Empty     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
 AT Map
@@ -136,11 +136,20 @@ AT Map
     Depends on test         Load Autotest
     ${suite}                Get Lines Containing String	${AT_LOG}	test_map
     Log                     ${suite}
-    Should Not Contain      ${suite}   FAILURE
+    Should Not Contain      ${suite}   KO
     Suite Result            ${suite}
 
+AT DMAs
+    [Documentation]     Parse DMA API autotest results
+
+    Depends on test     Load Autotest
+    ${suite}            Get Lines Containing String	${AT_LOG}	test_dma
+    Log                 ${suite}
+    Should Not Contain  ${suite}   KO
+    Suite Result        ${suite}
+
 Autotest Totals
-    [Documentation]         Calculate total numbers of Success and Failures
+    [Documentation]         Calculate total numbers of Success and KOs
 
     Depends on test         Load Autotest
     Suite Result            ${AT_LOG}
@@ -160,6 +169,6 @@ Suite Result
 
     ${success}          Get Lines Containing String	${suite}	SUCCESS
     ${success_num}      Get Line Count  ${success}
-    ${failure}          Get Lines Containing String	${suite}	FAILURE
-    ${failure_num}      Get Line Count  ${failure}
-    Set Test Message    Success: ${success_num}, Failures: ${failure_num}
+    ${KO}          Get Lines Containing String	${suite}	KO
+    ${KO_num}      Get Line Count  ${KO}
+    Set Test Message    Success: ${success_num}, KOs: ${KO_num}

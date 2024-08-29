@@ -36,6 +36,19 @@ pub extern "C" fn sys_get_shm_handle(shm: ShmLabel) -> Status {
     syscall!(Syscall::GetShmHandle, shm).into()
 }
 
+/// Get global identifier for a given shm label
+///
+/// This mechanism allows respawn detection, as the label is fixed but the resource identifier
+/// is regenerated.
+/// A shm is a resource like any other and manipulating it requires to get
+/// back its resource handle from its label.
+///
+/// POSIX upper layer(s): N/A
+#[no_mangle]
+pub extern "C" fn sys_get_dma_stream_handle(stream: StreamLabel) -> Status {
+    syscall!(Syscall::GetDmaStreamHandle, stream).into()
+}
+
 /// Release the processor before the end of the current quantum.
 /// Allows triggering a schedule() even if not in the process's central blocking point
 ///
@@ -273,6 +286,21 @@ pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
 #[no_mangle]
 pub extern "C" fn sys_pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
     syscall!(Syscall::PmSetClock, clk_reg, clkmsk, val).into()
+}
+
+#[no_mangle]
+pub extern "C" fn sys_dma_start_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaStartStream, dmah).into()
+}
+
+#[no_mangle]
+pub extern "C" fn sys_dma_stop_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaStopStream, dmah).into()
+}
+
+#[no_mangle]
+pub extern "C" fn sys_dma_get_stream_status(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
 
 #[cfg(test)]

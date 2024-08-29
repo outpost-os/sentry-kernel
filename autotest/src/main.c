@@ -19,6 +19,7 @@
 #include "tests/test_gpio.h"
 #include "tests/test_map.h"
 #include "tests/test_shm.h"
+#include "tests/test_dma.h"
 
 uint32_t __stack_chk_guard = 0;
 
@@ -73,6 +74,9 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 #endif
 #ifdef CONFIG_TEST_SHM
     test_shm();
+#endif
+#ifdef CONFIG_TEST_DMA
+    test_dma();
 #endif
     LOG("AUTOTEST END");
 
