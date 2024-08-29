@@ -42,6 +42,10 @@ config TEST_SHM
     bool "Shared memory manipulation test suite"
     default y
 
+config TEST_DMA
+    bool "Shared memory manipulation test suite"
+    default n
+
 endmenu
 
 endif
