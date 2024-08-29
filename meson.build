@@ -23,11 +23,12 @@ project('sentry-kernel', 'c',
         'licensedir=share/info/sentry-kernel',
         'pkgconfig.relocatable=true',
     ],
-    version: run_command('dunamai', 'from', 'git', '--style', 'semver', '--dirty', check: true)
-            .stdout().strip(),
+    version : run_command('support/meson/version.sh', 'get-vcs', check: true).stdout().strip(),
     license: 'Apache-2.0',
     license_files: [ 'LICENSE' ],
 )
+
+meson.add_dist_script('support/meson/version.sh', 'set-dist', meson.project_version())
 
 objcopy = find_program('objcopy')
 sentry_install_script = find_program('support/scripts/install.py')
