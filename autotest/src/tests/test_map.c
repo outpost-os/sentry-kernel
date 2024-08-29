@@ -7,7 +7,7 @@
 
 #if DEVICE_LIST_SIZE > 0
 
-void test_unmap_notmapped(void) {
+void test_map_unmap_notmapped(void) {
     Status res;
     devh_t dev;
     TEST_START();
@@ -19,7 +19,7 @@ void test_unmap_notmapped(void) {
     TEST_END();
 }
 
-void test_invalidmap(void) {
+void test_map_invalidmap(void) {
     Status res;
     devh_t dev;
     TEST_START();
@@ -32,7 +32,7 @@ void test_invalidmap(void) {
     TEST_END();
 }
 
-void test_mapunmap(void) {
+void test_map_mapunmap(void) {
     Status res;
     devh_t dev;
 
@@ -67,9 +67,9 @@ void test_mapunmap(void) {
 void test_map(void) {
 #if DEVICE_LIST_SIZE > 0
     TEST_SUITE_START("sys_map");
-    test_mapunmap();
-    test_invalidmap();
-    test_unmap_notmapped();
+    test_map_mapunmap();
+    test_map_invalidmap();
+    test_map_unmap_notmapped();
     TEST_SUITE_END("sys_map");
 #endif
 }
