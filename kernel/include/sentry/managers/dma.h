@@ -28,7 +28,7 @@ kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner);
 kstatus_t mgr_dma_autotest(void);
 #endif
 
-kstatus_t mgr_device_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
+kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 
 /**
  * Iterate over the device list, starting with id==id.
