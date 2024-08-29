@@ -62,7 +62,7 @@ jobs:
           pip3 install -r requirements.txt
       - name: defconfig
         run: |
-          defconfig configs/nucleo_u5a5_autotest_defconfig
+          defconfig configs/nucleo_u5a5_defconfig
       - name: set safe dir for dunami (to be removed)
         run: |
           git config --global --add safe.directory '*'
