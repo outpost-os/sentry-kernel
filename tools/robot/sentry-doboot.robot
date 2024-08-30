@@ -9,7 +9,7 @@ Documentation   Sentry Kernel boot report generation
 Library         SerialLibrary
 Library         String
 Library         DependencyLibrary
-Library         PyocdLibrary
+Library         PyocdLibrary    ${PROBE_UID}
 
 *** Variables ***
 
@@ -18,28 +18,49 @@ ${SOCLINE}             _entrypoint: booting on SoC
 
 *** Test Cases ***
 
-Load Autotest
-    [Documentation]         Read autotest content from serial line
+Load Firmware
+    [Documentation]         Read boot log content from serial line
 
+    Should Not Be Empty     ${FIRMWARE_FILE}
     Reset
-
-    Load Firmware           builddir/firmware.hex
-    Open Serial Port
+    Load Firmware           ${FIRMWARE_FILE}
+    ${vcp}                  Get Probe Vcp
+    Log                     Virtual port is ${vcp}
+    Open Serial Port        ${vcp}
     Read All
     Resume
-
     ${read_all}             Read Until  terminator=mgr_task_start: spawning thread
     Close Serial Port
-    Should Contain          ${read_all}    mgr_task_start: spawning thread
-    ${SoC_Line}             Get Lines Containing String     ${read_all}      _entrypoint: booting on SoC
+    Set Suite Variable      ${ALL_LOG}  ${read_all}
+
+Target Metadata
+    Should Contain          ${ALL_LOG}    mgr_task_start: spawning thread
+    ${SoC_Line}             Get Lines Containing String     ${ALL_LOG}      _entrypoint: booting on SoC
     ${SoC}                  Fetch From Right    ${SoC_Line}     ${SPACE}
-    Log   ${read_all}
-    Set Test Message        Autotest executed on SoC ${SoC}
+    ${Dts_Line}             Get Lines Containing String     ${ALL_LOG}      _entrypoint: configured dts file
+    ${Dts}                  Fetch From Right    ${Dts_Line}     ${SPACE}
+    Log   ${ALL_LOG}
+    Set Test Message        firmware: boot on  SoC ${SoC} with DTS: ${Dts}
+
+Check Complete Kernel Bootup
+    Should Contain          ${ALL_LOG}    mgr_task_start: spawning thread
+
+Fault Detection
+    [Documentation]         Check if a fault is triggered
+
+    Depends on test         Load Autotest
+    ${handler}              Get Lines Containing String	${ALL_LOG}	fault_handler
+    ${frame}                Get Lines Containing String	${ALL_LOG}	dump_frame
+    Log                     ${handler}
+    Log                     ${frame}
+    Should Be Empty         ${handler}
+    Should Be Empty         ${frame}
 
 *** Keywords ***
 
 Open Serial Port
-    Connect        /dev/ttyACM0    115200
+    [Arguments]     ${serial}
+    Connect         ${serial}    115200
     Set Timeout    5
 
 Close Serial Port

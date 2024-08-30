@@ -5,11 +5,16 @@
 
 Documentation   Sentry Autotest report generation
 ...             Parse autotest output on serial port and analyse its content
+...             this testsuite requires two variables, being set through ressource file or though
+...             robot command line (see robotframework manual for that).
+...             These variable are:
+...             - PROBE_UID: (string) unique id that defines the probe UID (serial identifier) as seen by both pyocd and udev
+...             - FIRMWARE_FILE: (string) path to the firmware file (hex or elf) to flash into the target
 
 Library         SerialLibrary
 Library         String
 Library         DependencyLibrary
-Library         PyocdLibrary
+Library         PyocdLibrary    ${PROBE_UID}
 
 *** Variables ***
 
@@ -21,23 +26,32 @@ ${SOCLINE}             _entrypoint: booting on SoC
 Load Autotest
     [Documentation]         Read autotest content from serial line
 
+    Should Not Be Empty     ${FIRMWARE_FILE}
     Reset
-
-    Load Firmware           builddir/firmware.hex
-    Open Serial Port
+    Load Firmware           ${FIRMWARE_FILE}
+    ${vcp}                  Get Probe Vcp
+    Log                     Virtual port is ${vcp}
+    Open Serial Port        ${vcp}
     Read All
     Resume
 
     ${read_all}             Read Until  terminator=AUTOTEST END
     Close Serial Port
-    ${read_AT}              Get Lines Containing String     ${read_all}	[AT]
+    Set Suite Variable      ${ALL_LOG}  ${read_all}
+    Log                     ${ALL_LOG}
+
+Extract Logs
+    ${read_AT}              Get Lines Containing String     ${ALL_LOG}	[AT]
     Set Suite Variable      ${AT_LOG}  ${read_AT}
     Should Contain          ${read_AT}    ${PROMPT}
+    Log                     ${AT_LOG}
+
+Target Metadata
     ${SoC_Line}             Get Lines Containing String     ${read_all}      _entrypoint: booting on SoC
     ${SoC}                  Fetch From Right    ${SoC_Line}     ${SPACE}
-    Log   ${read_all}
-    Log   ${read_AT}
-    Set Test Message        Autotest executed on SoC ${SoC}
+    ${Dts_Line}             Get Lines Containing String     ${read_all}      _entrypoint: configured dts file
+    ${Dts}                  Fetch From Right    ${Dts_Line}     ${SPACE}
+    Set Test Message        firmware: boot on  SoC ${SoC} with DTS: ${Dts}
 
 
 AT Yield
@@ -154,12 +168,23 @@ Autotest Totals
     Depends on test         Load Autotest
     Suite Result            ${AT_LOG}
 
+Fault Detection
+    [Documentation]         Check if a fault is triggered
+
+    Depends on test         Load Autotest
+    ${handler}              Get Lines Containing String	${ALL_LOG}	fault_handler
+    ${frame}                Get Lines Containing String	${ALL_LOG}	dump_frame
+    Log                     ${handler}
+    Log                     ${frame}
+    Should Be Empty         ${handler}
+    Should Be Empty         ${frame}
 
 *** Keywords ***
 
 Open Serial Port
-    Connect        /dev/ttyACM0    115200
-    Set Timeout    20
+    [Arguments]     ${serial}
+    Connect         ${serial}    115200
+    Set Timeout     20
 
 Close Serial Port
     Disconnect

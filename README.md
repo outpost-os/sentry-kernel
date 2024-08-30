@@ -185,6 +185,26 @@ parsed, generating a full report using **robotframework**. The robot files are w
 
 When installed, the kernel build system install target deploy the robot files in the `$datadir/robotframework` directory
 
+In order to support example robot files, robotframework-pyocd>=0.2.0 and robotframework-pyserial>=1.2.0 python packages are required.
+A typical usage of robot files of the kernel would be, considering the following `pyocd list` content:
+
+```console
+pyocd list
+  #   Probe/Board       Unique ID                  Target            
+---------------------------------------------------------------------
+  0   STLINK-V3         004300483232510239353236   ✔︎ stm32u5a5zjtxq  
+      NUCLEO-U5A5ZJ-Q                                                
+                                                                     
+  1   STM32 STLink      0671FF575251717867205336   ✔︎ stm32f429zitx   
+      DISCO-F429Z
+```
+
+```console
+robot --variable FIRMWARE_FILE:builddir/firmware.hex --variable PROBE_UID:004300483232510239353236 -d results ./tools/robot/sentry-autotest.robot
+```
+
+All results (report and logs) are then deployed in the results local directory.
+
 ## Documentation
 
 Sentry documentation is written in the `doc/` subdirectory.
