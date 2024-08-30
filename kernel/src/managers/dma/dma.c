@@ -4,6 +4,7 @@
 #include <sentry/ktypes.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/dma.h>
+#include <sentry/managers/security.h>
 #include "dma-dt.h"
 #include "dma.h"
 
@@ -16,6 +17,7 @@
 typedef struct dma_stream_state {
     dma_meta_t const         * meta; /**< Hardware configuration of the stream */
     dmah_t                     handle; /**< associated DMA handle (opaque format) */
+    taskh_t                    owner; /**< stream owner task handle */
     size_t                     status; /**< TODO: specify stream state enumeration (started, stopped, error...) */
 } dma_stream_state_t;
 
@@ -37,8 +39,19 @@ kstatus_t mgr_dma_init(void)
             .family = HANDLE_DMA,
             .streamid = streamid,
         };
+        uint32_t seed = 0;
+
+        /* Add entropy to handle initialization */
+        if (unlikely(mgr_security_entropy_generate(&seed) != K_STATUS_OKAY)) {
+            panic(PANIC_HARDWARE_INVALID_STATE);
+        }
+        kdmah.reserved = seed;
+
         dmah_t const *dmah = kdmah_to_dmah(&kdmah);
         if (unlikely(dma_stream_get_meta(streamid, &stream_state[streamid].meta) != K_STATUS_OKAY)) {
+            panic(PANIC_CONFIGURATION_MISMATCH);
+        }
+        if (unlikely(mgr_task_get_handle(stream_state[streamid].meta->owner, &stream_state[streamid].owner) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
         }
         /*@ assert \valid(dmah); */
@@ -80,6 +93,7 @@ end:
 kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    uint32_t owner_label;
     if (unlikely(owner == NULL)) {
         goto end;
     }
@@ -90,7 +104,7 @@ kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner)
     if (stream_state[kdmah->streamid].handle != d) {
         goto end;
     }
-    *owner = stream_state[kdmah->streamid].meta->owner;
+    *owner = stream_state[kdmah->streamid].owner;
     status = K_STATUS_OKAY;
 end:
     return status;
