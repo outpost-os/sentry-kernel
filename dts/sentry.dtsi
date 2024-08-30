@@ -22,12 +22,9 @@
 			reg = <0x8000000 0x8000>;
 			compatible = "outpost,memory-pool";
 		};
+
 		idle_code: idle_code@8008000 {
 			reg = <0x8008000 0x300>;
-			compatible = "outpost,memory-pool";
-		};
-		autotest_code: autotest_code@800a000 {
-			reg = <0x800a000 0xe000>;
 			compatible = "outpost,memory-pool";
 		};
 
@@ -38,10 +35,6 @@
 
 		idle_ram: idle_memory@20004000 {
 			reg = <0x20004000 0x200>;
-			compatible = "outpost,memory-pool";
-		};
-		autotest_ram: autotest_memory@20008000 {
-			reg = <0x20008000 0x1000>;
 			compatible = "outpost,memory-pool";
 		};
 	};
