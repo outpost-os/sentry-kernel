@@ -22,6 +22,10 @@ stack_frame_t *gate_get_dmahandle(stack_frame_t *frame, uint32_t streamlabel)
         mgr_task_set_sysreturn(current, STATUS_INVALID);
         goto end;
     }
+    if (unlikely(mgr_security_has_capa(current, CAP_DEV_DMA) != SECURE_TRUE)) {
+        mgr_task_set_sysreturn(current, STATUS_DENIED);
+        goto end;
+    }
     if (unlikely(owner != current)) {
         /**
          * INFO: do not declare a different return type on ownership check error to

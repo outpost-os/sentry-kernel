@@ -54,6 +54,7 @@ kstatus_t mgr_dma_init(void)
         if (unlikely(mgr_task_get_handle(stream_state[streamid].meta->owner, &stream_state[streamid].owner) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
         }
+
         /*@ assert \valid(dmah); */
         /*@ assert \valid_read(stream_state[streamid].meta); */
         stream_state[streamid].handle = *dmah;
