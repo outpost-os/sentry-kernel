@@ -5,11 +5,16 @@
 
 Documentation   Sentry Autotest report generation
 ...             Parse autotest output on serial port and analyse its content
+...             this testsuite requires two variables, being set through ressource file or though
+...             robot command line (see robotframework manual for that).
+...             These variable are:
+...             - PROBE_UID: (string) unique id that defines the probe UID (serial identifier) as seen by both pyocd and udev
+...             - FIRMWARE_FILE: (string) path to the firmware file (hex or elf) to flash into the target
 
 Library         SerialLibrary
 Library         String
 Library         DependencyLibrary
-Library         PyocdLibrary
+Library         PyocdLibrary    ${PROBE_UID}
 
 *** Variables ***
 
@@ -21,10 +26,12 @@ ${SOCLINE}             _entrypoint: booting on SoC
 Load Autotest
     [Documentation]         Read autotest content from serial line
 
+    Should Not Be Empty     ${FIRMWARE_FILE}
     Reset
-
-    Load Firmware           builddir/firmware.hex
-    Open Serial Port
+    Load Firmware           ${FIRMWARE_FILE}
+    ${vcp}                  Get Probe Vcp
+    Log                     Virtual port is ${vcp}
+    Open Serial Port        ${vcp}
     Read All
     Resume
 
@@ -158,8 +165,9 @@ Autotest Totals
 *** Keywords ***
 
 Open Serial Port
-    Connect        /dev/ttyACM0    115200
-    Set Timeout    20
+    [Arguments]     ${serial}
+    Connect         ${serial}    115200
+    Set Timeout     20
 
 Close Serial Port
     Disconnect
