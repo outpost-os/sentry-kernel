@@ -21,6 +21,9 @@ jobs:
         shell: bash
     runs-on: macos-latest
     steps:
+      - name: XXX git permission quirk XXX
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,10 +66,6 @@ jobs:
           triple: arm-none-eabi
           ref: 13.2.Rel1
           workspace: ${{ github.workspace }}
-      - name: set safe dir for dunami (to be removed)
-        run: |
-          git config --global --add safe.directory '*'
-        shell: bash
       - name: deploy local deps
         run: |
           python3 -m pip install --upgrade pip

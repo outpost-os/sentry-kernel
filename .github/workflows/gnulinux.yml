@@ -59,6 +59,9 @@ jobs:
     container:
       image: ${{ matrix.operating_system }}
     steps:
+      - name: XXX git permission quirk XXX
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -102,10 +105,6 @@ jobs:
           triple: arm-none-eabi
           ref: ${{ env.compiler_version }}
           workspace: $GITHUB_WORKSPACE
-      - name: set safe dir for dunami (to be removed)
-        run: |
-          git config --global --add safe.directory '*'
-        shell: bash
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
@@ -132,6 +131,9 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
+      - name: XXX git permission quirk XXX
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -166,10 +168,6 @@ jobs:
           toolchain: nightly
           targets: thumbv7m-none-eabi,thumbv7em-none-eabi,thumbv7em-none-eabihf
           components: clippy,rustfmt
-      - name: set safe dir for dunami (to be removed)
-        run: |
-          git config --global --add safe.directory '*'
-        shell: bash
       - name: deploy local deps
         run: |
           pip install -r requirements.txt
@@ -197,6 +195,9 @@ jobs:
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
+      - name: XXX git permission quirk XXX
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -228,10 +229,6 @@ jobs:
       - name: defconfig
         run: |
           defconfig configs/stm32f429i_disc1_debug_defconfig
-      - name: set safe dir for dunami (to be removed)
-        run: |
-          git config --global --add safe.directory '*'
-        shell: bash
       - name: Meson Doc
         uses: outpost-os/action-meson@v1
         with:

@@ -20,6 +20,9 @@ jobs:
     container: 'pthierry38/framac-runner:29'
     timeout-minutes: 60
     steps:
+      - name: XXX git permission quirk XXX
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,10 +66,6 @@ jobs:
       - name: defconfig
         run: |
           defconfig configs/nucleo_u5a5_autotest_defconfig
-      - name: set safe dir for dunami (to be removed)
-        run: |
-          git config --global --add safe.directory '*'
-        shell: bash
       - name: Meson Build
         uses: outpost-os/action-meson@main
         with:
