@@ -15,7 +15,11 @@ extern "C" {
 #endif
 
 __STATIC_FORCEINLINE bool mgr_dma_is_irq_owned(int IRQn) {
-    return gpdma_irq_is_dma_owned(IRQn);
+    bool dma_owned = false;
+#ifdef CONFIG_HAS_GPDMA
+    dma_owned = gpdma_irq_is_dma_owned(IRQn);
+#endif
+return dma_owned;
 }
 
 kstatus_t mgr_dma_init(void);
@@ -27,6 +31,8 @@ kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner);
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_dma_autotest(void);
 #endif
+
+kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle);
 
 kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 

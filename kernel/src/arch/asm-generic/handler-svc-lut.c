@@ -99,6 +99,11 @@ static stack_frame_t *lut_get_prochandle(stack_frame_t *frame) {
     return gate_get_prochandle(frame, label);
 }
 
+static stack_frame_t *lut_get_dmahandle(stack_frame_t *frame) {
+    uint32_t label = frame->r0;
+    return gate_get_dmahandle(frame, label);
+}
+
 static stack_frame_t *lut_yield(stack_frame_t *frame) {
     return gate_yield(frame);
 }
@@ -201,6 +206,7 @@ static const lut_svc_handler svc_lut[] = {
     lut_int_enable,
     lut_int_disable,
     lut_get_shmhandle,
+    lut_get_dmahandle,
 };
 
 #define SYSCALL_NUM ARRAY_SIZE(svc_lut)

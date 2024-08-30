@@ -10,6 +10,31 @@
 #include <inttypes.h>
 
 /**
+ * @brief Manager level stream configuration
+ *
+ * This structure associate a hardware DMA stream configuration (dts-based) to
+ * the stream owner (also dts-based, using associated channel owner)
+ */
+typedef struct dma_meta {
+    gpdma_stream_cfg_t  config; /**< Hardware configuration of the stream */
+    taskh_t             owner;  /**< stream owner */
+    size_t              label; /**< stream unique label to identify the stream at userspace level */
+} dma_meta_t;
+
+{% set ns = namespace() -%}
+{% set ns.total_streams=0 -%}
+{% for node in dts.get_compatible("dma-stream") -%}
+{% if node|has_property("outpost,label") -%}
+{% set ns.total_streams = ns.total_streams + 1 -%}
+{% endif -%}
+{% endfor -%}
+
+/**
+ * @def number of actual DMA streams declared
+ */
+#define STREAM_LIST_SIZE {{ "%uUL"|format(ns.total_streams) }}
+
+/**
  * @brief Get owner of given stream
  *
  * Given a stream identifier (), return the corresponding owner
@@ -19,7 +44,7 @@
  *
  * @returns K_ERROR_INVPARAM if streamid is invalid or owner NULL, or K_STATUS_OKAY
  */
-kstatus_t dma_stream_get_owner(size_t streamid, taskh_t const * owner);
+kstatus_t dma_stream_get_owner(size_t streamid, taskh_t * owner);
 
 /**
  * @brief Get config of given stream
@@ -34,5 +59,7 @@ kstatus_t dma_stream_get_owner(size_t streamid, taskh_t const * owner);
 kstatus_t dma_stream_get_config(size_t streamid, gpdma_stream_cfg_t const ** cfg);
 
 kstatus_t dma_stream_get_label(size_t streamid, size_t * label);
+
+kstatus_t dma_stream_get_meta(size_t streamid, dma_meta_t const ** cfg);
 
 #endif/*!DMA_DT_H*/

@@ -9,18 +9,7 @@
 #include <sentry/ktypes.h>
 #include <sentry/managers/task.h>
 #include <bsp/drivers/dma/gpdma.h>
-
-/**
- * @brief Manager level stream configuration
- *
- * This structure associate a hardware DMA stream configuration (dts-based) to
- * the stream owner (also dts-based, using associated channel owner)
- */
-typedef struct dma_meta {
-    gpdma_stream_cfg_t  config; /**< Hardware configuration of the stream */
-    taskh_t             owner;  /**< stream owner */
-    size_t              label; /**< stream unique label to identify the stream at userspace level */
-} dma_meta_t;
+#include "dma-dt.h"
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
 
@@ -134,8 +123,6 @@ static const dma_meta_t streams[] = {
     {} /* sentinel */
 };
 
-#define STREAM_LIST_SIZE {{ "%uUL"|format(ns.total_streams) }}
-
 kstatus_t dma_stream_get_owner(size_t streamid, taskh_t * owner)
 {
     kstatus_t status = K_ERROR_INVPARAM;
@@ -179,6 +166,22 @@ kstatus_t dma_stream_get_label(size_t streamid, size_t * label)
     }
     /*@ assert \valid(label); */
     *label = streams[streamid].label;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t dma_stream_get_meta(size_t streamid, dma_meta_t const ** cfg)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(streamid >= STREAM_LIST_SIZE)) {
+        goto end;
+    }
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(cfg); */
+    *cfg = &streams[streamid];
     status = K_STATUS_OKAY;
 end:
     return status;

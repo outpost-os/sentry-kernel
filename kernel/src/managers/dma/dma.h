@@ -18,7 +18,7 @@ extern "C" {
 typedef struct kdmah {
     uint32_t reserved: 21; /**< reserved part */
     uint32_t streamid: 8; /**< upto 256 streams */
-    family: 3;            /**< handle type identifier */
+    uint32_t family: 3;            /**< handle type identifier */
 } kdmah_t;
 
 static_assert(sizeof(kdmah_t) == sizeof(uint32_t), "dma opaque sizeing failed!");
