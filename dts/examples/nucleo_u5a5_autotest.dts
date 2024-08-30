@@ -13,6 +13,8 @@
 /{
 	chosen {
 		sentry,debug_stdout = <&usart1>;
+		sentry,autotestram_section = <&autotest_ram>;
+		sentry,autotestcode_section = <&autotest_code>;
 	};
 
 	aliases {

@@ -8,10 +8,8 @@
 	chosen {
 		sentry,kernelram_section = <&kernel_ram>;
 		sentry,idleram_section = <&idle_ram>;
-		sentry,autotestram_section = <&autotest_ram>;
 		sentry,kernelcode_section = <&kernel_code>;
 		sentry,idlecode_section = <&idle_code>;
-		sentry,autotestcode_section = <&autotest_code>;
 	};
 
 	reserved-memory {
