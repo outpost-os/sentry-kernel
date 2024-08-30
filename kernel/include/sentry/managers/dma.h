@@ -15,7 +15,11 @@ extern "C" {
 #endif
 
 __STATIC_FORCEINLINE bool mgr_dma_is_irq_owned(int IRQn) {
-    return gpdma_irq_is_dma_owned(IRQn);
+    bool dma_owned = false;
+#ifdef CONFIG_HAS_GPDMA
+    dma_owned = gpdma_irq_is_dma_owned(IRQn);
+#endif
+return dma_owned;
 }
 
 kstatus_t mgr_dma_init(void);
