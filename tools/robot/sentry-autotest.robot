@@ -37,14 +37,21 @@ Load Autotest
 
     ${read_all}             Read Until  terminator=AUTOTEST END
     Close Serial Port
-    ${read_AT}              Get Lines Containing String     ${read_all}	[AT]
+    Set Suite Variable      ${ALL_LOG}  ${read_all}
+    Log                     ${ALL_LOG}
+
+Extract Logs
+    ${read_AT}              Get Lines Containing String     ${ALL_LOG}	[AT]
     Set Suite Variable      ${AT_LOG}  ${read_AT}
     Should Contain          ${read_AT}    ${PROMPT}
+    Log                     ${AT_LOG}
+
+Target Metadata
     ${SoC_Line}             Get Lines Containing String     ${read_all}      _entrypoint: booting on SoC
     ${SoC}                  Fetch From Right    ${SoC_Line}     ${SPACE}
-    Log   ${read_all}
-    Log   ${read_AT}
-    Set Test Message        Autotest executed on SoC ${SoC}
+    ${Dts_Line}             Get Lines Containing String     ${read_all}      _entrypoint: configured dts file
+    ${Dts}                  Fetch From Right    ${Dts_Line}     ${SPACE}
+    Set Test Message        firmware: boot on  SoC ${SoC} with DTS: ${Dts}
 
 
 AT Yield
@@ -161,6 +168,16 @@ Autotest Totals
     Depends on test         Load Autotest
     Suite Result            ${AT_LOG}
 
+Fault Detection
+    [Documentation]         Check if a fault is triggered
+
+    Depends on test         Load Autotest
+    ${handler}              Get Lines Containing String	${ALL_LOG}	fault_handler
+    ${frame}                Get Lines Containing String	${ALL_LOG}	dump_frame
+    Log                     ${handler}
+    Log                     ${frame}
+    Should Be Empty         ${handler}
+    Should Be Empty         ${frame}
 
 *** Keywords ***
 
