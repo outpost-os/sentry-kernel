@@ -71,9 +71,11 @@ __attribute__((noreturn)) void _entrypoint(void)
     if (unlikely(mgr_device_init() != K_STATUS_OKAY)) {
         panic(PANIC_CONFIGURATION_MISMATCH);
     }
+#if CONFIG_HAS_GPDMA
     if (unlikely(mgr_dma_init() != K_STATUS_OKAY)) {
         panic(PANIC_CONFIGURATION_MISMATCH);
     }
+#endif
     if (unlikely(mgr_mm_shm_init() != K_STATUS_OKAY)) {
         panic(PANIC_CONFIGURATION_MISMATCH);
     }

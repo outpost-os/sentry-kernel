@@ -6,6 +6,7 @@
 stack_frame_t *gate_get_dmahandle(stack_frame_t *frame, uint32_t streamlabel)
 {
     taskh_t current = sched_get_current();
+#ifdef CONFIG_HAS_GPDMA
     stack_frame_t *next_frame = frame;
     taskh_t owner;
     dmah_t dmahandle;
@@ -44,4 +45,9 @@ stack_frame_t *gate_get_dmahandle(stack_frame_t *frame, uint32_t streamlabel)
     mgr_task_set_sysreturn(current, STATUS_OK);
 end:
     return next_frame;
+#else
+    /* no GPDMA support, return no entity status code */
+    mgr_task_set_sysreturn(current, STATUS_NO_ENTITY);
+    return frame;
+#endif
 }
