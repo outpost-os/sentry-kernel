@@ -16,7 +16,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: outpost-os-shared-small
     container: 'pthierry38/framac-runner:29'
     timeout-minutes: 60
     steps:
