@@ -14,10 +14,6 @@ a missing dep in the build environment.
 
 The Sentry dependencies are the following:
 
-   * **dunamai**: used to dynamically forge the Sentry kernel version using the
-     current git tag, with automatic dirty flagging if needed. This is a python module
-     that can be installed with pip.
-
    * **meson**: the effective Sentry build system. This is a python module.
      that can be installed with pip.
 

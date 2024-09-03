@@ -47,7 +47,7 @@ In Sentry, the following ressource handles exist:
      identifier as changed.
 
    * **shmh_t: shared memory**: Identify Shared memory. A shared memory is a memory region declared at built time that
-     has a `taskh_t` owner. A SHM can be shared with another `taskh_t` and have dedicted associated permissions
+     has a `taskh_t` owner. A SHM can be shared with another `taskh_t` and have dedicated associated permissions
      set only the SHM owner can define.
      In terms of mapping, SHM are under the control of the memory manager (see below).
 
