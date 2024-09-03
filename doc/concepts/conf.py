@@ -5,6 +5,7 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx_simplepdf',
     'sphinx.ext.todo',
+    'sphinx.ext.autosectionlabel',
 ]
 
 simplepdf_vars = {
