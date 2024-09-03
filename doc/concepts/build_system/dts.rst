@@ -161,7 +161,8 @@ Each child node describe one region with the following properties:
     All user tasks are relocated at project build time in the configured region.
     For those regions, only ``reg`` property is required, all others are ignored.
 
-
+.. warning::
+    reserved memory regions must comply with target MPU alignment requirements.
 
 .. code-block:: dts
   :linenos:
