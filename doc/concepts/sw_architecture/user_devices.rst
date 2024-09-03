@@ -1,7 +1,6 @@
+.. _userspace_devices:
 About user devices
 ------------------
-
-.. _userspace_devices:
 
 Device list generation and kernel storage
 """""""""""""""""""""""""""""""""""""""""
