@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef LIBTEST_ASSERT_H
 #define LIBTEST_ASSERT_H
 

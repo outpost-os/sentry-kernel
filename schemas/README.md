@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+-->
+
 ## Sentry kernel schemas and formal description for external tooling
 
 This directory hold formal definitions and dictionary of exported structures that can

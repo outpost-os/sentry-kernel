@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef __SENTRY_MANAGERS_TASK_METADATA_GENERATED_H
 #define __SENTRY_MANAGERS_TASK_METADATA_GENERATED_H
 

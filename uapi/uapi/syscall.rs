@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
 use crate::systypes::*;

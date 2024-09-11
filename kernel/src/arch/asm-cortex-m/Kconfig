@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 # masked symbols. These symbols are automatically selected based on the
 # target SoC.
 # The target SoC define the core technology, and thus the core features

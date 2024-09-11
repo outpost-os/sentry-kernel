@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 use crate::systypes::{EraseMode, EraseType, Status};
 
 pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value

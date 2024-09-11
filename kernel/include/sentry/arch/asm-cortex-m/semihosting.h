@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
 
 #ifndef ARM_SEMIHOSTING_H
 #define ARM_SEMIHOSTING_H

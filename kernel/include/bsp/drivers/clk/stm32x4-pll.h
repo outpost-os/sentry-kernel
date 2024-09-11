@@ -1,4 +1,5 @@
-
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
 
 #ifndef __STM32X4_PLL_H
 #define __STM32X4_PLL_H
