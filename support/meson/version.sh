@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env sh
+
+# SPDX-FileCopyrightText: 2023 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 
 if [ "$1" = "get-vcs" ]; then
   git -C "$MESON_SOURCE_ROOT" describe --tags --dirty

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 /// This library defines types (structs, enums, ...) related to syscalls,
 /// that need to be shared between the kernel and the uapi.
 ///

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #include <inttypes.h>
 #include <testlib/log.h>
 #include <testlib/assert.h>

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #include <uapi/device.h>
 #include <uapi/uapi.h>
 #include <sentry/syscalls.h>

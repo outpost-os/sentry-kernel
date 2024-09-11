@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #include <sentry/ktypes.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <sentry/managers/task.h>

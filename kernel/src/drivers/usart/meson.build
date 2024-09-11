@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
 
 # very same header name, generated from corresponding svd
 usart_h = custom_target('gen_usart',

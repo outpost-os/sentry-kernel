@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef MEMORY_PRIVATE_H
 #define MEMORY_PRIVATE_H
 

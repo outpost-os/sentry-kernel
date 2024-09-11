@@ -1,7 +1,5 @@
-/*
- * SPDX-FileCopyrightText: 2023 Ledger SAS
- * SPDX-License-Identifier: Apache-2.0
- */
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
 
 /**
  * MPU implementation header for PMSAv7 ARM cortex-M MPU.

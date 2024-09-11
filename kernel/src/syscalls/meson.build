@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 syscall_source_set = ssmod.source_set()
 
 syscalls = files(
