@@ -203,12 +203,12 @@ A typical usage of robot files of the kernel would be, considering the following
 
 ```console
 pyocd list
-  #   Probe/Board       Unique ID                  Target            
+  #   Probe/Board       Unique ID                  Target
 ---------------------------------------------------------------------
-  0   STLINK-V3         004300483232510239353236   ✔︎ stm32u5a5zjtxq  
-      NUCLEO-U5A5ZJ-Q                                                
-                                                                     
-  1   STM32 STLink      0671FF575251717867205336   ✔︎ stm32f429zitx   
+  0   STLINK-V3         004300483232510239353236   ✔︎ stm32u5a5zjtxq
+      NUCLEO-U5A5ZJ-Q
+
+  1   STM32 STLink      0671FF575251717867205336   ✔︎ stm32f429zitx
       DISCO-F429Z
 ```
 
