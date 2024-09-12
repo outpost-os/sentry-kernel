@@ -4,9 +4,18 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # Sentry kernel implementation
 
+
 ## Current project state
 
-TBD
+
+![GNU/Linux build](https://github.com/outpost-os/sentry-kernel/actions/workflows/gnulinux.yml/badge.svg)
+![MacOS X build](https://github.com/outpost-os/sentry-kernel/actions/workflows/macos.yml/badge.svg)
+![Frama-C RTE Analysis](https://github.com/outpost-os/sentry-kernel/actions/workflows/proof.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/outpost-sentry/badge/?version=latest)](https://outpost-sentry.readthedocs.io/en/latest/?badge=latest)
+![GitHub Release](https://img.shields.io/github/v/release/outpost-os/sentry-kernel)
+![GitHub License](https://img.shields.io/github/license/outpost-os/sentry-kernel)
+
+
 
 ## About
 
