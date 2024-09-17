@@ -88,6 +88,7 @@ pub enum Syscall {
     DmaStartStream,
     DmaStopStream,
     DmaGetStreamStatus,
+    ShmGetInfos,
 }
 }
 
@@ -484,3 +485,79 @@ pub type taskh_t = u32;
 pub type shmh_t = u32;
 #[allow(non_camel_case_types)]
 pub type dmah_t = u32;
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct shm_infos {
+    pub handle: shmh_t,
+    pub label: u32,
+    pub base: usize,
+    pub len: usize,
+    pub perms: u32,
+}
+
+#[test]
+fn test_layout_shm_infos() {
+    const UNINIT: ::std::mem::MaybeUninit<shm_infos> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<shm_infos>(),
+        32usize,
+        concat!("Size of: ", stringify!(shm_infos))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<shm_infos>(),
+        8usize,
+        concat!("Alignment of ", stringify!(shm_infos))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).handle) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(shm_infos),
+            "::",
+            stringify!(handle)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).label) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(shm_infos),
+            "::",
+            stringify!(label)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).base) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(shm_infos),
+            "::",
+            stringify!(base)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).len) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(shm_infos),
+            "::",
+            stringify!(len)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).perms) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(shm_infos),
+            "::",
+            stringify!(perms)
+        )
+    );
+}
