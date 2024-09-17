@@ -140,6 +140,11 @@ Syscall definition
 .. include:: syscalls/shm_set_credential.rst
 
 .. index::
+  single: sys_shm_get_infos; definition
+  single: sys_shm_get_infos; usage
+.. include:: syscalls/shm_get_infos.rst
+
+.. index::
   single: sys_wait_for_event; definition
   single: sys_wait_for_event; usage
 .. include:: syscalls/waitforevent.rst
