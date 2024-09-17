@@ -129,7 +129,6 @@ kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const
 
 kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task);
 
-
 /*
  * XXX:
  *  In order to restore task mpu config w/ fast loading, region configuration

@@ -19,12 +19,12 @@ sys_shm_get_infos
 **Usage**
 
    In Sentry, as explained in :ref:`SHM model definition chapter <shm_principles>`, a shared memory
-   hold credential for its owner and user task. It also hold some memory-related shm_get_infos
+   holds credential for its owner and user task. It also hold some memory-related shm_get_infos
    such as base address and size.
 
-   These informations are useful to get back un userspace without requiring any DTS forge at application level.
+   These information set is useful to get back in user-space without requiring any DTS forge at application level.
 
-   These informations can be received through this syscall, by fullfilling the shm_infos_t structure
+   These informations can be received through this syscall, by fulfilling the shm_infos_t structure
    declared by the UAPI in the SVC Exchange area. The `shm_infos_t` is defined in the
    UAPI `<types.h>` header in C or through the uapi.systypes Rust mod.
 
@@ -32,7 +32,7 @@ sys_shm_get_infos
       :linenos:
       :caption: shm_infos_t structure definition
 
-      /* Exchange event header for all events received in SVC Exchange area */
+      /* SHM informations data structure */
       typedef struct shm_infos {
         shmh_t   handle;  /*< SHM handle */
         uint32_t label;   /*< SHM label */
@@ -43,11 +43,11 @@ sys_shm_get_infos
 
 
 
-   The lonely input required for this syscall is the SHM handle, as given by the
+   The only input required for this syscall is the SHM handle, as given by the
    `sys_get_shmhandle()` syscall.
 
-   When a given SHM credentials for the current job is upgraded, the `sys_shm_get_infos()`
-   returns an uptodate content synchronously.
+   When a given SHM credentials set for the current job is updated, the `sys_shm_get_infos()`
+   returns an up-to-date content synchronously.
 
    .. code-block:: C
       :linenos:

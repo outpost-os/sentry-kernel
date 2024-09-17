@@ -292,7 +292,7 @@ typedef struct exchange_event {
     uint8_t data[]; /*< event data, varies depending on length field */
 } exchange_event_t;
 
-/* Exchange event header for all events received in SVC Exchange area */
+/* SHM informations data structure */
 typedef struct shm_infos {
     shmh_t   handle;  /*< SHM handle */
     uint32_t label;   /*< SHM label */
