@@ -111,6 +111,12 @@ kstatus_t mgr_mm_shm_is_shared(shmh_t shm, secure_bool_t * result);
 
 kstatus_t mgr_mm_shm_get_handle(uint32_t shm_id, shmh_t *handle);
 
+kstatus_t mgr_mm_shm_get_baseaddr(shmh_t shm, size_t *base);
+
+kstatus_t mgr_mm_shm_get_size(shmh_t shm, size_t *size);
+
+kstatus_t mgr_mm_shm_get_label(shmh_t shm, uint32_t *label);
+
 /* per user/owner properties requests */
 
 kstatus_t mgr_mm_shm_is_mapped_by(shmh_t shm, shm_user_t accessor, secure_bool_t * result);
@@ -122,6 +128,7 @@ kstatus_t mgr_mm_shm_is_writeable_by(shmh_t shm, shm_user_t accessor, secure_boo
 kstatus_t mgr_mm_shm_configure(shmh_t shm, shm_user_t target, shm_config_t const *config);
 
 kstatus_t mgr_mm_shm_declare_user(shmh_t shm, taskh_t task);
+
 
 /*
  * XXX:
