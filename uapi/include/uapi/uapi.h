@@ -207,6 +207,12 @@ Status sys_send_signal(uint32_t resource, Signal signal_type);
 Status sys_shm_set_credential(shmh_t shm, taskh_t target, uint32_t shm_perm);
 
 /**
+ * Get SHM informations
+ */
+Status sys_shm_get_infos(shmh_t shm);
+
+
+/**
  * Sleep for a given amount of time
  *
  * POSIX upper layer(s): sleep(3), usleep(3)

@@ -306,6 +306,7 @@ pub extern "C" fn sys_dma_get_stream_status(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
 
+#[no_mangle]
 pub extern "C" fn sys_shm_get_infos(shm: shmh_t) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
