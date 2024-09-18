@@ -22,6 +22,7 @@ syscalls_src = files(
   'shm_map.rst',
   'shm_unmap.rst',
   'shm_set_credential.rst',
+  'shm_get_infos.rst',
   'send_ipc.rst',
   'waitforevent.rst',
 )

@@ -19,7 +19,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: ubuntu-latest
     container: 'pthierry38/framac-runner:29'
     timeout-minutes: 60
     steps:

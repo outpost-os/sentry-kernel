@@ -178,6 +178,16 @@ static stack_frame_t *lut_notsup(stack_frame_t *f) {
     return f;
 }
 
+static stack_frame_t *lut_shm_get_infos(stack_frame_t *frame) {
+    shmh_t shm = frame->r0;
+    return gate_shm_get_infos(frame, shm);
+}
+
+/* for not yet supported syscalls */
+static stack_frame_t *lut_unsuported(stack_frame_t *frame) {
+    mgr_task_set_sysreturn(sched_get_current(), STATUS_NO_ENTITY);
+    return frame;
+}
 
 static const lut_svc_handler svc_lut[] = {
     lut_exit,
@@ -210,6 +220,10 @@ static const lut_svc_handler svc_lut[] = {
     lut_int_disable,
     lut_get_shmhandle,
     lut_get_dmahandle,
+    lut_unsuported, /* DMA Start Stream */
+    lut_unsuported, /* DMA Stop Stream */
+    lut_unsuported, /* DMA Get Stream Status */
+    lut_shm_get_infos,
 };
 
 #define SYSCALL_NUM ARRAY_SIZE(svc_lut)

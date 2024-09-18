@@ -24,6 +24,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "handle.h"
 
 
 #ifdef __cplusplus
@@ -242,6 +243,7 @@ typedef enum Syscall {
   SYSCALL_DMA_START_SREAM,
   SYSCALL_DMA_STOP_STREAM,
   SYSCALL_DMA_GET_STREAM_STATUS,
+  SYSCALL_SHM_GET_INFOS,
 } Syscall;
 
 /**
@@ -289,6 +291,15 @@ typedef struct exchange_event {
     uint32_t source; /*< event source (task handle value). 0 means the kernel */
     uint8_t data[]; /*< event data, varies depending on length field */
 } exchange_event_t;
+
+/* SHM informations data structure */
+typedef struct shm_infos {
+    shmh_t   handle;  /*< SHM handle */
+    uint32_t label;   /*< SHM label */
+    size_t   base;    /*< SHM base address */
+    size_t   len;     /*< SHM length in bytes */
+    uint32_t perms;   /*< SHM permissions (mask of SHMPermission) */
+} shm_infos_t;
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -144,6 +144,111 @@ end:
 }
 
 /**
+ * @fn get base address of the given SHM
+ *
+ * @param[in] shm: Shared memory handle that identify the SHM
+ * @param[out] base: base address of the SHM returned when found
+ */
+kstatus_t mgr_mm_shm_get_baseaddr(shmh_t shm, size_t *base)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+
+    /*@ assert \valid_read(kshm); */
+
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (unlikely(base == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(base); */
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* check that handle matches */
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
+        goto end;
+    }
+    *base = shm_table[kshm->id].meta->baseaddr;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
+ * @fn get size in bytes of the given SHM
+ *
+ * @param[in] shm: Shared memory handle that identify the SHM
+ * @param[out] size:  length in bytes of the SHM returned when found
+ */
+kstatus_t mgr_mm_shm_get_size(shmh_t shm, size_t *size)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+
+    /*@ assert \valid_read(kshm); */
+
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (unlikely(size == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(size); */
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* check that handle matches */
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
+        goto end;
+    }
+    *size = shm_table[kshm->id].meta->size;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
+ * @fn get label defined in DTS for the given SHM
+ *
+ * @param[in] shm: Shared memory handle that identify the SHM
+ * @param[out] label: identifier of the SHM as declared in the DTS, returned when found
+ */
+kstatus_t mgr_mm_shm_get_label(shmh_t shm, uint32_t *label)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    kshmh_t const *kshm = shmh_to_kshmh(&shm);
+
+    /*@ assert \valid_read(kshm); */
+
+    if (unlikely(mgr_mm_configured() == SECURE_FALSE)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (unlikely(label == NULL)) {
+        goto end;
+    }
+    /*@ assert \valid(label); */
+    /* check that id exsits */
+    if (unlikely(kshm->id >= SHM_LIST_SIZE)) {
+        goto end;
+    }
+    /* check that handle matches */
+    if (unlikely(shm_table[kshm->id].handle != shm)) {
+        goto end;
+    }
+    *label = shm_table[kshm->id].meta->shm_label;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/**
  * @brief specify if the given SHM can be mapped by owner or user
  *
  * the secure boolean information is set through result argument

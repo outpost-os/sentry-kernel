@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   forge_matrix:
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: ubuntu-latest
     container:
       image: python:3.9.14-alpine3.16
     steps:
@@ -58,7 +58,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: ubuntu-latest
     container:
       image: ${{ matrix.operating_system }}
     steps:
@@ -130,7 +130,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: ubuntu-latest
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:
@@ -194,7 +194,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ vars.DEFAULT_RUNNER_NAME }}
+    runs-on: ubuntu-latest
     container:
       image: 'mesonbuild/ubuntu-rolling'
     steps:

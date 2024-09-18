@@ -66,6 +66,26 @@ void test_shm_invalidmap(void) {
     TEST_END();
 }
 
+void test_shm_infos(void) {
+    Status res;
+    shmh_t shm;
+    shm_infos_t infos;
+    TEST_START();
+    res = sys_get_shm_handle(shms[0].id);
+    copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_get_infos(shm);
+    copy_to_user((uint8_t*)&infos, sizeof(shm_infos_t));
+
+    ASSERT_EQ(res, STATUS_OK);
+    ASSERT_EQ(infos.label, shms[0].id);
+    ASSERT_EQ(infos.handle, shm);
+    ASSERT_EQ((uint32_t)infos.base, (uint32_t)shms[0].baseaddr);
+    ASSERT_EQ((uint32_t)infos.len, (uint32_t)shms[0].size);
+
+    TEST_END();
+}
+
 void test_shm_creds_on_mapped(void) {
     Status res;
     shmh_t shm;
@@ -185,6 +205,7 @@ void test_shm(void) {
     test_shm_mapunmap();
     test_shm_map_unmappable();
     test_shm_creds_on_mapped();
+    test_shm_infos();
     test_shm_allows_idle();
     TEST_SUITE_END("sys_map_shm");
 }

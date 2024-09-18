@@ -69,4 +69,6 @@ stack_frame_t *gate_log(stack_frame_t *frame, __MAYBE_UNUSED uint32_t log_len);
 
 stack_frame_t *gate_get_dmahandle(stack_frame_t *frame, uint32_t streamlabel);
 
+stack_frame_t *gate_shm_get_infos(stack_frame_t *frame, shmh_t shm);
+
 #endif/*!SYSCALLS_H*/
