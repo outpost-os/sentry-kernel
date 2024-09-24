@@ -52,13 +52,44 @@ kstatus_t mgr_dma_init(void)
     return status;
 }
 
+/**
+ * @fn mgr_dma_get_config - returns the configuration associated to given handle
+ *
+ * @param[in] dmah: DMA handle for which the config is asked
+ *
+ * @returns: DMA configuration if found, or NULL
+ */
+static dma_stream_config_t *mgr_dma_get_config(const dmah_t dmah)
+{
+    dma_stream_config_t * cfg = NULL;
+    for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
+        if (stream_config[streamid].handle == dmah) {
+            cfg = &stream_config[streamid];
+            goto end;
+        }
+    }
+end:
+    return cfg;
+}
+
+
 kstatus_t mgr_dma_watchdog(void)
 {
     kstatus_t status = K_STATUS_OKAY;
     return status;
 }
 
-kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle)
+/**
+ * @fn mgr_dma_get_handle - get back DMA handle from given DMA label
+ *
+ * @param label[in]: DMA label as defined in the DTS and known by the ownering task
+ * @param handle[out]: DMA handle associated to the DMA label
+ *
+ * @returns:
+ *  K_ERROR_INVPARAM: label is invalid or handle is not a valid rw-pointer
+ *  K_STATUS_OKAY: handle found and assigned to handle parameter
+ */
+kstatus_t mgr_dma_get_handle(const uint32_t label, dmah_t * handle)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(handle == NULL)) {
@@ -178,6 +209,21 @@ end:
 kstatus_t mgr_dma_stream_assign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /* can't assign a stream that is already assigned. unassign first */
+    if (unlikely(cfg->state != DMA_STREAM_STATE_UNSET)) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (unlikely((status = gpdma_channel_configure(&cfg->meta->config)) != K_STATUS_OKAY)) {
+        goto end;
+    }
+    cfg->state = DMA_STREAM_STATE_ASSIGNED;
+end:
     return status;
 }
 
