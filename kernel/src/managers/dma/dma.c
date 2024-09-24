@@ -44,7 +44,7 @@ kstatus_t mgr_dma_init(void)
         }
 
         /*@ assert \valid(dmah); */
-        /*@ assert \valid_read(stream_state[streamid].meta); */
+        /*@ assert \valid_read(stream_config[streamid].meta); */
         stream_config[streamid].handle = *dmah;
         stream_config[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
     }
@@ -242,6 +242,22 @@ end:
 kstatus_t mgr_dma_stream_unassign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+        dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /* can't unassign a stream that is started or already unassigned */
+    if (unlikely(
+          (cfg->state != DMA_STREAM_STATE_ASSIGNED) &&
+          (cfg->state != DMA_STREAM_STATE_STOPPED)
+        )) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+// TODO: unassign chan
+    cfg->state = DMA_STREAM_STATE_UNSET;
+end:
     return status;
 }
 
