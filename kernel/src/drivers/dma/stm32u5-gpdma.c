@@ -64,28 +64,17 @@ typedef union gpdma_register {
     gpdma_c12br2_t    cxbr2;
 } gpdma_register_t;
 
-
 /**
- * @fn check given channel idle flag
+ * @fn get interrupt number associated to the given stream
  *
- * return true if the channel is idle, meaning:
- * - not configured
- * - disabled
- * - suspended
+ * This function consider that the stream is strictly associated to a given {ctr,chan} couple,
+ * and that each chan of a given controller has a strictly defined IRQ number. This is the case
+ * of STM32U5 GPDMA controller.
+ *
+ * @param[in] desc: stream descriptor, has defined in gpdma.h and forged from DTS
+ * @param[out] IRQn: IRQ number associated to the stream, when configured
  */
-/*@
- * requires (gpdma_controler_exists(ctrl) && gpdma_channel_is_valid(chanid));
- */
-static inline bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
-{
-    bool is_idle = false;
-    stm32_gpdma_desc_t const *desc = stm32_gpdma_get_desc(ctrl);
-    gpdma_c0sr_t const *sr = (gpdma_c0sr_t const *)(desc->base_addr + GPDMA_CxSR(chanid));
-
-    return !!sr->idlef;
-}
-
-kstatus_t stm32u5_gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn)
+static kstatus_t stm32u5_gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     stm32_gpdma_desc_t const * ctrl = NULL;
@@ -107,6 +96,26 @@ end:
 }
 
 /**
+ * @fn check given channel idle flag
+ *
+ * return true if the channel is idle, meaning:
+ * - not configured
+ * - disabled
+ * - suspended
+ */
+/*@
+ * requires (gpdma_controler_exists(ctrl) && gpdma_channel_is_valid(chanid));
+ */
+static inline bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
+{
+    bool is_idle = false;
+    stm32_gpdma_desc_t const *desc = stm32_gpdma_get_desc(ctrl);
+    gpdma_c0sr_t const *sr = (gpdma_c0sr_t const *)(desc->base_addr + GPDMA_CxSR(chanid));
+
+    return !!sr->idlef;
+}
+
+/**
  * @fn clear GPDMA global interrupt
  *
  * clear both GPDMA interrupt status register for given channel and
@@ -114,7 +123,7 @@ end:
  *
  * This is the driver level clear
  */
-kstatus_t stm32u5_gpdma_interrupt_clear(gpdma_stream_cfg_t const*const desc)
+kstatus_t stm32u5_gpdma_interrupt_clear(gpdma_stream_cfg_t const * const desc)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     const stm32_gpdma_desc_t * ctrl = NULL;

@@ -5,10 +5,12 @@
 #include <sentry/managers/task.h>
 #include <sentry/managers/dma.h>
 #include <sentry/managers/security.h>
+#include <sentry/arch/asm-generic/panic.h>
+#include <bsp/drivers/dma/gpdma.h>
 #include "dma-dt.h"
 #include "dma.h"
 
-static dma_stream_state_t stream_state[STREAM_LIST_SIZE];
+static dma_stream_config_t stream_config[STREAM_LIST_SIZE];
 
 #ifndef CONFIG_HAS_GPDMA
 static_assert(STREAM_LIST_SIZE, "Can't have streams when no GPDMA supported!");
@@ -34,17 +36,17 @@ kstatus_t mgr_dma_init(void)
         kdmah.reserved = seed;
 
         dmah_t const *dmah = kdmah_to_dmah(&kdmah);
-        if (unlikely(dma_stream_get_meta(streamid, &stream_state[streamid].meta) != K_STATUS_OKAY)) {
+        if (unlikely(dma_stream_get_meta(streamid, &stream_config[streamid].meta) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
         }
-        if (unlikely(mgr_task_get_handle(stream_state[streamid].meta->owner, &stream_state[streamid].owner) != K_STATUS_OKAY)) {
+        if (unlikely(mgr_task_get_handle(stream_config[streamid].meta->owner, &stream_config[streamid].owner) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
         }
 
         /*@ assert \valid(dmah); */
         /*@ assert \valid_read(stream_state[streamid].meta); */
-        stream_state[streamid].handle = *dmah;
-        stream_state[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
+        stream_config[streamid].handle = *dmah;
+        stream_config[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
     }
 #endif
     return status;
@@ -65,8 +67,9 @@ kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle)
 
 #if STREAM_LIST_SIZE
     for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
-        if (stream_state[streamid].meta->label == label) {
-            *handle = stream_state[streamid].handle;
+        /*@ assert \valid_read(stream_config[streamid].meta); */
+        if (stream_config[streamid].meta->label == label) {
+            *handle = stream_config[streamid].handle;
             status = K_STATUS_OKAY;
             goto end;
         }
@@ -98,10 +101,10 @@ kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner)
     if (kdmah->streamid >= STREAM_LIST_SIZE) {
         goto end;
     }
-    if (stream_state[kdmah->streamid].handle != d) {
+    if (stream_config[kdmah->streamid].handle != d) {
         goto end;
     }
-    *owner = stream_state[kdmah->streamid].owner;
+    *owner = stream_config[kdmah->streamid].owner;
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -130,10 +133,30 @@ kstatus_t mgr_dma_autotest(void)
 kstatus_t mgr_dma_get_dmah_from_interrupt(const uint16_t IRQn, dmah_t *dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    uint16_t stream_irqn = 0;
+    uint16_t stream;
+    gpdma_stream_cfg_t const *cfg = NULL;
+
     if (unlikely(dmah == NULL)) {
         goto end;
     }
+    /* 1. get back dma {chan,ctrl} couple from IRQn */
+    for (stream = 0; stream < STREAM_LIST_SIZE; ++stream) {
+        cfg = &stream_config[stream].meta->config;
+        /* stream hold the ctrl/chan couple from which we can deduce the IRQn */
+        /*@ assert \valid_read(cfg); */
+        if (unlikely(gpdma_get_interrupt(cfg, &stream_irqn) != K_STATUS_OKAY)) {
+            panic(PANIC_CONFIGURATION_MISMATCH);
+        }
+        if (stream_irqn == IRQn) {
+            *dmah = stream_config[stream].handle;
+            status = K_STATUS_OKAY;
+            goto end;
+        }
+    }
+    /* not found, leaving with error */
     status = K_ERROR_NOENT;
+    goto end;
 end:
     return status;
 }
@@ -155,7 +178,6 @@ end:
 kstatus_t mgr_dma_stream_assign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-end:
     return status;
 }
 
@@ -174,7 +196,6 @@ end:
 kstatus_t mgr_dma_stream_unassign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-end:
     return status;
 }
 
@@ -193,7 +214,6 @@ end:
 kstatus_t mgr_dma_update_streamcfg(const dmah_t dmah, size_t src_offset, size_t dest_offset)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-end:
     return status;
 }
 
@@ -212,7 +232,6 @@ end:
 kstatus_t mgr_dma_stream_start(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-end:
     return status;
 }
 
@@ -229,6 +248,5 @@ end:
 kstatus_t mgr_dma_stream_stop(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-end:
     return status;
 }

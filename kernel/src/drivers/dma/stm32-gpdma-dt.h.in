@@ -62,4 +62,6 @@ typedef struct stm32_gpdma_desc {
 
 const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl);
 
+uint16_t const * stm32_gpdma_get_interrupts(uint8_t ctrl);
+
 #endif /* __STM32_GPDMA_DT_GENERATED_H */
