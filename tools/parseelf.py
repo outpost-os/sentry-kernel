@@ -17,10 +17,10 @@ if __name__ == '__main__':
 
     for section in binary.sections:
         if section.name == '.text':
-            bindict['text']['vaddr'] += section.virtual_address
-            bindict['text']['size'] += section.size
+            bindict['text']['vaddr'] = section.virtual_address
+            bindict['text']['size'] = section.size
         if section.name == '.ARM':
-            bindict['text']['vaddr'] += section.virtual_address
+            # only increment size of text, base addr is set using .text
             bindict['text']['size'] += section.size
         if section.name == '.data':
             bindict['data']['vaddr'] = section.virtual_address
@@ -29,5 +29,13 @@ if __name__ == '__main__':
         if section.name == '.bss':
             bindict['bss']['vaddr'] = section.virtual_address
             bindict['bss']['size'] = section.size
+    bindict['text']['vaddr'] = hex(bindict['text']['vaddr'])
+    bindict['data']['vaddr'] = hex(bindict['data']['vaddr'])
+    bindict['data']['laddr'] = hex(bindict['data']['laddr'])
+    bindict['bss']['vaddr'] = hex(bindict['bss']['vaddr'])
     with open(os.path.splitext(sys.argv[1])[0] + '.json', 'w') as outfile:
         json.dump(bindict, outfile)
+
+    if len(sys.argv) == 3 and sys.argv[2] == 'dump':
+        for key, value in bindict.items():
+            print(f"{key}: {value}")
