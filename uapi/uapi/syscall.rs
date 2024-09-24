@@ -311,6 +311,16 @@ pub extern "C" fn sys_shm_get_infos(shm: shmh_t) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
 
+#[no_mangle]
+pub extern "C" fn sys_dma_assign_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaAssignStream, dmah).into()
+}
+
+#[no_mangle]
+pub extern "C" fn sys_dma_unassign_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaUnassignStream, dmah).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
