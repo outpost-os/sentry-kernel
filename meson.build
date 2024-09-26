@@ -206,6 +206,8 @@ firmware_hex = custom_target(
         autotest_hex.full_path(), '-Intel',
     ],
     build_by_default: true,
+    install: true,
+    install_dir: get_option('bindir'),
 )
 else
 warning('srec_cat utility not found!')
