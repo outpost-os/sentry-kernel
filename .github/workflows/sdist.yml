@@ -90,5 +90,5 @@ jobs:
       - name: Login to JFrog Ledger
         uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
       - name: upload package
-        run: jf rt u --build-name=sentry-kernel-sdist-dev --build-number=1 --module=sentry-kernel 'builddir/meson-dist/*.*' ${{ secrets.JFROG_REPO_SDIST }}
+        run: jf rt u --build-name=sentry-kernel-sdist-dev --build-number=1 --flat=true --module=sentry-kernel 'builddir/meson-dist/*.*' ${{ secrets.JFROG_REPO_SDIST }}
 
