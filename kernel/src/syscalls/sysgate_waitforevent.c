@@ -55,7 +55,21 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
         dmah_t dmah;
         dma_chan_state_t event;
         if (mgr_task_load_dma_event(current, &dmah, &event) == K_STATUS_OKAY) {
-            /* TODO: copy handle  to user */
+            task_meta_t const *meta;
+            uint8_t *svc;
+            exchange_event_t *dest_svcexch;
+
+            /* forge SVC exchange with received signal informations */
+            mgr_task_get_metadata(current, &meta);
+            svc = task_get_svcexchange(meta);
+            dest_svcexch = (exchange_event_t*)svc;
+            /* set T,L values from TLV */
+            dest_svcexch->type = EVENT_TYPE_DMA;
+            dest_svcexch->length = sizeof(uint32_t);
+            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+            dest_svcexch->source = dmah; /**< stream source of event */
+            /* here, event is encoded on 8bits length */
+            dest_svcexch->data[0] = event;
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
