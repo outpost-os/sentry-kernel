@@ -42,11 +42,14 @@ static const shm_meta_t shms[] = {
 shm_meta_t const *memory_shm_get_meta(size_t id)
 {
     shm_meta_t const *meta = NULL;
+#if SHM_LIST_SIZE > 0
+    /* useless, size-limit warn, if shm list is empty */
     if (unlikely(id >= SHM_LIST_SIZE)) {
         goto end;
     }
     meta = &shms[id];
     /*@ assert \valid_read(meta); */
 end:
+#endif
     return meta;
 }

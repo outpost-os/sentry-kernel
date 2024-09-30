@@ -40,6 +40,8 @@ kstatus_t mgr_mm_shm_init(void)
     kstatus_t status = K_STATUS_OKAY;
     kshmh_t ksh;
 
+#if SHM_LIST_SIZE > 0
+    /* useless, size-limit warn, if shm list is empty */
     for (size_t id = 0; id < SHM_LIST_SIZE; ++id) {
         uint32_t entropy;
 
@@ -72,8 +74,8 @@ kstatus_t mgr_mm_shm_init(void)
         /* at init time, shm is not shared and user is owner */
         shm_table[id].user.task = shm_table[id].owner.task;
     }
-    status = K_STATUS_OKAY;
 end:
+#endif
     return status;
 }
 
@@ -524,6 +526,8 @@ kstatus_t mgr_mm_shm_get_handle(uint32_t shm_id, shmh_t *handle)
         goto end;
     }
     /*@ assert \valid(handle); */
+#if SHM_LIST_SIZE > 0
+    /* useless, size-limit warn, if shm list is empty */
     for (size_t index = 0; index < SHM_LIST_SIZE; ++index) {
         if (shm_table[index].meta->shm_label == shm_id) {
             *handle = shm_table[index].handle;
@@ -531,6 +535,7 @@ kstatus_t mgr_mm_shm_get_handle(uint32_t shm_id, shmh_t *handle)
             goto end;
         }
     }
+#endif
 end:
     return status;
 }
