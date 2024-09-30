@@ -196,17 +196,19 @@ pub enum EventType {
     Ipc = 1,
     Signal = 2,
     Irq = 4,
-    All = 7,
+    Dma = 8,
+    All = 15,
 }
 
 impl From<EventType> for u32 {
     fn from(event: EventType) -> u32 {
         match event {
-            EventType::None => 0x0,
-            EventType::Ipc => 0x1,
-            EventType::Signal => 0x2,
-            EventType::Irq => 0x4,
-            EventType::All => 0x7,
+            EventType::None => 0,
+            EventType::Ipc => 1,
+            EventType::Signal => 2,
+            EventType::Irq => 4,
+            EventType::Dma => 8,
+            EventType::All => 15,
         }
     }
 }

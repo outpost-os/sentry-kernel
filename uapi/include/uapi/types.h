@@ -43,7 +43,8 @@ typedef enum EventType {
   EVENT_TYPE_IPC = 1,
   EVENT_TYPE_SIGNAL = 2,
   EVENT_TYPE_IRQ = 4,
-  EVENT_TYPE_ALL = 7,
+  EVENT_TYPE_DMA = 8,
+  EVENT_TYPE_ALL = 15,
 } EventType;
 
 typedef enum Precision {
