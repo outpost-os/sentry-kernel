@@ -62,6 +62,8 @@ static inline device_state_t *device_get_device_state(devh_t d)
     /* here we do not match only the id but also the capability and family
      * (i.e. full opaque check)
      */
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
@@ -69,6 +71,7 @@ static inline device_state_t *device_get_device_state(devh_t d)
             break;
         }
     }
+#endif
     return dev;
 }
 
@@ -87,6 +90,7 @@ static inline device_state_t *device_get_device_state(devh_t d)
 kstatus_t mgr_device_init(void)
 {
     kstatus_t status = K_STATUS_OKAY;
+#if DEVICE_LIST_SIZE > 0
     taskh_t owner = 0;
     taskh_t owner_from_metadata = 0;
     devh_t  devh;
@@ -132,6 +136,7 @@ kstatus_t mgr_device_init(void)
         /* adding taskh value (0 or effective taskh userspace handle) */
         devices_state[i].owner = owner;
     }
+#endif
     return status;
 }
 
@@ -252,6 +257,8 @@ kstatus_t mgr_device_get_info(devh_t d, const devinfo_t **devinfo)
     if (unlikely(devinfo == NULL)) {
         goto end;
     }
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
@@ -260,6 +267,7 @@ kstatus_t mgr_device_get_info(devh_t d, const devinfo_t **devinfo)
                 goto end;
         }
     }
+#endif
     status = K_ERROR_NOENT;
 end:
     return status;
@@ -284,6 +292,8 @@ kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner)
         status = K_ERROR_INVPARAM;
         goto end;
     }
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     /*@ assert \valid(owner); */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
@@ -293,6 +303,7 @@ kstatus_t mgr_device_get_owner(devh_t d, taskh_t *owner)
                 goto end;
         }
     }
+#endif
     /*@ assert(status == K_ERROR_NOENT); */
 end:
     return status;
@@ -317,6 +328,8 @@ kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle)
         goto end;
     }
     /*@ assert \valid(devhandle); */
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint8_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         if (devices[i].devinfo.id == dev_label) {
             *devhandle = forge_devh(devices_state[i].device);
@@ -324,6 +337,7 @@ kstatus_t mgr_device_get_devhandle(uint32_t dev_label, devh_t *devhandle)
             goto end;
         }
     }
+#endif
 end:
     return status;
 }
@@ -345,6 +359,8 @@ kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t
     }
     /*@ assert \valid(clk_id); */
     /*@ assert \valid(bus_id); */
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
@@ -354,6 +370,7 @@ kstatus_t mgr_device_get_clock_config(const devh_t d, uint32_t *clk_id, uint32_t
                 goto end;
         }
     }
+#endif
 end:
     return status;
 }
@@ -362,6 +379,8 @@ uint32_t mgr_device_get_capa(devh_t d)
 {
     uint32_t capa = 0;
 
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         const devh_t handle = forge_devh(devices_state[i].device);
         if (handle == d) {
@@ -370,16 +389,20 @@ uint32_t mgr_device_get_capa(devh_t d)
         }
     }
 end:
+#endif
     return capa;
 }
 
 kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id)
 {
-    kstatus_t status = K_ERROR_INVPARAM;
+    kstatus_t status = K_ERROR_NOENT;
 
     if (unlikely(devinfo == NULL)) {
+        status = K_ERROR_INVPARAM;
         goto end;
     }
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     if (unlikely(id >= DEVICE_LIST_SIZE)) {
         *devinfo = NULL;
         status = K_ERROR_NOENT;
@@ -387,6 +410,7 @@ kstatus_t mgr_device_walk(const devinfo_t **devinfo, uint8_t id)
     }
     *devinfo = &devices[id].devinfo;
     status = K_STATUS_OKAY;
+#endif
 end:
     return status;
 }
@@ -420,6 +444,8 @@ kstatus_t mgr_device_get_devh_from_interrupt(uint16_t IRQn, devh_t *devh)
     if (unlikely(devh == NULL)) {
         goto end;
     }
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         if (dev_has_interrupt(&devices_state[i].device->devinfo, IRQn) == SECURE_TRUE) {
             const devh_t handle = forge_devh(devices_state[i].device);
@@ -428,6 +454,7 @@ kstatus_t mgr_device_get_devh_from_interrupt(uint16_t IRQn, devh_t *devh)
             goto end;
         }
     }
+#endif
     status = K_ERROR_NOENT;
 end:
     return status;
@@ -435,10 +462,13 @@ end:
 
 kstatus_t mgr_device_get_devinfo_from_interrupt(uint16_t IRQn, const devinfo_t **devinfo)
 {
-    kstatus_t status = K_ERROR_INVPARAM;
+    kstatus_t status = K_ERROR_NOENT;
     if (unlikely(devinfo == NULL)) {
+        status = K_ERROR_INVPARAM;
         goto end;
     }
+#if DEVICE_LIST_SIZE > 0
+    /* useless, size-limit warn, if device list is empty */
     for (uint32_t i = 0; i < DEVICE_LIST_SIZE; ++i) {
         if (dev_has_interrupt(&devices_state[i].device->devinfo, IRQn) == SECURE_TRUE) {
             *devinfo = &devices_state[i].device->devinfo;
@@ -446,7 +476,7 @@ kstatus_t mgr_device_get_devinfo_from_interrupt(uint16_t IRQn, const devinfo_t *
             goto end;
         }
     }
-    status = K_ERROR_NOENT;
+#endif
 end:
     return status;
 }
