@@ -224,6 +224,8 @@ static const lut_svc_handler svc_lut[] = {
     lut_unsuported, /* DMA Stop Stream */
     lut_unsuported, /* DMA Get Stream Status */
     lut_shm_get_infos,
+    lut_unsuported, /* DMA assign */
+    lut_unsuported, /* DMA unassign */
 };
 
 #define SYSCALL_NUM ARRAY_SIZE(svc_lut)

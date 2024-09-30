@@ -89,6 +89,8 @@ pub enum Syscall {
     DmaStopStream,
     DmaGetStreamStatus,
     ShmGetInfos,
+    DmaAssignStream,
+    DmaUnassignStream,
 }
 }
 

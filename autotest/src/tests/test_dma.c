@@ -33,8 +33,16 @@ static void test_dma_start_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
+    /* not assigned */
+    res = sys_dma_start_stream(stream);
+    ASSERT_EQ(res, STATUS_INVALID);
+    res = sys_dma_assign_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    /* assigned, should start */
     res = sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_assign_stream(stream);
+    ASSERT_EQ(res, STATUS_INVALID);
     res = sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
@@ -72,6 +80,22 @@ static void test_dma_stop_stream(dmah_t stream)
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
+
+static void test_dma_assign_unassign_stream(dmah_t stream)
+{
+    Status res;
+    TEST_START();
+    res = sys_dma_assign_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_assign_stream(stream);
+    ASSERT_EQ(res, STATUS_INVALID);
+    res = sys_dma_unassign_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_unassign_stream(stream);
+    ASSERT_EQ(res, STATUS_INVALID);
+    TEST_END();
+}
+
 #endif
 
 void test_dma(void)
@@ -82,6 +106,7 @@ void test_dma(void)
     test_dma_get_handle(&stream);
     test_dma_get_handle_inval();
     test_dma_manipulate_stream_badhandle();
+    test_dma_assign_unassign_stream(stream);
     test_dma_start_stream(stream);
     test_dma_get_stream_status(stream);
     test_dma_stop_stream(stream);

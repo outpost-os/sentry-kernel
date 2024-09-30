@@ -12,14 +12,16 @@
 {% if port is owned or port is not enabled -%}
 {% continue -%}
 {% endif -%}
-/* channel ordered interrupts for controller {{ port.label }} */
-static const uint16_t stm32_{{ port.label}}_interrupts[] = {
+
+/* channel ordered interrupts for each controller, controller-ordered */
+static const uint16_t stm32_{{ port.label }}_interrupts[] = {
     /* {{ port['dma-channels']|int }} DMA channels */
     {% for chanirq in range((2*port['dma-channels'])) -%}
     {% if port['interrupts'][chanirq]|int != 0 -%}
     {{ port['interrupts'][chanirq] }}, /* channel {{ (chanirq / 2)|int }} interrupt identifier */
     {% endif -%}
     {% endfor -%}
+    0, /* sentinel */
 };
 
 #define IRQ_IS_{{ port.label|upper }}_OWNED(x) ( \
@@ -30,9 +32,7 @@ static const uint16_t stm32_{{ port.label}}_interrupts[] = {
 {% endfor -%}
   0 \
 )
-
 {% endfor -%}
-
 
 bool stm32_gpdma_irq_is_dma_owned(int IRQn)
 {
@@ -81,9 +81,25 @@ const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl)
     if (unlikely(ctrl >= GPDMA_NUMBER)) {
         goto end;
     }
-    desc = &stm32_gpdmas[0];
+    desc = &stm32_gpdmas[ctrl];
 end:
     return desc;
+}
+
+/**
+ * @warning this is a private function, controller id must be valid and checked by caller
+ */
+uint16_t const * stm32_gpdma_get_interrupts(uint8_t ctrl)
+{
+    uint16_t const * its;
+    if (unlikely(ctrl >= GPDMA_NUMBER)) {
+        its = NULL;
+        goto end;
+    }
+    /*@ assert \valid_read(stm32_gpdmas[ctrl].interrupts); */
+    its = stm32_gpdmas[ctrl].interrupts;
+end:
+    return its;
 }
 
 bool gpdma_irq_is_dma_owned(int IRQn) __attribute__((alias("stm32_gpdma_irq_is_dma_owned")));
