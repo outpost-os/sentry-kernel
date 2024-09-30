@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+#if CONFIG_HAS_GPDMA
+
 __STATIC_FORCEINLINE bool mgr_dma_is_irq_owned(int IRQn) {
     bool dma_owned = false;
 #ifdef CONFIG_HAS_GPDMA
@@ -23,6 +25,7 @@ return dma_owned;
 }
 
 kstatus_t mgr_dma_init(void);
+
 
 kstatus_t mgr_dma_watchdog(void);
 
@@ -37,6 +40,8 @@ kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle);
 kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 
 kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state);
+
+#endif/* HAS_GPDMA */
 
 /**
  * Iterate over the device list, starting with id==id.
