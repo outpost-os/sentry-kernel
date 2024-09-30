@@ -87,7 +87,7 @@ end:
 }
 
 /**
- * @warning this is a private function, port id must be valid and checked by caller
+ * @warning this is a private function, controller id must be valid and checked by caller
  */
 uint16_t const * stm32_gpdma_get_interrupts(uint8_t ctrl)
 {
