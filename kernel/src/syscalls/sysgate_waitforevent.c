@@ -25,11 +25,24 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
     }
     /* and then irq... */
     if (mask & EVENT_TYPE_IRQ) {
-        if (mgr_task_load_int_event(current) == K_STATUS_OKAY) {
+        uint32_t irqn;
+        if (mgr_task_load_int_event(current, &irqn) == K_STATUS_OKAY) {
+            /* TODO: copy IRQn to user */
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
     }
+#if CONFIG_HAS_GPDMA
+    if (mask & EVENT_TYPE_DMA) {
+        dmah_t dmah;
+        dma_chan_state_t event;
+        if (mgr_task_load_dma_event(current, &dmah, &event) == K_STATUS_OKAY) {
+            /* TODO: copy handle  to user */
+            mgr_task_set_sysreturn(current, STATUS_OK);
+            goto end;
+        }
+    }
+#endif
     /* and then ipc... */
     if (mask & EVENT_TYPE_IPC) {
         if (mgr_task_load_ipc_event(current) == K_STATUS_OKAY) {

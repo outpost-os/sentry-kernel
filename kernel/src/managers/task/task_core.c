@@ -476,21 +476,36 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     /*@ assert \valid_read(kt); */
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
-    if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
+    if (unlikely((tsk->ints_head+1%TASK_EVENT_QUEUE_DEPTH) == tsk->ints_bottom)) {
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
         goto err;
     }
-    tsk->ints[tsk->num_ints] = IRQn;
-    tsk->num_ints++;
+    tsk->ints[tsk->ints_head] = IRQn;
+    tsk->ints_head = (tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH;
+    /*@ assert (tsk->ints_head < TASK_EVENT_QUEUE_DEPTH); */
 
     status = K_STATUS_OKAY;
 err:
     return status;
 }
 
-kstatus_t mgr_task_load_int_event(taskh_t context)
+kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn)
 {
     kstatus_t status = K_ERROR_NOENT;
+    if (unlikely(IRQn == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    const ktaskh_t *kt = taskh_to_ktaskh(&context);
+    /*@ assert \valid_read(kt); */
+    task_t * tsk = task_get_from_handle(context);
+
+    if (tsk->ints_head != tsk->ints_bottom) {
+        /* ther is at least one waiting interrupt. getting the first pushed one */
+        *IRQn = tsk->ints_bottom;
+        tsk->ints_bottom = (tsk->ints_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
+    }
+end:
     return status;
 }
 
@@ -622,23 +637,62 @@ kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_st
     /*@ assert \valid_read(tsk); */
     job_state_t state;
 
-    if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
-        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
-        goto err;
-    }
     if (unlikely(tsk == NULL)) {
         /** should never be triggered */
         /*@ assert \false; */
         goto err;
     }
-    tsk->dmas[tsk->num_dmas].handle = dma_stream;
-    tsk->dmas[tsk->num_dmas].event = dma_event;
-    tsk->num_dmas++;
+    if (unlikely((tsk->dmas_head+1%TASK_EVENT_QUEUE_DEPTH) == tsk->dmas_bottom)) {
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+        goto err;
+    }
+    tsk->dmas[tsk->dmas_head].handle = dma_stream;
+    tsk->dmas[tsk->dmas_head].event = dma_event;
+    tsk->dmas_head = (tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH;
 
     status = K_STATUS_OKAY;
 err:
     return status;
 }
+
+/**
+ * @fn mgr_task_load_dma_event - get back firstly pushed DMA event not yet fetched
+ */
+kstatus_t mgr_task_load_dma_event(taskh_t context, dmah_t *handle, dma_chan_state_t *event)
+{
+    kstatus_t status = K_ERROR_NOENT;
+
+    /**
+     * TODO: by now, only pushing-up one event at a time.
+     * The multi-events support will be added in the very same way multi-int will be added, using
+     * the notion of event-vector pushed at userspace level. The event-vector header will be used in the same
+     * way for both IRQn and DMA event push, in the following way:
+     *
+     * [event vector header] [event 0][event 1][event 2]...
+     *
+     * The event vector requires to:
+     * - create a vector based on a set of homogeneous event that may wait alongside
+     * - check that the vecor is smaller than the effective svc-exchange area, to avoid any overflow
+     */
+    if (unlikely((handle == NULL) || (event == NULL))) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    const ktaskh_t *kt = taskh_to_ktaskh(&context);
+    /*@ assert \valid_read(kt); */
+    task_t * tsk = task_get_from_handle(context);
+
+    if (tsk->dmas_head != tsk->dmas_bottom) {
+        *handle = tsk->dmas[tsk->dmas_bottom].handle;
+        *event = tsk->dmas[tsk->dmas_bottom].event;
+        tsk->dmas_bottom = (tsk->dmas_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
+        /*@ assert (tsk->dmas_bottom < TASK_EVENT_QUEUE_DEPTH); */
+    }
+end:
+    return status;
+}
+
+
 #endif
 
 kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)

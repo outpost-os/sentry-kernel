@@ -100,9 +100,12 @@ typedef struct  task {
     uint32_t           ints[TASK_EVENT_QUEUE_DEPTH]; /**< List of IRQ events */
 #if CONFIG_HAS_GPDMA
     tsk_gpdma_event_queue_t  dmas[TASK_EVENT_QUEUE_DEPTH]; /**< List of DMA events */
-    uint8_t            num_dmas;
+    uint8_t            dmas_head;
+    uint8_t            dmas_bottom;
 #endif
-    uint8_t            num_ints;
+    uint8_t            ints_head;
+    uint8_t            ints_bottom;
+
     job_state_t     state;      /**< current task state */
     uint32_t        returncode;  /**< current task job return value, when exiting */
     secure_bool_t   sysretassigned; /**< a syscall has assigned a sysreturn */
