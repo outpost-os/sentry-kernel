@@ -192,7 +192,7 @@ kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest);
 kstatus_t mgr_task_push_sig_event(uint32_t sig, taskh_t source, taskh_t dest);
 
 kstatus_t mgr_task_load_ipc_event(taskh_t context);
-kstatus_t mgr_task_load_sig_event(taskh_t context);
+kstatus_t mgr_task_load_sig_event(taskh_t context, uint32_t *signal, taskh_t *source);
 kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn);
 
 /* get back peer that has emitted IPC to owner, in iterative way

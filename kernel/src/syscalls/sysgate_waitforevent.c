@@ -18,7 +18,25 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
     stack_frame_t *next_frame = frame;
     /* ordered check of events, starting with signal... */
     if (mask & EVENT_TYPE_SIGNAL) {
-        if (mgr_task_load_sig_event(current) == K_STATUS_OKAY) {
+        uint32_t sig;
+        taskh_t source;
+        if (mgr_task_load_sig_event(current, &sig, &source) == K_STATUS_OKAY) {
+            task_meta_t const *meta;
+            uint8_t *svc;
+            exchange_event_t *dest_svcexch;
+
+            /* forge SVC exchange with received signal informations */
+            mgr_task_get_metadata(current, &meta);
+            svc = task_get_svcexchange(meta);
+            dest_svcexch = (exchange_event_t*)svc;
+            /* set T,L values from TLV */
+            dest_svcexch->type = EVENT_TYPE_SIGNAL;
+            dest_svcexch->length = sizeof(uint32_t);
+            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+            dest_svcexch->source = source;
+            uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
+            sigdata[0] = sig;
+
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }

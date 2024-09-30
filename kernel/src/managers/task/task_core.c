@@ -724,38 +724,30 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_load_sig_event(taskh_t context)
+kstatus_t mgr_task_load_sig_event(taskh_t context, uint32_t *signal, taskh_t *source)
 {
     kstatus_t status = K_ERROR_NOENT;
     task_t * current = task_get_from_handle(context);
 
+    if (unlikely(signal == NULL)) {
+        /* this must not happen, as called with clean argument from sysgate */
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_MEMACCESS);
+    }
+    /*@ assert \valid(signal); */
     if (unlikely(current == NULL)) {
         status = K_ERROR_INVPARAM;
         goto end;
     }
 
     for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
-        uint8_t signal = current->sigs[idx];
-        if (signal > 0) {
-            task_t *source = &task_table[idx];
-            job_state_t state;
+        uint8_t signal_value = current->sigs[idx];
+        if (signal_value > 0) {
+            task_t *source_cfg = &task_table[idx];
             const taskh_t *source_handle;
-            /* get source and dest exchange area address (metadata) */
-            exchange_event_t *dest_svcexch = (exchange_event_t *)current->metadata->s_svcexchange;
-
-            /* set T,L values from TLV */
-            dest_svcexch->type = EVENT_TYPE_SIGNAL;
-            dest_svcexch->length = sizeof(uint32_t);
-            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
-            if (likely(source != 0)) {
-                /* when source is kernel, the source handle is 0 */
-                source_handle = ktaskh_to_taskh(&source->handle);
-                dest_svcexch->source = *source_handle;
-            } else {
-                dest_svcexch->source = 0UL;
-            }
-            uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
-            sigdata[0] = signal;
+            source_handle = ktaskh_to_taskh(&source_cfg->handle);
+            *signal = signal_value;
+            *source = *source_handle;
             /* clear local cache */
             current->sigs[idx] = 0;
             status = K_STATUS_OKAY;
