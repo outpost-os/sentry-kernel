@@ -132,7 +132,7 @@ typedef enum gpdma_priority {
 typedef struct gpdma_stream_cfg {
     uint16_t  channel;       /**< channel identifier */
     uint16_t  stream;        /**< request identifier */
-    uint16_t  controller;    /**< controler identifier */
+    uint16_t  controller;    /**< controller identifier */
     uint16_t  transfer_type; /**< type of transfer, @see gpdma_transfer_type */
     size_t    source;        /**< source address, for memory-to-x requests */
     size_t    dest;          /**< destination address, for x-to-memory requests */

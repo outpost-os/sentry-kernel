@@ -275,6 +275,10 @@ Status sys_dma_start_stream(dmah_t stream);
 
 Status sys_dma_stop_stream(dmah_t stream);
 
+Status sys_dma_assign_stream(dmah_t stream);
+
+Status sys_dma_unassign_stream(dmah_t stream);
+
 Status sys_dma_get_stream_status(dmah_t stream);
 
 #ifdef __cplusplus

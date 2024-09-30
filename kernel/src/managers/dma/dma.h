@@ -8,7 +8,30 @@
 extern "C" {
 #endif
 
+#include <bsp/drivers/dma/gpdma.h>
+
 #define HANDLE_DMA 2UL
+
+typedef enum dma_stream_state {
+    DMA_STREAM_STATE_UNSET,     /**< DMA stream is not yet assigned, or has been unasigned */
+    DMA_STREAM_STATE_ASSIGNED,  /**< DMA stream is assigned, but has never been started */
+    DMA_STREAM_STATE_STARTED,   /**< DMA stream is started */
+    DMA_STREAM_STATE_STOPPED,   /**< DMA stream is stopped, still assigned */
+} dma_stream_state_t;
+
+/**
+ * @brief Manager level stream configuration
+ *
+ * This structure associate a hardware DMA stream configuration (dts-based) to
+ * the stream owner (also dts-based, using associated channel owner)
+ */
+typedef struct dma_stream_config {
+    dma_meta_t const         * meta;   /**< Hardware configuration of the stream */
+    dmah_t                     handle; /**< associated DMA handle (opaque format) */
+    taskh_t                    owner;  /**< stream owner task handle */
+    dma_stream_state_t         state;  /**< DMA stream state */
+} dma_stream_config_t;
+
 
 /**
  * NOTE: it could be interesting to use randstruct compiler plugin to
