@@ -477,7 +477,7 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
     if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
-        status = K_ERROR_BUSY;
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
         goto err;
     }
     tsk->ints[tsk->num_ints] = IRQn;
@@ -599,6 +599,47 @@ kstatus_t mgr_task_load_ipc_event(taskh_t context)
 end:
     return status;
 }
+
+#if CONFIG_HAS_GPDMA
+/**
+ * @fn mgr_task_push_dma_event - push new DMA stream event in the current task queue
+ *
+ * The task queue hold DMA events that need to be pushed back to the userspace task that
+ * own the DMA stream source of the event. This queue is pulled when using the wait_for_event()
+ * syscall, so that the task can react to such events.
+ * Usual events are GPDMA_STATE_TRANSFER_COMPLETE, GPDMA_STATE_USER_ERROR, etc. and are fully
+ * arch & HW generic for all GPDMA controllers.
+ *
+ * @param[in] target: task handle that own the DMA stream
+ * @param[in] dma_stream: stream handle that rose the DMA event
+ * @param[in] dma_event: DMA stream event that has just risen
+ *
+ */
+kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_state_t dma_event)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(target);
+    /*@ assert \valid_read(tsk); */
+    job_state_t state;
+
+    if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+        goto err;
+    }
+    if (unlikely(tsk == NULL)) {
+        /** should never be triggered */
+        /*@ assert \false; */
+        goto err;
+    }
+    tsk->dmas[tsk->num_dmas].handle = dma_stream;
+    tsk->dmas[tsk->num_dmas].event = dma_event;
+    tsk->num_dmas++;
+
+    status = K_STATUS_OKAY;
+err:
+    return status;
+}
+#endif
 
 kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
 {

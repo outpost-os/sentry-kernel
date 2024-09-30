@@ -47,6 +47,7 @@ kstatus_t mgr_dma_init(void)
         /*@ assert \valid_read(stream_config[streamid].meta); */
         stream_config[streamid].handle = *dmah;
         stream_config[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
+        stream_config[streamid].status = GPDMA_STATE_IDLE;
     }
 #endif
     return status;
@@ -136,6 +137,27 @@ kstatus_t mgr_dma_get_owner(dmah_t d, taskh_t *owner)
         goto end;
     }
     *owner = stream_config[kdmah->streamid].owner;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+/*@
+ * \requires valid(state);
+ */
+kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    /*@ assert \valid(state); */
+
+    kdmah_t const *kdmah = dmah_to_kdmah(&d);
+    if (kdmah->streamid >= STREAM_LIST_SIZE) {
+        goto end;
+    }
+    if (stream_state[kdmah->streamid].handle != d) {
+        goto end;
+    }
+    *state = stream_state[kdmah->streamid].status;
     status = K_STATUS_OKAY;
 end:
     return status;

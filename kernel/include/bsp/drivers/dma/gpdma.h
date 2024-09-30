@@ -16,19 +16,15 @@
 
 #include <sentry/zlib/compiler.h>
 #include <dt-bindings/dma/stm32_dma.h>
+#include <uapi/types.h>
 
 /**
  * @brief generic state value definition for a DMA channel
+ *
+ * This enumerate aliasing UAPI to keep unified gpdma_ prefixed content at driver level
+ * @see dma_chan_state_t definition for corresponding content.
  */
-typedef enum gpdma_chan_state {
-    GPDMA_STATE_IDLE                    = 1, /**< DMA channel idle (not set or unused) */
-    GPDMA_STATE_RUNNING                 = 2, /**< DMA channel is running */
-    GPDMA_STATE_ABORTED                 = 3, /**< DMA stream aborted on SW request */
-    GPDMA_STATE_SUSPENDED               = 4, /**< DMA stream suspended on SW request*/
-    GPDMA_STATE_TRANSMISSION_FAILURE    = 5, /**< DMA transmission failure */
-    GPDMA_STATE_CONFIGURATION_FAILURE   = 6, /**< DMA channel configuration failure */
-    GPDMA_STATE_OVERRUN                 = 7, /**< DMA transmission overrun */
-} gpdma_chan_state_t;
+typedef dma_chan_state_t gpdma_chan_state_t;
 
 /**
  * @enum gpdma_chan_trigger
