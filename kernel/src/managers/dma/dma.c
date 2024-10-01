@@ -147,7 +147,7 @@ end:
 }
 
 /*@
- * \requires valid(state);
+   requires \valid(state);
  */
 kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state)
 {
