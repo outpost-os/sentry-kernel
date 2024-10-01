@@ -476,7 +476,7 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     /*@ assert \valid_read(kt); */
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
-    if (unlikely((tsk->ints_head+1%TASK_EVENT_QUEUE_DEPTH) == tsk->ints_bottom)) {
+    if (unlikely(((tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->ints_bottom)) {
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
         goto err;
     }
@@ -642,7 +642,7 @@ kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_st
         /*@ assert \false; */
         goto err;
     }
-    if (unlikely((tsk->dmas_head+1%TASK_EVENT_QUEUE_DEPTH) == tsk->dmas_bottom)) {
+    if (unlikely(((tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->dmas_bottom)) {
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
         goto err;
     }
