@@ -340,6 +340,7 @@ kstatus_t mgr_task_get_device_owner(uint16_t d, taskh_t *t)
         num_devs = MIN(task_table[i].metadata->num_devs, CONFIG_MAX_DEV_PER_TASK);
         if (unlikely(num_devs > CONFIG_MAX_DEV_PER_TASK)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
+            __builtin_unreachable();
         }
         /* assert(num_devs <= CONFIG_MAX_DEV_PER_TASK); */
         /* for all devices of a task... */
@@ -478,14 +479,12 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     job_state_t state;
     if (unlikely(((tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->ints_bottom)) {
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
-        goto err;
+        __builtin_unreachable();
     }
     tsk->ints[tsk->ints_head] = IRQn;
     tsk->ints_head = (tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH;
     /*@ assert (tsk->ints_head < TASK_EVENT_QUEUE_DEPTH); */
-
     status = K_STATUS_OKAY;
-err:
     return status;
 }
 
@@ -501,7 +500,7 @@ kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn)
     task_t * tsk = task_get_from_handle(context);
 
     if (tsk->ints_head != tsk->ints_bottom) {
-        /* ther is at least one waiting interrupt. getting the first pushed one */
+        /* there is at least one waiting interrupt. getting the first pushed one */
         *IRQn = tsk->ints_bottom;
         tsk->ints_bottom = (tsk->ints_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
     }
@@ -640,18 +639,18 @@ kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_st
     if (unlikely(tsk == NULL)) {
         /** should never be triggered */
         /*@ assert \false; */
-        goto err;
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
     }
     if (unlikely(((tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->dmas_bottom)) {
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
-        goto err;
+        __builtin_unreachable();
     }
     tsk->dmas[tsk->dmas_head].handle = dma_stream;
     tsk->dmas[tsk->dmas_head].event = dma_event;
     tsk->dmas_head = (tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH;
 
     status = K_STATUS_OKAY;
-err:
     return status;
 }
 
@@ -733,6 +732,7 @@ kstatus_t mgr_task_load_sig_event(taskh_t context, uint32_t *signal, taskh_t *so
         /* this must not happen, as called with clean argument from sysgate */
         /*@ assert \false; */
         panic(PANIC_KERNEL_MEMACCESS);
+        __builtin_unreachable();
     }
     /*@ assert \valid(signal); */
     if (unlikely(current == NULL)) {

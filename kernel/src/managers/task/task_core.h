@@ -62,6 +62,7 @@ typedef struct tsk_gpdma_event_queue {
     uint32_t    event;  /**< DMA event to be pushed back to the userspace */
 } tsk_gpdma_event_queue_t;
 #endif
+static_assert(sizeof(tsk_gpdma_event_queue_t) == sizeof(uint64_t), "invalid structure size");
 
 
 typedef struct  task {

@@ -18,8 +18,11 @@ static inline void gate_waitforevent_populate_dma(taskh_t current, dmah_t dma, d
         /* this should never happen !*/
         /*@ assert \false; */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
     }
+    /*@ assert \valid_read(meta); */
     svc = task_get_svcexchange(meta);
+    /*@ assert \valid(svc); */
     dest_svcexch = (exchange_event_t*)svc;
     /* set T,L values from TLV */
     dest_svcexch->type = EVENT_TYPE_DMA;
@@ -43,8 +46,11 @@ static inline void gate_waitforevent_populate_signal(taskh_t current, uint8_t si
         /* this should never happen !*/
         /*@ assert \false; */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
     }
+    /*@ assert \valid_read(meta); */
     svc = task_get_svcexchange(meta);
+    /*@ assert \valid(svc); */
     dest_svcexch = (exchange_event_t*)svc;
     /* set T,L values from TLV */
     dest_svcexch->type = EVENT_TYPE_SIGNAL;
