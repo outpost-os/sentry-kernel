@@ -43,7 +43,8 @@ typedef enum EventType {
   EVENT_TYPE_IPC = 1,
   EVENT_TYPE_SIGNAL = 2,
   EVENT_TYPE_IRQ = 4,
-  EVENT_TYPE_ALL = 7,
+  EVENT_TYPE_DMA = 8,
+  EVENT_TYPE_ALL = 15,
 } EventType;
 
 typedef enum Precision {
@@ -302,6 +303,22 @@ typedef struct shm_infos {
     size_t   len;     /*< SHM length in bytes */
     uint32_t perms;   /*< SHM permissions (mask of SHMPermission) */
 } shm_infos_t;
+
+/**
+ * @brief generic state value definition for a DMA stream, used to get back DMA statuses
+ */
+typedef enum dma_chan_state {
+    GPDMA_STATE_IDLE                    = 1, /**< DMA channel idle (not set or unused) */
+    GPDMA_STATE_RUNNING                 = 2, /**< DMA channel is running */
+    GPDMA_STATE_ABORTED                 = 3, /**< DMA stream aborted on SW request */
+    GPDMA_STATE_SUSPENDED               = 4, /**< DMA stream suspended on SW request*/
+    GPDMA_STATE_TRANSMISSION_FAILURE    = 5, /**< DMA transmission failure */
+    GPDMA_STATE_CONFIGURATION_FAILURE   = 6, /**< DMA channel configuration failure */
+    GPDMA_STATE_OVERRUN                 = 7, /**< DMA transmission overrun */
+    GPDMA_STATE_TRANSFER_COMPLETE       = 8, /**< DMA transfer complete for this channel */
+    GPDMA_STATE_HALF_TRANSFER           = 9, /**< DMA transfer half-complete for this channel */
+} dma_chan_state_t;
+
 
 #ifdef __cplusplus
 } /* extern "C" */

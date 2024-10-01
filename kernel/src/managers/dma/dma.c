@@ -32,21 +32,26 @@ kstatus_t mgr_dma_init(void)
         /* Add entropy to handle initialization */
         if (unlikely(mgr_security_entropy_generate(&seed) != K_STATUS_OKAY)) {
             panic(PANIC_HARDWARE_INVALID_STATE);
+            __builtin_unreachable();
         }
         kdmah.reserved = seed;
 
         dmah_t const *dmah = kdmah_to_dmah(&kdmah);
         if (unlikely(dma_stream_get_meta(streamid, &stream_config[streamid].meta) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
+            __builtin_unreachable();
+
         }
         if (unlikely(mgr_task_get_handle(stream_config[streamid].meta->owner, &stream_config[streamid].owner) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
+            __builtin_unreachable();
         }
 
         /*@ assert \valid(dmah); */
         /*@ assert \valid_read(stream_config[streamid].meta); */
         stream_config[streamid].handle = *dmah;
         stream_config[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
+        stream_config[streamid].status = GPDMA_STATE_IDLE;
     }
 #endif
     return status;
@@ -141,6 +146,27 @@ end:
     return status;
 }
 
+/*@
+   requires \valid(state);
+ */
+kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    /*@ assert \valid(state); */
+
+    kdmah_t const *kdmah = dmah_to_kdmah(&d);
+    if (kdmah->streamid >= STREAM_LIST_SIZE) {
+        goto end;
+    }
+    if (stream_config[kdmah->streamid].handle != d) {
+        goto end;
+    }
+    *state = stream_config[kdmah->streamid].status;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
 #ifdef CONFIG_BUILD_TARGET_AUTOTEST
 kstatus_t mgr_dma_autotest(void)
 {
@@ -178,6 +204,7 @@ kstatus_t mgr_dma_get_dmah_from_interrupt(const uint16_t IRQn, dmah_t *dmah)
         /*@ assert \valid_read(cfg); */
         if (unlikely(gpdma_get_interrupt(cfg, &stream_irqn) != K_STATUS_OKAY)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
+            __builtin_unreachable();
         }
         if (stream_irqn == IRQn) {
             *dmah = stream_config[stream].handle;

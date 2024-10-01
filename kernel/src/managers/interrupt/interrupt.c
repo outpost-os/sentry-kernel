@@ -74,10 +74,42 @@ static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
 }
 
 #if CONFIG_HAS_GPDMA
+/**
+ * @brief push DMA vent to owner's input queue, and schedule it if all hypothesis are valid
+ *
+ * This function is agnostic of the DMA vent properties only push the event to the target task input FIFO.
+ */
+static inline void dma_push_and_schedule(taskh_t owner, dmah_t handle, dma_chan_state_t event)
+{
+    job_state_t owner_state;
+
+    if (unlikely(mgr_task_get_state(owner, &owner_state) != K_STATUS_OKAY)) {
+       panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    /* push the inth event into the task input events queue */
+    if (unlikely(mgr_task_push_dma_event(owner, handle, event) == K_STATUS_OKAY)) {
+        /* failed to push IRQ event !!! XXX: what do we do ? */
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+    }
+    if ((owner_state == JOB_STATE_SLEEPING) ||
+        (owner_state == JOB_STATE_WAITFOREVENT)) {
+        /* if the job exists in the delay queue (sleep or waitforevent with timeout)
+         * remove it from the delay queue before schedule
+         * TODO: use a dedicated state (WAITFOREVENT_TIMEOUT) to call this
+         * function only if needed
+         */
+        mgr_time_delay_del_job(owner);
+        mgr_task_set_sysreturn(owner, STATUS_INTR);
+        mgr_task_set_state(owner, JOB_STATE_READY);
+        sched_schedule(owner);
+    }
+}
+
 static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
 {
     dmah_t dma;
     taskh_t owner = 0;
+    dma_chan_state_t event;
 
     /* get the dmah owning the interrupt */
     if (unlikely(mgr_dma_get_dmah_from_interrupt(IRQn, &dma) != K_STATUS_OKAY)) {
@@ -89,7 +121,18 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
         /* user interrupt with no owning task ???? */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
-    int_push_and_schedule(owner, IRQn);
+    if (unlikely(mgr_dma_get_state(dma, &event) != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+
+    /** TODO: call DMA driver for GPDMA-related interrupt acknowledge first */
+    /**
+     * NOTE: no need to check for this API return code, as this function panic() on failure.
+     * Although, to avoid inter-managers implementation dependencies, we duplicate the return
+     * check here, as a unlikely, never callable block (dead-code)
+    */
+    dma_push_and_schedule(owner, dma, event);
+
     return frame;
 }
 #endif

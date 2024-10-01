@@ -181,14 +181,19 @@ taskh_t mgr_task_get_autotest(void);
 kstatus_t mgr_task_autotest(void);
 #endif
 
+#if CONFIG_HAS_GPDMA
+kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_state_t dma_event);
+kstatus_t mgr_task_load_dma_event(taskh_t target, dmah_t *dma_stream, dma_chan_state_t *dma_event);
+#endif
+
 /* specialized event pushing API, do not use directly but instead Generic below */
 kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest);
 kstatus_t mgr_task_push_ipc_event(uint32_t len, taskh_t source, taskh_t dest);
 kstatus_t mgr_task_push_sig_event(uint32_t sig, taskh_t source, taskh_t dest);
 
 kstatus_t mgr_task_load_ipc_event(taskh_t context);
-kstatus_t mgr_task_load_sig_event(taskh_t context);
-kstatus_t mgr_task_load_int_event(taskh_t context);
+kstatus_t mgr_task_load_sig_event(taskh_t context, uint32_t *signal, taskh_t *source);
+kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn);
 
 /* get back peer that has emitted IPC to owner, in iterative way
  * if status = K_STATUS_NOENT, no more IPC, if status = OKAY, peer hold the emitter handle

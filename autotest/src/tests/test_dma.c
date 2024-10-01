@@ -96,6 +96,20 @@ static void test_dma_assign_unassign_stream(dmah_t stream)
     TEST_END();
 }
 
+static void test_dma_start_n_wait_stream(dmah_t stream)
+{
+    Status res;
+    TEST_START();
+    res = sys_dma_assign_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_start_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    /* wait 50ms for DMA event, should rise in the meantime */
+    res = sys_wait_for_event(EVENT_TYPE_DMA, 50);
+    ASSERT_EQ(res, STATUS_OK);
+    TEST_END();
+}
+
 #endif
 
 void test_dma(void)
@@ -107,6 +121,7 @@ void test_dma(void)
     test_dma_get_handle_inval();
     test_dma_manipulate_stream_badhandle();
     test_dma_assign_unassign_stream(stream);
+    test_dma_start_n_wait_stream(stream);
     test_dma_start_stream(stream);
     test_dma_get_stream_status(stream);
     test_dma_stop_stream(stream);

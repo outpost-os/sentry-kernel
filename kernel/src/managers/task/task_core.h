@@ -50,6 +50,20 @@ static inline const taskh_t *ktaskh_to_taskh(const ktaskh_t * const kth) {
     return converter.th;
 }
 
+#if CONFIG_HAS_GPDMA
+/** @struct queue of GPDMA input events
+ *
+ * @note the event field, being an enumerate, is kept fixed u32 size to avoid
+ * any compiler-specific size variation, keeping 64b size length whatever the
+ * compiler is.
+ */
+typedef struct tsk_gpdma_event_queue {
+    dmah_t      handle; /**< DMA stream handle associated to the event */
+    uint32_t    event;  /**< DMA event to be pushed back to the userspace */
+} tsk_gpdma_event_queue_t;
+static_assert(sizeof(tsk_gpdma_event_queue_t) == sizeof(uint64_t), "invalid structure size");
+#endif
+
 typedef struct  task {
     /* about task layouting */
     /** a task hold at most TASK_MAX_RESSOURCES_NUM regions (see memory.h backend)
@@ -84,7 +98,13 @@ typedef struct  task {
     uint32_t           ipcs[CONFIG_MAX_TASKS];       /**< List of IPCs event (one per peer task) */
     uint32_t           sigs[CONFIG_MAX_TASKS];       /**< List of SIGs event (one per peer task) */
     uint32_t           ints[TASK_EVENT_QUEUE_DEPTH]; /**< List of IRQ events */
-    uint8_t            num_ints;
+#if CONFIG_HAS_GPDMA
+    tsk_gpdma_event_queue_t  dmas[TASK_EVENT_QUEUE_DEPTH]; /**< List of DMA events */
+    uint8_t            dmas_head;
+    uint8_t            dmas_bottom;
+#endif
+    uint8_t            ints_head;
+    uint8_t            ints_bottom;
 
     job_state_t     state;      /**< current task state */
     uint32_t        returncode;  /**< current task job return value, when exiting */

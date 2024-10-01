@@ -340,6 +340,7 @@ kstatus_t mgr_task_get_device_owner(uint16_t d, taskh_t *t)
         num_devs = MIN(task_table[i].metadata->num_devs, CONFIG_MAX_DEV_PER_TASK);
         if (unlikely(num_devs > CONFIG_MAX_DEV_PER_TASK)) {
             panic(PANIC_CONFIGURATION_MISMATCH);
+            __builtin_unreachable();
         }
         /* assert(num_devs <= CONFIG_MAX_DEV_PER_TASK); */
         /* for all devices of a task... */
@@ -476,21 +477,34 @@ kstatus_t mgr_task_push_int_event(uint32_t IRQn, taskh_t dest)
     /*@ assert \valid_read(kt); */
     task_t * tsk = task_get_from_handle(dest);
     job_state_t state;
-    if (unlikely(tsk->num_ints == TASK_EVENT_QUEUE_DEPTH)) {
-        status = K_ERROR_BUSY;
-        goto err;
+    if (unlikely(((tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->ints_bottom)) {
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+        __builtin_unreachable();
     }
-    tsk->ints[tsk->num_ints] = IRQn;
-    tsk->num_ints++;
-
+    tsk->ints[tsk->ints_head] = IRQn;
+    tsk->ints_head = (tsk->ints_head+1)%TASK_EVENT_QUEUE_DEPTH;
+    /*@ assert (tsk->ints_head < TASK_EVENT_QUEUE_DEPTH); */
     status = K_STATUS_OKAY;
-err:
     return status;
 }
 
-kstatus_t mgr_task_load_int_event(taskh_t context)
+kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn)
 {
     kstatus_t status = K_ERROR_NOENT;
+    if (unlikely(IRQn == NULL)) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    const ktaskh_t *kt = taskh_to_ktaskh(&context);
+    /*@ assert \valid_read(kt); */
+    task_t * tsk = task_get_from_handle(context);
+
+    if (tsk->ints_head != tsk->ints_bottom) {
+        /* there is at least one waiting interrupt. getting the first pushed one */
+        *IRQn = tsk->ints_bottom;
+        tsk->ints_bottom = (tsk->ints_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
+    }
+end:
     return status;
 }
 
@@ -600,6 +614,86 @@ end:
     return status;
 }
 
+#if CONFIG_HAS_GPDMA
+/**
+ * @fn mgr_task_push_dma_event - push new DMA stream event in the current task queue
+ *
+ * The task queue hold DMA events that need to be pushed back to the userspace task that
+ * own the DMA stream source of the event. This queue is pulled when using the wait_for_event()
+ * syscall, so that the task can react to such events.
+ * Usual events are GPDMA_STATE_TRANSFER_COMPLETE, GPDMA_STATE_USER_ERROR, etc. and are fully
+ * arch & HW generic for all GPDMA controllers.
+ *
+ * @param[in] target: task handle that own the DMA stream
+ * @param[in] dma_stream: stream handle that rose the DMA event
+ * @param[in] dma_event: DMA stream event that has just risen
+ *
+ */
+kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_state_t dma_event)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    task_t * tsk = task_get_from_handle(target);
+    /*@ assert \valid_read(tsk); */
+    job_state_t state;
+
+    if (unlikely(tsk == NULL)) {
+        /** should never be triggered */
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
+    }
+    if (unlikely(((tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH) == tsk->dmas_bottom)) {
+        panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
+        __builtin_unreachable();
+    }
+    tsk->dmas[tsk->dmas_head].handle = dma_stream;
+    tsk->dmas[tsk->dmas_head].event = dma_event;
+    tsk->dmas_head = (tsk->dmas_head+1)%TASK_EVENT_QUEUE_DEPTH;
+
+    status = K_STATUS_OKAY;
+    return status;
+}
+
+/**
+ * @fn mgr_task_load_dma_event - get back firstly pushed DMA event not yet fetched
+ */
+kstatus_t mgr_task_load_dma_event(taskh_t context, dmah_t *handle, dma_chan_state_t *event)
+{
+    kstatus_t status = K_ERROR_NOENT;
+
+    /**
+     * TODO: by now, only pushing-up one event at a time.
+     * The multi-events support will be added in the very same way multi-int will be added, using
+     * the notion of event-vector pushed at userspace level. The event-vector header will be used in the same
+     * way for both IRQn and DMA event push, in the following way:
+     *
+     * [event vector header] [event 0][event 1][event 2]...
+     *
+     * The event vector requires to:
+     * - create a vector based on a set of homogeneous event that may wait alongside
+     * - check that the vecor is smaller than the effective svc-exchange area, to avoid any overflow
+     */
+    if (unlikely((handle == NULL) || (event == NULL))) {
+        status = K_ERROR_INVPARAM;
+        goto end;
+    }
+    const ktaskh_t *kt = taskh_to_ktaskh(&context);
+    /*@ assert \valid_read(kt); */
+    task_t * tsk = task_get_from_handle(context);
+
+    if (tsk->dmas_head != tsk->dmas_bottom) {
+        *handle = tsk->dmas[tsk->dmas_bottom].handle;
+        *event = tsk->dmas[tsk->dmas_bottom].event;
+        tsk->dmas_bottom = (tsk->dmas_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
+        /*@ assert (tsk->dmas_bottom < TASK_EVENT_QUEUE_DEPTH); */
+    }
+end:
+    return status;
+}
+
+
+#endif
+
 kstatus_t mgr_task_push_sig_event(uint32_t signal, taskh_t source, taskh_t dest)
 {
     kstatus_t status = K_ERROR_INVPARAM;
@@ -629,38 +723,31 @@ err:
     return status;
 }
 
-kstatus_t mgr_task_load_sig_event(taskh_t context)
+kstatus_t mgr_task_load_sig_event(taskh_t context, uint32_t *signal, taskh_t *source)
 {
     kstatus_t status = K_ERROR_NOENT;
     task_t * current = task_get_from_handle(context);
 
+    if (unlikely(signal == NULL)) {
+        /* this must not happen, as called with clean argument from sysgate */
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_MEMACCESS);
+        __builtin_unreachable();
+    }
+    /*@ assert \valid(signal); */
     if (unlikely(current == NULL)) {
         status = K_ERROR_INVPARAM;
         goto end;
     }
 
     for (uint8_t idx = 0; idx < mgr_task_get_num(); ++idx) {
-        uint8_t signal = current->sigs[idx];
-        if (signal > 0) {
-            task_t *source = &task_table[idx];
-            job_state_t state;
+        uint8_t signal_value = current->sigs[idx];
+        if (signal_value > 0) {
+            task_t *source_cfg = &task_table[idx];
             const taskh_t *source_handle;
-            /* get source and dest exchange area address (metadata) */
-            exchange_event_t *dest_svcexch = (exchange_event_t *)current->metadata->s_svcexchange;
-
-            /* set T,L values from TLV */
-            dest_svcexch->type = EVENT_TYPE_SIGNAL;
-            dest_svcexch->length = sizeof(uint32_t);
-            dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
-            if (likely(source != 0)) {
-                /* when source is kernel, the source handle is 0 */
-                source_handle = ktaskh_to_taskh(&source->handle);
-                dest_svcexch->source = *source_handle;
-            } else {
-                dest_svcexch->source = 0UL;
-            }
-            uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
-            sigdata[0] = signal;
+            source_handle = ktaskh_to_taskh(&source_cfg->handle);
+            *signal = signal_value;
+            *source = *source_handle;
             /* clear local cache */
             current->sigs[idx] = 0;
             status = K_STATUS_OKAY;

@@ -11,6 +11,7 @@
  */
 
 #include <sentry/io.h>
+#include <bsp/drivers/clk/rcc.h>
 
 #include "lpuart_defs.h"
 #include "usart_priv.h"

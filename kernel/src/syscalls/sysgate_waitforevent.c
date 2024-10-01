@@ -8,6 +8,60 @@
 #include <uapi/types.h>
 
 
+static inline void gate_waitforevent_populate_dma(taskh_t current, dmah_t dma, dma_chan_state_t event)
+{
+    task_meta_t const *meta;
+    uint8_t *svc;
+    exchange_event_t *dest_svcexch;
+    /* forge SVC exchange with received signal informations */
+    if (unlikely(mgr_task_get_metadata(current, &meta) != K_STATUS_OKAY)) {
+        /* this should never happen !*/
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
+    }
+    /*@ assert \valid_read(meta); */
+    svc = task_get_svcexchange(meta);
+    /*@ assert \valid(svc); */
+    dest_svcexch = (exchange_event_t*)svc;
+    /* set T,L values from TLV */
+    dest_svcexch->type = EVENT_TYPE_DMA;
+    dest_svcexch->length = sizeof(uint8_t);
+    dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+    dest_svcexch->source = dma; /**< stream source of event */
+    /* here, event is encoded on 8bits length */
+    dest_svcexch->data[0] = event;
+}
+
+/**
+ * @fn gate_waitforevent_populate_signal : populate svc exchange with signal info
+ */
+static inline void gate_waitforevent_populate_signal(taskh_t current, uint8_t sig, taskh_t source)
+{
+    task_meta_t const *meta;
+    uint8_t *svc;
+    exchange_event_t *dest_svcexch;
+    /* forge SVC exchange with received signal informations */
+    if (unlikely(mgr_task_get_metadata(current, &meta) != K_STATUS_OKAY)) {
+        /* this should never happen !*/
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
+    }
+    /*@ assert \valid_read(meta); */
+    svc = task_get_svcexchange(meta);
+    /*@ assert \valid(svc); */
+    dest_svcexch = (exchange_event_t*)svc;
+    /* set T,L values from TLV */
+    dest_svcexch->type = EVENT_TYPE_SIGNAL;
+    dest_svcexch->length = sizeof(uint32_t);
+    dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+    dest_svcexch->source = source;
+    uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
+    sigdata[0] = sig;
+
+}
+
 stack_frame_t *gate_waitforevent(stack_frame_t *frame,
                                uint8_t          mask,
                                int32_t          timeout)
@@ -18,18 +72,34 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
     stack_frame_t *next_frame = frame;
     /* ordered check of events, starting with signal... */
     if (mask & EVENT_TYPE_SIGNAL) {
-        if (mgr_task_load_sig_event(current) == K_STATUS_OKAY) {
+        uint32_t sig;
+        taskh_t source;
+        if (mgr_task_load_sig_event(current, &sig, &source) == K_STATUS_OKAY) {
+            gate_waitforevent_populate_signal(current, sig, source),
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
     }
     /* and then irq... */
     if (mask & EVENT_TYPE_IRQ) {
-        if (mgr_task_load_int_event(current) == K_STATUS_OKAY) {
+        uint32_t irqn;
+        if (mgr_task_load_int_event(current, &irqn) == K_STATUS_OKAY) {
+            /* TODO: copy IRQn to user */
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }
     }
+#if CONFIG_HAS_GPDMA
+    if (mask & EVENT_TYPE_DMA) {
+        dmah_t dmah;
+        dma_chan_state_t event;
+        if (mgr_task_load_dma_event(current, &dmah, &event) == K_STATUS_OKAY) {
+            gate_waitforevent_populate_dma(current, dmah, event);
+            mgr_task_set_sysreturn(current, STATUS_OK);
+            goto end;
+        }
+    }
+#endif
     /* and then ipc... */
     if (mask & EVENT_TYPE_IPC) {
         if (mgr_task_load_ipc_event(current) == K_STATUS_OKAY) {
