@@ -24,12 +24,14 @@ typedef enum dma_stream_state {
  *
  * This structure associate a hardware DMA stream configuration (dts-based) to
  * the stream owner (also dts-based, using associated channel owner)
+ *
  */
 typedef struct dma_stream_config {
     dma_meta_t const         * meta;   /**< Hardware configuration of the stream */
     dmah_t                     handle; /**< associated DMA handle (opaque format) */
     taskh_t                    owner;  /**< stream owner task handle */
-    dma_stream_state_t         state;  /**< DMA stream state */
+    dma_stream_state_t         state;  /**< DMA stream state (configuration relative state) */
+    dma_chan_state_t           status;  /**< DMA channel status, stream-relative dynamic */
 } dma_stream_config_t;
 
 

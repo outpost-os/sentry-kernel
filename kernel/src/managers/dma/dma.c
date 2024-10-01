@@ -154,10 +154,10 @@ kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state)
     if (kdmah->streamid >= STREAM_LIST_SIZE) {
         goto end;
     }
-    if (stream_state[kdmah->streamid].handle != d) {
+    if (stream_config[kdmah->streamid].handle != d) {
         goto end;
     }
-    *state = stream_state[kdmah->streamid].status;
+    *state = stream_config[kdmah->streamid].status;
     status = K_STATUS_OKAY;
 end:
     return status;
