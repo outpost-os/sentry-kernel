@@ -166,6 +166,10 @@ pub fn get_elapsed_time(unit: Precision) -> Result<u64, Status> {
 /// };
 /// ```
 ///
+/// # See also
+///
+/// backend syscall: [`syscall::sys_get_process_handle`]
+///
 pub fn get_process_handle(process: ProcessLabel, _handle: *mut taskh_t) -> Result<taskh_t,Status> {
     match syscall::sys_get_process_handle(process) {
         Status::Ok => (),
