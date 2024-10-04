@@ -145,6 +145,8 @@ pub fn get_elapsed_time(unit: Precision) -> Result<u64, Status> {
 
 /// Get back the task handle associated to the input task label
 ///
+/// FIXME: to be moved up to a dedicated crate (shield-rs) out of Sentry kernel repo
+///
 /// # Usage
 ///
 /// While task labels are compile-time fixed and known by tasks that communicate
