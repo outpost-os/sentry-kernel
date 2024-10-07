@@ -77,7 +77,19 @@ end:
     return cfg;
 }
 
-static kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos)
+/**
+ * @fn get static metainformation about a DMA stream identified by its handle
+ *
+ * The static metainformation is the overall stream definition as declared in the
+ * device tree. The corresponding kernel structure (const build time forged) is
+ * returned.
+ *
+ * @param[in] dmah: DMA stream handle for which the data is requested
+ * @param[out] infos: DMA stream info address to be updated
+ *
+ * @return K_STATUS_OKAY if successfully found and updated, or K_ERROR_INVPARAM.
+ */
+kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     if (unlikely(infos == NULL)) {
@@ -89,6 +101,7 @@ static kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const **
             goto end;
         }
     }
+    status = K_STATUS_OKAY;
 end:
     return status;
 }

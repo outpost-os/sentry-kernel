@@ -22,6 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(asm_const)]
+#![feature(c_size_t)]
 
 #[macro_use]
 mod arch;

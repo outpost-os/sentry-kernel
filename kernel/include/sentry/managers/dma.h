@@ -41,6 +41,8 @@ kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 
 kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state);
 
+kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos);
+
 #endif/* HAS_GPDMA */
 
 

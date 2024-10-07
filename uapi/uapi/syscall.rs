@@ -829,6 +829,15 @@ pub extern "C" fn sys_dma_unassign_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaUnassignStream, dmah).into()
 }
 
+/// get a DMA stream static (dts-related) information from the kernel, as a
+/// structured data through SVC_Exchange
+///
+/// TODO: with complete DMA support
+#[no_mangle]
+pub extern "C" fn sys_dma_get_stream_info(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaGetStreamInfo, dmah).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

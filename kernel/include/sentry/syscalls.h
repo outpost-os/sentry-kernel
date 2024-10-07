@@ -71,4 +71,6 @@ stack_frame_t *gate_get_dmahandle(stack_frame_t *frame, uint32_t streamlabel);
 
 stack_frame_t *gate_shm_get_infos(stack_frame_t *frame, shmh_t shm);
 
+stack_frame_t *gate_dma_getinfo(stack_frame_t *frame, dmah_t dmah);
+
 #endif/*!SYSCALLS_H*/

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+use core::ffi::c_size_t;
+
 /// This library defines types (structs, enums, ...) related to syscalls,
 /// that need to be shared between the kernel and the uapi.
 ///
@@ -92,6 +94,7 @@ pub enum Syscall {
     ShmGetInfos,
     DmaAssignStream,
     DmaUnassignStream,
+    DmaGetStreamInfo,
 }
 }
 
@@ -561,6 +564,28 @@ pub struct shm_infos {
     pub base: usize,
     pub len: usize,
     pub perms: u32,
+}
+
+// TODO: need to add all enumerate and associated try_from
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct dma_stream_cfg {
+    pub channel: u16,
+    pub stream: u16,
+    pub controler: u16,
+    pub transfer_type: u16,
+    pub source: c_size_t,
+    pub dest: c_size_t,
+    pub transfer_len: c_size_t,
+    pub circular_source: bool,
+    pub circular_dest: bool,
+    pub interrupts: u8,
+    pub is_triggered: bool,
+    pub trigger: u8,
+    pub priority: u8,
+    pub transfer_mode: u8,
+    pub scr_beat_len: u8,
+    pub dest_beat_len: u8,
 }
 
 #[test]
