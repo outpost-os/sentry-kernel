@@ -98,10 +98,10 @@ kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos)
     for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
         if (stream_config[streamid].handle == dmah) {
             *infos = &stream_config[streamid].meta->config;
+            status = K_STATUS_OKAY;
             goto end;
         }
     }
-    status = K_STATUS_OKAY;
 end:
     return status;
 }
