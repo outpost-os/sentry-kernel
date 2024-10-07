@@ -134,7 +134,7 @@ static void test_dma_get_info(dmah_t stream)
     ASSERT_EQ((uint32_t)stream_info.channel, 1);
     ASSERT_EQ((uint32_t)stream_info.controller, 0);
     ASSERT_EQ((uint32_t)stream_info.transfer_type, GPDMA_TRANSFER_DEVICE_TO_MEMORY);
-    ASSERT_EQ((uint32_t)stream_info.transfer_len, 42);
+    ASSERT_EQ((uint32_t)stream_info.transfer_len, 42UL);
     ASSERT_EQ((uint32_t)stream_info.source, 0);
     /* target should be SHM base addr */
     ASSERT_EQ((uint32_t)stream_info.dest, infos.base);
