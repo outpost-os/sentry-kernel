@@ -53,6 +53,7 @@ macro_rules! syscall_list {
     }
 }
 
+
 syscall_list! {
 pub enum Syscall {
     Exit,
@@ -126,20 +127,31 @@ macro_rules! mirror_enum {
 #[cfg_attr(debug_assertions, derive(Debug, PartialEq))]
 #[derive(Copy, Clone)]
 pub enum Status {
+    /// Successful result, the kernel has terminated its task with no error
     Ok,
+    /// At least one parameter is not valid (not allowed or not found)
     Invalid,
+    /// The requested action is not allowed for caller, or the resource is not owned
     Denied,
+    /// The requested resource do not exist
     NoEntity,
+    /// The requested resource is in a state that do now allow the current call
     Busy,
+    /// The requested resource is already mapped
     AlreadyMapped,
-    TimeOut,
+    /// Critical (mostly security-related) unexpected event
     Critical,
+    /// The requested resource did not respond or the call has reached its maximum wait time
     Timeout,
+    /// The requested resource is not here yet, come back later
     Again,
+    /// The call has been interrupted sooner than expected. Used for blocking calls
     Intr,
+    /// The requested resource can't be manipulated without generating a dead lock
     Deadlk,
 }
 
+/// u32 to Status converter, required to support register encoded value
 impl From<u32> for Status {
     fn from(status_int: u32) -> Status {
         match status_int {
@@ -149,12 +161,11 @@ impl From<u32> for Status {
             3 => Status::NoEntity,
             4 => Status::Busy,
             5 => Status::AlreadyMapped,
-            6 => Status::TimeOut,
-            7 => Status::Critical,
-            8 => Status::Timeout,
-            9 => Status::Again,
-            10 => Status::Intr,
-            11 => Status::Deadlk,
+            6 => Status::Critical,
+            7 => Status::Timeout,
+            8 => Status::Again,
+            9 => Status::Intr,
+            10 => Status::Deadlk,
             _ => panic!(),
         }
     }
@@ -172,34 +183,33 @@ pub type ProcessLabel = u32;
 pub type ShmLabel = u32;
 
 /// A stream label is a development-time fixed identifier that can be used hardcoded
-/// in the source code in order to dientify declared DMA streams.
+/// in the source code in order to identify declared DMA streams.
 /// This label is set in the device-tree in the stream declaration,
 /// and can be used in order to get back the effective DMA stream handler from it in order
 /// to manipulate it
 pub type StreamLabel = u32;
 
-/// List of Sentry resource types
-///
-/// Multiple opaque are used in userspace. This opaques are namespaced and
-/// manipulated at kernel level to ensure unicity, identification, etc.
-#[repr(C)]
-pub enum ResourceType {
-    PID = 1,
-    Device = 2,
-    SHM = 4,
-    DMA = 8,
-}
 
+/// Definition of Sentry events
+///
+/// Multiple events can targets a given task. These events are strictly
+/// identified so that the task can easily differentiate them.
 #[repr(C)]
 pub enum EventType {
+    /// No event
     None = 0,
+    /// Inter-task slow path IPC event
     Ipc = 1,
+    /// Inter-task signal event
     Signal = 2,
+    /// Hardware interrupt event
     Irq = 4,
+    /// DMA stream event
     Dma = 8,
     All = 15,
 }
 
+/// Event Type to register (u32) converter
 impl From<EventType> for u32 {
     fn from(event: EventType) -> u32 {
         match event {
@@ -215,11 +225,14 @@ impl From<EventType> for u32 {
 
 /// Erase type that can be used to clear the SVC_Exchange.
 ///
+/// TODO: to be moved to svc_exchange module as used exclusively by
+/// this module primitives.
+///
 /// There are two types of erase model:
 /// - Zeroify, that write 0x0 pattern in the SVC exchange zone
 /// - Random, that write a random pattern
 ///
-/// By now, only Zeroify ils supported.
+/// By now, only Zeroify is supported.
 #[repr(C)]
 pub enum EraseType {
     Zeroify = 0x5a,
@@ -258,16 +271,14 @@ impl From<EraseMode> for u32 {
     }
 }
 
-/// Sentry syscall return values
-/// NonSense must never be returned, as it means that an
-/// asynchronously updated return value.... has not been updated at all
-/// This must raise a security exception. All syscalls that can't set
-/// they return code synchronously (e.g. IPC), MUST use this value as
-/// default one
+/// Alarm type for alarm-related API
 #[repr(C)]
 pub enum AlarmFlag {
+    /// Start an alarm
     AlrmStart,
+    /// Start a periodic alarm
     AlrmStartPeriodic,
+    /// Stop an alarm, being periodic or not
     AlrmStop,
 }
 
@@ -281,6 +292,7 @@ impl From<AlarmFlag> for u32 {
     }
 }
 
+/// Permission model definition for shared memories
 #[repr(C)]
 pub enum SHMPermission {
     /// allows target process to map the SHM. No read nor write though
@@ -296,6 +308,7 @@ pub enum SHMPermission {
     Transfer,
 }
 
+/// Converter for SHM permission to register encoding (u32)
 impl From<SHMPermission> for u32 {
     fn from(shm_perm: SHMPermission) -> u32 {
         match shm_perm {
@@ -307,7 +320,7 @@ impl From<SHMPermission> for u32 {
     }
 }
 
-/// Events tasks can listen on
+/// Sentry signals definition. Most of them are aligned on standard POSIX signals
 #[repr(C)]
 pub enum Signal {
     /// Abort signal
@@ -347,58 +360,84 @@ pub enum Signal {
     Usr2,
 
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: User hardfault detected
     PanicUserHardFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: A panic() has been reached in kernel handler
     PanicKernelHardFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: User bus fault detected
     PanicUserBusFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel bus fault detected
     PanicKernelBusFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: User user usage fault detected
     PanicUserUsageFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel usage fault detected
     PanicKernelUsageFault,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: User memory fault detected
     PanicUserMemAccess,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel memoryfault detected
     PanicKernelMemAccess,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
-    PanicKernelInvalidUsespaceInput,
+    /// Autotest-specific: Invalid userspace input received
+    PanicKernelInvalidUserspaceInput,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Memory limit reached in a kernel buffer
     PanicKernelShorterKBuffersConfig,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: A given manager returns invalid state error
     PanicKernelInvalidManagerState,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: A given manager return an invalid response
     PanicKernelInvalidManagerResponse,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel handler as reach timeout limit
     PanicKernelTimeout,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel CFI violation
     PanicKernelBadCFICalculation,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Kernel-related hardware IP (MPU, etc.) is in invalid state
     PanicHardwareInvalidState,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: An unexpected modification of a kernel context has been detected
     PanicHardwareUnexpectedModification,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Requested kernel autotest has finished successfully
     AutotestDone,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Requested kernel autotest has finished with a failure
     AutotestFailed,
     #[cfg(CONFIG_BUILD_TARGET_AUTOTEST)]
+    /// Autotest-specific: Requested kernel autotest has timed-out
     AutotestTimedOut,
 }
 
-pub type ProcessID = u32;
-
+/// Sleep durations input values for the sleep API
 #[repr(C)]
 pub enum SleepDuration {
+    /// Sleep for 1ms
     D1ms,
+    /// Sleep for 2ms
     D2ms,
+    /// Sleep for 5ms
     D5ms,
+    /// Sleep for 10ms
     D10ms,
+    /// Sleep for 20ms
     D20ms,
+    /// Sleep for 50ms
     D50ms,
+    /// Sleep for a user-specificed number of ms (>0)
     ArbitraryMs(u32),
 }
 
+/// Converter for SleepDuration type to register-encoded value
 impl From<SleepDuration> for u32 {
     fn from(duration: SleepDuration) -> u32 {
         match duration {
@@ -413,12 +452,16 @@ impl From<SleepDuration> for u32 {
     }
 }
 
+/// Sleep mode requested
 #[repr(C)]
 pub enum SleepMode {
+    /// Sleep in shallow mode. External events awake the job
     Shallow,
+    /// Sleep in deep mode. No sleep interruption
     Deep,
 }
 
+/// Converter for SleepMode type to register-encoded value
 impl From<SleepMode> for u32 {
     fn from(mode: SleepMode) -> u32 {
         match mode {
@@ -428,6 +471,7 @@ impl From<SleepMode> for u32 {
     }
 }
 
+/// Converter from register-encoded or C FFI defined value to SleepMode
 impl TryFrom<u32> for SleepMode {
     type Error = Status;
     fn try_from(mode: u32) -> Result<SleepMode, Self::Error> {
@@ -439,11 +483,28 @@ impl TryFrom<u32> for SleepMode {
     }
 }
 
+/// Low power configuration support, defining the CPU sleep state exit event
+///
+/// There are multiple HW events that may terminate a low-power hardware cycle.
+/// These are separated in two main families:
+///
+/// - Interrupt event (external interrupt)
+/// - external event (not interrupt related)
+///
+/// Moreover, there is some time when the CPU must NOT enter sleep mode for a
+/// given amount of time. This can be set with this CPUSleep configuration state.
+///
+/// > **FIXME**: the sleep trigger and the sleep constraints shoud be defined in separated
+/// > types and calls.
 #[repr(C)]
 pub enum CPUSleep {
+    /// Enter sleep mode and wait for external interrupt
     WaitForInterrupt,
+    /// Enter sleep mode and wait for external event
     WaitForEvent,
+    /// Disable any enter to the low power mode
     ForbidSleep,
+    /// Re-enable low power
     AllowSleep,
 }
 
@@ -481,6 +542,8 @@ mirror_enum! {
     }
 }
 
+
+// TODO: using CamelCase instead, as independant of C Snake Case definitions
 #[allow(non_camel_case_types)]
 pub type devh_t = u32;
 #[allow(non_camel_case_types)]

@@ -3,7 +3,9 @@
 
 use crate::systypes::{EraseMode, EraseType, Status};
 
+/// SVC Exchange area len. TODO: to be kconfig-generated
 pub const SVC_EXCH_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
+/// SVC Exchange exchange header size
 pub const SVC_EXCH_AREA_HEADER: usize = 8; // TODO: associated to types.h based header definition
 
 /// This SVC exchange area is always defined for all apps, so it is declared
@@ -82,7 +84,7 @@ pub unsafe extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
     Status::Ok
 }
 
-/// SVC Exchange area content is cleared after copy
+/// SVC Exchange area content cleaner
 ///
 /// The cleaning part can't be done in the copy_to_user impl as
 /// userspace may copy svcechange() data with consecutive calls
