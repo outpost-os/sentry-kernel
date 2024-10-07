@@ -281,6 +281,8 @@ Status sys_dma_unassign_stream(dmah_t stream);
 
 Status sys_dma_get_stream_status(dmah_t stream);
 
+Status sys_dma_get_stream_info(dmah_t stream);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
