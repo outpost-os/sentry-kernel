@@ -5,8 +5,8 @@
 #define SENTRY_MANAGERS_DMA_H
 
 #include <inttypes.h>
-#include <uapi/device.h>
 #include <uapi/handle.h>
+#include <uapi/dma.h>
 #include <sentry/ktypes.h>
 #include <bsp/drivers/dma/gpdma.h>
 
@@ -39,16 +39,10 @@ kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle);
 
 kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 
-kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state);
+kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state);
 
 #endif/* HAS_GPDMA */
 
-/**
- * Iterate over the device list, starting with id==id.
- * Return the devinfo of the current id increment, or set devinfo to NULL and return K_ERROR_NOENT if
- * the dev list walk is terminated
- */
-//kstatus_t mgr_dma_walk(const devinfo_t **devinfo, uint8_t id);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -629,7 +629,7 @@ end:
  * @param[in] dma_event: DMA stream event that has just risen
  *
  */
-kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_state_t dma_event)
+kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, gpdma_chan_state_t dma_event)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     task_t * tsk = task_get_from_handle(target);
@@ -657,7 +657,7 @@ kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_st
 /**
  * @fn mgr_task_load_dma_event - get back firstly pushed DMA event not yet fetched
  */
-kstatus_t mgr_task_load_dma_event(taskh_t context, dmah_t *handle, dma_chan_state_t *event)
+kstatus_t mgr_task_load_dma_event(taskh_t context, dmah_t *handle, gpdma_chan_state_t *event)
 {
     kstatus_t status = K_ERROR_NOENT;
 

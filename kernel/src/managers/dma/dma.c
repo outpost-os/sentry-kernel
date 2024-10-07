@@ -77,6 +77,21 @@ end:
     return cfg;
 }
 
+static kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    if (unlikely(infos == NULL)) {
+        goto end;
+    }
+    for (size_t streamid = 0; streamid < STREAM_LIST_SIZE; ++streamid) {
+        if (stream_config[streamid].handle == dmah) {
+            *infos = &stream_config[streamid].meta->config;
+            goto end;
+        }
+    }
+end:
+    return status;
+}
 
 kstatus_t mgr_dma_watchdog(void)
 {
@@ -149,7 +164,7 @@ end:
 /*@
    requires \valid(state);
  */
-kstatus_t mgr_dma_get_state(dmah_t d, dma_chan_state_t *state)
+kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     /*@ assert \valid(state); */

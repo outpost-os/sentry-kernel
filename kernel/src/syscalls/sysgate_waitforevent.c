@@ -6,9 +6,10 @@
 #include <sentry/managers/time.h>
 #include <sentry/sched.h>
 #include <uapi/types.h>
+#include <uapi/dma.h>
 
 
-static inline void gate_waitforevent_populate_dma(taskh_t current, dmah_t dma, dma_chan_state_t event)
+static inline void gate_waitforevent_populate_dma(taskh_t current, dmah_t dma, gpdma_chan_state_t event)
 {
     task_meta_t const *meta;
     uint8_t *svc;
@@ -92,7 +93,7 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
 #if CONFIG_HAS_GPDMA
     if (mask & EVENT_TYPE_DMA) {
         dmah_t dmah;
-        dma_chan_state_t event;
+        gpdma_chan_state_t event;
         if (mgr_task_load_dma_event(current, &dmah, &event) == K_STATUS_OKAY) {
             gate_waitforevent_populate_dma(current, dmah, event);
             mgr_task_set_sysreturn(current, STATUS_OK);

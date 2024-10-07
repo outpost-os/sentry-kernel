@@ -4,7 +4,8 @@
 uapi_headers = files([
     'device.h',
     'handle.h',
-    'types.h'
+    'types.h',
+    'dma.h',
 ])
 uapi_h = files(['uapi.h'])
 
