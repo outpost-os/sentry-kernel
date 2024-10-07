@@ -86,7 +86,7 @@ static const dma_meta_t streams[] = {
             .source = {{ stream_get_transfer_source(node) }},
             .dest = {{ stream_get_transfer_dest(node) }},
             {% if node["length"] -%}
-            .transfer_len = {{ "%08u"|format(node["length"]) }}UL,
+            .transfer_len = {{ "%u"|format(node["length"]) }}UL,
             {% else -%}
             .transfer_len = 0UL,
             {% endif -%}
