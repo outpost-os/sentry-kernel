@@ -29,6 +29,8 @@ syscalls = files(
     'sysgate_shm_set_creds.c',
     'sysgate_shm_get_infos.c',
     'sysgate_dma_getinfo.c',
+    'sysgate_dma_assign.c',
+    'sysgate_dma_start.c',
 )
 
 syscall_source_set.add(syscalls)
