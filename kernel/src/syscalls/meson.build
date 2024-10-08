@@ -28,7 +28,7 @@ syscalls = files(
     'sysgate_get_dmahandle.c',
     'sysgate_shm_set_creds.c',
     'sysgate_shm_get_infos.c',
-    'sysgate_dma_getinfo.c',
+    'sysgate_dma_get_info.c',
     'sysgate_dma_assign.c',
     'sysgate_dma_start.c',
 )
