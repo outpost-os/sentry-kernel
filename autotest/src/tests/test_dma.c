@@ -125,6 +125,7 @@ static void test_dma_get_info(dmah_t stream)
     ASSERT_EQ(res, STATUS_OK);
     res = sys_shm_get_infos(shm);
     copy_to_user((uint8_t*)&infos, sizeof(shm_infos_t));
+    ASSERT_EQ(res, STATUS_OK);
     res = sys_get_dma_stream_handle(0x1);
     ASSERT_EQ(res, STATUS_OK);
     res = sys_dma_get_stream_info(stream);
