@@ -43,6 +43,14 @@ kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state);
 
 kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos);
 
+kstatus_t mgr_dma_stream_assign(const dmah_t dmah);
+
+kstatus_t mgr_dma_stream_unassign(const dmah_t dmah);
+
+kstatus_t mgr_dma_stream_start(const dmah_t dmah);
+
+kstatus_t mgr_dma_stream_stop(const dmah_t dmah);
+
 #endif/* HAS_GPDMA */
 
 

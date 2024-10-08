@@ -297,7 +297,7 @@ end:
 kstatus_t mgr_dma_stream_unassign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-        dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
 
     if (unlikely(cfg == NULL)) {
         goto end;
@@ -349,7 +349,29 @@ kstatus_t mgr_dma_update_streamcfg(const dmah_t dmah, size_t src_offset, size_t 
 kstatus_t mgr_dma_stream_start(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg->meta); */
+    /*@ assert \valid_read(cfg->meta->config); */
+
+    /* can't unassign a stream that is started or already unassigned */
+    if (unlikely(
+          (cfg->state != DMA_STREAM_STATE_ASSIGNED) &&
+          (cfg->state != DMA_STREAM_STATE_STOPPED)
+        )) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    status = gpdma_channel_enable(&cfg->meta->config);
+    cfg->state = DMA_STREAM_STATE_STARTED;
+    /* returns the status code returned by driver start API*/
+end:
     return status;
+
 }
 
 /**
