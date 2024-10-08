@@ -132,7 +132,10 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
      * check here, as a unlikely, never callable block (dead-code)
     */
     dma_push_and_schedule(owner, dma, event);
-
+    /* FIXME: do we acknowledge IRQ here ? */
+    if (unlikely(interrupt_clear_pendingirq(IRQn)!= K_STATUS_OKAY)) {
+        panic(PANIC_HARDWARE_INVALID_STATE);
+    }
     return frame;
 }
 #endif
