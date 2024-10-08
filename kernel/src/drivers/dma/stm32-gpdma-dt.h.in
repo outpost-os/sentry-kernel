@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 #include <sentry/arch/asm-cortex-m/buses.h>
+#include <sentry/managers/memory.h>
 
 {% set gpdma_ports = dts.get_compatible("stm32u5-dma") -%}
 
@@ -63,5 +64,16 @@ typedef struct stm32_gpdma_desc {
 const stm32_gpdma_desc_t * stm32_gpdma_get_desc(uint8_t ctrl);
 
 uint16_t const * stm32_gpdma_get_interrupts(uint8_t ctrl);
+
+static inline kstatus_t gpdma_map(uint8_t controller)
+{
+    stm32_gpdma_desc_t const * dma_desc = stm32_gpdma_get_desc(controller);
+    return mgr_mm_map_kdev(dma_desc->base_addr, dma_desc->size);
+}
+
+/* for simplicity sake, but unmaping a kernel device is generic */
+static inline kstatus_t gpdma_unmap(void) {
+    return mgr_mm_unmap_kdev();
+}
 
 #endif /* __STM32_GPDMA_DT_GENERATED_H */

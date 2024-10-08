@@ -136,8 +136,12 @@ kstatus_t stm32u5_gpdma_interrupt_clear(gpdma_stream_cfg_t const * const desc)
     if (unlikely(ctrl == NULL)) {
         goto end;
     }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
     /* FCR is in write1_clear mode, clearing channel CR  */
     iowrite32(ctrl->base_addr + GPDMA_CxFCR(desc->channel), (0xF7FUL << 8));
+    gpdma_unmap();
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -170,8 +174,12 @@ kstatus_t stm32u5_gpdma_probe(uint8_t controller)
      * as a consequence, all device and memory ranges accedded need to be checked at configure
      * time (by upper layers)
      */
+    if (unlikely(gpdma_map(controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
     reg.raw = 0;
     iowrite32(ctrl_desc->base_addr + GPDMA_PRIVCFGR_REG, reg.raw);
+    gpdma_unmap();
     /**
      * NOTE: by now, we do not lock channels. We may consider unused channels to be locked, based on
      * DTS informations
@@ -201,8 +209,12 @@ kstatus_t smt32u5_gpdma_channel_clear_status(gpdma_stream_cfg_t const*const desc
     if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
         goto end;
     }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
     /* FCR is in write1_clear mode */
     iowrite32(ctrl_desc->base_addr + GPDMA_CxFCR(desc->channel), (0xF7FUL << 8));
+    gpdma_unmap();
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -223,6 +235,9 @@ kstatus_t smt32u5_gpdma_channel_get_status(gpdma_stream_cfg_t const*const desc, 
         goto end;
     }
     if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
+        goto end;
+    }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
         goto end;
     }
     cxsr.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxFCR(desc->channel));
@@ -246,6 +261,7 @@ kstatus_t smt32u5_gpdma_channel_get_status(gpdma_stream_cfg_t const*const desc, 
         statusf->state = GPDMA_STATE_OVERRUN;
     }
 #endif
+    gpdma_unmap();
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -265,6 +281,9 @@ kstatus_t stm32u5_gpdma_channel_configure(gpdma_stream_cfg_t const*const desc)
         goto end;
     }
     if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
+        goto end;
+    }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
         goto end;
     }
     if (unlikely(!smt32u5_gpdma_is_channel_idle(desc->controller, desc->channel))) {
@@ -403,6 +422,7 @@ kstatus_t stm32u5_gpdma_channel_configure(gpdma_stream_cfg_t const*const desc)
     reg.cxdar.da = desc->dest;
     iowrite32(ctrl_desc->base_addr + GPDMA_CxDAR(desc->channel), reg.raw);
 
+    gpdma_unmap();
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -424,9 +444,13 @@ kstatus_t stm32u5_gpdma_channel_enable(gpdma_stream_cfg_t const*const desc)
     if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
         goto end;
     }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
     reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel));
     reg.cxcr.en = 1;
     iowrite32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel), reg.raw);
+    gpdma_unmap();
 end:
     return K_STATUS_OKAY;
 }
