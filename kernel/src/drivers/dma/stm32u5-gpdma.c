@@ -106,13 +106,14 @@ end:
 /*@
  * requires (gpdma_controler_exists(ctrl) && gpdma_channel_is_valid(chanid));
  */
-static inline bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
+static  bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
 {
-    bool is_idle = false;
     stm32_gpdma_desc_t const *desc = stm32_gpdma_get_desc(ctrl);
-    gpdma_c0sr_t const *sr = (gpdma_c0sr_t const *)(desc->base_addr + GPDMA_CxSR(chanid));
 
-    return !!sr->idlef;
+    uint32_t reg = ioread32(desc->base_addr + GPDMA_CxSR(chanid));
+    reg &= 0x1; /* get back only IDLEF */
+
+    return (!!reg);
 }
 
 /**
