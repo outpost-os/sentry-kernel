@@ -47,9 +47,9 @@ Extract Logs
     Log                     ${AT_LOG}
 
 Target Metadata
-    ${SoC_Line}             Get Lines Containing String     ${read_all}      _entrypoint: booting on SoC
+    ${SoC_Line}             Get Lines Containing String     ${ALL_LOG}      _entrypoint: booting on SoC
     ${SoC}                  Fetch From Right    ${SoC_Line}     ${SPACE}
-    ${Dts_Line}             Get Lines Containing String     ${read_all}      _entrypoint: configured dts file
+    ${Dts_Line}             Get Lines Containing String     ${ALL_LOG}      _entrypoint: configured dts file
     ${Dts}                  Fetch From Right    ${Dts_Line}     ${SPACE}
     Set Test Message        firmware: boot on  SoC ${SoC} with DTS: ${Dts}
 
