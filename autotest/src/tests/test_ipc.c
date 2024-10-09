@@ -43,7 +43,7 @@ void test_ipc_sendrecv(void)
     Status ret;
     taskh_t handle = 0;
     uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
-    uint32_t timeout = 100UL; /* milisecond timeout */
+    int32_t timeout = 100L; /* milisecond timeout */
     exchange_event_t *header;
 
     ret = sys_get_process_handle(0xbabeUL);
@@ -75,7 +75,7 @@ void test_ipc_deadlock(void)
     Status ret;
     taskh_t handle = 0;
     uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
-    uint32_t timeout = 100UL; /* milisecond timeout */
+    int32_t timeout = 100L; /* milisecond timeout */
     exchange_event_t *header;
 
     ret = sys_get_process_handle(0xbabeUL);

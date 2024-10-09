@@ -13,7 +13,7 @@ void test_signal_sendrecv(void)
 {
     Status ret;
     taskh_t handle = 0;
-    uint32_t timeout = 20UL;
+    int32_t timeout = 20UL;
     uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
     exchange_event_t *header;
 

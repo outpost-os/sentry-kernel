@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <inttypes.h>
+#include <string.h>
 #include <testlib/log.h>
 #include <testlib/assert.h>
 #include <uapi/uapi.h>
@@ -9,16 +10,21 @@
 #include <shms-dt.h>
 #include "test_dma.h"
 
+static taskh_t myself;
 
 #if CONFIG_HAS_GPDMA
-static void test_dma_get_handle(dmah_t* streamh)
+static void test_dma_get_handle(dmah_t* d2mstreamh, dmah_t *m2mstreamh)
 {
     Status res;
     TEST_START();
     res = sys_get_dma_stream_handle(0x1);
-    copy_to_user((uint8_t*)streamh, sizeof(dmah_t));
+    copy_to_user((uint8_t*)d2mstreamh, sizeof(dmah_t));
     ASSERT_EQ(res, STATUS_OK);
-    LOG("handle is %lx", *streamh);
+    LOG("handle is %lx", *d2mstreamh);
+    res = sys_get_dma_stream_handle(0x2);
+    copy_to_user((uint8_t*)m2mstreamh, sizeof(dmah_t));
+    ASSERT_EQ(res, STATUS_OK);
+    LOG("handle is %lx", *m2mstreamh);
     TEST_END();
 }
 
@@ -36,7 +42,6 @@ static void test_dma_start_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
-    /* not assigned */
     res = sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
     res = sys_dma_assign_stream(stream);
@@ -57,7 +62,7 @@ static void test_dma_manipulate_stream_badhandle(void)
     TEST_START();
     res = sys_dma_start_stream(0);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_stop_stream(0);
+    res = sys_dma_suspend_stream(0);
     ASSERT_EQ(res, STATUS_INVALID);
     res = sys_dma_get_stream_status(0);
     ASSERT_EQ(res, STATUS_INVALID);
@@ -77,10 +82,10 @@ static void test_dma_stop_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
-    res = sys_dma_stop_stream(stream);
+    res = sys_dma_suspend_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_stop_stream(stream);
-    ASSERT_EQ(res, STATUS_INVALID);
+    res = sys_dma_unassign_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
 
@@ -102,13 +107,55 @@ static void test_dma_assign_unassign_stream(dmah_t stream)
 static void test_dma_start_n_wait_stream(dmah_t stream)
 {
     Status res;
+    shmh_t shm1;
+    shm_infos_t shminfos1;
+    shmh_t shm2;
+    shm_infos_t shminfos2;
+    uint32_t perms = 0;
+    perms |= SHM_PERMISSION_WRITE;
+    perms |= SHM_PERMISSION_MAP;
+    int ret_builtin;
     TEST_START();
+    res = sys_get_process_handle(0xbabeUL);
+    copy_to_user((uint8_t*)&myself, sizeof(taskh_t));
+    // preparing shm1 with content
+    res = sys_get_shm_handle(shms[0].id);
+    copy_to_user((uint8_t*)&shm1, sizeof(shmh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_set_credential(shm1, myself, perms);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_map_shm(shm1);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_get_infos(shm1);
+    copy_to_user((uint8_t*)&shminfos1, sizeof(shm_infos_t));
+    ASSERT_EQ(res, STATUS_OK);
+    memset((void*)shminfos1.base, 0xa5, 0x100UL);
+    // garbaging shm2
+    res = sys_get_shm_handle(shms[1].id);
+    copy_to_user((uint8_t*)&shm2, sizeof(shmh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_set_credential(shm2, myself, perms);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_map_shm(shm2);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_get_infos(shm2);
+    copy_to_user((uint8_t*)&shminfos2, sizeof(shm_infos_t));
+    ASSERT_EQ(res, STATUS_OK);
+    memset((void*)shminfos2.base, 0x42, 0x100UL);
+    // start stream
     res = sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     res = sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     /* wait 50ms for DMA event, should rise in the meantime */
-    res = sys_wait_for_event(EVENT_TYPE_DMA, 50);
+    res = sys_wait_for_event(EVENT_TYPE_DMA, -1);
+    ASSERT_EQ(res, STATUS_OK);
+    // compare shm1 with shm2
+    ret_builtin = memcmp((void*)shminfos1.base, (void*)shminfos2.base, 0x100);
+    ASSERT_EQ((uint32_t)ret_builtin, 0);
+    res = sys_dma_suspend_stream(stream);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_unassign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -149,18 +196,20 @@ static void test_dma_get_info(dmah_t stream)
 
 void test_dma(void)
 {
-    dmah_t stream = 0;
+    dmah_t d2mstream = 0;
+    dmah_t m2mstream = 0;
+    Status res;
     TEST_SUITE_START("sys_dma");
 #if CONFIG_HAS_GPDMA
-    test_dma_get_handle(&stream);
+    test_dma_get_handle(&d2mstream, &m2mstream);
     test_dma_get_handle_inval();
-    test_dma_get_info(stream);
+    test_dma_get_info(d2mstream);
     test_dma_manipulate_stream_badhandle();
-    test_dma_assign_unassign_stream(stream);
-    test_dma_start_n_wait_stream(stream);
-    test_dma_start_stream(stream);
-    test_dma_get_stream_status(stream);
-    test_dma_stop_stream(stream);
+    test_dma_assign_unassign_stream(m2mstream);
+    test_dma_start_n_wait_stream(m2mstream);
+    test_dma_start_stream(m2mstream);
+    test_dma_get_stream_status(m2mstream);
+    test_dma_stop_stream(m2mstream);
 #endif
     TEST_SUITE_END("sys_dma");
 }
