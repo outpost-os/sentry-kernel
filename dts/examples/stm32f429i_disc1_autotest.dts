@@ -30,19 +30,18 @@
 
 		shm_autotest_1: memory@2000a000 {
 			// mappable, dma allowed
-			reg = <0x2000a000 0x200>;
-			dma-pool;
+			reg = <0x2000a000 0x256>;
 			outpost,shm;
+			dma-pool;
 			outpost,label = <0xf00>;
 			outpost,owner = <0xbabe>;
 		};
 
 		shm_autotest_2: memory@2000b000 {
-			// not mappable, dma allowed
+			// mappable, dma allowed
 			reg = <0x2000b000 0x100>;
 			outpost,shm;
 			dma-pool;
-			outpost,no-map;
 			outpost,label = <0xf01>;
 			outpost,owner = <0xbabe>;
 		};
@@ -52,6 +51,16 @@
 			reg = <0x2000b100 0x100>;
 			outpost,shm;
 			outpost,label = <0xf02>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_4: memory@2000b200 {
+			// not mappable, dma allowed
+			reg = <0x2000b200 0x100>;
+			outpost,shm;
+			dma-pool;
+			outpost,no-map;
+			outpost,label = <0xf03>;
 			outpost,owner = <0xbabe>;
 		};
 	};
