@@ -86,7 +86,11 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
         uint32_t irqn;
         if (mgr_task_load_int_event(current, &irqn) == K_STATUS_OKAY) {
             /* TODO: copy IRQn to user */
-            mgr_task_set_sysreturn(current, STATUS_OK);
+            if (timeout >= 0) {
+                mgr_task_set_sysreturn(current, STATUS_INTR);
+            } else {
+                mgr_task_set_sysreturn(current, STATUS_OK);
+            }
             goto end;
         }
     }
@@ -96,7 +100,11 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
         gpdma_chan_state_t event;
         if (mgr_task_load_dma_event(current, &dmah, &event) == K_STATUS_OKAY) {
             gate_waitforevent_populate_dma(current, dmah, event);
-            mgr_task_set_sysreturn(current, STATUS_OK);
+            if (timeout >= 0) {
+                mgr_task_set_sysreturn(current, STATUS_INTR);
+            } else {
+                mgr_task_set_sysreturn(current, STATUS_OK);
+            }
             goto end;
         }
     }
@@ -104,7 +112,11 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
     /* and then ipc... */
     if (mask & EVENT_TYPE_IPC) {
         if (mgr_task_load_ipc_event(current) == K_STATUS_OKAY) {
-            mgr_task_set_sysreturn(current, STATUS_OK);
+            if (timeout >= 0) {
+                mgr_task_set_sysreturn(current, STATUS_INTR);
+            } else {
+                mgr_task_set_sysreturn(current, STATUS_OK);
+            }
             goto end;
         }
     }

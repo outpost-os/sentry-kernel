@@ -74,7 +74,7 @@ typedef union gpdma_register {
  * @param[in] desc: stream descriptor, has defined in gpdma.h and forged from DTS
  * @param[out] IRQn: IRQ number associated to the stream, when configured
  */
-static kstatus_t stm32u5_gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn)
+static kstatus_t stm32u5_gpdma_get_interrupt(gpdma_stream_cfg_t const * const desc, uint16_t * const IRQn)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     stm32_gpdma_desc_t const * ctrl = NULL;
@@ -106,13 +106,14 @@ end:
 /*@
  * requires (gpdma_controler_exists(ctrl) && gpdma_channel_is_valid(chanid));
  */
-static inline bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
+static  bool smt32u5_gpdma_is_channel_idle(uint8_t ctrl, uint16_t chanid)
 {
-    bool is_idle = false;
     stm32_gpdma_desc_t const *desc = stm32_gpdma_get_desc(ctrl);
-    gpdma_c0sr_t const *sr = (gpdma_c0sr_t const *)(desc->base_addr + GPDMA_CxSR(chanid));
 
-    return !!sr->idlef;
+    uint32_t reg = ioread32(desc->base_addr + GPDMA_CxSR(chanid));
+    reg &= 0x1; /* get back only IDLEF */
+
+    return (!!reg);
 }
 
 /**
@@ -455,14 +456,114 @@ end:
     return K_STATUS_OKAY;
 }
 
-kstatus_t stm32u5_gpdma_channel_suspend(void)
+kstatus_t stm32u5_gpdma_channel_suspend(gpdma_stream_cfg_t const*const desc)
 {
-    return K_STATUS_OKAY;
+    kstatus_t status = K_ERROR_INVPARAM;
+    stm32_gpdma_desc_t const * ctrl_desc;
+    gpdma_register_t reg;
+
+    if (unlikely(desc == NULL)) {
+        goto end;
+    }
+    ctrl_desc = stm32_gpdma_get_desc(desc->controller);
+    if (unlikely(ctrl_desc == NULL)) {
+        goto end;
+    }
+    if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
+        goto end;
+    }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxSR(desc->channel));
+    if (reg.cxsr.idlef == 1) {
+        /* stream is not started, nothing to resume */
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    if (reg.cxsr.suspf == 1) {
+        /* stream is already suspended */
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    // suspend stream
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel));
+    reg.cxcr.susp = 1;
+    iowrite32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel), reg.raw);
+    gpdma_unmap();
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
-kstatus_t stm32u5_gpdma_channel_resume(void)
+kstatus_t stm32u5_gpdma_channel_resume(gpdma_stream_cfg_t const*const desc)
 {
-    return K_STATUS_OKAY;
+    kstatus_t status = K_ERROR_INVPARAM;
+    stm32_gpdma_desc_t const * ctrl_desc;
+    gpdma_register_t reg;
+
+    if (unlikely(desc == NULL)) {
+        goto end;
+    }
+    ctrl_desc = stm32_gpdma_get_desc(desc->controller);
+    if (unlikely(ctrl_desc == NULL)) {
+        goto end;
+    }
+    if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
+        goto end;
+    }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxSR(desc->channel));
+    if (reg.cxsr.suspf == 0) {
+        /* stream is not suspended */
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    // resume the suspended stream
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel));
+    reg.cxcr.susp = 0;
+    iowrite32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel), reg.raw);
+    gpdma_unmap();
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+kstatus_t stm32u5_gpdma_channel_reset(gpdma_stream_cfg_t const*const desc)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    stm32_gpdma_desc_t const * ctrl_desc;
+    gpdma_register_t reg;
+
+    if (unlikely(desc == NULL)) {
+        goto end;
+    }
+    ctrl_desc = stm32_gpdma_get_desc(desc->controller);
+    if (unlikely(ctrl_desc == NULL)) {
+        goto end;
+    }
+    if (unlikely(desc->channel >= ctrl_desc->num_chan)) {
+        goto end;
+    }
+    if (unlikely(gpdma_map(desc->controller) != K_STATUS_OKAY)) {
+        goto end;
+    }
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxSR(desc->channel));
+    if (reg.cxsr.suspf == 0) {
+        /* stream is not suspended, can't be reset */
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    // reset channel (to be used after suspend
+    reg.raw = ioread32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel));
+    reg.cxcr.reset = 1;
+    iowrite32(ctrl_desc->base_addr + GPDMA_CxCR(desc->channel), reg.raw);
+    gpdma_unmap();
+    status = K_STATUS_OKAY;
+end:
+    return status;
 }
 
 kstatus_t stm32u5_gpdma_channel_abort(void)
@@ -481,4 +582,8 @@ kstatus_t gpdma_channel_clear_status(gpdma_stream_cfg_t const*const desc) __attr
 kstatus_t gpdma_channel_get_status(gpdma_stream_cfg_t const*const desc, gpdma_chan_status_t * status) __attribute__((alias("smt32u5_gpdma_channel_get_status")));
 kstatus_t gpdma_channel_configure(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_configure")));
 kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_enable")));
-kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn) __attribute__((alias("stm32u5_gpdma_get_interrupt")));
+kstatus_t gpdma_channel_suspend(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_suspend")));
+kstatus_t gpdma_channel_resume(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_resume")));
+kstatus_t gpdma_channel_reset(gpdma_stream_cfg_t const*const desc) __attribute__((alias("stm32u5_gpdma_channel_reset")));
+kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const * const desc, uint16_t * const IRQn) __attribute__((alias("stm32u5_gpdma_get_interrupt")));
+kstatus_t gpdma_interrupt_clear(gpdma_stream_cfg_t const * const desc) __attribute__((alias("stm32u5_gpdma_interrupt_clear")));

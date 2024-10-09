@@ -75,6 +75,12 @@ stack_frame_t *gate_dma_getinfo(stack_frame_t *frame, dmah_t dmah);
 
 stack_frame_t *gate_dma_assign(stack_frame_t *frame, dmah_t dmah);
 
+stack_frame_t *gate_dma_unassign(stack_frame_t *frame, dmah_t dmah);
+
 stack_frame_t *gate_dma_start(stack_frame_t *frame, dmah_t dmah);
+
+stack_frame_t *gate_dma_suspend(stack_frame_t *frame, dmah_t dmah);
+
+stack_frame_t *gate_dma_resume(stack_frame_t *frame, dmah_t dmah);
 
 #endif/*!SYSCALLS_H*/

@@ -13,11 +13,11 @@
  */
 #include <shms-dt.h>
 
-static_assert(SHM_LIST_SIZE == 3, "invalid autotest SHM list");
+static_assert(SHM_LIST_SIZE == 4, "invalid autotest SHM list");
 
 #define SHM_MAP_DMAPOOL shms[0].id
-#define SHM_NOMAP_DMAPOOL shms[1].id
 #define SHM_MAP_NODMAPOOL shms[2].id
+#define SHM_NOMAP_DMAPOOL shms[3].id
 
 /* TODO: use generated instead */
 #define SHM_MAP_DMAPOOL_BASEADDR shms[0].baseaddr
@@ -63,6 +63,23 @@ void test_shm_invalidmap(void) {
     shm += 42;
     res = sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_INVALID);
+    TEST_END();
+}
+
+void test_shm_mapdenied(void) {
+    Status res;
+    shmh_t shm;
+    uint32_t perms = 0;
+    perms |= SHM_PERMISSION_WRITE;
+    perms |= SHM_PERMISSION_MAP;
+    TEST_START();
+    res = sys_get_shm_handle(SHM_NOMAP_DMAPOOL);
+    copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_set_credential(shm, myself, perms);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_map_shm(shm);
+    ASSERT_EQ(res, STATUS_DENIED);
     TEST_END();
 }
 
@@ -204,6 +221,7 @@ void test_shm(void) {
     test_shm_unmap_notmapped();
     test_shm_mapunmap();
     test_shm_map_unmappable();
+    test_shm_mapdenied();
     test_shm_creds_on_mapped();
     test_shm_infos();
     test_shm_allows_idle();

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-FileCopyrightText: 2024 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef UAPI_DMA_H
@@ -42,10 +42,10 @@ typedef enum gpdma_chan_int {
  * whatever the DMA controller and driver is.
  */
 typedef struct __attribute__((packed)) gpdma_chan_status {
-    uint32_t state: 3;
+    uint32_t state: 4;
     uint32_t half_reached: 1;
     uint32_t completed: 1;
-    uint32_t reserved: 3;
+    uint32_t reserved: 2;
 } gpdma_chan_status_t;
 
 static_assert(sizeof(gpdma_chan_status_t) == sizeof(uint8_t), "O,vamod gpdma_chan_status_t size");

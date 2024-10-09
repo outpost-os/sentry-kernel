@@ -686,6 +686,7 @@ kstatus_t mgr_task_load_dma_event(taskh_t context, dmah_t *handle, gpdma_chan_st
         *event = tsk->dmas[tsk->dmas_bottom].event;
         tsk->dmas_bottom = (tsk->dmas_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
         /*@ assert (tsk->dmas_bottom < TASK_EVENT_QUEUE_DEPTH); */
+        status = K_STATUS_OKAY;
     }
 end:
     return status;

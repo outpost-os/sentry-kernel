@@ -13,10 +13,10 @@ extern "C" {
 #define HANDLE_DMA 2UL
 
 typedef enum dma_stream_state {
-    DMA_STREAM_STATE_UNSET,     /**< DMA stream is not yet assigned, or has been unasigned */
+    DMA_STREAM_STATE_UNSET,     /**< DMA stream is not yet assigned, or has been resetted */
     DMA_STREAM_STATE_ASSIGNED,  /**< DMA stream is assigned, but has never been started */
     DMA_STREAM_STATE_STARTED,   /**< DMA stream is started */
-    DMA_STREAM_STATE_STOPPED,   /**< DMA stream is stopped, still assigned */
+    DMA_STREAM_STATE_SUSPENDED,   /**< DMA stream is suspended, still assigned, can be start again with context kept */
 } dma_stream_state_t;
 
 /**
@@ -31,7 +31,7 @@ typedef struct dma_stream_config {
     dmah_t                     handle; /**< associated DMA handle (opaque format) */
     taskh_t                    owner;  /**< stream owner task handle */
     dma_stream_state_t         state;  /**< DMA stream state (configuration relative state) */
-    gpdma_chan_state_t           status;  /**< DMA channel status, stream-relative dynamic */
+    gpdma_chan_status_t        status;  /**< DMA channel status, stream-relative dynamic */
 } dma_stream_config_t;
 
 
