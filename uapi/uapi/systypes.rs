@@ -92,6 +92,7 @@ pub enum Syscall {
     ShmGetInfos,
     DmaAssignStream,
     DmaUnassignStream,
+    DmaGetStreamInfo,
 }
 }
 
@@ -542,7 +543,6 @@ mirror_enum! {
     }
 }
 
-
 // TODO: using CamelCase instead, as independant of C Snake Case definitions
 #[allow(non_camel_case_types)]
 pub type devh_t = u32;
@@ -553,78 +553,418 @@ pub type shmh_t = u32;
 #[allow(non_camel_case_types)]
 pub type dmah_t = u32;
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct shm_infos {
-    pub handle: shmh_t,
-    pub label: u32,
-    pub base: usize,
-    pub len: usize,
-    pub perms: u32,
+/// SHM related types definitions
+pub mod shm {
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct shm_infos {
+        pub handle: crate::systypes::shmh_t,
+        pub label: u32,
+        pub base: usize,
+        pub len: usize,
+        pub perms: u32,
+    }
+
+    #[test]
+    fn test_layout_shm_infos() {
+        const UNINIT: ::std::mem::MaybeUninit<shm_infos> = ::std::mem::MaybeUninit::uninit();
+        let ptr = UNINIT.as_ptr();
+        assert_eq!(
+            ::std::mem::size_of::<shm_infos>(),
+            32usize,
+            concat!("Size of: ", stringify!(shm_infos))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<shm_infos>(),
+            8usize,
+            concat!("Alignment of ", stringify!(shm_infos))
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).handle) as usize - ptr as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(shm_infos),
+                "::",
+                stringify!(handle)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).label) as usize - ptr as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(shm_infos),
+                "::",
+                stringify!(label)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).base) as usize - ptr as usize },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(shm_infos),
+                "::",
+                stringify!(base)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).len) as usize - ptr as usize },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(shm_infos),
+                "::",
+                stringify!(len)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).perms) as usize - ptr as usize },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(shm_infos),
+                "::",
+                stringify!(perms)
+            )
+        );
+    }
+
 }
 
-#[test]
-fn test_layout_shm_infos() {
-    const UNINIT: ::std::mem::MaybeUninit<shm_infos> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<shm_infos>(),
-        32usize,
-        concat!("Size of: ", stringify!(shm_infos))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<shm_infos>(),
-        8usize,
-        concat!("Alignment of ", stringify!(shm_infos))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).handle) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(shm_infos),
-            "::",
-            stringify!(handle)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).label) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(shm_infos),
-            "::",
-            stringify!(label)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).base) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(shm_infos),
-            "::",
-            stringify!(base)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).len) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(shm_infos),
-            "::",
-            stringify!(len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).perms) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(shm_infos),
-            "::",
-            stringify!(perms)
-        )
-    );
+/// DMA related types definitions
+///
+/// In order to help with proper hierarchy of types for Sentry UAPI, syscall families
+/// that requires a lot of shared types. This is the case of the DMA subsystem for
+/// which all related types and types helpers are stored in the dma submodule.
+pub mod dma {
+    // FIXME: this enum is used for bitfield-based manipulation, as the
+    // interrupts field is a local OR of this enumerate values
+    pub enum GpdmaChanInt {
+        /// DMA channel trigger on transfer complete
+        TransferComplete  = 1,
+        /// DMA channel trigger on half transfer and transfer complete
+        HalfTransfer      = 2,
+        /// triggers on DMA transfer or config error, get status for complete information
+        DmaError          = 4,
+    }
+
+    // FIXME: the interrupts field is a bitfield of one to 3 possible interrupts
+    // we mai consider intlevels (TC+Error, TC+HT+Error, etc.) meaning that the field
+    // is no more a bitfield
+    impl TryFrom<u8> for GpdmaChanInt {
+        type Error = crate::systypes::Status;
+        fn try_from(mode: u8) -> Result<GpdmaChanInt, Self::Error> {
+            match mode {
+                1 => Ok(GpdmaChanInt::TransferComplete),
+                2 => Ok(GpdmaChanInt::HalfTransfer),
+                4 => Ok(GpdmaChanInt::DmaError),
+                _ => Err(crate::systypes::Status::Invalid),
+            }
+        }
+    }
+
+    pub enum GpdmaTransferType {
+        MemoryToDevice = 0,
+        DeviceToMemory = 1,
+        MemoryToMemory = 2,
+        DeviceToDevice = 3,
+    }
+
+    impl TryFrom<u16> for GpdmaTransferType {
+        type Error = crate::systypes::Status;
+        fn try_from(mode: u16) -> Result<GpdmaTransferType, Self::Error> {
+            match mode {
+                0 => Ok(GpdmaTransferType::MemoryToDevice),
+                1 => Ok(GpdmaTransferType::DeviceToMemory),
+                2 => Ok(GpdmaTransferType::MemoryToMemory),
+                3 => Ok(GpdmaTransferType::DeviceToDevice),
+                _ => Err(crate::systypes::Status::Invalid),
+            }
+        }
+    }
+
+    // FIXME: this is a bitmask. We may consider moving to enum value instead
+    // for e.g. by using IncrementBoth = 3
+    pub enum GpdmaTransferMode {
+        IncrementNone = 0,
+        IncrementSrc = 1,
+        IncrementDest = 2,
+    }
+
+    pub enum GpdmaBeatLen {
+        /// Data len to manipulate is in bytes
+        Byte = 0,
+        /// Data len to manipulate is in half word
+        Halfword = 1,
+        /// Data len to manipulate is in word
+        Word = 2,
+    }
+
+    impl TryFrom<u8> for GpdmaBeatLen {
+        type Error = crate::systypes::Status;
+        fn try_from(mode: u8) -> Result<GpdmaBeatLen, Self::Error> {
+            match mode {
+                0 => Ok(GpdmaBeatLen::Byte),
+                1 => Ok(GpdmaBeatLen::Halfword),
+                2 => Ok(GpdmaBeatLen::Word),
+                _ => Err(crate::systypes::Status::Invalid),
+            }
+        }
+    }
+
+    pub enum GpdmaPriority {
+        Low = 0,
+        Medium = 1,
+        High = 2,
+        VeryHigh = 3,
+    }
+
+    impl TryFrom<u8> for GpdmaPriority {
+        type Error = crate::systypes::Status;
+        fn try_from(mode: u8) -> Result<GpdmaPriority, Self::Error> {
+            match mode {
+                0 => Ok(GpdmaPriority::Low),
+                1 => Ok(GpdmaPriority::Medium),
+                2 => Ok(GpdmaPriority::High),
+                3 => Ok(GpdmaPriority::VeryHigh),
+                _ => Err(crate::systypes::Status::Invalid),
+            }
+        }
+    }
+
+    /// DMA static configuration information
+    ///
+    /// # Usage
+    ///
+    /// This structure is delivered by the kernel into svc_exchange when
+    /// calling successfully [`crate::syscall::sys_dma_get_stream_info()`].
+    ///
+    /// The structure content correspond to the static build-time information
+    /// as defined in the device-tree and do not require any DTS manipulation
+    /// in user-space.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let dmacfg: dma_stream_cfg;
+    /// match sys_get_dma_stream_info(dmah) {
+    ///    Status::Ok => (svc_exchange::copy_from(&dma_stream_cfg, mem::sizeof(dma_stream_cfg)))
+    /// }
+    /// ```
+    ///
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct dma_stream_cfg {
+        pub channel: u16,
+        pub stream: u16,
+        pub controler: u16,
+        pub transfer_type: u16,
+        pub source: usize,
+        pub dest: usize,
+        pub transfer_len: usize,
+        pub circular_source: bool,
+        pub circular_dest: bool,
+        pub interrupts: u8,
+        pub is_triggered: bool,
+        pub trigger: u8,
+        pub priority: u8,
+        pub transfer_mode: u8,
+        pub scr_beat_len: u8,
+        pub dest_beat_len: u8,
+    }
+
+    // test that the Rust structure fields offset do match the corresponding C one,
+    // as the kernel delivers in its ABI the C-defined structure
+    #[test]
+    fn bindgen_test_layout_gpdma_stream_cfg() {
+        const UNINIT: ::std::mem::MaybeUninit<gpdma_stream_cfg> = ::std::mem::MaybeUninit::uninit();
+        let ptr = UNINIT.as_ptr();
+        assert_eq!(
+            ::std::mem::size_of::<gpdma_stream_cfg>(),
+            48usize,
+            concat!("Size of: ", stringify!(gpdma_stream_cfg))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<gpdma_stream_cfg>(),
+            8usize,
+            concat!("Alignment of ", stringify!(gpdma_stream_cfg))
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).channel) as usize - ptr as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(channel)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).stream) as usize - ptr as usize },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(stream)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).controller) as usize - ptr as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(controller)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).transfer_type) as usize - ptr as usize },
+            6usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(transfer_type)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).source) as usize - ptr as usize },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(source)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).dest) as usize - ptr as usize },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(dest)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).transfer_len) as usize - ptr as usize },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(transfer_len)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).circular_source) as usize - ptr as usize },
+            32usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(circular_source)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).circular_dest) as usize - ptr as usize },
+            33usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(circular_dest)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).interrupts) as usize - ptr as usize },
+            34usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(interrupts)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).is_triggered) as usize - ptr as usize },
+            35usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(is_triggered)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).trigger) as usize - ptr as usize },
+            36usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(trigger)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).priority) as usize - ptr as usize },
+            37usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(priority)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).transfer_mode) as usize - ptr as usize },
+            38usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(transfer_mode)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).src_beat_len) as usize - ptr as usize },
+            39usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(src_beat_len)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).dest_beat_len) as usize - ptr as usize },
+            40usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(gpdma_stream_cfg),
+                "::",
+                stringify!(dest_beat_len)
+            )
+        );
+    }
+
+
+    pub enum GpdmaChanState {
+        Idle = 1,
+        Running = 2,
+        Aborted = 3,
+        Suspended = 4,
+        TransmissionFailure = 5,
+        ConfigurationFailure = 6,
+        Overrun = 7,
+        TransferComplete = 8,
+        HalfTransfer = 9,
+    }
+
 }

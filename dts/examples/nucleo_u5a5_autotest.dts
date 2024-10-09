@@ -77,7 +77,7 @@
 			prio = <STM32_DMA_PRIORITY_MEDIUM>;
 			source = <&usart1>;
 			dest = <&shm_autotest_1>;
-			size = <42>;
+			length = <42>;
 			circular = <1 0>; // circular source, linear dest
 			outpost,label = <0x1>; // task-level unique identifier
 		};

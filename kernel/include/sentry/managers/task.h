@@ -10,6 +10,7 @@
 
 #include <uapi/uapi.h>
 #include <uapi/handle.h>
+#include <uapi/dma.h>
 #include <sentry/managers/security.h>
 #include <sentry/managers/device.h>
 #include <sentry/managers/task_metadata.h>
@@ -182,8 +183,8 @@ kstatus_t mgr_task_autotest(void);
 #endif
 
 #if CONFIG_HAS_GPDMA
-kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, dma_chan_state_t dma_event);
-kstatus_t mgr_task_load_dma_event(taskh_t target, dmah_t *dma_stream, dma_chan_state_t *dma_event);
+kstatus_t mgr_task_push_dma_event(taskh_t target, dmah_t dma_stream, gpdma_chan_state_t dma_event);
+kstatus_t mgr_task_load_dma_event(taskh_t target, dmah_t *dma_stream, gpdma_chan_state_t *dma_event);
 #endif
 
 /* specialized event pushing API, do not use directly but instead Generic below */

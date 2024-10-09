@@ -4,6 +4,10 @@
 #ifndef UAPI_DEVICE_H
 #define UAPI_DEVICE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 #include <assert.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -63,6 +67,8 @@ typedef struct shminfo {
     size_t   size;            /**< for mappable devices, mapped size */
 } shminfo_t;
 
-
+#ifdef __cplusplus
+} /* extern "C" */
+#endif // __cplusplus
 
 #endif/*UAPI_DEVICE_H*/

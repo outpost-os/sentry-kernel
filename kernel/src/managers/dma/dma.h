@@ -31,7 +31,7 @@ typedef struct dma_stream_config {
     dmah_t                     handle; /**< associated DMA handle (opaque format) */
     taskh_t                    owner;  /**< stream owner task handle */
     dma_stream_state_t         state;  /**< DMA stream state (configuration relative state) */
-    dma_chan_state_t           status;  /**< DMA channel status, stream-relative dynamic */
+    gpdma_chan_state_t           status;  /**< DMA channel status, stream-relative dynamic */
 } dma_stream_config_t;
 
 

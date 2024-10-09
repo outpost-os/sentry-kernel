@@ -8,7 +8,7 @@
  * @file Sentry DMA streams access API
  */
 #include <inttypes.h>
-#include <bsp/drivers/dma/gpdma.h>
+#include <uapi/dma.h>
 
 /**
  * @brief Manager level stream configuration

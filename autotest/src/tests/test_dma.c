@@ -5,7 +5,10 @@
 #include <testlib/log.h>
 #include <testlib/assert.h>
 #include <uapi/uapi.h>
+#include <uapi/dma.h>
+#include <shms-dt.h>
 #include "test_dma.h"
+
 
 #if CONFIG_HAS_GPDMA
 static void test_dma_get_handle(dmah_t* streamh)
@@ -110,6 +113,38 @@ static void test_dma_start_n_wait_stream(dmah_t stream)
     TEST_END();
 }
 
+static void test_dma_get_info(dmah_t stream)
+{
+    Status res;
+    gpdma_stream_cfg_t stream_info;
+    shmh_t shm;
+    shm_infos_t infos;
+    TEST_START();
+    res = sys_get_shm_handle(shms[0].id);
+    copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_shm_get_infos(shm);
+    copy_to_user((uint8_t*)&infos, sizeof(shm_infos_t));
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_get_dma_stream_handle(0x1);
+    ASSERT_EQ(res, STATUS_OK);
+    res = sys_dma_get_stream_info(stream);
+    copy_to_user((uint8_t*)&stream_info, sizeof(gpdma_stream_cfg_t));
+    ASSERT_EQ(res, STATUS_OK);
+    ASSERT_EQ((uint32_t)stream_info.stream, 112);
+    ASSERT_EQ((uint32_t)stream_info.channel, 1);
+    ASSERT_EQ((uint32_t)stream_info.controller, 0);
+    ASSERT_EQ((uint32_t)stream_info.transfer_type, GPDMA_TRANSFER_DEVICE_TO_MEMORY);
+    ASSERT_EQ((uint32_t)stream_info.transfer_len, 42UL);
+    ASSERT_EQ((uint32_t)stream_info.source, 0);
+    /* target should be SHM base addr */
+    ASSERT_EQ((uint32_t)stream_info.dest, infos.base);
+    ASSERT_EQ((uint32_t)stream_info.circular_source, 1);
+    ASSERT_EQ((uint32_t)stream_info.circular_dest, 0);
+    ASSERT_EQ((uint32_t)stream_info.priority, GPDMA_PRIORITY_MEDIUM);
+    TEST_END();
+}
+
 #endif
 
 void test_dma(void)
@@ -119,6 +154,7 @@ void test_dma(void)
 #if CONFIG_HAS_GPDMA
     test_dma_get_handle(&stream);
     test_dma_get_handle_inval();
+    test_dma_get_info(stream);
     test_dma_manipulate_stream_badhandle();
     test_dma_assign_unassign_stream(stream);
     test_dma_start_n_wait_stream(stream);

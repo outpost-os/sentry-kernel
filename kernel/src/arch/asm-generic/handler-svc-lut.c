@@ -183,6 +183,21 @@ static stack_frame_t *lut_shm_get_infos(stack_frame_t *frame) {
     return gate_shm_get_infos(frame, shm);
 }
 
+static stack_frame_t *lut_dma_assign(stack_frame_t *frame) {
+    dmah_t dma = frame->r0;
+    return gate_dma_assign(frame, dma);
+}
+
+static stack_frame_t *lut_dma_start(stack_frame_t *frame) {
+    dmah_t dma = frame->r0;
+    return gate_dma_start(frame, dma);
+}
+
+static stack_frame_t *lut_dma_get_stream_info(stack_frame_t *frame) {
+    dmah_t dma = frame->r0;
+    return gate_dma_getinfo(frame, dma);
+}
+
 /* for not yet supported syscalls */
 static stack_frame_t *lut_unsuported(stack_frame_t *frame) {
     mgr_task_set_sysreturn(sched_get_current(), STATUS_NO_ENTITY);
@@ -220,12 +235,13 @@ static const lut_svc_handler svc_lut[] = {
     lut_int_disable,
     lut_get_shmhandle,
     lut_get_dmahandle,
-    lut_unsuported, /* DMA Start Stream */
+    lut_dma_start,
     lut_unsuported, /* DMA Stop Stream */
     lut_unsuported, /* DMA Get Stream Status */
     lut_shm_get_infos,
-    lut_unsuported, /* DMA assign */
+    lut_dma_assign,
     lut_unsuported, /* DMA unassign */
+    lut_dma_get_stream_info,
 };
 
 #define SYSCALL_NUM ARRAY_SIZE(svc_lut)

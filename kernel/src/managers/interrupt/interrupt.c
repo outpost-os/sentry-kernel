@@ -79,7 +79,7 @@ static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
  *
  * This function is agnostic of the DMA vent properties only push the event to the target task input FIFO.
  */
-static inline void dma_push_and_schedule(taskh_t owner, dmah_t handle, dma_chan_state_t event)
+static inline void dma_push_and_schedule(taskh_t owner, dmah_t handle, gpdma_chan_state_t event)
 {
     job_state_t owner_state;
 
@@ -109,7 +109,7 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
 {
     dmah_t dma;
     taskh_t owner = 0;
-    dma_chan_state_t event;
+    gpdma_chan_state_t event;
 
     /* get the dmah owning the interrupt */
     if (unlikely(mgr_dma_get_dmah_from_interrupt(IRQn, &dma) != K_STATUS_OKAY)) {
@@ -132,7 +132,10 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
      * check here, as a unlikely, never callable block (dead-code)
     */
     dma_push_and_schedule(owner, dma, event);
-
+    /* FIXME: do we acknowledge IRQ here ? */
+    if (unlikely(interrupt_clear_pendingirq(IRQn)!= K_STATUS_OKAY)) {
+        panic(PANIC_HARDWARE_INVALID_STATE);
+    }
     return frame;
 }
 #endif
