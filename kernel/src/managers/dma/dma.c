@@ -218,33 +218,10 @@ end:
     return status;
 }
 
-#if 0
-/*@
-   requires \valid(state);
- */
-kstatus_t mgr_dma_get_state(dmah_t d, gpdma_stream_state_t *state)
-{
-    kstatus_t status = K_ERROR_INVPARAM;
-    /*@ assert \valid(state); */
-
-    kdmah_t const *kdmah = dmah_to_kdmah(&d);
-    if (kdmah->streamid >= STREAM_LIST_SIZE) {
-        goto end;
-    }
-    if (stream_config[kdmah->streamid].handle != d) {
-        goto end;
-    }
-    *state = stream_config[kdmah->streamid].state;
-    status = K_STATUS_OKAY;
-end:
-    return status;
-}
-#endif
-
 kstatus_t mgr_dma_get_status(dmah_t d, gpdma_chan_state_t *dma_status)
 {
     kstatus_t status = K_ERROR_INVPARAM;
-    /*@ assert \valid(state); */
+    /*@ assert \valid(dma_status); */
 
     kdmah_t const *kdmah = dmah_to_kdmah(&d);
     if (kdmah->streamid >= STREAM_LIST_SIZE) {
@@ -429,8 +406,8 @@ kstatus_t mgr_dma_stream_start(const dmah_t dmah)
         goto end;
     }
     /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg); */
     /*@ assert \valid_read(cfg->meta); */
-    /*@ assert \valid_read(cfg->meta->config); */
 
     /* can't unassign a stream that is started or already unassigned */
     if (unlikely(
@@ -467,8 +444,8 @@ kstatus_t mgr_dma_stream_suspend(const dmah_t dmah)
         goto end;
     }
     /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg); */
     /*@ assert \valid_read(cfg->meta); */
-    /*@ assert \valid_read(cfg->meta->config); */
 
     /* can't unassign a stream that is started or already unassigned */
     if (unlikely(
@@ -505,8 +482,8 @@ kstatus_t mgr_dma_stream_resume(const dmah_t dmah)
         goto end;
     }
     /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg); */
     /*@ assert \valid_read(cfg->meta); */
-    /*@ assert \valid_read(cfg->meta->config); */
 
     /* can't unassign a stream that is started or already unassigned */
     if (unlikely(
