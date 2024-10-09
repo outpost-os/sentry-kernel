@@ -259,7 +259,7 @@ Status sys_unmap_shm(shmh_t shm);
  *
  * POSIX upper layer(s): select(2), poll(2)
  */
-Status sys_wait_for_event(uint8_t mask, uint32_t timeout);
+Status sys_wait_for_event(uint8_t mask, int32_t timeout);
 
 /**
  * Release the processor before the end of the current quantum.
@@ -273,7 +273,9 @@ Status sys_pm_set_clock(uint32_t clk_reg, uint32_t regmsk, uint32_t val);
 
 Status sys_dma_start_stream(dmah_t stream);
 
-Status sys_dma_stop_stream(dmah_t stream);
+Status sys_dma_suspend_stream(dmah_t stream);
+
+Status sys_dma_resume_stream(dmah_t stream);
 
 Status sys_dma_assign_stream(dmah_t stream);
 

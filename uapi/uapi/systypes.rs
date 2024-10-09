@@ -87,12 +87,13 @@ pub enum Syscall {
     GetShmHandle,
     GetDmaStreamHandle,
     DmaStartStream,
-    DmaStopStream,
+    DmaSuspendStream,
     DmaGetStreamStatus,
     ShmGetInfos,
     DmaAssignStream,
     DmaUnassignStream,
     DmaGetStreamInfo,
+    DmaResumeStream,
 }
 }
 

@@ -789,12 +789,12 @@ pub extern "C" fn sys_dma_start_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaStartStream, dmah).into()
 }
 
-/// stop a DMA stream
+/// suspend a DMA stream
 ///
 /// TODO: with complete DMA support
 #[no_mangle]
-pub extern "C" fn sys_dma_stop_stream(dmah: dmah_t) -> Status {
-    syscall!(Syscall::DmaStopStream, dmah).into()
+pub extern "C" fn sys_dma_suspend_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaSuspendStream, dmah).into()
 }
 
 /// get the status of a given DMA stream
@@ -837,6 +837,15 @@ pub extern "C" fn sys_dma_unassign_stream(dmah: dmah_t) -> Status {
 pub extern "C" fn sys_dma_get_stream_info(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamInfo, dmah).into()
 }
+
+/// resume a DMA stream
+///
+/// TODO: with complete DMA support
+#[no_mangle]
+pub extern "C" fn sys_dma_resume_stream(dmah: dmah_t) -> Status {
+    syscall!(Syscall::DmaResumeStream, dmah).into()
+}
+
 
 #[cfg(test)]
 mod tests {
