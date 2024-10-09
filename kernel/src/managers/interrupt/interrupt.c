@@ -16,6 +16,7 @@
 #include <bsp/drivers/clk/rcc.h>
 #include <bsp/drivers/clk/pwr.h>
 #include <bsp/drivers/flash/flash.h>
+#include <bsp/drivers/dma/gpdma.h>
 
 /**
  * @brief push IRQn to owner's input queue, and schedule it if all hypothesis are valid
@@ -110,6 +111,7 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
     dmah_t dma;
     taskh_t owner = 0;
     gpdma_chan_state_t event;
+    gpdma_stream_cfg_t const * cfg;
 
     /* get the dmah owning the interrupt */
     if (unlikely(mgr_dma_get_dmah_from_interrupt(IRQn, &dma) != K_STATUS_OKAY)) {
@@ -121,7 +123,11 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
         /* user interrupt with no owning task ???? */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
-    if (unlikely(mgr_dma_get_state(dma, &event) != K_STATUS_OKAY)) {
+    /* inform DMA manager of DMA event, in order to handle state and status */
+    if (unlikely(mgr_dma_treat_chan_event(dma) != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    if (unlikely(mgr_dma_get_status(dma, &event) != K_STATUS_OKAY)) {
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
 
@@ -132,10 +138,15 @@ static inline stack_frame_t *dmaisr_handler(stack_frame_t *frame, int IRQn)
      * check here, as a unlikely, never callable block (dead-code)
     */
     dma_push_and_schedule(owner, dma, event);
-    /* FIXME: do we acknowledge IRQ here ? */
-    if (unlikely(interrupt_clear_pendingirq(IRQn)!= K_STATUS_OKAY)) {
+    if (unlikely(mgr_dma_get_info(dma, &cfg) != K_STATUS_OKAY)) {
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    /*@ assert \valid_read(cfg); */
+    /* Clearing interrupt at DMA and NVIC level */
+    if (unlikely(gpdma_interrupt_clear(cfg) != K_STATUS_OKAY)) {
         panic(PANIC_HARDWARE_INVALID_STATE);
     }
+    interrupt_clear_pendingirq(IRQn);
     return frame;
 }
 #endif

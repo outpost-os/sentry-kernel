@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+#include <string.h>
 #include <sentry/ktypes.h>
 #include <sentry/managers/task.h>
 #include <sentry/managers/dma.h>
 #include <sentry/managers/security.h>
+#include <sentry/managers/interrupt.h>
 #include <sentry/arch/asm-generic/panic.h>
 #include <bsp/drivers/dma/gpdma.h>
 #include "dma-dt.h"
@@ -51,8 +53,22 @@ kstatus_t mgr_dma_init(void)
         /*@ assert \valid_read(stream_config[streamid].meta); */
         stream_config[streamid].handle = *dmah;
         stream_config[streamid].state = DMA_STREAM_STATE_UNSET; /** FIXME: define status types for streams */
-        stream_config[streamid].status = GPDMA_STATE_IDLE;
+        stream_config[streamid].status.completed = 0;
+        stream_config[streamid].status.half_reached = 0;
+        stream_config[streamid].status.state = GPDMA_STATE_IDLE;
+        /*
+         * FIXME:
+         * by now, here we have a naive probbing mechanism, meaning that
+         * we probe for each stream we have, and thus may probe multiple
+         * time the same IP.
+         * This should not have impact but this is not a good methodology.
+         */
+        if (unlikely(gpdma_probe(stream_config[streamid].meta->config.controller) != K_STATUS_OKAY)) {
+            status = K_ERROR_BADSTATE;
+            goto end;
+        };
     }
+end:
 #endif
     return status;
 }
@@ -174,10 +190,39 @@ end:
     return status;
 }
 
+kstatus_t mgr_dma_treat_chan_event(const dmah_t dmah)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+    gpdma_chan_status_t dma_status;
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+
+    /* an interrupt has risen, get back stream HW status from GPDMA upper API */
+    if (unlikely(gpdma_channel_get_status(&cfg->meta->config, &cfg->status) != K_STATUS_OKAY)) {
+        goto end;
+    }
+    /* react on interrupt: update state automaton */
+    if (cfg->status.completed && cfg->status.state == GPDMA_STATE_IDLE) {
+        cfg->state = DMA_STREAM_STATE_ASSIGNED;
+    }
+    if (cfg->status.state == GPDMA_STATE_SUSPENDED) {
+        cfg->state = DMA_STREAM_STATE_SUSPENDED;
+    }
+    /* clearing status no that IT-related status has been stored in the stream status field */
+    gpdma_channel_clear_status(&cfg->meta->config);
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+
+#if 0
 /*@
    requires \valid(state);
  */
-kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state)
+kstatus_t mgr_dma_get_state(dmah_t d, gpdma_stream_state_t *state)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     /*@ assert \valid(state); */
@@ -189,7 +234,26 @@ kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state)
     if (stream_config[kdmah->streamid].handle != d) {
         goto end;
     }
-    *state = stream_config[kdmah->streamid].status;
+    *state = stream_config[kdmah->streamid].state;
+    status = K_STATUS_OKAY;
+end:
+    return status;
+}
+#endif
+
+kstatus_t mgr_dma_get_status(dmah_t d, gpdma_chan_state_t *dma_status)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    /*@ assert \valid(state); */
+
+    kdmah_t const *kdmah = dmah_to_kdmah(&d);
+    if (kdmah->streamid >= STREAM_LIST_SIZE) {
+        goto end;
+    }
+    if (stream_config[kdmah->streamid].handle != d) {
+        goto end;
+    }
+    memcpy(dma_status, &stream_config[kdmah->streamid].state, sizeof(gpdma_chan_state_t));
     status = K_STATUS_OKAY;
 end:
     return status;
@@ -265,6 +329,7 @@ kstatus_t mgr_dma_stream_assign(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
     dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+    uint16_t IRQn;
 
     if (unlikely(cfg == NULL)) {
         goto end;
@@ -278,6 +343,8 @@ kstatus_t mgr_dma_stream_assign(const dmah_t dmah)
         goto end;
     }
     cfg->state = DMA_STREAM_STATE_ASSIGNED;
+    gpdma_get_interrupt(&cfg->meta->config, &IRQn);
+    mgr_interrupt_enable_irq(IRQn);
 end:
     return status;
 }
@@ -305,13 +372,20 @@ kstatus_t mgr_dma_stream_unassign(const dmah_t dmah)
     /* can't unassign a stream that is started or already unassigned */
     if (unlikely(
           (cfg->state != DMA_STREAM_STATE_ASSIGNED) &&
-          (cfg->state != DMA_STREAM_STATE_STOPPED)
+          (cfg->state != DMA_STREAM_STATE_SUSPENDED)
         )) {
         status = K_ERROR_BADSTATE;
         goto end;
     }
-// TODO: unassign chan
+    /* unassigning a suspended stream requires to reset first */
+    if (cfg->state == DMA_STREAM_STATE_SUSPENDED) {
+        if (unlikely(gpdma_channel_reset(&cfg->meta->config) != K_STATUS_OKAY)) {
+            status = K_ERROR_BADSTATE;
+            goto end;
+        }
+    }
     cfg->state = DMA_STREAM_STATE_UNSET;
+    status = K_STATUS_OKAY;
 end:
     return status;
 }
@@ -361,7 +435,7 @@ kstatus_t mgr_dma_stream_start(const dmah_t dmah)
     /* can't unassign a stream that is started or already unassigned */
     if (unlikely(
           (cfg->state != DMA_STREAM_STATE_ASSIGNED) &&
-          (cfg->state != DMA_STREAM_STATE_STOPPED)
+          (cfg->state != DMA_STREAM_STATE_SUSPENDED)
         )) {
         status = K_ERROR_BADSTATE;
         goto end;
@@ -375,7 +449,7 @@ end:
 }
 
 /**
- * @brief Stop an already started DMA stream identified by dmah
+ * @brief suspend an already started DMA stream identified by dmah
  *
  * @param[in]: dmah: DMA handle that is boot-time associated to the stream
  *
@@ -384,8 +458,68 @@ end:
  *   K_ERROR_BADSTATE: the stream is not started
  *   K_STATUS_OKAY: stream has been stopped
  */
-kstatus_t mgr_dma_stream_stop(const dmah_t dmah)
+kstatus_t mgr_dma_stream_suspend(const dmah_t dmah)
 {
     kstatus_t status = K_ERROR_INVPARAM;
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg->meta); */
+    /*@ assert \valid_read(cfg->meta->config); */
+
+    /* can't unassign a stream that is started or already unassigned */
+    if (unlikely(
+          (cfg->state != DMA_STREAM_STATE_STARTED)
+        )) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    status = gpdma_channel_suspend(&cfg->meta->config);
+    if (likely(status == K_STATUS_OKAY)) {
+        cfg->state = DMA_STREAM_STATE_SUSPENDED;
+    }
+    /* returns the status code returned by driver start API*/
+end:
+    return status;
+}
+
+/**
+ * @brief resume an already started DMA stream identified by dmah
+ *
+ * @param[in]: dmah: DMA handle that is boot-time associated to the stream
+ *
+ * @return
+ *   K_ERROR_INVPARAM: handle is not found
+ *   K_ERROR_BADSTATE: the stream is not suspended
+ *   K_STATUS_OKAY: stream has been resumed properly
+ */
+kstatus_t mgr_dma_stream_resume(const dmah_t dmah)
+{
+    kstatus_t status = K_ERROR_INVPARAM;
+    dma_stream_config_t * const cfg = mgr_dma_get_config(dmah);
+
+    if (unlikely(cfg == NULL)) {
+        goto end;
+    }
+    /* config entry, when found, must have its meta field properly set (dma_init time set) */
+    /*@ assert \valid_read(cfg->meta); */
+    /*@ assert \valid_read(cfg->meta->config); */
+
+    /* can't unassign a stream that is started or already unassigned */
+    if (unlikely(
+          (cfg->state != DMA_STREAM_STATE_SUSPENDED)
+        )) {
+        status = K_ERROR_BADSTATE;
+        goto end;
+    }
+    status = gpdma_channel_resume(&cfg->meta->config);
+    if (likely(status == K_STATUS_OKAY)) {
+        cfg->state = DMA_STREAM_STATE_STARTED;
+    }
+    /* returns the status code returned by driver start API*/
+end:
     return status;
 }

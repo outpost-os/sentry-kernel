@@ -114,8 +114,8 @@ static const dma_meta_t streams[] = {
             .src_beat_len = 0,
             .dest_beat_len = 0,
         },
-        .owner = {{ "0x%x"|format(gpdma_chan["outpost,owner"]) }},
-        .label = {{ "0x%x"|format(node["outpost,label"]) }},
+        .owner = {{ "0x%x"|format(gpdma_chan["outpost,owner"]) }}UL,
+        .label = {{ "0x%x"|format(node["outpost,label"]) }}UL,
     {% set ns.total_streams = ns.total_streams + 1 -%}
     },
     {% endif -%}

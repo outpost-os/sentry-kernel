@@ -39,7 +39,7 @@ kstatus_t mgr_dma_get_handle(uint32_t label, dmah_t * handle);
 
 kstatus_t mgr_dma_get_dmah_from_interrupt(uint16_t IRQn, dmah_t *dmah);
 
-kstatus_t mgr_dma_get_state(dmah_t d, gpdma_chan_state_t *state);
+kstatus_t mgr_dma_get_status(dmah_t d, gpdma_chan_state_t *status);
 
 kstatus_t mgr_dma_get_info(const dmah_t dmah, gpdma_stream_cfg_t const ** infos);
 
@@ -49,7 +49,12 @@ kstatus_t mgr_dma_stream_unassign(const dmah_t dmah);
 
 kstatus_t mgr_dma_stream_start(const dmah_t dmah);
 
-kstatus_t mgr_dma_stream_stop(const dmah_t dmah);
+kstatus_t mgr_dma_stream_suspend(const dmah_t dmah);
+
+kstatus_t mgr_dma_stream_resume(const dmah_t dmah);
+
+kstatus_t mgr_dma_treat_chan_event(const dmah_t dmah);
+
 
 #endif/* HAS_GPDMA */
 
