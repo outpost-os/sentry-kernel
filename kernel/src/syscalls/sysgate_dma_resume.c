@@ -9,7 +9,7 @@
 #include <sentry/sched.h>
 #include <string.h>
 
-stack_frame_t *gate_dma_assign(stack_frame_t *frame, dmah_t dmah)
+stack_frame_t *gate_dma_resume(stack_frame_t *frame, dmah_t dmah)
 {
     taskh_t current = sched_get_current();
     Status sysret = STATUS_NO_ENTITY;
@@ -25,7 +25,7 @@ stack_frame_t *gate_dma_assign(stack_frame_t *frame, dmah_t dmah)
         sysret = STATUS_DENIED;
         goto end;
     }
-    if (unlikely(mgr_dma_stream_assign(dmah) != K_STATUS_OKAY)) {
+    if (unlikely(mgr_dma_stream_resume(dmah) != K_STATUS_OKAY)) {
         sysret = STATUS_INVALID;
         goto end;
     }

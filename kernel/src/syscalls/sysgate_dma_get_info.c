@@ -19,12 +19,22 @@ stack_frame_t *gate_dma_getinfo(stack_frame_t *frame, dmah_t dmah)
 {
     taskh_t current = sched_get_current();
     Status sysret = STATUS_NO_ENTITY;
+#ifdef CONFIG_HAS_GPDMA
     const task_meta_t * meta;
+    taskh_t owner;
     size_t svcexch;
     gpdma_stream_cfg_t const * kinfo = NULL;
-#ifdef CONFIG_HAS_GPDMA
+
     if (unlikely(mgr_task_get_metadata(current, &meta) != K_STATUS_OKAY)) {
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+    }
+    if (unlikely(mgr_dma_get_owner(dmah, &owner) != K_STATUS_OKAY)) {
+        sysret = STATUS_INVALID;
+        goto end;
+    }
+    if (unlikely(owner != current)) {
+        sysret = STATUS_DENIED;
+        goto end;
     }
     if (unlikely(mgr_dma_get_info(dmah, &kinfo) != K_STATUS_OKAY)) {
         sysret = STATUS_INVALID;
