@@ -448,9 +448,7 @@ kstatus_t mgr_dma_stream_suspend(const dmah_t dmah)
     /*@ assert \valid_read(cfg->meta); */
 
     /* can't unassign a stream that is started or already unassigned */
-    if (unlikely(
-          (cfg->state != DMA_STREAM_STATE_STARTED)
-        )) {
+    if (unlikely(cfg->state != DMA_STREAM_STATE_STARTED)) {
         status = K_ERROR_BADSTATE;
         goto end;
     }
@@ -486,9 +484,7 @@ kstatus_t mgr_dma_stream_resume(const dmah_t dmah)
     /*@ assert \valid_read(cfg->meta); */
 
     /* can't unassign a stream that is started or already unassigned */
-    if (unlikely(
-          (cfg->state != DMA_STREAM_STATE_SUSPENDED)
-        )) {
+    if (unlikely(cfg->state != DMA_STREAM_STATE_SUSPENDED)) {
         status = K_ERROR_BADSTATE;
         goto end;
     }
