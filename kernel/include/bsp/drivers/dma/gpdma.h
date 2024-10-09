@@ -63,12 +63,32 @@ kstatus_t gpdma_channel_enable(gpdma_stream_cfg_t const*const desc);
 /**
  * @brief given a stream, get back the associated IRQn
  */
-kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const *desc, uint16_t * const IRQn);
+kstatus_t gpdma_get_interrupt(gpdma_stream_cfg_t const * const desc, uint16_t * const IRQn);
 
 /**
  * @brief return true if the IRQn is owned by a DMA controller
  */
 bool gpdma_irq_is_dma_owned(uint16_t IRQn);
+
+/**
+ * @brief clear interrupt of corresponding stream at GPDMA level
+*/
+kstatus_t gpdma_interrupt_clear(gpdma_stream_cfg_t const * const desc);
+
+/**
+ * @brief suspend currently started stream
+ */
+kstatus_t gpdma_channel_suspend(gpdma_stream_cfg_t const*const desc);
+
+/**
+ * @brief resume previously suspended stream
+ */
+kstatus_t gpdma_channel_resume(gpdma_stream_cfg_t const*const desc);
+
+/**
+ * @brief reset currently suspended stream
+ */
+kstatus_t gpdma_channel_reset(gpdma_stream_cfg_t const*const desc);
 
 #ifdef __cplusplus
 }
