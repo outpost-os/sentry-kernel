@@ -2,11 +2,18 @@
 SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 SPDX-License-Identifier: Apache-2.0
 -->
-# Sentry kernel implementation
 
+.. raw:: html
 
-## Current project state
+   <a href="https://outpost-sentry.readthedocs.io/en/latest/index.html">
+     <p align="center">
+       <picture>
+         <img src="https://outpost-sentry.readthedocs.io/en/latest/_images/sentry_kernel.png">
+       </picture>
+     </p>
+   </a>
 
+# About
 
 ![GNU/Linux build](https://github.com/outpost-os/sentry-kernel/actions/workflows/gnulinux.yml/badge.svg)
 ![MacOS X build](https://github.com/outpost-os/sentry-kernel/actions/workflows/macos.yml/badge.svg)
@@ -16,10 +23,9 @@ SPDX-License-Identifier: Apache-2.0
 ![GitHub License](https://img.shields.io/github/license/outpost-os/sentry-kernel)
 [![REUSE status](https://api.reuse.software/badge/github.com/outpost-os/sentry-kernel)](https://api.reuse.software/info/github.com/outpost-os/sentry-kernel)
 
+The Sentry kernel is a high security level micro-kernel implementation made for high security embedded systems that include micro-controllers in association with dedicated Secure Element component for security cryptographic functions.
 
-## About
-
-This is the repository of the Sentry kernel
+Complete Sentry documentation is published on [readthedocs](https://outpost-sentry.readthedocs.io/en/latest/index.html).
 
 Sentry kernel uses [The Meson Build System](https://mesonbuild.com/).
 

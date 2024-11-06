@@ -3,6 +3,9 @@
 
 changelog:
   categories:
+    - title: Vulnerability fixes
+      labels:
+        - "cve"
     - title: Breaking Changes
       labels:
         - abi-evolution
