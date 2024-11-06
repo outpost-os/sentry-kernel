@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # About
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9667/badge)](https://www.bestpractices.dev/projects/9667)
 ![GNU/Linux build](https://github.com/outpost-os/sentry-kernel/actions/workflows/gnulinux.yml/badge.svg)
 ![MacOS X build](https://github.com/outpost-os/sentry-kernel/actions/workflows/macos.yml/badge.svg)
 ![Frama-C RTE Analysis](https://github.com/outpost-os/sentry-kernel/actions/workflows/proof.yml/badge.svg)
