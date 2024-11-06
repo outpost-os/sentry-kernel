@@ -22,7 +22,7 @@ collaboratibe methods for submissions.
   ensure developers are following licensing criteria for their
   contributions, and documented with a ``Signed-off-by`` line in commits.
 
-* Sentry kernel development workflow is supported on Linux, macOS, and Windows. Windows workflow.
+* Sentry kernel development workflow is supported on Linux, macOS, and Windows.
 
 * Source code for the project is maintained in the GitHub repo:
   https://github.com/outpost-os/sentry-kernel
