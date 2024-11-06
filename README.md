@@ -3,15 +3,7 @@ SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 SPDX-License-Identifier: Apache-2.0
 -->
 
-.. raw:: html
-
-   <a href="https://outpost-sentry.readthedocs.io/en/latest/index.html">
-     <p align="center">
-       <picture>
-         <img src="https://outpost-sentry.readthedocs.io/en/latest/_images/sentry_kernel.png">
-       </picture>
-     </p>
-   </a>
+![sentry logo](https://outpost-sentry.readthedocs.io/en/latest/_images/sentry_kernel.png)
 
 # About
 
