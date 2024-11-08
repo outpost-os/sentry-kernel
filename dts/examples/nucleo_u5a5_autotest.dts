@@ -113,6 +113,11 @@
 	};
 };
 
+&timers6 {
+	status = "okay";
+	outpost,owner = <0xbabe>;
+	outpost,label = <0x0>;
+};
 
 &led0 {
 	status = "okay";
