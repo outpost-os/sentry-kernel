@@ -11,12 +11,17 @@ endif
 
 add_languages('rust', native: false, required: true)
 
+rust_toolchain_in = files('rust-toolchain.toml.in')
+rust_toolchain_config = configuration_data()
+rust_toolchain_config.set('channel', get_option('rust-channel'))
+rust_toolchain_config.set('target', kconfig_data.get_unquoted('CONFIG_RUSTC_TARGET'))
+
 uapi_rust_std = 'rust_std=2021'
 uapi_rust_libfile = files('uapi/lib.rs')
 
 global_rust_build_args = [
     '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs),
-    '--target=@0@'.format(meson.get_external_property('rust_target')),
+    target_rustargs,
     '-C', 'lto=true', '-C', 'relocation-model=pic', '-C', 'link-args=--emit-relocs'
 ]
 

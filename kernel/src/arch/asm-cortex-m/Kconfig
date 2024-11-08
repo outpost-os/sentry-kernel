@@ -346,6 +346,14 @@ config ENDIANNESS_CFLAGS
 	default "-mlittle-endian" if LITTLE_ENDIAN
 	default "-mbig-endian" if BIG_ENDIAN
 
+config RUSTC_TARGET
+	string
+	default "thumbv7m-none-eabi" if ARCH_ARM_ARMV7M && !ARCH_ARM_ARMV7EM
+	default "thumbv7em-none-eabi" if ARCH_ARM_ARMV7EM && !FPU_HARDFP_ABI
+	default "thumbv7em-none-eabihf" if ARCH_ARM_ARMV7EM && FPU_HARDFP_ABI
+	default "thumbv8m.main-none-eabi" if ARCH_ARM_ARMV8MML && !FPU_HARDFP_ABI
+	default "thumbv8m.main-none-eabihf" if ARCH_ARM_ARMV8MML && FPU_HARDFP_ABI
+
 config SYSTICK_HZ
 	int "systick initial period configuration"
 	range 0 10000

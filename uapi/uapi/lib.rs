@@ -21,7 +21,6 @@
 //!  usual case where the [`mod@syscall`] module interface needs to be acceded directly.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(asm_const)]
 
 #[macro_use]
 mod arch;
