@@ -30,7 +30,7 @@ if target_has_fpu
 if target_use_fpu
 target_cflags += [kconfig_data.get_unquoted('CONFIG_FPU_CFLAGS')]
 else
-target_rustargs += [ '-Ctarget-features=+soft-float' ]
+target_rustargs += [ '-Ctarget-feature=+soft-float' ]
 endif
 endif
 
@@ -57,7 +57,7 @@ endif
 # architecture co-processor.
 
 if not target_has_fpu and kconfig_data.get_unquoted('CONFIG_ARCH_ARM_CORTEX_NAME') == 'm4'
-target_rustargs += [ '-Ctarget-features=+soft-float' ]
+target_rustargs += [ '-Ctarget-feature=+soft-float' ]
 endif
 
 target_arch_args += target_cflags
