@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "stm32-basic-timer-dt.h"
+#include <assert.h>
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 {% set timers = dts.get_compatible("st,stm32-timers") -%}
 
@@ -23,6 +26,9 @@ static const stm32_timer_desc_t stm32_timers[] = {
     {% endfor %}
     {} /* sentinel */
 };
+
+/* ensure that at least one timer is declared in DTS entry when activating IRQ tests */
+static_assert(ARRAY_SIZE(stm32_timers) > 1, "No timer has been defined in DTS!");
 
 /**
  * @warning this is a private function, timer id must be valid and checked by caller
