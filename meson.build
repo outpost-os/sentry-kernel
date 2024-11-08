@@ -155,6 +155,14 @@ subdir('kernel')
 subdir('tools')
 subdir('doc')
 
+if with_uapi_opt
+rust_toolchain = configure_file(
+    input: rust_toolchain_in,
+    output: '@BASENAME@',
+    configuration: rust_toolchain_config,
+)
+endif
+
 is_standalone = kconfig_data.get('CONFIG_STANDALONE_MODE', 0)
 build_mode = 'Release'
 if kconfig_data.get('CONFIG_BUILD_TARGET_RELEASE', 0) != 1
