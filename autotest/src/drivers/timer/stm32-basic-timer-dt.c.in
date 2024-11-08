@@ -6,14 +6,15 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-{% set timers = dts.get_compatible("st,stm32-timers") -%}
-
 /**
  * \brief .rodata field: list of current platform timer
  */
 static const stm32_timer_desc_t stm32_timers[] = {
-    {% for timer in timers -%}
-    {% if timer.status and timer.status == "okay" -%}
+    {% for timer in dts.get_active_nodes() -%}
+    {% if timer is not owned or timer is not enabled  -%}
+    {% continue -%}
+    {% endif -%}
+    {% if "TIMERS" in "%s"|format(timer.label.upper()) -%}
     {% set _, bus_id, clk_msk = timer.clocks -%}
 
     /* {{ timer.label }} timer configuration */
@@ -21,7 +22,7 @@ static const stm32_timer_desc_t stm32_timers[] = {
         .base_addr = {{ "%#08xUL"|format(timer.reg[0]) }},
         .size = {{ "%#08xUL"|format(timer.reg[1]) }},
         .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
-        .label = {{ "%#08xUL"|format(timer["outpost,label"]) }}
+        .label = {{ "0x%xUL"|format(loop.index - 1) }},
     },
     {% endif -%}
     {% endfor %}
