@@ -1,0 +1,33 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include "stm32-basic-timer-dt.h"
+
+{% set timers = dts.get_compatible("st,stm32-timers") -%}
+
+/**
+ * \brief .rodata field: list of current platform timer
+ */
+static const stm32_timer_desc_t stm32_timers[] = {
+    {% for timer in timers -%}
+    {% if timer.status and timer.status == "okay" -%}
+    {% set _, bus_id, clk_msk = timer.clocks -%}
+
+    /* {{ timer.label }} timer configuration */
+    {
+        .base_addr = {{ "%#08xUL"|format(timer.reg[0]) }},
+        .size = {{ "%#08xUL"|format(timer.reg[1]) }},
+        .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+    },
+    {% endif -%}
+    {% endfor %}
+    {} /* sentinel */
+};
+
+/**
+ * @warning this is a private function, timer id must be valid and checked by caller
+ */
+const stm32_timer_desc_t * stm32_timer_get_desc(void)
+{
+    return &stm32_timers[0];
+}
