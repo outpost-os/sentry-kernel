@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-
+# note: to avoid printf implementation redundancy, the kernel lexer for debug
+# print mode is used as-is
 autotest_sources = files(
   'main.c',
   'printf.c',

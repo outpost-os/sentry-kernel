@@ -9,11 +9,7 @@
 #include <uapi/dma.h>
 #include <shms-dt.h>
 #include "test_dma.h"
-
-static void test_irq_init(void)
-{
-    return;
-}
+#include <drivers/timer.h>
 
 static void test_irq_spawn_one_it(void)
 {
@@ -26,8 +22,10 @@ void test_irq(void)
 
     TEST_SUITE_START("sys_irq");
     /* init timer for IRQ, no IT enabled yet */
-    test_irq_init();
+    timer_map();
+    timer_init();
     test_irq_spawn_one_it();
+    timer_unmap();
     TEST_SUITE_END("sys_irq");
     return;
 }
