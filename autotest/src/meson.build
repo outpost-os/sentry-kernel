@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-subdir('arch')
+
 
 autotest_sources = files(
   'main.c',
@@ -18,5 +18,9 @@ autotest_sources = files(
   'tests/test_map.c',
   'tests/test_shm.c',
   'tests/test_dma.c',
+  'tests/test_irq.c',
   '../../kernel/src/managers/debug/log_lexer.c',
 )
+
+subdir('arch')
+subdir('drivers')
