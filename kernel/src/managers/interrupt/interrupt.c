@@ -32,7 +32,7 @@ static inline void int_push_and_schedule(taskh_t owner, int IRQn)
        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* push the inth event into the task input events queue */
-    if (unlikely(mgr_task_push_int_event(IRQn, owner) == K_STATUS_OKAY)) {
+    if (unlikely(mgr_task_push_int_event(IRQn, owner) != K_STATUS_OKAY)) {
         /* failed to push IRQ event !!! XXX: what do we do ? */
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
