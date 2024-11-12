@@ -33,11 +33,11 @@ int timer_init(void)
     iowrite32(desc->base_addr + TIM_CR1_REG, reg);
 
     /* configure prescaler */
-    reg16 = 610;
+    reg16 = desc->prescaler;
     iowrite16(desc->base_addr + TIM_PSC_REG, reg16);
 
     /* configure counter */
-    reg = 65535; /* counter value to 0xffff */
+    reg = desc->counter; /* counter value to 0xffff */
     iowrite32(desc->base_addr + TIM_CNT_REG, reg);
 
     /* configure auto-relload (no dithering mode) */
