@@ -33,6 +33,7 @@ int timer_init(void)
     /* enable interrupt update */
     reg |= TIM6_DIER_UIE;
     iowrite32(desc->base_addr + TIM6_DIER_REG, reg);
+    sys_irq_enable(TIMER_IRQ);
     return 0;
 }
 
@@ -40,9 +41,9 @@ int timer_enable(void)
 {
     stm32_timer_desc_t const *desc = stm32_timer_get_desc();
 
-    uint32_t reg = 0;
+    uint32_t reg = ioread32(desc->base_addr + TIM6_CR1_REG);
     reg |= TIM6_CR1_CEN;
-    iowrite32(desc->base_addr + TIM6_DIER_REG, reg);
+    iowrite32(desc->base_addr + TIM6_CR1_REG, reg);
     return 0;
 }
 
@@ -121,7 +122,7 @@ Status timer_unmap(void)
         goto end;
     }
     copy_to_user((uint8_t*)&handle, sizeof(devh_t));
-    res = sys_map_dev(handle);
+    res = sys_unmap_dev(handle);
     if (res != STATUS_OK) {
         goto end;
     }
