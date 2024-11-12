@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
 #include "timer_defs.h"
 #include "stm32-basic-timer-dt.h"
 #include <io.h>

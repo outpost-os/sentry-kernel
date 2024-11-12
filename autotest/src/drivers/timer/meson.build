@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-License-Identifier: Apache-2.0
+
 # NOTE: the timer identifier may vary from SoC familly to another, and as such
 # the string may be a per CONFIG_SOC value
 timer_h = custom_target('gen_timer',
