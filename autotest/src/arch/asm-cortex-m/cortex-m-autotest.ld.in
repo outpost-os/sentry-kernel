@@ -48,7 +48,7 @@ SECTIONS
         _sautotest = .;
         _stext = .;	            /* create a global symbol at data start */
         *startup*(.text.autotest)
-        *(.text)
+        *(.text.autotest)
         *(.text*)
         *(.rodata)         	/* .rodata sections (constants, strings, etc.) */
         *(.rodata*)         	/* .rodata sections (constants, strings, etc.) */
