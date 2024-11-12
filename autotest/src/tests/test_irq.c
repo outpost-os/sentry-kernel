@@ -11,6 +11,8 @@
 #include "test_dma.h"
 #include <drivers/timer.h>
 
+static devh_t handle;
+
 static void test_irq_spawn_two_it(void)
 {
     Status res;
@@ -47,6 +49,7 @@ static void test_irq_spawn_one_it(void)
     ASSERT_EQ(res, STATUS_OK);
     uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
     ASSERT_EQ(*IRQn, 49);
+    ASSERT_EQ(((exchange_event_t*)tab)->source, handle);
     return;
 }
 
@@ -61,15 +64,20 @@ static void test_irq_spawn_periodic(void)
     timer_enable();
 
     for (count = 0; count < 5; ++count) {
+        /* reeanble interrupt line (nvic unmasked)*/
         LOG("interrupt count %d wait", count);
         res = sys_wait_for_event(EVENT_TYPE_IRQ, 0);
         copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
         ASSERT_EQ(res, STATUS_OK);
         uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
         ASSERT_EQ(*IRQn, 49);
-        /* reeanble interrupt line (nvic unmasked)*/
-        timer_enable_interrupt();
+        if (count < 4) {
+            timer_enable_interrupt();
+        }
     }
+    /* waiting 2s, there should not have any more interrupts by now */
+    res = sys_wait_for_event(EVENT_TYPE_IRQ, 2000);
+    ASSERT_EQ(res, STATUS_TIMEOUT);
 }
 
 void test_irq(void)
@@ -78,12 +86,12 @@ void test_irq(void)
 
     TEST_SUITE_START("sys_irq");
     /* init timer for IRQ, no IT enabled yet */
-    timer_map();
+    timer_map(&handle);
     timer_init();
     test_irq_spawn_one_it();
     test_irq_spawn_two_it();
     test_irq_spawn_periodic();
-    timer_unmap();
+    timer_unmap(handle);
     TEST_SUITE_END("sys_irq");
     return;
 }
