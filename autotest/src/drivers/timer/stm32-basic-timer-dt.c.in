@@ -23,6 +23,7 @@ static const stm32_timer_desc_t stm32_timers[] = {
         .size = {{ "%#08xUL"|format(timer.reg[1]) }},
         .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
         .label = {{ "0x%xUL"|format(loop.index - 1) }},
+        .irqn = {{ "0x%xU"|format(timer.interrupts[0]) }},
     },
     {% endif -%}
     {% endfor %}

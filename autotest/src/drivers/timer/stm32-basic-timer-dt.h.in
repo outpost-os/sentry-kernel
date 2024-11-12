@@ -7,8 +7,6 @@
 #include <stddef.h>
 #include <inttypes.h>
 
-#define TIMER_IRQ 49u
-
 /**
  * \brief STM32 usartport IP descriptor
  *
@@ -21,7 +19,8 @@ typedef struct stm32_timer_desc {
     uint32_t base_addr; /**< IP base address */
     size_t   size;      /**< IP base address */
     uint32_t clk_msk;   /**< IP clocks mask on the given bus */
-    uint8_t label;     /**< IP unique label identifier */
+    uint8_t label;      /**< IP unique label identifier */
+    uint8_t irqn;       /**< IP IRQn line (single NVIC one for basic timers) */
 } stm32_timer_desc_t;
 
 const stm32_timer_desc_t * stm32_timer_get_desc(void);
