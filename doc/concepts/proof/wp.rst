@@ -235,7 +235,7 @@ Some specific critical security behaviors are also demonstrated, such as, for ex
     //[...]
 
 When using EVA to cover overall kernel paths (entrypoint and handlers), such a dual implication assertion
-allows to demonstrate that in any call stack, this subprogram is called with both write and execute flags
+allows to demonstrate that in any call stack, this subprogram is never called with both write and execute flags
 set at the same time, demonstrating the ``W^X`` property for both user and kernel spaces whatever the
 execution context is.
 
