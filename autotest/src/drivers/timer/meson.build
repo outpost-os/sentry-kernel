@@ -9,7 +9,7 @@ timer_h = custom_target('gen_timer',
     depends: [ svd_json ],
     command: [
         jinja_cli, '-d', svd_json, '-o', '@OUTPUT@', '--define', 'NAME',
-       'TIM6',
+       'TIM',
        '@INPUT@'
     ],
 )
