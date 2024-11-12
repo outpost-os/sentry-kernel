@@ -18,6 +18,10 @@ int timer_init(void)
     uint32_t reg = 0;
     uint16_t reg16 = 0;
 
+    /* one pulse mode */
+    reg = TIM6_CR1_OPM; /* one pulse mode configured */
+    iowrite32(desc->base_addr + TIM6_CR1_REG, reg);
+
     /* configure prescaler */
     reg16 = 610;
     iowrite16(desc->base_addr + TIM6_PSC_REG, reg16);
@@ -63,8 +67,22 @@ int timer_enable_interrupt(void)
     /* enable interrupt update */
     reg |= TIM6_DIER_UIE;
     iowrite32(desc->base_addr + TIM6_DIER_REG, reg);
+    sys_irq_enable(TIMER_IRQ);
     return 0;
 }
+
+int timer_set_periodic(void)
+{
+    int res = 0;
+    stm32_timer_desc_t const *desc = stm32_timer_get_desc();
+    uint32_t reg;
+    /* one pulse mode */
+    reg = ioread32(desc->base_addr + TIM6_CR1_REG);
+    reg &= ~TIM6_CR1_OPM;
+    iowrite32(desc->base_addr + TIM6_CR1_REG, reg);
+    return 0;
+}
+
 
 int timer_disable_interrupt(void)
 {
