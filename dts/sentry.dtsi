@@ -17,12 +17,12 @@
 		#size-cells = <1>;
 
 		kernel_code: kernel_code@8000000 {
-			reg = <0x8000000 0x8000>;
+			reg = <0x8000000 0xb000>;
 			compatible = "outpost,memory-pool";
 		};
 
-		idle_code: idle_code@8008000 {
-			reg = <0x8008000 0x300>;
+		idle_code: idle_code@800c000 {
+			reg = <0x800c000 0x300>;
 			compatible = "outpost,memory-pool";
 		};
 
