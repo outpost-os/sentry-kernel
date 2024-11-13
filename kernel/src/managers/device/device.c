@@ -122,7 +122,7 @@ kstatus_t mgr_device_init(void)
             /* owner is not a task */
             owner = 0;
         } else {
-            #ifndef CONFIG_BUILD_TARGET_AUTOTEST
+#ifndef CONFIG_BUILD_TARGET_AUTOTEST
             /* in autotest mode, all non-kernel devices are autotest-owned */
             if (unlikely(mgr_task_get_device_owner(devices_state[i].device->devinfo.id, &owner_from_metadata) != K_STATUS_OKAY)) {
                 panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
@@ -136,7 +136,7 @@ kstatus_t mgr_device_init(void)
             #else
             /* autotest only: owner is always autotest */
             mgr_task_get_handle(0xbabe, &owner);
-            #endif
+#endif
         }
 
         /* adding taskh value (0 or effective taskh userspace handle) */
