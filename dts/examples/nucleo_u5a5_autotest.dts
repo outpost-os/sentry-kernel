@@ -31,8 +31,8 @@
 
 /{
 	reserved-memory {
-		autotest_code: autotest_code@800a000 {
-			reg = <0x800a000 0xe000>;
+		autotest_code: autotest_code@800d000 {
+			reg = <0x800d000 0xe000>;
 			compatible = "outpost,memory-pool";
 		};
 

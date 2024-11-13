@@ -30,6 +30,27 @@ project('sentry-kernel', 'c',
 
 meson.add_dist_script('support/meson/version.sh', 'set-dist', meson.project_version())
 
+# Testing high security flags of cross compiler. These are gcc 13-14 hardening flags.
+# See https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Instrumentation-Options.html#index-fharden-compares
+# for more information about each flag
+hardening_cflags = [
+  '-fharden-compares',
+  '-fharden-conditional-branches',
+  '-fharden-control-flow-redundancy',
+  '-fhardcfr-check-returning-calls',
+  '-fstack-clash-protection',
+]
+activated_hardening_cflags = []
+
+compiler = meson.get_compiler('c', native: false)
+
+foreach cflag: hardening_cflags
+  if compiler.has_argument(cflag)
+    activated_hardening_cflags += cflag
+  endif
+endforeach
+
+
 objcopy = find_program('objcopy')
 sentry_install_script = find_program('support/scripts/install.py')
 
@@ -63,6 +84,9 @@ global_build_args = [
     '-Wno-unused-variable', # FIXME: while in early dev
     '-Wno-unused-parameter', # FIXME: while in early dev
 ]
+
+# adding supported hardened build args
+global_build_args += activated_hardening_cflags
 
 # Deprecated kconfig entry handling, to be removed on next major release
 if kconfig_data.has('CONFIG_TASK_MAGIC_VALUE')
@@ -175,6 +199,7 @@ summary(
         'soc': kconfig_data.get_unquoted('CONFIG_ARCH_SOCNAME').to_lower(),
         'build mode': build_mode,
         'standalone': is_standalone,
+        'hardening flags': activated_hardening_cflags,
     },
     bool_yn: true,
     section: 'Configuration'
