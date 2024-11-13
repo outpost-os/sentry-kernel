@@ -30,26 +30,7 @@ project('sentry-kernel', 'c',
 
 meson.add_dist_script('support/meson/version.sh', 'set-dist', meson.project_version())
 
-# Testing high security flags of cross compiler. These are gcc 13-14 hardening flags.
-# See https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Instrumentation-Options.html#index-fharden-compares
-# for more information about each flag
-hardening_cflags = [
-  '-fharden-compares',
-  '-fharden-conditional-branches',
-  '-fharden-control-flow-redundancy',
-  '-fhardcfr-check-returning-calls',
-  '-fstack-clash-protection',
-]
-activated_hardening_cflags = []
-
 compiler = meson.get_compiler('c', native: false)
-
-foreach cflag: hardening_cflags
-  if compiler.has_argument(cflag)
-    activated_hardening_cflags += cflag
-  endif
-endforeach
-
 
 objcopy = find_program('objcopy')
 sentry_install_script = find_program('support/scripts/install.py')
@@ -69,6 +50,39 @@ kconfig_h = kconfig_proj.get_variable('kconfig_h')
 kconfig_rustargs = kconfig_proj.get_variable('kconfig_rustargs')
 kconfig_data = kconfig_proj.get_variable('kconfig_data')
 
+# Testing high security flags of cross compiler. These are gcc 13-14 hardening flags.
+# See https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Instrumentation-Options.html#index-fharden-compares
+# for more information about each flag
+activated_hardening_cflags = []
+hardening_cflags = [
+    '-fstack-clash-protection',
+]
+
+if kconfig_data.get('CONFIG_SECU_ENFORCE_COMPARE', 0) == 1
+hardening_cflags += [
+  '-fharden-compares',
+  '-fharden-conditional-branches',
+]
+endif
+
+if kconfig_data.get('CONFIG_SECU_ENFORCE_CFI', 0) == 1
+hardening_cflags += [
+  '-fharden-control-flow-redundancy',
+]
+endif
+
+if kconfig_data.get('CONFIG_SECU_ENFORCE_RETURNING_CALLS', 0) == 1
+hardening_cflags += [
+  '-fhardcfr-check-returning-calls',
+]
+endif
+
+foreach cflag: hardening_cflags
+  if compiler.has_argument(cflag)
+    activated_hardening_cflags += cflag
+  endif
+endforeach
+
 external_deps = []
 
 global_build_args = [
@@ -83,10 +97,8 @@ global_build_args = [
     '-Wno-unused-function', # FIXME: while in early dev
     '-Wno-unused-variable', # FIXME: while in early dev
     '-Wno-unused-parameter', # FIXME: while in early dev
+    activated_hardening_cflags,
 ]
-
-# adding supported hardened build args
-global_build_args += activated_hardening_cflags
 
 # Deprecated kconfig entry handling, to be removed on next major release
 if kconfig_data.has('CONFIG_TASK_MAGIC_VALUE')

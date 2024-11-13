@@ -64,3 +64,68 @@ config WITH_JTAG_CONNECTED
 	depends on BUILD_TARGET_DEBUG || BUILD_TARGET_AUTOTEST
 
 endmenu
+
+menu "Kernel security"
+
+# symbols selected by build mode
+config SECU_SSP_USER
+	bool
+	# support for user threads stack canaries
+
+config SECU_SSP_KERN
+	bool
+	# support for kernel threads stack canaries
+
+config SECU_HW_SETNCHECK
+	bool
+	---help---
+	  when possible (may depend on the hardware device), double verify that
+	  the target register configuration is valid and active
+	# Unable set and check of critical hardware registers
+	# (iowrite + ioread and compare)
+
+config SECU_NO_WEAKTYPES
+	bool
+	---help---
+	  Comparison to 0 lead to potential weak optimizations that should be
+	  avoided in security critical environment. In the same way, hamming distance
+	  of 1 can be easily faulted, in comparison with a discrete type.
+	  This is done by using secure_bool_t type and by activating (gcc>=14)
+
+config SECU_TASK_INTEGRITY_AT_BOOT
+	bool
+
+config SECU_ENFORCE_COMPARE
+	bool "Enforce comparison checks by compiler"
+	default y
+	---help---
+	  All variable comparison and conditional branch related comparison are
+	  hardened using the `harden-compares` and `harden-conditional-branches`
+	  hardening flags (gcc>=13)
+
+config SECU_ENFORCE_CFI
+	bool "Harden control flow redundancy"
+	default n
+	---help---
+	  Emit extra code to set booleans when entering basic blocks, and to verify
+	  and trap, at function exits, when the booleans do not form an execution
+	  path that is compatible with the control flow graph.
+
+config SECU_ENFORCE_RETURNING_CALLS
+	depends on SECU_ENFORCE_CFI
+	default y
+	bool "Enforce return-time control flow"
+	---help---
+	  Harden return time checks, including noreturn invalid behavior, using
+	  -fhardcfr-check-returning-calls and -fhardcfr-check-noreturn-calls=always flags
+	  (gcc>=14)
+
+config SECU_ENFORCE_FAULT_INJECTION
+	bool "Enforce fault injection projections"
+	---help---
+	  Enable this flag to enforce formally proven execution
+	  paths with supplementary checks that whould have been dead
+	  code in nominal execution
+
+
+endmenu

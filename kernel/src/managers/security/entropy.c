@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <stddef.h>
-#if defined(CONFIG_HAS_RNG)
+#if defined(CONFIG_SECURITY_HW_ENTROPY)
 #include <bsp/drivers/rng/rng.h>
 #endif
 #include <sentry/zlib/crypto.h>
@@ -25,7 +25,7 @@ static uint32_t seed;
 kstatus_t mgr_security_entropy_init(void)
 {
     kstatus_t status;
-#if !defined(CONFIG_HAS_RNG)
+#if !defined(CONFIG_SECURITY_HW_ENTROPY)
     pr_warn("HW RNG not supported, initializing SW entropy backend.");
     /* Here we use PGC32 has this is the lonely function we have to generate random
      sequence in SW mode. To be replaced by another pseudo-random (or higher security
@@ -65,7 +65,7 @@ kstatus_t mgr_security_entropy_generate(uint32_t *seed)
     if (unlikely(seed == NULL)) {
         goto end;
     }
-#if CONFIG_HAS_RNG
+#if CONFIG_SECURITY_HW_ENTROPY
     status = rng_get(seed);
 #else
     *seed = pcg32();
