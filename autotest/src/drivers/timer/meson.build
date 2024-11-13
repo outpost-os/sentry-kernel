@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-FileCopyrightText: 2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 # NOTE: the timer identifier may vary from SoC familly to another, and as such
