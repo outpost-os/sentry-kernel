@@ -162,6 +162,15 @@ AT DMAs
     Should Not Contain  ${suite}   KO
     Suite Result        ${suite}
 
+AT IRQ
+    [Documentation]     Parse user IRQ API autotest results
+
+    Depends on test     Load Autotest
+    ${suite}            Get Lines Containing String	${AT_LOG}	test_irq
+    Log                 ${suite}
+    Should Not Contain  ${suite}   KO
+    Suite Result        ${suite}
+
 Autotest Totals
     [Documentation]         Calculate total numbers of Success and KOs
 
