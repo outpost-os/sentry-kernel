@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+use core::ptr::addr_of_mut;
 use crate::systypes::{EraseMode, EraseType, Status};
 
 /// SVC Exchange area len. TODO: to be kconfig-generated
@@ -100,7 +101,7 @@ pub extern "C" fn clean_svcexchange(erasetype: EraseType, mode: EraseMode) -> St
         _ => return Status::Invalid,
     }
     unsafe {
-        core::ptr::write_volatile(&mut SVC_EXCHANGE_AREA as *mut [u8; SVC_EXCH_AREA_LEN], [0; SVC_EXCH_AREA_LEN]);
+        core::ptr::write_volatile(addr_of_mut!(SVC_EXCHANGE_AREA) as *mut [u8; SVC_EXCH_AREA_LEN], [0; SVC_EXCH_AREA_LEN]);
     }
     Status::Ok
 }
