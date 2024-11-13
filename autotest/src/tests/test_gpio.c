@@ -8,6 +8,7 @@
 #include <devices-dt.h>
 #include "test_gpio.h"
 
+#ifdef CONFIG_TEST_GPIO
 #if DEVICE_LIST_SIZE > 0
 void test_gpio_on(void)
 {
@@ -90,10 +91,12 @@ void test_gpio_invalid_devh(void)
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
-#endif
+#endif/* DEVICE_LIST_SIZE */
+#endif/* CONFIG_TEST_GPIO*/
+
 
 void test_gpio(void) {
-#if DEVICE_LIST_SIZE > 0
+#if CONFIG_TEST_GPIO && DEVICE_LIST_SIZE > 0
     SleepDuration duration;
     duration.tag = SLEEP_DURATION_ARBITRARY_MS;
     duration.arbitrary_ms = 1000; /* 1000 ms to be visible */

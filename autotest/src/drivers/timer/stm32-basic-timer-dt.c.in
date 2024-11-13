@@ -1,0 +1,44 @@
+// SPDX-FileCopyrightText: 2024 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#include "stm32-basic-timer-dt.h"
+#include <assert.h>
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
+/**
+ * \brief .rodata field: list of current platform timer
+ */
+static const stm32_timer_desc_t stm32_timers[] = {
+    {% for timer in dts.get_active_nodes() -%}
+    {% if timer is not owned or timer is not enabled  -%}
+    {% continue -%}
+    {% endif -%}
+    {% if "TIMERS" in "%s"|format(timer.label.upper()) -%}
+    {% set _, bus_id, clk_msk = timer.clocks -%}
+
+    /* {{ timer.label }} timer configuration */
+    {
+        .base_addr = {{ "%#08xUL"|format(timer.reg[0]) }},
+        .size = {{ "%#08xUL"|format(timer.reg[1]) }},
+        .clk_msk = {{ "%#08xUL"|format(clk_msk) }},
+        .label = {{ "0x%xUL"|format(loop.index - 1) }},
+        .irqn = {{ "0x%xU"|format(timer.interrupts[0]) }},
+        .counter = {{ "0x%xU"|format(timer["outpost,counter"]) }},
+        .prescaler = {{ "0x%xU"|format(timer["outpost,prescaler"]) }},
+    },
+    {% endif -%}
+    {% endfor %}
+    {} /* sentinel */
+};
+
+/* ensure that at least one timer is declared in DTS entry when activating IRQ tests */
+static_assert(ARRAY_SIZE(stm32_timers) > 1, "No timer has been defined in DTS!");
+
+/**
+ * @warning this is a private function, timer id must be valid and checked by caller
+ */
+const stm32_timer_desc_t * stm32_timer_get_desc(void)
+{
+    return &stm32_timers[0];
+}

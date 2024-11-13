@@ -63,6 +63,35 @@ static inline void gate_waitforevent_populate_signal(taskh_t current, uint8_t si
 
 }
 
+/**
+ * @fn gate_waitforevent_populate_interrupt : populate svc exchange with interrupt info
+ */
+static inline void gate_waitforevent_populate_interrupt(taskh_t current, uint32_t irq, devh_t source)
+{
+    task_meta_t const *meta;
+    uint8_t *svc;
+    exchange_event_t *dest_svcexch;
+    /* forge SVC exchange with received signal informations */
+    if (unlikely(mgr_task_get_metadata(current, &meta) != K_STATUS_OKAY)) {
+        /* this should never happen !*/
+        /*@ assert \false; */
+        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
+        __builtin_unreachable();
+    }
+    /*@ assert \valid_read(meta); */
+    svc = task_get_svcexchange(meta);
+    /*@ assert \valid(svc); */
+    dest_svcexch = (exchange_event_t*)svc;
+    /* set T,L values from TLV */
+    dest_svcexch->type = EVENT_TYPE_IRQ;
+    dest_svcexch->length = sizeof(uint32_t);
+    dest_svcexch->magic = 0x4242; /** FIXME: define a magic shared with uapi */
+    dest_svcexch->source = source;
+    uint32_t *sigdata = (uint32_t*)&dest_svcexch->data;
+    sigdata[0] = irq;
+
+}
+
 stack_frame_t *gate_waitforevent(stack_frame_t *frame,
                                uint8_t          mask,
                                int32_t          timeout)
@@ -84,7 +113,10 @@ stack_frame_t *gate_waitforevent(stack_frame_t *frame,
     /* and then irq... */
     if (mask & EVENT_TYPE_IRQ) {
         uint32_t irqn;
+        devh_t devh;
         if (mgr_task_load_int_event(current, &irqn) == K_STATUS_OKAY) {
+            mgr_device_get_devh_from_interrupt(irqn, &devh);
+            gate_waitforevent_populate_interrupt(current, irqn, devh);
             mgr_task_set_sysreturn(current, STATUS_OK);
             goto end;
         }

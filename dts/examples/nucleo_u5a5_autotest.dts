@@ -113,6 +113,13 @@
 	};
 };
 
+&timers6 {
+	status = "okay";
+	outpost,owner = <0xbabe>;
+	outpost,label = <0x1f01>;
+	outpost,counter = <0xffff>;
+	outpost,prescaler = <0x262>;
+};
 
 &led0 {
 	status = "okay";

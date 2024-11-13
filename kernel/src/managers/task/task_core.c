@@ -501,8 +501,11 @@ kstatus_t mgr_task_load_int_event(taskh_t context, uint32_t *IRQn)
 
     if (tsk->ints_head != tsk->ints_bottom) {
         /* there is at least one waiting interrupt. getting the first pushed one */
-        *IRQn = tsk->ints_bottom;
+        *IRQn = tsk->ints[tsk->ints_bottom];
         tsk->ints_bottom = (tsk->ints_bottom+1)%TASK_EVENT_QUEUE_DEPTH;
+        /* clear local cache */
+        tsk->ints[tsk->ints_bottom] = 0;
+        status = K_STATUS_OKAY;
     }
 end:
     return status;
@@ -900,6 +903,7 @@ kstatus_t mgr_task_set_sysreturn(taskh_t t, Status sysret)
     }
     cell->sysreturn = sysret;
     cell->sysretassigned = SECURE_TRUE;
+    status = K_STATUS_OKAY;
 err:
     return status;
 }

@@ -75,14 +75,12 @@ panic(panic_event_t ev) {
 #if defined(__arm__) || defined(__FRAMAC__)
     /* calling arch-specific panic handler */
     panic_print_event(ev);
-# ifdef CONFIG_BUILD_TARGET_AUTOTEST
-#if 0 /** FIXME: may generates recursive uncontrolled call to panic(). To be modified */
-    panic_emit_signal(ev);
-#endif
-# else
-    /* nominal way, do*/
+    /* nominal way, do */
     __do_panic();
-# endif
+//# ifdef CONFIG_BUILD_TARGET_AUTOTEST
+/** FIXME: may generates recursive uncontrolled call to panic(). To be modified */
+//    panic_emit_signal(ev);
+
 
 #else
     /* ugly warning shutdown for unittest */

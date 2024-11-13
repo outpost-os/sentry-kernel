@@ -32,7 +32,7 @@ static inline void int_push_and_schedule(taskh_t owner, int IRQn)
        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* push the inth event into the task input events queue */
-    if (unlikely(mgr_task_push_int_event(IRQn, owner) == K_STATUS_OKAY)) {
+    if (unlikely(mgr_task_push_int_event(IRQn, owner) != K_STATUS_OKAY)) {
         /* failed to push IRQ event !!! XXX: what do we do ? */
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }
@@ -65,6 +65,8 @@ static inline stack_frame_t *devisr_handler(stack_frame_t *frame, int IRQn)
         /* user interrupt with no owning task ???? */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
+    /* masking interrupt, let the userspace unmask at its handler level */
+    interrupt_disable_irq(IRQn);
     int_push_and_schedule(owner, IRQn);
 
     /** NOTE: we do not elect here, meaning that if the owner is not the current task, it
@@ -88,7 +90,7 @@ static inline void dma_push_and_schedule(taskh_t owner, dmah_t handle, gpdma_cha
        panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* push the inth event into the task input events queue */
-    if (unlikely(mgr_task_push_dma_event(owner, handle, event) == K_STATUS_OKAY)) {
+    if (unlikely(mgr_task_push_dma_event(owner, handle, event) != K_STATUS_OKAY)) {
         /* failed to push IRQ event !!! XXX: what do we do ? */
         panic(PANIC_KERNEL_SHORTER_KBUFFERS_CONFIG);
     }

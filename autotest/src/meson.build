@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2023 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-subdir('arch')
 
+# note: to avoid printf implementation redundancy, the kernel lexer for debug
+# print mode is used as-is
 autotest_sources = files(
   'main.c',
   'printf.c',
@@ -18,5 +19,9 @@ autotest_sources = files(
   'tests/test_map.c',
   'tests/test_shm.c',
   'tests/test_dma.c',
+  'tests/test_irq.c',
   '../../kernel/src/managers/debug/log_lexer.c',
 )
+
+subdir('arch')
+subdir('drivers')

@@ -41,7 +41,7 @@ stack_frame_t *gate_int_enable(stack_frame_t *frame, uint16_t IRQn)
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }
     /* push the inth event into the task input events queue */
-    if (unlikely(mgr_interrupt_enable_irq(IRQn) == K_STATUS_OKAY)) {
+    if (unlikely(mgr_interrupt_enable_irq(IRQn) != K_STATUS_OKAY)) {
         /* should not rise while IRQ ownership has been checked! see dts file */
         panic(PANIC_KERNEL_INVALID_MANAGER_RESPONSE);
     }

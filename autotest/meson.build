@@ -21,6 +21,7 @@ userspace_args = [
 
 # populated in src
 autotest_ldscript_template = files()
+autotest_drivers_src = []
 
 subdir('include')
 subdir('src')
@@ -44,7 +45,7 @@ uapi_inc = include_directories('../uapi/include')
 autotest_elf = executable(
     autotest_task_name,
     name_suffix: 'elf',
-    sources: [autotest_sources, autotest_headers, devices_dtsgen_h, shm_dtsgen_h ],
+    sources: [autotest_sources, autotest_headers, devices_dtsgen_h, shm_dtsgen_h, autotest_drivers_src ],
     include_directories: [ uapi_inc, autotest_inc ],
     dependencies: [ sentry_c_uapi_dep ],
     c_args: [ target_arch_args, global_build_args, userspace_args ],

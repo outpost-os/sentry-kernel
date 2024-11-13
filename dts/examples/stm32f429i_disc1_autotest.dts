@@ -66,6 +66,19 @@
 	};
 };
 
+&timers5 {
+	status = "okay";
+	outpost,owner = <0xbabe>;
+	outpost,label = <0x1f01>;
+	outpost,counter = <0xffff>;
+	outpost,prescaler = <0x262>;
+};
+
+&i2c1 {
+	status = "okay";
+	outpost,owner = <0xbabe>;
+};
+
 &clk_lsi {
 	status = "okay";
 };

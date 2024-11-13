@@ -1,0 +1,30 @@
+// SPDX-FileCopyrightText: 2024 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef __STM32_TIMER_DT_H
+#define __STM32_TIMER_DT_H
+
+#include <stddef.h>
+#include <inttypes.h>
+
+/**
+ * \brief STM32 usartport IP descriptor
+ *
+ * Descriptor is feed from device tree file
+ *
+ * \note Only node w/ compatible="st,stm32-usart" and status="okay" properties
+ *       will be parsed
+ */
+typedef struct stm32_timer_desc {
+    uint32_t base_addr; /**< IP base address */
+    size_t   size;      /**< IP base address */
+    uint32_t clk_msk;   /**< IP clocks mask on the given bus */
+    uint8_t label;      /**< IP unique label identifier */
+    uint8_t irqn;       /**< IP IRQn line (single NVIC one for basic timers) */
+    uint16_t counter;   /**< timer counter value */
+    uint16_t prescaler;   /**< timer prescaler value */
+} stm32_timer_desc_t;
+
+const stm32_timer_desc_t * stm32_timer_get_desc(void);
+
+#endif /* __STM32_TIMER_DT_H */

@@ -34,6 +34,9 @@ void task_autotest_init(void)
 #ifdef CONFIG_TEST_DMA
     autotest_capa |= CAP_DEV_DMA;
 #endif
+#ifdef CONFIG_TEST_IRQ
+    autotest_capa |= CAP_DEV_TIMER;
+#endif
     autotest_meta.label = SCHED_AUTOTEST_TASK_LABEL;
     autotest_meta.quantum = 10;
     autotest_meta.priority = 1;

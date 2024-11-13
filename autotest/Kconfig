@@ -49,6 +49,10 @@ config TEST_DMA
     bool "Shared memory manipulation test suite"
     default n
 
+config TEST_IRQ
+    bool "User interrupts test suite, need timer support at autotest level"
+    default n
+
 endmenu
 
 endif
