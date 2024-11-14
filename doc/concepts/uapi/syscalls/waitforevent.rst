@@ -1,6 +1,8 @@
 sys_wait_for_event
 """"""""""""""""""
 
+.. _wait for event:
+
 **API definition**
 
    .. code-block:: rust
@@ -9,6 +11,8 @@ sys_wait_for_event
       mod uapi {
          fn wait_for_event(mask: u8, timeout: i32) -> Status
       }
+
+.. _event_type:
 
    .. code-block:: c
       :caption: C UAPI for wait_for_event syscall
@@ -48,14 +52,6 @@ sys_wait_for_event
       #define WFE_WAIT_FOREVER (0)
       #define WFE_WAIT_UPTO(x) (x)
 
-   Any received event is delivered with a TLV basic content in the **svc_exchange** area:
-
-   ```
-   [T:u8][L:u8][magic:u16][source:u32][data...]
-   ```
-
-   The T field is keeping the enumerate EventMask encoding, in order to identify the
-   type of received event.
 
    .. note::
        Only one type of event per call is returned, meaning that only EVENT_IPC, EVENT_SIGNAL

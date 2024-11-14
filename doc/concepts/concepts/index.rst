@@ -7,4 +7,5 @@ Sentry Concepts
 
    initial.rst
    archi_req.rst
+   events.rst
    security.rst

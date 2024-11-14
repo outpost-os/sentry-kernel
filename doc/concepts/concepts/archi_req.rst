@@ -70,25 +70,42 @@ Micro-kernel design: events
 
 .. _events:
 
-Sentry API support three types of events that are targetting a given job:
+A task receives events. Events are emitted by any external component (being hardware or software). Events are
+the lonely way for a task to interract with any component except the kernel itself.
 
-   * IRQ: an IRQ event is emitted when a hardware interrupt associated to a userspace driver happen.
+Event reception is made using a single syscall, denoted `wait_for_event()`.
+This syscall can be a blocking syscall (used as a single blocking point), or a non-blocking syscall (event polling mode).
+see :ref:`wait for event syscall <wait for event>` definition for API specification. Events implementation and temporal behavior is
+described in :ref:`Events and communication <events>` dedicated chapter.
+
+There are four events types that may target a given job instance:
+
+   * **IRQ**: an IRQ event is emitted when a hardware interrupt associated to a user-space driver happen.
      In that case, the owning job receive an IRQ event. When executing the event reception at job level,
      one or more IRQs can be delivered to the job, allowing burst receive when multiple interrupts have
      risen since the last call to the receive syscall.
+     As the job asynchronously receive IRQ events (behaving as a bottom-half handler), the IRQ line is masked
+     until the job's IRQ handler unmask the IRQ line. IRQ bottom half latency may vary depending on the owning task
+     scheduling property such as priority and quantum. By now, this behavior is kept so that real-time scheduling design
+     is not impacted.
 
-   * IPC: an IPC event is emitted when a job as emitted an Inter-Process Communication data toward a
-     given job. The targetted job is awoken (except for some specific cases, ``see sys_ipc_send``
-     UAPI definition). IPC are single-copy mechanism to allow easy data transmissions between jobs. emitting
-     an IPC is a blocking event until the target reads it.
+   * **IPC**: an IPC event is emitted when another job has emitted an Inter-Process Communication data toward a
+     given job. The targeted job is awoken (except for some specific cases, ``see sys_ipc_send``
+     UAPI definition). IPC are single-copy mechanism that allows easy data transmissions between jobs. It is to note
+     that emitting an IPC is a blocking event until the target reads it or terminates.
 
-   * Signals: signals are typed event with no data, that can be emitted by any job or the kernel itself.
-     Signals are non-blocking events, allowing asynchronous execution of jobs without requiring a blocking
+   * **Signal**: signals are typed event with no data, that can be emitted by any job or the kernel itself.
+     Signals are non-blocking events, allowing asynchronous execution of jobs without requiring a blocking emitting
      point.
 
+   * **DMA**: DMA events are consolidated events that are the consequence of a DMA stream event such as transfer complete
+     that has been initiated by the job. Such an event delivers the stream identifier and event type (TC, Error, etc.) instead
+     of a bare IRQ event in order to simplify the user-space task implementation.
 
-Other userspace/kernelspace communication concepts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Other user-space/kernel-space communication concepts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _svc_exchange:
 
@@ -141,97 +158,7 @@ Moreover, user task, never, at any time, uses pointers when communicating with t
    single: managers; definition
    single: managers; listing
 
-A word about shared memories
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. _shm_principles:
-
-.. index::
-  single: shared-memory; implementation
-  single: shared-memory; definition
-
-Shared memories are a useful communication model that avoid data recopy and regular
-userspace/kernelspace exchange when transfering data between tasks. Il also allows
-the exchange of potentially bigger data content than classic kernel-based IPC.
-
-In Sentry, shared memories are build-time defined at DTS level, meaning that the build
-system verify that:
-
-   1. there is enough memory space for building a firmware including all the tasks and
-      potentially required shared memories
-   2. shared memory mapping complies with the current hardware pontiental restrictions such as alignment or MPU constraints
-   3. no shared memory collision exists
-   4. each shared memory bellongs to an existing task
-
-At DTS level, a typical shared memory definition is the following:
-
-.. code-block:: dts
-  :linenos:
-
-  /{
-    reserved-memory {
-      shm_customtask: memory@2000a000 {
-        reg = <0x2000a000 0x256>;
-        dma-pool; // DMA allowed from/to this SHM
-        outpost,shm;
-        outpost,no-map;
-        outpost,label = <0xf00>;// shm label, unique
-        outpost,owner = <0xbabe>; // task label
-      };
-    };
-  };
-
-A shared memory hold various attributes, some being required, others not:
-
-   * `reg`: (**required**) define the shared memory base address and size
-   * `dma-pool`: when used as DMA source or destination. If not, any DMA request that
-     targets this shared memory is refused.
-   * `outpost,shm`: (**required**) Sentry specific attribute that is used to filter SHMs in reserved memory node
-   * `outpost,label`: (**required**) easy, unically existing label that identify this SHM. Allows userspace task to use them
-     as canonical names
-   * `outpost,owner`: (**required**) defined the SHM owner using the corresponding task label
-   * `outpost,no-map`: if defined, the SHM can't be mapped by any task. This permits chained DMA transfers
-
-.. note::
-  DMA streams that targets memory (as source or destination) can only targets shared memory.
-  This is a security mechanism that avoid any data corruption from DMA streams, as
-  application data section are excluded from DMA allowed memory targets.
-
-.. note::
-  A shared memory may not be shared with any other task if used only for DMA transfers
-
-A shared memory is associated to the following notions:
-
-   * an **owner**, being the task that own the shared memory, being responsible of its usage and sharing
-   * a **user**, being the task with which the shared memory is shared
-
-At boot time, a shared memory is shared with no one (no user is defined). The owner has the hability to:
-
-   * get back the SHM handle using the SHM label
-   * set the SHM credentials using the SHM handle
-
-A shared memory is associated to credentials. These credentials exist and are independent for both owner
-and user tasks. Existing credential flags are defined in Sentry `sys_shm_set_credential()` syscall documentation.
-
-This syscall can be use to set owner's credentials or declare a user with specified credentials.
-
-.. todo::
-  SHMv2: Add `sys_shm_share()` to separate credential set from effective sharing
-  SHMv2: Add `sys_shm_lock()` to lock SHM credentials so that no more credential configuration can be done for a SHM target
-
-Mapping and unmapping a shared memory is made using the `sys_shm_map()` and `sys_shm_unmap()` syscalls, using the shared
-memory handle previously retrieved, if the map permission is allowed.
-
-.. note::
-  If the SHM definition in the DTS is declared are not mappable, the MAP permission has no mean and the shared memory is not mappable
-
-If the user task job terminates, the user's credentials are reset and the shared memory is no more shared.
-If the owner task job terminates, the owner's credentials are reset, but the user's credentials are kept to avoid any fault transmissions
-
-In both cases, the corresponding peer (being the user or owner task), is informed through a SIGPIPE signal with the peer task handle as
-signal source.
-
-More information on the shared memory API is defined in the :ref:`Sentry UAPI <uapi>` definition.
 
 Micro-kernel design for portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
