@@ -117,3 +117,51 @@ This requires that the entrypoint respect the `_start` symbol as defined in
   The `_start` implementation, while being a part of the overall runtime, is not
   under Sentry responsability, but instead hosted in the userspace runtime, typically
   libShield for POSIX or Rust Sentry HAL
+
+About compile-time hardening
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sentry kernel natively supports compiler-delivered hardening options, automatically checked
+at configure time.
+
+Supported compiler featuresets are the following:
+
+   * **harden-compares**: For every logical test that survives gimple optimizations and is not
+     the condition in a conditional branch (for example, conditions tested for conditional
+     moves, or to store in boolean variables), emit extra code to compute and verify the
+     reversed condition, and to call __builtin_trap if the results do not match.
+
+   * **harden-conditional-branches**: For every non-vectorized conditional branch that survives
+     gimple optimizations, emit extra code to compute and verify the reversed condition, and to
+     call `__builtin_trap` if the result is unexpected. Use with `-fharden-compares` to cover all
+     conditionals.
+
+   * **harden-control-flow-redundancy**: Emit extra code to set booleans when entering basic
+     blocks, and to verify and trap, at function exits, when the booleans do not form an execution
+     ath that is compatible with the control flow graph.
+
+   * **hardcfr-check-returning-calls**: When `-fharden-control-flow-redundancy` is active, check
+     the recorded execution path against the control flow graph before any function call
+     immediately followed by a return of its result, if any, so as to not prevent tail-call
+     optimization, whether or not it is ultimately optimized to a tail call.
+
+These flags are mostly activated starting with gcc >= 14.
+
+.. note::
+   As these flags may highly impact the generated kernel size, they are not activated by default.
+   The flag activation can easily be made using `menuconfig`, or set into a given defconfig file.
+
+
+
+.. todo::
+   The `__builtin_trap` symbol must be wrapped so that we take control on fault detection
+
+About he usage of anti-tempering coprocessor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Typically, on stm32u5 SoC, the TAMP coprocessor is used in order to support fast key erasing on
+tempering detection. The key erasing is also triggered when the `__builtin_trap` is executed.
+
+.. todo::
+  The trap to temper subsystem still need to be implemented, starting with STM32U5 SoC but may
+  also be considered on other SoCs that have an equivalent anti-tempering IP
