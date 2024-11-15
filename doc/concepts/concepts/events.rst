@@ -12,6 +12,8 @@ same principle:
      event being encoded as a datagram, using a dedicated event header
    * The job parse and react the event frame received
 
+The lonely exception to this standard behavior are :ref:`Shared Memories <shm_principles>`, built for performance.
+
 .. _event header:
 
 The unified event header is defined as the following:
@@ -56,6 +58,18 @@ About shared memories
 Shared memories are a useful communication model that avoid data recopy and regular
 user-space/kernel-space exchange when transferring data between tasks. Il also allows
 the exchange of potentially bigger data content than classic kernel-based IPC.
+
+Shared memory is built so that jobs can communicate without requiring the kernel to
+handle the cata copy. As a consequence, SHM exchanges is fully under the communicating
+job control, and do not use at all the kernel/task SVC_EXCHANGE data area, leaving
+synchronisation mechanisms to the userspace job.
+
+.. warning::
+    As a consequence, there is no such SVC_EXCHANGE based data transmitted, no
+    event header nor data emitted, and so on
+
+The way jobs synchronize themselves is under the tasks developer's control. This can
+be done using, for example, signals, mutexes, half-duplex mailboxes, and so on.
 
 In Sentry, shared memories are build-time defined at DTS level, meaning that the build
 system verify that:
@@ -234,12 +248,26 @@ streams.
 	    };
     };
 
+.. note::
+    A DMA stream is declared in the root (denoted `/`) section of the device tree
 
 When receiving a DMA stream event, the DMA event is encoded as a u32. DMA event length
 is always 4.
 
-.. note::
-    A DMA stream is declared in the root (denoted `/`) section of the device tree
+DMA event are defined in the `dma.h` header, and respect the following potential values:
+
+.. code-block:: c
+  :caption: Sentry DMA events
+  :linenos:
+
+  GPDMA_STATE_TRANSMISSION_FAILURE  /**< DMA transmission failure */
+  GPDMA_STATE_CONFIGURATION_FAILURE /**< DMA channel configuration failure */
+  GPDMA_STATE_OVERRUN               /**< DMA transmission overrun */
+  GPDMA_STATE_TRANSFER_COMPLETE     /**< DMA transfer complete for this channel */
+  GPDMA_STATE_HALF_TRANSFER         /**< DMA transfer half-complete for this channel */
+
+.. todo::
+  properly separate state (returned by get_info/get_status) from events
 
 About signals
 ^^^^^^^^^^^^^

@@ -3,8 +3,11 @@
 
 syscalls_src = files(
   'alarm.rst',
+  'dma_assign_stream.rst',
+  'dma_start_stream.rst',
   'get_dev_handle.rst',
   'get_task_handle.rst',
+  'get_dma_stream_handle.rst',
   'get_shm_handle.rst',
   'gpio_reset.rst',
   'gpio_toggle.rst',

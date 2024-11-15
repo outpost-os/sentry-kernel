@@ -18,6 +18,9 @@ py3 = pymod.find_installation(
     ]
     )
 
+# man pages sources
+subdir('concepts/uapi/syscalls')
+
 # used by sphinx_simplepdf
 weasyprint = find_program('weasyprint', required: true)
 
@@ -47,25 +50,13 @@ concepts_rst = files(
     'concepts/concepts/archi_req.rst',
     'concepts/concepts/events.rst',
     'concepts/concepts/security.rst',
+    'concepts/concepts/events.rst',
     'concepts/concepts/index.rst',
     'concepts/concepts/initial.rst',
     'concepts/index.rst',
     'concepts/uapi/index.rst',
     'concepts/uapi/model.rst',
     'concepts/uapi/syscalls.rst',
-    'concepts/uapi/syscalls/alarm.rst',
-    'concepts/uapi/syscalls/exit.rst',
-    'concepts/uapi/syscalls/log.rst',
-    'concepts/uapi/syscalls/map.rst',
-    'concepts/uapi/syscalls/send_signal.rst',
-    'concepts/uapi/syscalls/send_ipc.rst',
-    'concepts/uapi/syscalls/gpio_get.rst',
-    'concepts/uapi/syscalls/gpio_reset.rst',
-    'concepts/uapi/syscalls/gpio_set.rst',
-    'concepts/uapi/syscalls/gpio_toggle.rst',
-    'concepts/uapi/syscalls/irq_acknowledge.rst',
-    'concepts/uapi/syscalls/get_dev_handle.rst',
-    'concepts/uapi/syscalls/waitforevent.rst',
     'concepts/sw_architecture/bsp.rst',
     'concepts/sw_architecture/schedulers.rst',
     'concepts/sw_architecture/task_layout.rst',
@@ -79,6 +70,9 @@ concepts_rst = files(
     'concepts/proof/eva.rst',
     'concepts/proof/wp.rst',
 )
+
+concepts_rst += syscalls_src
+
 concepts = custom_target('doc-concepts',
     input: concepts_rst,
     depend_files: [files('concepts/conf.py')],
@@ -144,7 +138,5 @@ doc = alias_target(
     internals,
 )
 
-# man pages sources
-subdir('concepts/uapi/syscalls')
 # man pages target
 subdir('mans')
