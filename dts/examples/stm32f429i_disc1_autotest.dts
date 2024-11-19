@@ -18,8 +18,8 @@
 	};
 
 	reserved-memory {
-		autotest_code: autotest_code@800d000 {
-			reg = <0x800d000 0xe000>;
+		autotest_code: autotest_code@800e000 {
+			reg = <0x8010000 0x10000>;
 			compatible = "outpost,memory-pool";
 		};
 
@@ -30,7 +30,7 @@
 
 		shm_autotest_1: memory@2000a000 {
 			// mappable, dma allowed
-			reg = <0x2000a000 0x256>;
+			reg = <0x2000a000 0x100>;
 			outpost,shm;
 			dma-pool;
 			outpost,label = <0xf00>;
