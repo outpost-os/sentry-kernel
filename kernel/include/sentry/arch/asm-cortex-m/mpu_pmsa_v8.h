@@ -123,6 +123,7 @@
   (((AP) << MPU_RBAR_AP_Pos) & MPU_RBAR_AP_Msk) | \
   (((XN) << MPU_RBAR_XN_Pos) & MPU_RBAR_XN_Msk))
 
+#define MPU_FASTLOAD_ALIGNED 1
 
 /*@
   assigns (*(MPU_Type*)MPU_BASE);
