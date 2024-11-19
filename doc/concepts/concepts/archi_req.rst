@@ -71,7 +71,7 @@ Micro-kernel design: events
 .. _events:
 
 A task receives events. Events are emitted by any external component (being hardware or software). Events are
-the lonely way for a task to interract with any component except the kernel itself.
+the only way for a task to interract with any component except the kernel itself.
 
 Event reception is made using a single syscall, denoted `wait_for_event()`.
 This syscall can be a blocking syscall (used as a single blocking point), or a non-blocking syscall (event polling mode).
@@ -80,18 +80,18 @@ described in :ref:`Events and communication <events>` dedicated chapter.
 
 There are four events types that may target a given job instance:
 
-   * **IRQ**: an IRQ event is emitted when a hardware interrupt associated to a user-space driver happen.
+   * **IRQ**: an IRQ event is emitted when a hardware interrupt associated to a user-space driver is raised.
      In that case, the owning job receive an IRQ event. When executing the event reception at job level,
      one or more IRQs can be delivered to the job, allowing burst receive when multiple interrupts have
      risen since the last call to the receive syscall.
-     As the job asynchronously receive IRQ events (behaving as a bottom-half handler), the IRQ line is masked
-     until the job's IRQ handler unmask the IRQ line. IRQ bottom half latency may vary depending on the owning task
+     As the job asynchronously receives IRQ events (behaving as a bottom-half handler), the IRQ line is masked
+     until the job's IRQ handler unmasks the IRQ line. IRQ bottom half latency may vary depending on the owning task
      scheduling property such as priority and quantum. By now, this behavior is kept so that real-time scheduling design
      is not impacted.
 
    * **IPC**: an IPC event is emitted when another job has emitted an Inter-Process Communication data toward a
      given job. The targeted job is awoken (except for some specific cases, ``see sys_ipc_send``
-     UAPI definition). IPC are single-copy mechanism that allows easy data transmissions between jobs. It is to note
+     UAPI definition). IPC is a single-copy mechanism that allows easy data transmissions between jobs. It is to note
      that emitting an IPC is a blocking event until the target reads it or terminates.
 
    * **Signal**: signals are typed event with no data, that can be emitted by any job or the kernel itself.

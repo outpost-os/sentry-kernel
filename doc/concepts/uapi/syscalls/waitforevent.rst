@@ -41,7 +41,7 @@ sys_wait_for_event
 
    Returning from this syscall in blocking mode means that an event has been received or
    the blocking timeout has been reached.
-   In non-blocking mode, this syscall returns immediately, even if no events has been received.
+   In non-blocking mode, this syscall returns immediately, even if no event has been received.
 
    The `mask` argument is used in order to filter which event type is waited.
 

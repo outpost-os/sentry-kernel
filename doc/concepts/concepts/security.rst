@@ -126,7 +126,7 @@ at configure time.
 
 Supported compiler featuresets are the following:
 
-   * **harden-compares**: For every logical test that survives gimple optimizations and is not
+   * **harden-compares**: For every logical test that survives GIMPLE optimizations and is not
      the condition in a conditional branch (for example, conditions tested for conditional
      moves, or to store in boolean variables), emit extra code to compute and verify the
      reversed condition, and to call __builtin_trap if the results do not match.
@@ -138,7 +138,7 @@ Supported compiler featuresets are the following:
 
    * **harden-control-flow-redundancy**: Emit extra code to set booleans when entering basic
      blocks, and to verify and trap, at function exits, when the booleans do not form an execution
-     ath that is compatible with the control flow graph.
+     tree that is compatible with the control flow graph.
 
    * **hardcfr-check-returning-calls**: When `-fharden-control-flow-redundancy` is active, check
      the recorded execution path against the control flow graph before any function call
@@ -156,11 +156,11 @@ These flags are mostly activated starting with gcc >= 14.
 .. todo::
    The `__builtin_trap` symbol must be wrapped so that we take control on fault detection
 
-About he usage of anti-tempering coprocessor
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+About the usage of anti-temper detection coprocessor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Typically, on stm32u5 SoC, the TAMP coprocessor is used in order to support fast key erasing on
-tempering detection. The key erasing is also triggered when the `__builtin_trap` is executed.
+tampering detection. The key erasing is also triggered when the `__builtin_trap` is executed.
 
 .. todo::
   The trap to temper subsystem still need to be implemented, starting with STM32U5 SoC but may

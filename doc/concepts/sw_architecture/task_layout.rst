@@ -10,7 +10,7 @@ A task is composed, also in a embedded system, of the following main
 elements:
 
    * **text section**: This section hold the task code. This section is the
-     lonely part of the task that is executable. On embedded systems, this
+     only part of the task that is executable. On embedded systems, this
      part is most of the time hold in flash memory as the flash is direct-mapped.
 
    * **rodata section**: this section hold the variable that are const (i.e. not

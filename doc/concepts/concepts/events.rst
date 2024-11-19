@@ -12,7 +12,7 @@ same principle:
      event being encoded as a datagram, using a dedicated event header
    * The job parse and react the event frame received
 
-The lonely exception to this standard behavior are :ref:`Shared Memories <shm_principles>`, built for performance.
+The only exception to this standard behavior are :ref:`Shared Memories <shm_principles>`, built for performance.
 
 .. _event header:
 

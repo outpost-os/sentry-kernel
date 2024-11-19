@@ -86,7 +86,7 @@ To ensure an over-definition of the possible inputs values for EVA, metadata con
 is forged using Frama-C primitives, delivering complete randomness into all the metadata table
 content. otherwise, a zero'ed table would be used, highly reducing the potential path traversals.
 
-These metadata being the lonely external content that requires pre-initialization,
+These metadata being the only external content that requires pre-initialization,
 entrypoint path is fully covered by EVA plugin.
 
 In order to generate clean randomness for metadata table, Frama-C specific fully random sources,
