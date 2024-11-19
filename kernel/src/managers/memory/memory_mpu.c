@@ -210,11 +210,18 @@ kstatus_t mgr_mm_map_device(taskh_t tsk, devh_t dev)
         pr_err("failed to get task ressource layout from task handle %x", tsk);
         goto err;
     }
+    /**
+     * NOTE: here, we ask for the first empty field in task layout.
+     * This field id must be incremented of 2 (<<1) as the first region of th layout_tab
+     * correspond to region 2 (see kernel and task memory mapping) as the kernel has locked
+     * regions 0 and 1 for itself.
+     */
     if (unlikely((status = mpu_get_free_id(layout_tab, TASK_MAX_RESSOURCES_NUM, &mpu_cfg.id)) != K_STATUS_OKAY)) {
         pr_err("no free slot to map device");
         status = K_ERROR_BUSY;
         goto err;
     }
+    mpu_cfg.id += 2; /* as layout starts at task TXT, defined as reg2, it must be incremented */
     mpu_cfg.addr = (uint32_t)devinfo->baseaddr;
     mpu_cfg.size = mpu_convert_size_to_region(devinfo->size);
     mpu_cfg.access_perm = MPU_REGION_PERM_FULL; /* RW for priv+user */
@@ -224,6 +231,7 @@ kstatus_t mgr_mm_map_device(taskh_t tsk, devh_t dev)
     mpu_cfg.shareable = false;
     status = mpu_forge_resource(&mpu_cfg, &layout);
     /*@ assert status == K_STATUS_OKAY; */
+
     status = mgr_task_add_resource(tsk, mpu_cfg.id, layout);
     if (unlikely(status != K_STATUS_OKAY)) {
         /* should not happen as already checked when getting free id */
