@@ -18,6 +18,8 @@ int timer_interrupt_acknowledge(void);
 
 int timer_restart(void);
 
+uint8_t timer_get_irqn(void);
+
 Status timer_map(devh_t *handle);
 
 Status timer_unmap(devh_t handle);
