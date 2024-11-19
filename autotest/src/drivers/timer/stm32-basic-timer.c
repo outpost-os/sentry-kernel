@@ -81,6 +81,13 @@ int timer_enable_interrupt(void)
     return 0;
 }
 
+uint8_t timer_get_irqn(void)
+{
+    stm32_timer_desc_t const *desc = stm32_timer_get_desc();
+
+    return desc->irqn;
+}
+
 int timer_set_periodic(void)
 {
     int res = 0;

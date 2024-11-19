@@ -18,6 +18,7 @@ static void test_irq_spawn_two_it(void)
     Status res;
     uint8_t tab[128];
     uint32_t *IRQn;
+    uint32_t irq = timer_get_irqn();
     timer_enable_interrupt();
     timer_enable();
     /* waiting 1200ms */
@@ -25,7 +26,7 @@ static void test_irq_spawn_two_it(void)
     copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
-    ASSERT_EQ(*IRQn, 49);
+    ASSERT_EQ(*IRQn, irq);
     timer_enable_interrupt();
     timer_enable();
     /* waiting 1200ms */
@@ -33,7 +34,7 @@ static void test_irq_spawn_two_it(void)
     copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
-    ASSERT_EQ(*IRQn, 49);
+    ASSERT_EQ(*IRQn, irq);
     return;
 }
 
@@ -41,6 +42,7 @@ static void test_irq_spawn_one_it(void)
 {
     Status res;
     uint8_t tab[128];
+    uint32_t irq = timer_get_irqn();
     timer_enable_interrupt();
     timer_enable();
     /* waiting 1200ms */
@@ -48,7 +50,7 @@ static void test_irq_spawn_one_it(void)
     copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
-    ASSERT_EQ(*IRQn, 49);
+    ASSERT_EQ(*IRQn, irq);
     ASSERT_EQ(((exchange_event_t*)tab)->source, handle);
     return;
 }
@@ -59,6 +61,7 @@ static void test_irq_spawn_periodic(void)
     Status res;
     uint8_t tab[128];
     uint8_t count;
+    uint32_t irq = timer_get_irqn();
     timer_enable_interrupt();
     timer_set_periodic();
     timer_enable();
@@ -70,7 +73,7 @@ static void test_irq_spawn_periodic(void)
         copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
         ASSERT_EQ(res, STATUS_OK);
         uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
-        ASSERT_EQ(*IRQn, 49);
+        ASSERT_EQ(*IRQn, irq);
         if (count < 4) {
             timer_enable_interrupt();
         }
