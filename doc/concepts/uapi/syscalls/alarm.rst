@@ -1,6 +1,8 @@
 sys_alarm
 """""""""
 
+.. _sys_alarm:
+
 **API definition**
 
    .. code-block:: rust

@@ -28,6 +28,13 @@ sys_irq_enable
 
    This requires the interrupt line to be owned by a device of the given task.
 
+   The kernel do not modify the IRQ enable flag of any devices here, but only unmasks
+   the IRQ line in the main interrupt controller. This means that an interrupt may rise
+   as soon as the kernel unmask the interrupt, pushing an interrupt event in the task's input
+   queue just after the syscall execution.
+   The userspace driver is responsible for (un)masking the interrupt-enable flag at
+   device level.
+
    .. code-block:: C
       :linenos:
       :caption: enable given IRQ of an owned device

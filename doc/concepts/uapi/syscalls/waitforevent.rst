@@ -1,6 +1,9 @@
 sys_wait_for_event
 """"""""""""""""""
 
+.. _wait for event:
+.. _event_type:
+
 **API definition**
 
    .. code-block:: rust
@@ -18,28 +21,40 @@ sys_wait_for_event
         EVENT_TYPE_IPC = 1,
         EVENT_TYPE_SIGNAL = 2,
         EVENT_TYPE_IRQ = 4,
-        EVENT_TYPE_ALL = 7,
+        EVENT_TYPE_DMA = 8,
+        EVENT_TYPE_ALL = 0xf,
       } EventType;
 
       enum Status sys_wait_for_event(uint8_t mask, int32_t timeout);
 
 **Usage**
 
-   This syscall is built in order to be a blocking point of the calling thread.
-   This syscall handles external events blocking reception (IPCs, signals or interrupt).
+   This syscall is designed in order to be a blocking point of the calling thread. Yet,
+   it also allows non-blocking mode if needed.
 
-   In order to wait for specific event(s) only, the mask argument is used in order to
-   filter some specific inputs events using logical OR between waited event(s).
+   The goal of this syscall is to wait for various external events such as:
 
-   The timeout argument is used to define the temporal behavior:
+      * IPC
+      * signals
+      * IRQ
+      * DMA
 
-      * if ``timeout`` is -1, the syscall synchronously return to the job, with STATUS_AGAIN of no
-        event is received
-      * if ``timeout`` is 0, the job is preempted until an event is received
-      * if ``timeout`` is positive, the job waits upto `timeout` ms. In case of timeout reached,
-        STATUS_TIMEOUT is returned
+   Returning from this syscall in blocking mode means that an event has been received or
+   the blocking timeout has been reached.
+   In non-blocking mode, this syscall returns immediately, even if no event has been received.
 
-   In order to help with the timeout flag usage, C macros as been written to hide the field numeric value:
+   The `mask` argument is used in order to filter which event type is waited.
+
+   .. warning::
+      Waiting for no event type at all in blocking mode will always reach the timeout or in
+      full blocking mode will leave the job de-scheduled for ever.
+
+   When using multiple call to `wait_for_event`, the non-blocking mode should be preferred to
+   avoid multiple blocking points in the same thread.
+
+   The `timeout` argument is used to define the temporal behavior.
+
+   the timeout argument the following, canonically defined, values:
 
    .. code-block:: c
       :caption: wait_for_event timeout helpers
@@ -48,44 +63,53 @@ sys_wait_for_event
       #define WFE_WAIT_FOREVER (0)
       #define WFE_WAIT_UPTO(x) (x)
 
-   Any received event is delivered with a TLV basic content in the **svc_exchange** area:
 
-   ```
-   [T:u8][L:u8][magic:u16][source:u32][data...]
-   ```
+   * if ``timeout`` is WFE_WAIT_NO, the syscall synchronously return to the job
+   * if ``timeout`` is 0, the job is preempted until an event is received
+   * if ``timeout`` is positive, the job waits up-to `timeout` milliseconds.
 
-   The T field is keeping the enumerate EventMask encoding, in order to identify the
-   type of received event.
+   the `wait_for_event` API only returns a single event type, even if multiple
+   heterogeneous events are set in the job input queue. As a consequence, there is
+   an event types receiving order that has been defined in the kernel implementation.
+   Events type receiving order respects the following:
 
-   .. note::
-       Only one type of event per call is returned, meaning that only EVENT_IPC, EVENT_SIGNAL
-       or EVENT_IRQ is used for the T field
+   1. Signals events
+   2. IRQ events
+   3. DMA events
+   4. IPC events
 
-   The L field always specify the exact data size. This means that:
+**Return code**
 
-      * An IPC event L field is equal to the effective received bytes
-      * A signal event L field is always equal to 4 (signal value length)
-      * An IRQ fevent L field hold one or more IRQ numbers. Each IRQ value being
-        encoded on 16 bits values, meaning that the number of received IRQ is equal
-        to L/2. In that last case, the IRQ are stored in the chronologically received order
+   * If an event is received, the event data are written in the SVC_EXCHANGE area
+     and the syscall returns STATUS_OKAY. In blocking mode, if the job was preempted
+     during the syscall execution, the quantum is reset to its declared value.
+
+   * If the declared timeout is reached without receiving any event, the syscall
+     returns STATUS_TIMEOUT. The job has its quantum reset to its configured value at
+     the time of the syscall returns.
+
+   * If the syscall is in non-blocking mode and no event exists in the job input queue
+     at the time of the syscall execution, STATUS_AGAIN is returned. The job can continue
+     its execution up-to reaching its quantum.
+
+   * If any of the argument is invalid, the syscall synchronously returns STATUS_INVALID.
+     The job can continue its execution up-to reaching its quantum.
+
+**Returned data**
+
+   If the syscall returns `STATUS_OKAY` the kernel always push event in the SVC_EXCHANGE data.
+
+   The data returned in the SVC_EXCHANGE area respects the data encoding defined in
+   :ref:`events definition <event header>`. The returned event type is always one of the
+   events that have been required in the `mask` argument.
 
    The magic field is used in order to detect invalid exchange content easily, to prevent
    invalid data values access from userspace upper layers.
 
-   The exchange event is an UAPI types that is defined as the following:
+   The data field length depend on the received event type. The events type length and content
+   are defined in the *About events* chapter of Sentry concepts.
 
-   .. code-block:: c
-      :caption: wait_for_event helper struct
-
-      typedef struct exchange_event {
-          uint8_t type;   /*< event type, as defined in uapi/types.h */
-          uint8_t length; /*< event data length, depending on event */
-          uint16_t magic; /*< event TLV magic, specific to input event reception */
-          uint32_t source; /*< event source (task handle value). 0 means the kernel */
-          uint8_t data[]; /*< event data, varies depending on length field */
-      } exchange_event_t;
-
-   This make the syscall usage easier:
+**Example**
 
    .. code-block:: c
       :caption: Typicall wait_for_event usage
@@ -114,11 +138,6 @@ sys_wait_for_event
             break;
       }
 
-
-   .. note::
-      The wait_for_event() API is typically manipulated through the msgrcv() POSIX
-      API implemented in libshield
-
    .. warning::
-      Not that svc_exhchange area content is ephemeral upto the next syscall. The developper should
-      copy its content to a safe area or manipulate it withtout any syscall in the between (including sys_log())
+      Note that svc_exhchange area content is ephemeral up-to the next syscall. The developer should
+      copy its content to a safe area or manipulate it without any syscall in the between

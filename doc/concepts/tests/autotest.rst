@@ -68,7 +68,7 @@ using specially crafted signals that only exist in autotest mode. These signals
 are emitted by the kernel to the autotest application, which can receive them in the
 very same way it receives all signals: through the sys_waitevent syscall.
 
-The lonely difference here is that the signal source is the kernel (source id being `0`),
+The only difference here is that the signal source is the kernel (source id being `0`),
 and the signal value is not a standard signal but one of the autotest specific signals,
 as defined in the UAPI signal header:
 

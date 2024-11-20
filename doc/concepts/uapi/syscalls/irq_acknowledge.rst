@@ -17,12 +17,12 @@ sys_irq_acknowledge
 
 **Usage**
 
-   Acknowledge (clear pending) given IRQ line.
+   Acknowledge (clear pending) a given IRQ line.
 
    This syscall is made in order to allow userspace driver to acknowledge a given IRQ
    when the IRQ handler is executed.
 
-   This requires the interrupt line to be owned by a device of the given task.
+   This requires the interrupt line to be owned by the given task.
 
    .. code-block:: C
       :linenos:

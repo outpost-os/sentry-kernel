@@ -38,6 +38,31 @@ Syscall definition
 .. include:: syscalls/alarm.rst
 
 .. index::
+  single: sys_dma_assign_stream; definition
+  single: sys_dma_assign_stream; usage
+.. include:: syscalls/dma_assign_stream.rst
+
+.. index::
+  single: sys_dma_resume_stream; definition
+  single: sys_dma_resume_stream; usage
+.. include:: syscalls/dma_resume_stream.rst
+
+.. index::
+  single: sys_dma_start_stream; definition
+  single: sys_dma_start_stream; usage
+.. include:: syscalls/dma_start_stream.rst
+
+.. index::
+  single: sys_dma_suspend_stream; definition
+  single: sys_dma_suspend_stream; usage
+.. include:: syscalls/dma_suspend_stream.rst
+
+.. index::
+  single: sys_dma_unassign_stream; definition
+  single: sys_dma_unassign_stream; usage
+.. include:: syscalls/dma_unassign_stream.rst
+
+.. index::
   single: sys_exit; definition
   single: sys_exit; usage
 .. include:: syscalls/exit.rst
@@ -51,6 +76,11 @@ Syscall definition
   single: sys_get_shm_handle; definition
   single: sys_get_shm_handle; usage
 .. include:: syscalls/get_shm_handle.rst
+
+.. index::
+  single: sys_get_dma_handle; definition
+  single: sys_get_dma_handle; usage
+.. include:: syscalls/get_dma_stream_handle.rst
 
 .. index::
   single: sys_get_random; definition

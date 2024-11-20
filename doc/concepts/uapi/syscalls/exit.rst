@@ -30,7 +30,7 @@ sys_exit
 
    End the current job, never returns.
 
-   The exit status is used by the `exitpoint` symbol as lonely argument. This symbol is
+   The exit status is used by the `exitpoint` symbol as only argument. This symbol is
    typically the `_exit` symbol of the libc that can execute post-execution triggers.
 
    If the libc supports it, the application developer can define such a trigger so
