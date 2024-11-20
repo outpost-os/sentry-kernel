@@ -106,6 +106,7 @@
 /** MPU Region Size 4 GBytes */
 #define MPU_REGION_SIZE_4GB ARM_MPU_REGION_SIZE_4GB
 
+#define MPU_FASTLOAD_ALIGNED 0
 /*@
   assigns \nothing;
  */
