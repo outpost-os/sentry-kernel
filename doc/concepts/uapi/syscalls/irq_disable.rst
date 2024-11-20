@@ -17,7 +17,7 @@ sys_irq_disable
 
 **Usage**
 
-   Disable (mask) given IRQ line at IRQ controller level.
+   Disable (mask) given IRQ line at IRQ main controller level.
 
    .. note::
       the controller assignation is not yet supported with this API, and would
@@ -29,6 +29,10 @@ sys_irq_disable
    previously enabled.
 
    This requires the interrupt line to be owned by a device of the given task.
+
+   The kernel do not modify the IRQ enable flag of any devices here, but only masks
+   the IRQ line from the main interrupt controller. The userspace driver is responsible
+   for manipulating device-specific configuration.
 
    .. code-block:: C
       :linenos:
