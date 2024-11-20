@@ -172,12 +172,14 @@ the way the developper consider its task, the job can typically be:
 Based on the previous, the following terminology is defined:
 
    1. A **task** is an autonomous userspace application with a dedicated set of capabilities, memory mapped and scheduling properties
-      that implement a functional service. A task is associated to a *label*.
+      that implement a functional service. A task is associated to a *label*. There is a bijection between a task and a build-time ELF
+      that correspond to a given application.
    2. A **job** is a single instanciation of the task unique thread. The task can execute consecutively, periodicaly or sporadicaly
-      its job, depending on the global system configuration. A job is associated to a *task handle*.
+      its job(s), depending on the global system configuration. A job is associated to a *task handle*. There can be multiple consecutive
+      jobs that correspond to the same task.
    3. A **label** is a 16 bit length identifier defined by the task developer, unique to the task in a project.
-   4. A **task handle** is a 32 bit length identifier (see :ref:`handles <handles>`) that identify the current task job, if it exists.
-
+   4. A **task handle** is a 32 bit length identifier (see :ref:`handles <handles>`) that identify the current task job, if it exists. Each
+      time a job is terminated and re-created for the very same task, the task handle is re-generated with a different seed.
 
 .. index::
    single: capability; concept
@@ -200,13 +202,13 @@ All resources a task accesses in embedded system would be a short list of object
 These objects are devices, system functions, interrupts, shared memories, another task.
 
 All these resources can be considered as objects to which access control is associated to
-a key. for example, acessing a crypto device would require a *crypto-device-key*, while
-acessing an interrupt line would require the corresponding *interrupt-line-key*.
+a key. for example, accessing a crypto device would require a *crypto-device-key*, while
+accessing an interrupt line would require the corresponding *interrupt-line-key*.
 
 As a consequence, all resources require a specific key possession from the requester.
 This is the initial principle of the Bell-Lapadula RBAC model.
 
-In Sentry, an *easy to understand* capabitility based model is implemented that
+In Sentry, an *easy to understand* capability based model is implemented that
 behave in such a way. All resources (devices, shared memory, interrupts, dma streams)
 are associated to a key denoted capability, that is required to access the resource.
 
@@ -217,7 +219,7 @@ Here is the global Sentry capability model:
    :alt: Outpost capabilities
    :align: center
 
-   Capabilities heararchy in Sentry
+   Capabilities hierarchy in Sentry
 
 The capabilities hierarchy is resource-oriented, with family definition that should
 be easy to understand:
@@ -240,6 +242,32 @@ what resource is required by its own application using this hierarchy.
    the capabitility check is fully controlled by the security manager, using
    the task metadatas
 
+The following capabilities are defined in Sentry:
+
+   * **CAP_DEV_BUSES**: hold by objects that exchange data with SoC-external devices through standard communication buses
+   * **CAP_DEV_IO**: hold by external objects that are not made to transmit data (LED, IRQ line, etc.)
+   * **CAP_DEV_DMA**: hold by objects able to be bus-master, such as DMAs
+   * **CAP_DEV_TIMER**: hold by objects able to measure time increments in multiple ways
+   * **CAP_DEV_STORAGE**: hold by objects that are able to locally store data
+   * **CAP_DEV_CRYPTO**: hold by objects that manipulate cryptographic data in various ways (hash, encryption, decryption)
+   * **CAP_DEV_CLOCK**: hold by objects that are able to manipulate and store absolute time references
+   * **CAP_DEV_POWER**: hold by objects that are able to impact the SoC power level
+   * **CAP_DEV_NEURAL**: hold by objects having IA capacities such as neural coprocessors
+   * **CAP_SYS_UPGRADE**: hold by Sentry kernel subcomponents that impacts the current OS version in SoC
+   * **CAP_SYS_POWER**: hold by Sentry kernel subcomponents that interact with the system power level and frequency scaling
+   * **CAP_SYS_PROCSTART**: hold by Sentry kernel subcomponents that manipulate jobs lifecycle
+   * **CAP_MEM_SHM_OWN**: hold by Kernel shm objects that maintain the ownership
+   * **CAP_MEM_SHM_USE**: hold by Kernel shm objects user subpart
+   * **CAP_MEM_SHM_TRANSFER**: hold by Kernel shm objects transfer subpart
+   * **CAP_TIM_HPCHRONO**: hold by the cycle and nanosec level measurement kernel subsystem
+   * **CAP_CRY_KRNG**: hold by the kernel RNG subsystem
+
+.. note::
+   When a task need to interact with a given object, it must hold the very same capability as the object itself,
+   being a hardware object (*CAP_DEV*) a software object (*CAP_SY*S, *CAP_TIM*, *CAP_CRY*), or a reserved memory (CAP_MEM).
+
+The capability matching is made by the kernel, in order to validate that both parts hold the same capability for all
+objects that hold a capability. If the capability match fails, the usual `STATUS_DENIED` is returned.
 
 Spawning mode
 """""""""""""
