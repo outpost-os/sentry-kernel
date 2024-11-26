@@ -6,33 +6,6 @@ use crate::syscall;
 use core::fmt;
 use crate::systypes::*;
 
-struct DebugPrint;
-
-impl fmt::Write for DebugPrint {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        log(s);
-        Ok(())
-    }
-}
-
-pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
-    DebugPrint.write_fmt(args).expect("Print failed");
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {
-        ($crate::uapi::_print(format_args!($($arg)*)))
-    }
-}
-
-#[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)))
-}
-
 /// Emit an already formatted string through the Sentry kernel std log output
 ///
 /// # Usage
