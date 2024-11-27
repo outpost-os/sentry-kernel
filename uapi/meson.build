@@ -35,7 +35,7 @@ py3 = pymod.find_installation('python3', modules: ['git'])
 #  As in linux kernel, uapi headers are not used w/ a kernel name and/or uapi
 #  prefix. So, add the uapi include subdir in "include_directories".
 sentry_c_uapi_dep = declare_dependency(
-    link_with: uapi_rs_lib,
+    link_with: uapi_lib,
     sources: [ uapi_h ],
     compile_args: [ global_build_args, target_arch_args ],
     include_directories: [ userspace_uapi_include_dir ],
@@ -43,7 +43,7 @@ sentry_c_uapi_dep = declare_dependency(
 
 pkg_config = import('pkgconfig')
 pkg_config.generate(
-    uapi_rs_lib,
+    uapi_lib,
     filebase: 'uapi',
     extra_cflags: [ global_build_args, target_arch_args ],
 )

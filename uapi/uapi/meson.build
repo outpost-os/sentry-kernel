@@ -3,16 +3,31 @@
 
 rust = import('rust')
 
-uapi_rs_lib = static_library(
+uapi_manifest = files('Cargo.toml')
+uapi_libfile = files('lib.rs')
+
+# XXX:
+# only lib.rs is required for static_library target but in order to export correct
+# dependencies through meson introspect, we should add deps to inner modules
+uapi_modules = files([
+  'panic.rs',
+  'svc_exchange.rs',
+  'syscall.rs',
+  'systypes.rs',
+  'uapi.rs',
+])
+
+subdir('arch')
+
+uapi_lib = static_library(
     'uapi',
-    sources : uapi_rust_libfile,
+    sources : uapi_libfile,
     rust_abi: 'c',
     rust_args: global_rust_build_args,
     override_options: [uapi_rust_std],
+    extra_files: uapi_modules,
     install: true,
 )
-
-libuapirs_dep = declare_dependency(link_with : uapi_rs_lib)
 
 cargo = find_program('cargo', required: true)
 
@@ -55,7 +70,7 @@ test(
     '--',
     '--check',
   ],
-  depends: uapi_rs_lib,
+  depends: uapi_lib,
   env: cargo_env,
   is_parallel: false,
   timeout: 1800,
@@ -75,7 +90,7 @@ if cargo_clippy.found()
       '-D',
       'warnings',
     ],
-    depends: uapi_rs_lib,
+    depends: uapi_lib,
     env: cargo_env,
     should_fail: true,
     suite: 'uapi',
@@ -91,7 +106,7 @@ test(
     '--',
     '--test-threads=1',
   ],
-  depends: uapi_rs_lib,
+  depends: uapi_lib,
   env: cargo_env,
   is_parallel: false,
   timeout: 1800,
