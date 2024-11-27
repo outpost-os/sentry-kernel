@@ -15,7 +15,7 @@
 # limitations under the License.
 
 project('sentry-kernel', 'c',
-    meson_version: '>=1.3.0',
+    meson_version: '>=1.4.0',
     default_options: [
         'c_std=gnu11', 'cpp_std=gnu++20',
         'warning_level=3', 'optimization=s',
