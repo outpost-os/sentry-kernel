@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2024 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
-rust = import('rust')
-
-uapi_manifest = files('Cargo.toml')
 uapi_libfile = files('lib.rs')
 
 # XXX:
@@ -27,6 +24,25 @@ uapi_lib = static_library(
     override_options: [uapi_rust_std],
     extra_files: uapi_modules,
     install: true,
+)
+
+# XXX:
+#  This deps is designed for userspace (libshied) only
+#  As in linux kernel, uapi headers are not used w/ a kernel name and/or uapi
+#  prefix. So, add the uapi include subdir in "include_directories".
+sentry_c_uapi_dep = declare_dependency(
+    link_with: uapi_lib,
+    sources: [ uapi_h ],
+    compile_args: [ global_build_args, target_arch_args ],
+    include_directories: [ userspace_uapi_include_dir ],
+)
+
+# Generate pkg config file uapi.pc for C app using c_ffi static library
+pkg_config = import('pkgconfig')
+pkg_config.generate(
+    uapi_lib,
+    filebase: 'uapi',
+    extra_cflags: [ global_build_args, target_arch_args ],
 )
 
 cargo = find_program('cargo', required: true)
