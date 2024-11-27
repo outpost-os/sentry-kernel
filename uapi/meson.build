@@ -5,12 +5,12 @@ if not with_uapi_opt
     subdir_done()
 endif
 
-if not meson.has_external_property('rust_target')
-    error('missing rust_target property in cross-file')
-endif
-
 add_languages('rust', native: false, required: true)
 
+# Set rust toolchain config entry acording to kconfig
+# Note:
+#   configuration_file is done at top level meson.build in order to generate
+#   rust-toolchain.toml at build root directory.
 rust_toolchain_in = files('rust-toolchain.toml.in')
 rust_toolchain_config = configuration_data()
 rust_toolchain_config.set('channel', get_option('rust-channel'))
