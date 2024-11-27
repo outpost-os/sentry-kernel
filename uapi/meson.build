@@ -29,6 +29,28 @@ uapi_manifest = files('Cargo.toml')
 subdir('include/uapi')
 subdir('src')
 
+cargo = find_program('cargo', required: true)
+cargo_fmt = find_program('cargo-fmt', required: false)
+cargo_clippy = find_program('cargo-clippy', required: false)
+cargo_index = find_program('cargo-index', required: false)
+
+if with_doc_opt
+uapi_doc = custom_target(
+  'doc-uapi',
+  input: uapi_manifest,
+  output: 'doc',
+  command: [cargo, 'doc', '--manifest-path', '@INPUT@'],
+  depend_files: [uapi_modules, uapi_libfile],
+  env: {'CARGO_TARGET_DIR':meson.current_build_dir()},
+  install: true,
+  install_dir: get_option('datadir') / 'doc/sentry-uapi',
+  install_tag: 'doc',
+)
+
+uapi_doc_alias = alias_target('doc-uapi', uapi_doc)
+
+endif # with_doc
+
 install_data(
   'task.Kconfig',
   install_dir : get_option('datadir') / 'configs',

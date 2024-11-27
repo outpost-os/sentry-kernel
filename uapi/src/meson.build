@@ -45,28 +45,7 @@ pkg_config.generate(
     extra_cflags: [ global_build_args, target_arch_args ],
 )
 
-cargo = find_program('cargo', required: true)
 
-if with_doc_opt
-gen_cargo_doc = custom_target(
-  'forge_cargo_doc',
-  output: 'doc',
-  command: [
-    cargo,
-    'doc',
-    '--lib',
-    '--package', 'sentry-uapi',
-    '--examples',
-    '--manifest-path', uapi_manifest[0].full_path(),
-  ],
-  install: true,
-  env: {'CARGO_TARGET_DIR':meson.current_build_dir()},
-  install_dir: get_option('datadir') / 'doc/sentry-uapi',
-  install_tag: 'doc',
-  build_by_default: true,
-  build_always_stale: true,
-)
-endif # with_doc
 
 if with_tests
 cargo_options = [ '--manifest-path', uapi_manifest[0].full_path() ]
