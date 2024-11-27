@@ -16,8 +16,8 @@ rust_toolchain_config = configuration_data()
 rust_toolchain_config.set('channel', get_option('rust-channel'))
 rust_toolchain_config.set('target', kconfig_data.get_unquoted('CONFIG_RUSTC_TARGET'))
 
-uapi_rust_std = 'rust_std=2021'
-uapi_rust_libfile = files('uapi/lib.rs')
+rust_edition = '2021'
+uapi_rust_std = 'rust_std=' + rust_edition
 
 global_rust_build_args = [
     '@' + fs.parent(kconfig_rustargs) / fs.name(kconfig_rustargs),
@@ -89,4 +89,11 @@ install_data(
 install_data(
   '.cargo-checksum.json',
   install_dir: get_option('datadir') / 'cargo/repository/sentry-uapi',
+)
+
+summary(
+    {
+        'rust edition': rust_edition,
+    },
+    section: 'Target specific compile args'
 )
