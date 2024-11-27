@@ -41,7 +41,7 @@ gen_cargo_doc = custom_target(
     '--lib',
     '--package', 'sentry-uapi',
     '--examples',
-    '--manifest-path', meson.current_source_dir() / 'Cargo.toml'
+    '--manifest-path', uapi_manifest[0].full_path(),
   ],
   install: true,
   env: {'CARGO_TARGET_DIR':meson.current_build_dir()},
@@ -53,7 +53,7 @@ gen_cargo_doc = custom_target(
 endif # with_doc
 
 if with_tests
-cargo_options = [ '--manifest-path', meson.current_source_dir() / 'Cargo.toml' ]
+cargo_options = [ '--manifest-path', uapi_manifest[0].full_path() ]
 cargo_options += [ '--target-dir', meson.current_build_dir() ]
 
 cargo_env = environment()

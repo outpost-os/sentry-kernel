@@ -7,7 +7,7 @@ endif
 
 add_languages('rust', native: false, required: true)
 
-# Set rust toolchain config entry acording to kconfig
+# Set rust toolchain config entry according to kconfig
 # Note:
 #   configuration_file is done at top level meson.build in order to generate
 #   rust-toolchain.toml at build root directory.
