@@ -3,7 +3,6 @@
 
 use crate::svc_exchange::*;
 use crate::syscall;
-use core::fmt;
 use crate::systypes::*;
 
 /// Emit an already formatted string through the Sentry kernel std log output
