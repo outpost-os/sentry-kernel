@@ -111,16 +111,16 @@ endif
 # these flags are overload by arch/<architecture> meson.build file
 target_arch_args = []
 
-add_project_link_arguments([
+target_link_args = [
     '-Wl,--gc-sections',
     '-Wl,--no-undefined',
     '-Wl,--cref',
     '-nostdlib',
     '-nodefaultlibs',
-    '-nostartfiles'],
-    language: 'c',
-    native: false
-)
+    '-nostartfiles',
+]
+
+add_project_link_arguments(target_link_args, language: 'c', native: false)
 
 # XXX: add_global_arguments **can't** be done after a subproject definition
 #add_global_arguments([ global_build_args, target_arch_args ], language: 'c', native: false)
