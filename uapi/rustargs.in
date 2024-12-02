@@ -1,0 +1,3 @@
+{% for arg in rustargs.split(' ') -%}
+{{ arg }}
+{% endfor -%}

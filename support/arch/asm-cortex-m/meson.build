@@ -61,8 +61,11 @@ if not target_has_fpu and kconfig_data.get_unquoted('CONFIG_ARCH_ARM_CORTEX_NAME
 target_rustargs += [ '-Ctarget-feature=+soft-float' ]
 endif
 
-target_arch_args += target_cflags
+foreach link_arg: target_link_args
+    target_rustargs += ['-Clink-args=' + link_arg]
+endforeach
 
+target_arch_args += target_cflags
 
 summary(
     {
