@@ -103,6 +103,28 @@ test(
 
 endif #with_tests
 
+# Install devel files for cargo
+# - rust_target: llvm target triple
+# - rustargs: target rustargs (compile and link flags)
+rust_target_template = files('rust_target.in')
+rust_target_file = configure_file(
+    input: rust_target_template,
+    output: '@BASENAME@',
+    command: [jinja_cli, '@INPUT@', '--define', 'target', target_rust, '-o', '@OUTPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / 'cargo',
+    install_tag: 'data',
+)
+
+rustargs_template = files('rustargs.in')
+rustargs_file = configure_file(
+    input: rustargs_template,
+    output: '@BASENAME@',
+    command: [jinja_cli, '@INPUT@', '--define', 'rustargs', ' '.join(target_rustargs), '-o', '@OUTPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / 'cargo',
+    install_tag: 'data',
+)
 
 install_data(
   'task.Kconfig',
