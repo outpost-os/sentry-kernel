@@ -17,11 +17,11 @@ static void test_dma_get_handle(dmah_t* d2mstreamh, dmah_t *m2mstreamh)
 {
     Status res;
     TEST_START();
-    res = sys_get_dma_stream_handle(0x1);
+    res = __sys_get_dma_stream_handle(0x1);
     copy_to_user((uint8_t*)d2mstreamh, sizeof(dmah_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", *d2mstreamh);
-    res = sys_get_dma_stream_handle(0x2);
+    res = __sys_get_dma_stream_handle(0x2);
     copy_to_user((uint8_t*)m2mstreamh, sizeof(dmah_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", *m2mstreamh);
@@ -33,7 +33,7 @@ static void test_dma_get_handle_inval(void)
     Status res;
     dmah_t stream = 0;
     TEST_START();
-    res = sys_get_dma_stream_handle(0x42);
+    res = __sys_get_dma_stream_handle(0x42);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -42,16 +42,16 @@ static void test_dma_start_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
-    res = sys_dma_start_stream(stream);
+    res = __sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_assign_stream(stream);
+    res = __sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     /* assigned, should start */
-    res = sys_dma_start_stream(stream);
+    res = __sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_assign_stream(stream);
+    res = __sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_start_stream(stream);
+    res = __sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -60,11 +60,11 @@ static void test_dma_manipulate_stream_badhandle(void)
 {
     Status res;
     TEST_START();
-    res = sys_dma_start_stream(0);
+    res = __sys_dma_start_stream(0);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_suspend_stream(0);
+    res = __sys_dma_suspend_stream(0);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_get_stream_status(0);
+    res = __sys_dma_get_stream_status(0);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -73,7 +73,7 @@ static void test_dma_get_stream_status(dmah_t stream)
 {
     Status res;
     TEST_START();
-    res = sys_dma_get_stream_status(stream);
+    res = __sys_dma_get_stream_status(stream);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -82,9 +82,9 @@ static void test_dma_stop_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
-    res = sys_dma_suspend_stream(stream);
+    res = __sys_dma_suspend_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_unassign_stream(stream);
+    res = __sys_dma_unassign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -93,13 +93,13 @@ static void test_dma_assign_unassign_stream(dmah_t stream)
 {
     Status res;
     TEST_START();
-    res = sys_dma_assign_stream(stream);
+    res = __sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_assign_stream(stream);
+    res = __sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_dma_unassign_stream(stream);
+    res = __sys_dma_unassign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_unassign_stream(stream);
+    res = __sys_dma_unassign_stream(stream);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -116,46 +116,46 @@ static void test_dma_start_n_wait_stream(dmah_t stream)
     perms |= SHM_PERMISSION_MAP;
     int ret_builtin;
     TEST_START();
-    res = sys_get_process_handle(0xbabeUL);
+    res = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&myself, sizeof(taskh_t));
     // preparing shm1 with content
-    res = sys_get_shm_handle(shms[0].id);
+    res = __sys_get_shm_handle(shms[0].id);
     copy_to_user((uint8_t*)&shm1, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_set_credential(shm1, myself, perms);
+    res = __sys_shm_set_credential(shm1, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_map_shm(shm1);
+    res = __sys_map_shm(shm1);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_get_infos(shm1);
+    res = __sys_shm_get_infos(shm1);
     copy_to_user((uint8_t*)&shminfos1, sizeof(shm_infos_t));
     ASSERT_EQ(res, STATUS_OK);
     memset((void*)shminfos1.base, 0xa5, 0x100UL);
     // garbaging shm2
-    res = sys_get_shm_handle(shms[1].id);
+    res = __sys_get_shm_handle(shms[1].id);
     copy_to_user((uint8_t*)&shm2, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_set_credential(shm2, myself, perms);
+    res = __sys_shm_set_credential(shm2, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_map_shm(shm2);
+    res = __sys_map_shm(shm2);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_get_infos(shm2);
+    res = __sys_shm_get_infos(shm2);
     copy_to_user((uint8_t*)&shminfos2, sizeof(shm_infos_t));
     ASSERT_EQ(res, STATUS_OK);
     memset((void*)shminfos2.base, 0x42, 0x100UL);
     // start stream
-    res = sys_dma_assign_stream(stream);
+    res = __sys_dma_assign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_start_stream(stream);
+    res = __sys_dma_start_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     /* wait 50ms for DMA event, should rise in the meantime */
-    res = sys_wait_for_event(EVENT_TYPE_DMA, -1);
+    res = __sys_wait_for_event(EVENT_TYPE_DMA, -1);
     ASSERT_EQ(res, STATUS_OK);
     // compare shm1 with shm2
     ret_builtin = memcmp((void*)shminfos1.base, (void*)shminfos2.base, 0x100);
     ASSERT_EQ((uint32_t)ret_builtin, 0);
-    res = sys_dma_suspend_stream(stream);
+    res = __sys_dma_suspend_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_unassign_stream(stream);
+    res = __sys_dma_unassign_stream(stream);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -167,15 +167,15 @@ static void test_dma_get_info(dmah_t stream)
     shmh_t shm;
     shm_infos_t infos;
     TEST_START();
-    res = sys_get_shm_handle(shms[0].id);
+    res = __sys_get_shm_handle(shms[0].id);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_get_infos(shm);
+    res = __sys_shm_get_infos(shm);
     copy_to_user((uint8_t*)&infos, sizeof(shm_infos_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_get_dma_stream_handle(0x1);
+    res = __sys_get_dma_stream_handle(0x1);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_dma_get_stream_info(stream);
+    res = __sys_dma_get_stream_info(stream);
     copy_to_user((uint8_t*)&stream_info, sizeof(gpdma_stream_cfg_t));
     ASSERT_EQ(res, STATUS_OK);
     ASSERT_EQ((uint32_t)stream_info.stream, 112);
