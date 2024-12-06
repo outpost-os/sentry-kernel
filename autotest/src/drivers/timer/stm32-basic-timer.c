@@ -47,7 +47,7 @@ int timer_init(void)
     /* enable interrupt update */
     reg |= TIM_DIER_UIE;
     iowrite32(desc->base_addr + TIM_DIER_REG, reg);
-    sys_irq_enable(desc->irqn);
+    __sys_irq_enable(desc->irqn);
     return 0;
 }
 
@@ -77,7 +77,7 @@ int timer_enable_interrupt(void)
     /* enable interrupt update */
     reg |= TIM_DIER_UIE;
     iowrite32(desc->base_addr + TIM_DIER_REG, reg);
-    sys_irq_enable(desc->irqn);
+    __sys_irq_enable(desc->irqn);
     return 0;
 }
 
@@ -133,12 +133,12 @@ Status timer_map(devh_t *handle)
 {
     stm32_timer_desc_t const *desc = stm32_timer_get_desc();
     Status res;
-    res = sys_get_device_handle(desc->label);
+    res = __sys_get_device_handle(desc->label);
     if (res != STATUS_OK) {
         goto end;
     }
     copy_to_user((uint8_t*)handle, sizeof(devh_t));
-    res = sys_map_dev(*handle);
+    res = __sys_map_dev(*handle);
     if (res != STATUS_OK) {
         goto end;
     }
@@ -150,7 +150,7 @@ Status timer_unmap(devh_t handle)
 {
     stm32_timer_desc_t const *desc = stm32_timer_get_desc();
     Status res;
-    res = sys_unmap_dev(handle);
+    res = __sys_unmap_dev(handle);
     if (res != STATUS_OK) {
         goto end;
     }

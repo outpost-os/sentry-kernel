@@ -17,7 +17,7 @@ void test_signal_sendrecv(void)
     uint8_t data[CONFIG_SVC_EXCHANGE_AREA_LEN] = {0};
     exchange_event_t *header;
 
-    ret = sys_get_process_handle(0xbabeUL);
+    ret = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
     LOG("handle is %lx", handle);
     ASSERT_EQ(ret, STATUS_OK);
@@ -25,8 +25,8 @@ void test_signal_sendrecv(void)
     Signal sig = SIGNAL_ABORT;
     for (sig = SIGNAL_ABORT; sig <= SIGNAL_USR2; ++sig) {
         LOG("sending signal %u to myself", sig);
-        ret = sys_send_signal(handle, sig);
-        ret = sys_wait_for_event(EVENT_TYPE_SIGNAL, timeout);
+        ret = __sys_send_signal(handle, sig);
+        ret = __sys_wait_for_event(EVENT_TYPE_SIGNAL, timeout);
         copy_to_user(data, 4+sizeof(exchange_event_t));
         header = (exchange_event_t*)&data[0];
         uint32_t* content = (uint32_t*)&header->data[0];

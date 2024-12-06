@@ -13,13 +13,13 @@ void test_yield(void)
     Status ret;
     TEST_START();
     LOG("yielding...");
-    ret = sys_yield();
+    ret = __sys_sched_yield();
     ASSERT_EQ(ret, STATUS_OK);
     LOG("yielding...");
-    ret = sys_yield();
+    ret = __sys_sched_yield();
     ASSERT_EQ(ret, STATUS_OK);
     LOG("yielding...");
-    ret = sys_yield();
+    ret = __sys_sched_yield();
     ASSERT_EQ(ret, STATUS_OK);
     TEST_END();
     TEST_SUITE_END("sys_yield");

@@ -38,17 +38,17 @@ void __attribute__((no_stack_protector, used, noreturn)) idle(uint32_t label, ui
     __stack_chk_guard = seed;
 
     copy_from_user(welcommsg, 20);
-    sys_log(20);
+    __sys_log(20);
 
     copy_from_user(yieldmsg, 26);
-    sys_log(26);
+    __sys_log(26);
     /* TODO: yield() first, to force task scheduling */
-    sys_yield();
+    __sys_sched_yield();
 
     do {
         /* entering LP mode */
         //sys_manage_cpu_sleep(CPU_SLEEP_WAIT_FOR_INTERRUPT);
         /* rise from LP, force task election */
-        sys_yield();
+        __sys_sched_yield();
     } while (1);
 }

@@ -30,13 +30,13 @@ void test_shm_handle(void) {
     Status res;
     shmh_t shm;
     TEST_START();
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_get_shm_handle(SHM_NOMAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_NOMAP_DMAPOOL);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_get_shm_handle(SHM_MAP_NODMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_NODMAPOOL);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_get_shm_handle(0x42);
+    res = __sys_get_shm_handle(0x42);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -45,10 +45,10 @@ void test_shm_unmap_notmapped(void) {
     Status res;
     shmh_t shm;
     TEST_START();
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_unmap_shm(shm);
+    res = __sys_unmap_shm(shm);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -57,11 +57,11 @@ void test_shm_invalidmap(void) {
     Status res;
     shmh_t shm;
     TEST_START();
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
     shm += 42;
-    res = sys_map_shm(shm);
+    res = __sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -73,12 +73,12 @@ void test_shm_mapdenied(void) {
     perms |= SHM_PERMISSION_WRITE;
     perms |= SHM_PERMISSION_MAP;
     TEST_START();
-    res = sys_get_shm_handle(SHM_NOMAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_NOMAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_map_shm(shm);
+    res = __sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_DENIED);
     TEST_END();
 }
@@ -88,10 +88,10 @@ void test_shm_infos(void) {
     shmh_t shm;
     shm_infos_t infos;
     TEST_START();
-    res = sys_get_shm_handle(shms[0].id);
+    res = __sys_get_shm_handle(shms[0].id);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_shm_get_infos(shm);
+    res = __sys_shm_get_infos(shm);
     copy_to_user((uint8_t*)&infos, sizeof(shm_infos_t));
 
     ASSERT_EQ(res, STATUS_OK);
@@ -108,27 +108,27 @@ void test_shm_creds_on_mapped(void) {
     shmh_t shm;
     TEST_START();
     /* get own handle first */
-    res = sys_get_process_handle(0xbabeUL);
+    res = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&myself, sizeof(taskh_t));
     /* get shm handle then */
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
     uint32_t perms = (SHM_PERMISSION_MAP | SHM_PERMISSION_WRITE);
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
     /* map SHM */
-    res = sys_map_shm(shm);
+    res = __sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_OK);
     /* try to set creds on mapped SHM */
     perms = (SHM_PERMISSION_WRITE);
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_BUSY);
     /* unmap SHM */
-    res = sys_unmap_shm(shm);
+    res = __sys_unmap_shm(shm);
     ASSERT_EQ(res, STATUS_OK);
     /* set creds after unmap */
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
 
     TEST_END();
@@ -139,14 +139,14 @@ void test_shm_allows_idle(void) {
     shmh_t shm;
     TEST_START();
     /* get idle handle first */
-    res = sys_get_process_handle(0xcafeUL);
+    res = __sys_get_process_handle(0xcafeUL);
     copy_to_user((uint8_t*)&idle, sizeof(taskh_t));
     /* get shm handle then */
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
     uint32_t perms = SHM_PERMISSION_TRANSFER;
-    res = sys_shm_set_credential(shm, idle, perms);
+    res = __sys_shm_set_credential(shm, idle, perms);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -156,21 +156,21 @@ void test_shm_map_unmappable(void) {
     shmh_t shm;
     TEST_START();
     /* get own handle first */
-    res = sys_get_process_handle(0xbabeUL);
+    res = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&myself, sizeof(taskh_t));
     /* get shm handle then */
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", shm);
     /* give full write to myself */
     uint32_t perms = 0;
     perms |= SHM_PERMISSION_WRITE;
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     LOG("creds set");
     ASSERT_EQ(res, STATUS_OK);
     /* map SHM, should fail as creds not mappable */
-    res = sys_map_shm(shm);
+    res = __sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_DENIED);
     TEST_END();
 }
@@ -180,10 +180,10 @@ void test_shm_mapunmap(void) {
     shmh_t shm;
     TEST_START();
     /* get own handle first */
-    res = sys_get_process_handle(0xbabeUL);
+    res = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&myself, sizeof(taskh_t));
     /* get shm handle then */
-    res = sys_get_shm_handle(SHM_MAP_DMAPOOL);
+    res = __sys_get_shm_handle(SHM_MAP_DMAPOOL);
     copy_to_user((uint8_t*)&shm, sizeof(shmh_t));
     LOG("handle is %lx", shm);
     ASSERT_EQ(res, STATUS_OK);
@@ -191,11 +191,11 @@ void test_shm_mapunmap(void) {
     uint32_t perms = 0;
     perms |= SHM_PERMISSION_WRITE;
     perms |= SHM_PERMISSION_MAP;
-    res = sys_shm_set_credential(shm, myself, perms);
+    res = __sys_shm_set_credential(shm, myself, perms);
     ASSERT_EQ(res, STATUS_OK);
     LOG("creds set");
     /* map SHM */
-    res = sys_map_shm(shm);
+    res = __sys_map_shm(shm);
     ASSERT_EQ(res, STATUS_OK);
     if (res != STATUS_OK) {
         goto end;
@@ -208,7 +208,7 @@ void test_shm_mapunmap(void) {
         shmptr++;
     }
     LOG("unmapping");
-    res = sys_unmap_shm(shm);
+    res = __sys_unmap_shm(shm);
     ASSERT_EQ(res, STATUS_OK);
 end:
     TEST_END();

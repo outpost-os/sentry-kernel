@@ -25,6 +25,26 @@
 #[macro_use]
 mod arch;
 
+/// Sentry UAPI C export interface module
+///
+/// # Usage
+///
+/// This module should not be used in a full Rust application, while this is the lonely
+/// accessible interface in C.
+/// This allows a full Rust usage without extern C and thus unsafe calls when
+/// writing Rust application with cargo
+/// interface is used. Sentry kernel interactions should be, instead, made with
+/// the [`mod@uapi`] upper interface.
+///
+/// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
+/// made in order to exchange data between userspace and kernelspace without
+/// manpulating any pointer, this space has a particular meaning and usage, holding
+/// any type of content as a 'retention area' before and after system calls.
+///
+/// > **NOTE**: svc exchange manipulation is unsafe
+///
+pub mod ffi_c;
+
 
 /// Sentry SVC_EXCHANGE area manipulation primitives
 ///
@@ -57,20 +77,6 @@ pub mod svc_exchange;
 /// > **NOTE**: This module may not be kept public forever
 ///
 pub mod syscall;
-
-/// Sentry kernel user API
-///
-/// # Usage
-///
-/// This module is the main entrypoint of all Sentry kernel calls.
-/// It is made in order to simplify the usage of the effective kernel syscall gate
-/// by automatically manipulate the exchange area in both ways, when syscalls
-/// needs non-scalar inputs or instead returns data.
-///
-/// As a consequence, except for very specific needs, this is the lonely module
-/// that should be used when using the Sentry UAPI.
-///
-pub mod uapi;
 
 /// Sentry kernelspace/userspace shared types and values
 ///

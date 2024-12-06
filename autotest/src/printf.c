@@ -21,7 +21,7 @@ static inline void dbgbuffer_display(void)
 {
     uint16_t len = log_get_dbgbuf_offset();
     copy_from_user(log_get_dbgbuf(), len);
-    sys_log(len);
+    __sys_log(len);
 }
 
 

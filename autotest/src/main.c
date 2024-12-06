@@ -86,6 +86,6 @@ void __attribute__((no_stack_protector, used, noreturn)) autotest(uint32_t label
 
 
     /* all tests finished, leaving */
-    sys_exit(0);
+    __sys_exit(0);
     __builtin_unreachable();
 }

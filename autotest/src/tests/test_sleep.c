@@ -15,7 +15,7 @@ void test_sleep_return(void)
     duration.arbitrary_ms = sleep_time;
 
     TEST_START();
-    ASSERT_EQ(sys_sleep(duration, SLEEP_MODE_DEEP), STATUS_TIMEOUT);
+    ASSERT_EQ(__sys_sleep(duration, SLEEP_MODE_DEEP), STATUS_TIMEOUT);
     TEST_END();
 
     return;
@@ -42,14 +42,14 @@ void test_sleep_duration(void)
         duration.arbitrary_ms = sleep_time;
         TEST_START();
 
-        /* as svc exchange is zeroified by sys_log usage,
+        /* as svc exchange is zeroified by __sys_log usage,
          * and because logging is impacting the duration, we first
          * get all the values, and then assert them
          */
-        cycle_start_st = sys_get_cycle(PRECISION_MILLISECONDS);
+        cycle_start_st = __sys_get_cycle(PRECISION_MILLISECONDS);
         copy_to_user((uint8_t*)&start, sizeof(uint64_t));
-        sleep_st = sys_sleep(duration, SLEEP_MODE_DEEP);
-        cycle_end_st = sys_get_cycle(PRECISION_MILLISECONDS);
+        sleep_st = __sys_sleep(duration, SLEEP_MODE_DEEP);
+        cycle_end_st = __sys_get_cycle(PRECISION_MILLISECONDS);
         copy_to_user((uint8_t*)&stop, sizeof(uint64_t));
 
         ASSERT_EQ(cycle_start_st, STATUS_OK);

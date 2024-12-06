@@ -24,7 +24,7 @@ void test_gethandle(void)
     copy_from_user((uint8_t*)&handle, sizeof(handle));
     copy_to_user((uint8_t*)&handle, sizeof(handle));
     ASSERT_EQ(handle, 0);
-    ret = sys_get_process_handle(0xbabeUL);
+    ret = __sys_get_process_handle(0xbabeUL);
     copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
     ASSERT_EQ(ret, STATUS_OK);
     LOG("received handle: %lx", handle);

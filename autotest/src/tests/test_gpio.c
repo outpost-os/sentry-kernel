@@ -15,13 +15,13 @@ void test_gpio_on(void)
     Status res;
     devh_t dev;
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", dev);
-    res = sys_gpio_configure(dev, 0);
+    res = __sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_gpio_set(dev, 0, 1);
+    res = __sys_gpio_set(dev, 0, 1);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -32,13 +32,13 @@ void test_gpio_off(void)
     devh_t dev;
 
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", dev);
-    res = sys_gpio_configure(dev, 0);
+    res = __sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_gpio_set(dev, 0, 0);
+    res = __sys_gpio_set(dev, 0, 0);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }
@@ -52,14 +52,14 @@ void test_gpio_toggle(void)
     duration.tag = SLEEP_DURATION_ARBITRARY_MS;
     duration.arbitrary_ms = 250; /* 250 ms*/
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
-    res = sys_gpio_configure(dev, 0);
+    res = __sys_gpio_configure(dev, 0);
     ASSERT_EQ(res, STATUS_OK);
     for (uint8_t i = 0; i < 10; ++i) {
-        res = sys_gpio_toggle(dev, 0);
+        res = __sys_gpio_toggle(dev, 0);
         ASSERT_EQ(res, STATUS_OK);
-        sys_sleep(duration, SLEEP_MODE_DEEP);
+        __sys_sleep(duration, SLEEP_MODE_DEEP);
     }
     TEST_END();
 }
@@ -70,13 +70,13 @@ void test_gpio_invalid_io(void)
     devh_t dev;
 
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_LED0].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
-    res = sys_gpio_configure(dev, 4);
+    res = __sys_gpio_configure(dev, 4);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_gpio_configure(dev, 8);
+    res = __sys_gpio_configure(dev, 8);
     ASSERT_EQ(res, STATUS_INVALID);
-    res = sys_gpio_configure(dev, 250);
+    res = __sys_gpio_configure(dev, 250);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -87,7 +87,7 @@ void test_gpio_invalid_devh(void)
     devh_t dev = 1;
 
     TEST_START();
-    res = sys_gpio_configure(dev, 1);
+    res = __sys_gpio_configure(dev, 1);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -107,9 +107,9 @@ void test_gpio(void) {
     TEST_SUITE_START("sys_gpio");
     test_gpio_toggle();
     test_gpio_off();
-    sys_sleep(duration, SLEEP_MODE_DEEP);
+    __sys_sleep(duration, SLEEP_MODE_DEEP);
     test_gpio_on();
-    sys_sleep(duration, SLEEP_MODE_DEEP);
+    __sys_sleep(duration, SLEEP_MODE_DEEP);
     test_gpio_off();
     test_gpio_invalid_io();
     test_gpio_invalid_devh();
