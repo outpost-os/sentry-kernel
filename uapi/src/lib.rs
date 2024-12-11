@@ -36,13 +36,6 @@ mod arch;
 /// interface is used. Sentry kernel interactions should be, instead, made with
 /// the [`mod@uapi`] upper interface.
 ///
-/// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
-/// made in order to exchange data between userspace and kernelspace without
-/// manpulating any pointer, this space has a particular meaning and usage, holding
-/// any type of content as a 'retention area' before and after system calls.
-///
-/// > **NOTE**: svc exchange manipulation is unsafe
-///
 pub mod ffi_c;
 
 
@@ -56,10 +49,20 @@ pub mod ffi_c;
 ///
 /// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
 /// made in order to exchange data between userspace and kernelspace without
-/// manpulating any pointer, this space has a particular meaning and usage, holding
+/// manipulating any pointer, this space has a particular meaning and usage, holding
 /// any type of content as a 'retention area' before and after system calls.
+/// This area is exclusive to the current job.
 ///
-/// > **NOTE**: svc exchange manipulation is unsafe
+/// # About unsafe in this module
+///
+/// This module needs to interact with a single, static mutable area where both
+/// kernel and job exchange data. As such, Rust consider any manipulation of this
+/// area as unsafe due to potential multiple references to a static mutable space.
+///
+/// As Sentry kernel ensures that any job being executed has a single thread, no
+/// race condition can happen due to the overall system design. As a consequence, even
+/// if unsafe is used, there is no UB risk when manipulating the exchange area
+/// based on the Operating System architecture.
 ///
 pub mod svc_exchange;
 
