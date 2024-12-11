@@ -5,7 +5,7 @@
 use core::arch::asm;
 use crate::{svc_exchange, systypes::*};
 
-/// Exits the job
+/// Exits the current job
 ///
 /// # Usage
 ///
@@ -29,6 +29,7 @@ use crate::{svc_exchange, systypes::*};
 /// // unreachable
 /// ```
 ///
+#[inline(always)]
 pub fn exit(status: i32) -> Status {
     syscall!(Syscall::Exit, status as u32).into()
 }
