@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::{svc_exchange, systypes::*};
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
-use crate::systypes::*;
 
-/// Exits the job
+/// Exits the current job
 ///
 /// # Usage
 ///
@@ -29,8 +29,8 @@ use crate::systypes::*;
 /// // unreachable
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_exit(status: i32) -> Status {
+#[inline(always)]
+pub fn exit(status: i32) -> Status {
     syscall!(Syscall::Exit, status as u32).into()
 }
 
@@ -51,7 +51,7 @@ pub extern "C" fn sys_exit(status: i32) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_get_process_handle(tasklabel) {
+/// match get_process_handle(tasklabel) {
 ///    Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
@@ -59,8 +59,8 @@ pub extern "C" fn sys_exit(status: i32) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_process_handle(process: ProcessLabel) -> Status {
+#[inline(always)]
+pub fn get_process_handle(process: ProcessLabel) -> Status {
     syscall!(Syscall::GetProcessHandle, process).into()
 }
 
@@ -88,8 +88,8 @@ pub extern "C" fn sys_get_process_handle(process: ProcessLabel) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_shm_handle(shm: ShmLabel) -> Status {
+#[inline(always)]
+pub fn get_shm_handle(shm: ShmLabel) -> Status {
     syscall!(Syscall::GetShmHandle, shm).into()
 }
 
@@ -117,8 +117,8 @@ pub extern "C" fn sys_get_shm_handle(shm: ShmLabel) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_dma_stream_handle(stream: StreamLabel) -> Status {
+#[inline(always)]
+pub fn get_dma_stream_handle(stream: StreamLabel) -> Status {
     syscall!(Syscall::GetDmaStreamHandle, stream).into()
 }
 
@@ -143,11 +143,11 @@ pub extern "C" fn sys_get_dma_stream_handle(stream: StreamLabel) -> Status {
 /// # Example
 ///
 /// ```rust
-/// sys_yield();
+/// syscall::sched_yield();
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_yield() -> Status {
+#[inline(always)]
+pub fn sched_yield() -> Status {
     syscall!(Syscall::Yield).into()
 }
 
@@ -162,10 +162,10 @@ pub extern "C" fn sys_yield() -> Status {
 /// [`SleepMode`]
 ///
 ///  - **deep sleeping** — Ensure that the task is sleeping for a minimum amount of
-///  time, whatever happen.
+///    time, whatever happen.
 ///
 ///  - **shallow sleeping** — sleeps for a maximum duration, allowing job schedule
-///  if an external event targets the task.
+///    if an external event targets the task.
 ///
 /// The sleep duration is based on the duration_ms input parameter.
 /// See [`SleepDuration`] definition for various duration definitions.
@@ -185,8 +185,8 @@ pub extern "C" fn sys_yield() -> Status {
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
+#[inline(always)]
+pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
     syscall!(Syscall::Sleep, u32::from(duration_ms), u32::from(mode)).into()
 }
 
@@ -213,8 +213,8 @@ pub extern "C" fn sys_sleep(duration_ms: SleepDuration, mode: SleepMode) -> Stat
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
+#[inline(always)]
+pub fn start(process: ProcessLabel) -> Status {
     syscall!(Syscall::Start, process).into()
 }
 
@@ -243,15 +243,15 @@ pub extern "C" fn sys_start(process: ProcessLabel) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_map_dev(devh) {
+/// match map_dev(devh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
 ///    any_err => return(any_err),
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
+#[inline(always)]
+pub fn map_dev(dev: devh_t) -> Status {
     syscall!(Syscall::MapDev, dev).into()
 }
 
@@ -281,15 +281,15 @@ pub extern "C" fn sys_map_dev(dev: devh_t) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_map_shm(shmh) {
+/// match map_shm(shmh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
 ///    any_err => return(any_err),
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
+#[inline(always)]
+pub fn map_shm(shm: shmh_t) -> Status {
     syscall!(Syscall::MapShm, shm).into()
 }
 
@@ -314,14 +314,14 @@ pub extern "C" fn sys_map_shm(shm: shmh_t) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_unmap_dev(devh) {
+/// match unmap_dev(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_unmap_dev(dev: devh_t) -> Status {
+#[inline(always)]
+pub fn unmap_dev(dev: devh_t) -> Status {
     syscall!(Syscall::UnmapDev, dev).into()
 }
 
@@ -345,14 +345,14 @@ pub extern "C" fn sys_unmap_dev(dev: devh_t) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_unmap_shm(devh) {
+/// match unmap_shm(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
 /// }
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
+#[inline(always)]
+pub fn unmap_shm(shm: shmh_t) -> Status {
     syscall!(Syscall::UnmapShm, shm).into()
 }
 
@@ -399,7 +399,7 @@ pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_shm_set_credential(shmh, myhandle, SHMPermission::Map | SHMPermission::Write) {
+/// match shm_set_credential(shmh, myhandle, SHMPermission::Map | SHMPermission::Write) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
 /// }
@@ -410,12 +410,8 @@ pub extern "C" fn sys_unmap_shm(shm: shmh_t) -> Status {
 /// Shared memory related syscalls:
 /// [`sys_get_shm_handle`], [`sys_map_shm`], [`sys_unmap_shm`] and [`sys_shm_get_infos`].
 ///
-#[no_mangle]
-pub extern "C" fn sys_shm_set_credential(
-    shm: shmh_t,
-    id: taskh_t,
-    shm_perm: u32,
-) -> Status {
+#[inline(always)]
+pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
     syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
@@ -456,9 +452,9 @@ pub extern "C" fn sys_shm_set_credential(
 /// uapi::send_ipc(TargetTaskh, IpcLen)?continue_here;
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_send_ipc(target: taskh_t, length: u8) -> Status {
-    syscall!(Syscall::SendIPC, target as u32, length as u32).into()
+#[inline(always)]
+pub fn send_ipc(target: taskh_t, length: u8) -> Status {
+    syscall!(Syscall::SendIPC, target, length as u32).into()
 }
 
 /// Send signal to another job identified by its handle
@@ -493,15 +489,15 @@ pub extern "C" fn sys_send_ipc(target: taskh_t, length: u8) -> Status {
 /// # examples
 ///
 /// ```
-/// uapi::send_signal(TargetTaskh, Signal::Pipe)?continue_here;
+/// send_signal(TargetTaskh, Signal::Pipe)?continue_here;
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status {
+#[inline(always)]
+pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
     syscall!(Syscall::SendSignal, resource, signal_type as u32).into()
 }
 
-
+#[allow(clippy::tabs_in_doc_comments)]
 /// Get the value of a given GPIO for a device identified by its handle
 ///
 /// # description
@@ -519,11 +515,11 @@ pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status 
 /// }
 ///
 /// i2c1_sda: i2c_sda_pb9  {
-///			label = "sda";
-///         pinmux = <&gpiob 9 STM32_DT_PIN_MODE_ALTFUNC(4)>;
-///         pincfg = <STM32_OTYPER_OPEN_DRAIN \
-///                           STM32_OSPEEDR_VERY_HIGH_SPEED \
-///                           STM32_PUPDR_PULL_UP>;
+///	    label = "sda";
+///     pinmux = <&gpiob 9 STM32_DT_PIN_MODE_ALTFUNC(4)>;
+///     pincfg = <STM32_OTYPER_OPEN_DRAIN \
+///               STM32_OSPEEDR_VERY_HIGH_SPEED \
+///               STM32_PUPDR_PULL_UP>;
 ///    };
 /// ```
 /// The task-level i2c1 table generated would then hold a one entry
@@ -540,11 +536,11 @@ pub extern "C" fn sys_send_signal(resource: u32, signal_type: Signal) -> Status 
 /// # Example
 ///
 /// ```rust
-/// sys_gpio_get(devh, Sda);
+/// gpio_get(devh, Sda);
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_gpio_get(resource: u32, io: u8) -> Status {
+#[inline(always)]
+pub fn gpio_get(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioGet, resource, io as u32).into()
 }
 
@@ -562,8 +558,8 @@ pub extern "C" fn sys_gpio_get(resource: u32, io: u8) -> Status {
 ///
 /// Except this specific behavior, this syscall behave the same way as [`sys_gpio_get`].
 ///
-#[no_mangle]
-pub extern "C" fn sys_gpio_set(resource: u32, io: u8, val: bool) -> Status {
+#[inline(always)]
+pub fn gpio_set(resource: u32, io: u8, val: bool) -> Status {
     syscall!(Syscall::GpioSet, resource, io as u32, val as u32).into()
 }
 
@@ -578,8 +574,8 @@ pub extern "C" fn sys_gpio_set(resource: u32, io: u8, val: bool) -> Status {
 /// level, behave n the same way as `sys_gpio_set()` with `value` parameter set
 /// to `false`.
 ///
-#[no_mangle]
-pub extern "C" fn sys_gpio_reset(resource: u32, io: u8) -> Status {
+#[inline(always)]
+pub fn gpio_reset(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioReset, resource, io as u32).into()
 }
 
@@ -593,8 +589,8 @@ pub extern "C" fn sys_gpio_reset(resource: u32, io: u8) -> Status {
 /// Its behavior is similar to [`sys_gpio_reset`], except that the new GPIO pin
 /// value is based on the inversion of its current value.
 ///
-#[no_mangle]
-pub extern "C" fn sys_gpio_toggle(resource: u32, io: u8) -> Status {
+#[inline(always)]
+pub fn gpio_toggle(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioToggle, resource, io as u32).into()
 }
 
@@ -608,8 +604,8 @@ pub extern "C" fn sys_gpio_toggle(resource: u32, io: u8) -> Status {
 /// The return values are similar to [`sys_gpio_get`]. The GPIO is synchronously
 /// set according to the corresponding pinmux definition.
 ///
-#[no_mangle]
-pub extern "C" fn sys_gpio_configure(resource: u32, io: u8) -> Status {
+#[inline(always)]
+pub fn gpio_configure(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioConfigure, resource, io as u32).into()
 }
 
@@ -627,7 +623,7 @@ pub extern "C" fn sys_gpio_configure(resource: u32, io: u8) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match sys_get_device_handle(devlabel) {
+/// match get_device_handle(devlabel) {
 ///    Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
@@ -635,29 +631,28 @@ pub extern "C" fn sys_gpio_configure(resource: u32, io: u8) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_device_handle(devlabel: u8) -> Status {
+#[inline(always)]
+pub fn get_device_handle(devlabel: u8) -> Status {
     syscall!(Syscall::GetDeviceHandle, devlabel as u32).into()
 }
 
 /// acknowledge at interrupt controller level the given interrupt
-#[no_mangle]
-pub extern "C" fn sys_irq_acknowledge(irq: u16) -> Status {
+#[inline(always)]
+pub fn irq_acknowledge(irq: u16) -> Status {
     syscall!(Syscall::IrqAcknowledge, irq as u32).into()
 }
 
 /// enable (unmask) at interrupt controller level the given interrupt
-#[no_mangle]
-pub extern "C" fn sys_irq_enable(irq: u16) -> Status {
+#[inline(always)]
+pub fn irq_enable(irq: u16) -> Status {
     syscall!(Syscall::IrqEnable, irq as u32).into()
 }
 
 /// disable (mask) at interrupt controller level the given interrupt
-#[no_mangle]
-pub extern "C" fn sys_irq_disable(irq: u16) -> Status {
+#[inline(always)]
+pub fn irq_disable(irq: u16) -> Status {
     syscall!(Syscall::IrqDisable, irq as u32).into()
 }
-
 
 /// Wait for input event. Single active blocking syscall.
 ///
@@ -667,18 +662,26 @@ pub extern "C" fn sys_irq_disable(irq: u16) -> Status {
 /// The event source (a device for an interrupt, a PID for an IPC or signal) can be set.
 /// Setting the source to 0 means that any source is allowed.
 ///
-/// If received, event informations are set in the task SVC data
+/// If received, event information is set in the task SVC data
 /// structure and the function returns `Status::Ok`.
 ///
 /// This function must be the single blocking point of the function (excepting
 /// sleep() case)
 ///
-/// POSIX upper layer(s): select(2), poll(2)
-#[no_mangle]
-pub extern "C" fn sys_wait_for_event(mask: u8, timeout: i32) -> Status {
-    match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into() {
-        Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into(),
-        any => return any,
+/// NOTE: The timeout is kept i32 by now due to C FFI. Usage of enumerate is not
+/// easy as, at the end, the value is set to a HW register... which is a u32, to be
+/// transferred to the kernel corresponding gate.
+///
+#[inline(always)]
+pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
+    let timeout = u32::try_from(timeout);
+    match timeout {
+        Ok(_) => (),
+        Err(_) => return Status::Invalid,
+    };
+    match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into() {
+        Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into(),
+        any => any,
     }
 }
 
@@ -691,22 +694,26 @@ pub extern "C" fn sys_wait_for_event(mask: u8, timeout: i32) -> Status {
 ///
 /// it also accepts two other mode values that enable or prevent the
 /// CPU from sleeping.
-#[no_mangle]
-pub extern "C" fn sys_pm_manage(mode: CPUSleep) -> Status {
+#[inline(always)]
+pub fn pm_manage(mode: CPUSleep) -> Status {
     syscall!(Syscall::PmManage, u32::from(mode)).into()
 }
 
 /// Send a SIGALRM signal to the task after `timeout_ms` milliseconds.
-#[no_mangle]
-pub extern "C" fn sys_alarm(timeout_ms: u32, flag: AlarmFlag) -> Status {
+#[inline(always)]
+pub fn alarm(timeout_ms: u32, flag: AlarmFlag) -> Status {
     syscall!(Syscall::Alarm, timeout_ms, u32::from(flag)).into()
 }
 
 /// Send a message from the current task's 'svc_exchange area' through
 /// the UART.
-#[no_mangle]
-pub extern "C" fn sys_log(length: usize) -> Status {
-    syscall!(Syscall::Log, length as u32).into()
+#[inline(always)]
+pub fn log(length: usize) -> Status {
+    if length > svc_exchange::SVC_EXCH_AREA_LEN {
+        Status::Invalid
+    } else {
+        syscall!(Syscall::Log, length as u32).into()
+    }
 }
 
 /// Get random seed from the Sentry kernel RNG backend
@@ -729,14 +736,14 @@ pub extern "C" fn sys_log(length: usize) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match (sys_get_random()) {
+/// match (get_random()) {
 ///     Status::Ok => (),
 ///     any_err => return(any_err),
 /// };
 /// ```
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_random() -> Status {
+#[inline(always)]
+pub fn get_random() -> Status {
     syscall!(Syscall::GetRandom).into()
 }
 
@@ -764,8 +771,8 @@ pub extern "C" fn sys_get_random() -> Status {
 /// This syscall returns the value in the SVC_EXCHANGE area, where it needs to
 /// be read afterward.
 ///
-#[no_mangle]
-pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
+#[inline(always)]
+pub fn get_cycle(precision: Precision) -> Status {
     syscall!(Syscall::GetCycle, precision as u32).into()
 }
 
@@ -776,56 +783,56 @@ pub extern "C" fn sys_get_cycle(precision: Precision) -> Status {
 ///
 /// - TODO: using dts instead
 /// - TODO: update documentation when moving to PM-related work
-#[no_mangle]
-pub extern "C" fn sys_pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
+#[inline(always)]
+pub fn pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
     syscall!(Syscall::PmSetClock, clk_reg, clkmsk, val).into()
 }
 
 /// start a DMA stream
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_start_stream(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_start_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaStartStream, dmah).into()
 }
 
 /// suspend a DMA stream
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_suspend_stream(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaSuspendStream, dmah).into()
 }
 
 /// get the status of a given DMA stream
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_get_stream_status(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
 
 /// get the static information of a given DMA stream
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_shm_get_infos(shm: shmh_t) -> Status {
+#[inline(always)]
+pub fn shm_get_infos(shm: shmh_t) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
 
 /// assign a DMA stream to its corresponding hardware channel
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_assign_stream(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_assign_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaAssignStream, dmah).into()
 }
 
 /// unassign a DMA stream from its corresponding hardware channel
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_unassign_stream(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaUnassignStream, dmah).into()
 }
 
@@ -833,19 +840,18 @@ pub extern "C" fn sys_dma_unassign_stream(dmah: dmah_t) -> Status {
 /// structured data through SVC_Exchange
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_get_stream_info(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamInfo, dmah).into()
 }
 
 /// resume a DMA stream
 ///
 /// TODO: with complete DMA support
-#[no_mangle]
-pub extern "C" fn sys_dma_resume_stream(dmah: dmah_t) -> Status {
+#[inline(always)]
+pub fn dma_resume_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaResumeStream, dmah).into()
 }
-
 
 #[cfg(test)]
 mod tests {

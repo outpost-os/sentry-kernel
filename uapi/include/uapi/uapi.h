@@ -66,34 +66,34 @@ Status clean_svcexchange(void);
 /**
  * Send a SIGALRM signal to the task after `timeout_ms` milliseconds.
  */
-Status sys_alarm(uint32_t timeout_ms);
+Status __sys_alarm(uint32_t timeout_ms);
 
 /**
  * Exiting the process.
  *
  * POSIX upper layers (libshield): void _exit(int status);
  */
-Status sys_exit(int32_t status);
+Status __sys_exit(int32_t status);
 
 /**
  * Retrieve number of cycles since boot (u64)
  */
-Status sys_get_cycle(Precision precision);
+Status __sys_get_cycle(Precision precision);
 
 /**
  * Get back a given device handle from DTS auto-generated device identifier
  */
-Status sys_get_device_handle(uint8_t devlabel);
+Status __sys_get_device_handle(uint8_t devlabel);
 
 /**
  * Get back a given DMA stream handle from DTS auto-generated device identifier
  */
-Status sys_get_dma_stream_handle(uint32_t label);
+Status __sys_get_dma_stream_handle(uint32_t label);
 
 /**
  * Get back a given SHM handle from SHM label defined in DTS
  */
-Status sys_get_shm_handle(uint32_t shmlabel);
+Status __sys_get_shm_handle(uint32_t shmlabel);
 
 /**
  * Get global identifier for a given process label
@@ -105,59 +105,59 @@ Status sys_get_shm_handle(uint32_t shmlabel);
  *
  * POSIX upper layer(s): N/A
  */
-Status sys_get_process_handle(ProcessLabel process);
+Status __sys_get_process_handle(ProcessLabel process);
 
 /**
  * Retrieve a random number (u32)
  */
-Status sys_get_random(void);
+Status __sys_get_random(void);
 
 /**
  * configure value of given GPIO associated to given  device ressource
  */
-Status sys_gpio_configure(uint32_t resource, uint8_t io);
+Status __sys_gpio_configure(uint32_t resource, uint8_t io);
 
 /**
  * get value of given GPIO associated to given  device ressource
  */
-Status sys_gpio_get(uint32_t resource, uint8_t io);
+Status __sys_gpio_get(uint32_t resource, uint8_t io);
 
 /**
  * reset value of given GPIO associated to given  device ressource
  */
-Status sys_gpio_reset(uint32_t resource, uint8_t io);
+Status __sys_gpio_reset(uint32_t resource, uint8_t io);
 
 /**
  * set value of given GPIO associated to given  device ressource
  */
-Status sys_gpio_set(uint32_t resource, uint8_t io, bool val);
+Status __sys_gpio_set(uint32_t resource, uint8_t io, bool val);
 
 /**
  * toggle value of given GPIO associated to given  device ressource
  */
-Status sys_gpio_toggle(uint32_t resource, uint8_t io);
+Status __sys_gpio_toggle(uint32_t resource, uint8_t io);
 
 /**
  * acknowledge at interrupt controller level the given interrupt
  */
-Status sys_irq_acknowledge(uint16_t irq);
+Status __sys_irq_acknowledge(uint16_t irq);
 
 /**
  * enable (unmask) at interrupt controller level the given interrupt
  */
-Status sys_irq_enable(uint16_t irq);
+Status __sys_irq_enable(uint16_t irq);
 
 /**
  * disable (mask) at interrupt controller level the given interrupt
  */
-Status sys_irq_disable(uint16_t irq);
+Status __sys_irq_disable(uint16_t irq);
 
 
 /**
  * Send a message from the current task's 'svc_exchange area' through
  * the UART.
  */
-Status sys_log(size_t length);
+Status __sys_log(size_t length);
 
 /**
  * Configure the CPU's sleep behaviour.
@@ -170,7 +170,7 @@ Status sys_log(size_t length);
  * it also accepts two other mode values that enable or prevent the
  * CPU from sleeping.
  */
-Status sys_manage_cpu_sleep(CPUSleep mode);
+Status __sys_manage_cpu_sleep(CPUSleep mode);
 
 /**
  *  Map a mappable device.
@@ -180,36 +180,36 @@ Status sys_manage_cpu_sleep(CPUSleep mode);
  *   * fd must be equal to ressource handle
  *   * prot, offset and flags are ignored for now
  */
-Status sys_map_dev(devh_t dev);
+Status __sys_map_dev(devh_t dev);
 
 /**
  *  Map a mappable SHM.
  *
  * POSIX upper layer(s): shmget(2) (key == handle)
  */
-Status sys_map_shm(shmh_t shm);
+Status __sys_map_shm(shmh_t shm);
 
 /**
  * Send events to another process
  */
-Status sys_send_ipc(uint32_t resource, uint8_t length);
+Status __sys_send_ipc(uint32_t resource, uint8_t length);
 
 /**
  * Send a signal to another process
  */
-Status sys_send_signal(uint32_t resource, Signal signal_type);
+Status __sys_send_signal(uint32_t resource, Signal signal_type);
 
 /**
  * Set SHM permissions. shm_open() is considered automatic as declared in dtsi, handle is generated.
  *
  * POSIX upper layer(s): shmctl(3),
  */
-Status sys_shm_set_credential(shmh_t shm, taskh_t target, uint32_t shm_perm);
+Status __sys_shm_set_credential(shmh_t shm, taskh_t target, uint32_t shm_perm);
 
 /**
  * Get SHM informations
  */
-Status sys_shm_get_infos(shmh_t shm);
+Status __sys_shm_get_infos(shmh_t shm);
 
 
 /**
@@ -217,14 +217,14 @@ Status sys_shm_get_infos(shmh_t shm);
  *
  * POSIX upper layer(s): sleep(3), usleep(3)
  */
-Status sys_sleep(SleepDuration duration_ms, SleepMode mode);
+Status __sys_sleep(SleepDuration duration_ms, SleepMode mode);
 
 /**
  * Start another task, if capability added and other process allowed to be started by us
  *
  * - POSIX upper layer(s): execv()
  */
-Status sys_start(ProcessLabel process);
+Status __sys_start(ProcessLabel process);
 
 /**
  * Unmap a mapped device.
@@ -233,14 +233,14 @@ Status sys_start(ProcessLabel process);
  *   addr must match the ressource addr (ressource handle to be found in userspace from the addr?)
  *   length must match the ressource size
  */
-Status sys_unmap_dev(devh_t dev);
+Status __sys_unmap_dev(devh_t dev);
 
 /**
  * Unmap a mapped device.
  *
  * POSIX upper layer(s): TBD
  */
-Status sys_unmap_shm(shmh_t shm);
+Status __sys_unmap_shm(shmh_t shm);
 
 /**
  * Wait for input event. Single active blocking syscall.
@@ -259,7 +259,7 @@ Status sys_unmap_shm(shmh_t shm);
  *
  * POSIX upper layer(s): select(2), poll(2)
  */
-Status sys_wait_for_event(uint8_t mask, int32_t timeout);
+Status __sys_wait_for_event(uint8_t mask, int32_t timeout);
 
 /**
  * Release the processor before the end of the current quantum.
@@ -267,23 +267,23 @@ Status sys_wait_for_event(uint8_t mask, int32_t timeout);
  *
  * POSIX upper layer(s): N/A
  */
-Status sys_yield(void);
+Status __sys_sched_yield(void);
 
-Status sys_pm_set_clock(uint32_t clk_reg, uint32_t regmsk, uint32_t val);
+Status __sys_pm_set_clock(uint32_t clk_reg, uint32_t regmsk, uint32_t val);
 
-Status sys_dma_start_stream(dmah_t stream);
+Status __sys_dma_start_stream(dmah_t stream);
 
-Status sys_dma_suspend_stream(dmah_t stream);
+Status __sys_dma_suspend_stream(dmah_t stream);
 
-Status sys_dma_resume_stream(dmah_t stream);
+Status __sys_dma_resume_stream(dmah_t stream);
 
-Status sys_dma_assign_stream(dmah_t stream);
+Status __sys_dma_assign_stream(dmah_t stream);
 
-Status sys_dma_unassign_stream(dmah_t stream);
+Status __sys_dma_unassign_stream(dmah_t stream);
 
-Status sys_dma_get_stream_status(dmah_t stream);
+Status __sys_dma_get_stream_status(dmah_t stream);
 
-Status sys_dma_get_stream_info(dmah_t stream);
+Status __sys_dma_get_stream_info(dmah_t stream);
 
 #ifdef __cplusplus
 } // extern "C"

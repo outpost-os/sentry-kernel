@@ -14,10 +14,10 @@ void test_map_unmap_notmapped(void) {
     Status res;
     devh_t dev;
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
-    res = sys_unmap_dev(dev);
+    res = __sys_unmap_dev(dev);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -26,11 +26,11 @@ void test_map_invalidmap(void) {
     Status res;
     devh_t dev;
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     dev += 42;
-    res = sys_map_dev(dev);
+    res = __sys_map_dev(dev);
     ASSERT_EQ(res, STATUS_INVALID);
     TEST_END();
 }
@@ -40,11 +40,11 @@ void test_map_mapunmap(void) {
     devh_t dev;
 
     TEST_START();
-    res = sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
+    res = __sys_get_device_handle((uint8_t)devices[DEV_ID_I2C1].id);
     copy_to_user((uint8_t*)&dev, sizeof(devh_t));
     ASSERT_EQ(res, STATUS_OK);
     LOG("handle is %lx", dev);
-    res = sys_map_dev(dev);
+    res = __sys_map_dev(dev);
     ASSERT_EQ(res, STATUS_OK);
     if (res == STATUS_OK) {
         LOG("device mapped, checking registers");
@@ -60,7 +60,7 @@ void test_map_mapunmap(void) {
         }
     }
     LOG("unmapping");
-    res = sys_unmap_dev(dev);
+    res = __sys_unmap_dev(dev);
     ASSERT_EQ(res, STATUS_OK);
     TEST_END();
 }

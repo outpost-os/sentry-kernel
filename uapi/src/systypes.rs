@@ -53,7 +53,6 @@ macro_rules! syscall_list {
     }
 }
 
-
 syscall_list! {
 pub enum Syscall {
     Exit,
@@ -190,7 +189,6 @@ pub type ShmLabel = u32;
 /// and can be used in order to get back the effective DMA stream handler from it in order
 /// to manipulate it
 pub type StreamLabel = u32;
-
 
 /// Definition of Sentry events
 ///
@@ -632,7 +630,6 @@ pub mod shm {
             )
         );
     }
-
 }
 
 /// DMA related types definitions
@@ -645,11 +642,11 @@ pub mod dma {
     // interrupts field is a local OR of this enumerate values
     pub enum GpdmaChanInt {
         /// DMA channel trigger on transfer complete
-        TransferComplete  = 1,
+        TransferComplete = 1,
         /// DMA channel trigger on half transfer and transfer complete
-        HalfTransfer      = 2,
+        HalfTransfer = 2,
         /// triggers on DMA transfer or config error, get status for complete information
-        DmaError          = 4,
+        DmaError = 4,
     }
 
     // FIXME: the interrupts field is a bitfield of one to 3 possible interrupts
@@ -955,7 +952,6 @@ pub mod dma {
         );
     }
 
-
     pub enum GpdmaChanState {
         Idle = 1,
         Running = 2,
@@ -967,5 +963,4 @@ pub mod dma {
         TransferComplete = 8,
         HalfTransfer = 9,
     }
-
 }

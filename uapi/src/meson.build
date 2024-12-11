@@ -11,7 +11,6 @@ uapi_modules = files([
   'svc_exchange.rs',
   'syscall.rs',
   'systypes.rs',
-  'uapi.rs',
 ])
 
 subdir('arch')

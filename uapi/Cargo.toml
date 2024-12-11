@@ -17,3 +17,6 @@ sentry-uapi = { path = '.', features = ['std'] }
 [features]
 default = []
 std = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(CONFIG_BUILD_TARGET_AUTOTEST)'] }
