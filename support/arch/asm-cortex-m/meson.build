@@ -5,10 +5,13 @@ target_cpu = 'cortex-@0@'.format(kconfig_data.get_unquoted('CONFIG_ARCH_ARM_CORT
 target_has_fpu = kconfig_data.get('CONFIG_HAS_FPU', 0) == 1
 target_use_fpu = kconfig_data.get('CONFIG_FPU_SOFT_ABI', 0) != 1
 
+
+compiler = meson.get_compiler('c')
 target_rust = kconfig_data.get_unquoted('CONFIG_RUSTC_TARGET')
 target_rustargs = [
     '--target=' + target_rust,
     '-Ctarget-cpu='+ target_cpu,
+    '-Clinker=' + compiler.cmd_array()[0],
 ]
 
 target_cflags = [
