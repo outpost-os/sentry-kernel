@@ -17,8 +17,7 @@
 //!
 //! -**Sentry syscalls** — Syscall are defined in a two layers way. The bare syscalls
 //!  are implemented in the [`mod@syscall`] module, while the upper, easy interface
-//!  is implemented in the [`mod@uapi`] module. Unless specific needs, there is no
-//!  usual case where the [`mod@syscall`] module interface needs to be acceded directly.
+//!  is out of the scope of this very crate, and written in the shield crate instead.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -34,7 +33,7 @@ mod arch;
 /// This allows a full Rust usage without extern C and thus unsafe calls when
 /// writing Rust application with cargo
 /// interface is used. Sentry kernel interactions should be, instead, made with
-/// the [`mod@uapi`] upper interface.
+/// a upper interface such as shield.
 ///
 pub mod ffi_c;
 
@@ -44,7 +43,7 @@ pub mod ffi_c;
 ///
 /// This module should not be used directly unless the [`mod@syscall`] module
 /// interface is used. Sentry kernel interactions should be, instead, made with
-/// the [`mod@uapi`] upper interface.
+/// an upper interface.
 ///
 /// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
 /// made in order to exchange data between userspace and kernelspace without
@@ -73,8 +72,8 @@ pub mod svc_exchange;
 /// architecture supervisor access opcode, in interaction with the corresponding
 /// arch backend.
 ///
-/// There is no abstraction at this module's level and should not be used directly.
-/// The [`mod@uapi`] module should be used instead.
+/// There is no abstraction at this module's level and should not be used directly,
+/// but instead with an upper interface such as shield
 ///
 /// > **NOTE**: This module may not be kept public forever
 ///
