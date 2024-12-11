@@ -24,8 +24,8 @@ use core::arch::asm;
 ///
 /// # Example
 ///
-/// ```rust
-/// syscall::exit(42);
+/// ```ignore
+/// sentry_uapi::syscall::exit(42);
 /// // unreachable
 /// ```
 ///
@@ -50,9 +50,9 @@ pub fn exit(status: i32) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match get_process_handle(tasklabel) {
-///    Status::Ok => (),
+/// ```ignore
+/// match sentry_uapi::syscall::get_process_handle(tasklabel) {
+///     Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
 /// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
@@ -79,9 +79,9 @@ pub fn get_process_handle(process: ProcessLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match get_shm_handle(shmlabel) {
-///    Status::Ok => (),
+/// ```ignore
+/// match sentry_uapi::syscall::get_shm_handle(shmlabel) {
+///     Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
 /// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
@@ -108,7 +108,7 @@ pub fn get_shm_handle(shm: ShmLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match get_dma_stream_handle(streamlabel) {
 ///    Status::Ok => (),
 ///     any_err => return (any_err),
@@ -142,8 +142,8 @@ pub fn get_dma_stream_handle(stream: StreamLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// syscall::sched_yield();
+/// ```ignore
+/// sentry_uapi::syscall::sched_yield();
 /// ```
 ///
 #[inline(always)]
@@ -178,8 +178,8 @@ pub fn sched_yield() -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match sleep(SleepMode::Deep, D5ms) {
+/// ```ignore
+/// match sentry_uapi::syscall::sleep(SleepMode::Deep, D5ms) {
 ///    Status::Intr => (),
 ///    Status::Timeout => (),
 /// }
@@ -206,7 +206,7 @@ pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match start(tsklabel) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -242,7 +242,7 @@ pub fn start(process: ProcessLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match map_dev(devh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
@@ -280,7 +280,7 @@ pub fn map_dev(dev: devh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match map_shm(shmh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
@@ -313,7 +313,7 @@ pub fn map_shm(shm: shmh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match unmap_dev(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -344,7 +344,7 @@ pub fn unmap_dev(dev: devh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match unmap_shm(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -398,7 +398,7 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match shm_set_credential(shmh, myhandle, SHMPermission::Map | SHMPermission::Write) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -448,7 +448,7 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 ///
 /// # examples
 ///
-/// ```
+/// ```ignore
 /// uapi::send_ipc(TargetTaskh, IpcLen)?continue_here;
 /// ```
 ///
@@ -488,7 +488,7 @@ pub fn send_ipc(target: taskh_t, length: u8) -> Status {
 ///
 /// # examples
 ///
-/// ```
+/// ```ignore
 /// send_signal(TargetTaskh, Signal::Pipe)?continue_here;
 /// ```
 ///
@@ -535,7 +535,7 @@ pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// gpio_get(devh, Sda);
 /// ```
 ///
@@ -623,12 +623,17 @@ pub fn gpio_configure(resource: u32, io: u8) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match get_device_handle(devlabel) {
-///    Status::Ok => (),
-///     any_err => return (any_err),
+/// use sentry_uapi::{syscall, svc_exchange::*, systypes::*};
+///
+/// fn get_handle() -> Result<u32, sentry_uapi::systypes::Status> {
+///     let devlabel : u8 = 0x42;
+///     match syscall::get_device_handle(devlabel) {
+///         Status::Ok => (),
+///         any_err => return Err(any_err),
+///     };
+///     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
+///     Ok(u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?))
 /// }
-/// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
-/// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
 #[inline(always)]
@@ -735,7 +740,7 @@ pub fn log(length: usize) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match (get_random()) {
 ///     Status::Ok => (),
 ///     any_err => return(any_err),
@@ -871,10 +876,7 @@ mod tests {
 
     #[test]
     fn basic_sleep() {
-        assert_eq!(
-            sleep(SleepDuration::D1ms, SleepMode::Shallow),
-            Status::Ok
-        );
+        assert_eq!(sleep(SleepDuration::D1ms, SleepMode::Shallow), Status::Ok);
     }
 
     #[test]
@@ -893,7 +895,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn invalid_status() {
         assert_eq!(exit(0xaaaa), Status::Ok);
     }

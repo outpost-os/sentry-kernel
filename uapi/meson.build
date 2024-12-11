@@ -98,7 +98,6 @@ test(
         '--test-threads=1',
     ],
     is_parallel: false,
-    should_fail: true,
     suite: 'uapi',
 )
 
