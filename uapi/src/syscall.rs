@@ -158,10 +158,10 @@ pub fn sched_yield() -> Status {
 /// [`SleepMode`]
 ///
 ///  - **deep sleeping** — Ensure that the task is sleeping for a minimum amount of
-///  time, whatever happen.
+///    time, whatever happen.
 ///
 ///  - **shallow sleeping** — sleeps for a maximum duration, allowing job schedule
-///  if an external event targets the task.
+///    if an external event targets the task.
 ///
 /// The sleep duration is based on the duration_ms input parameter.
 /// See [`SleepDuration`] definition for various duration definitions.
@@ -442,7 +442,7 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 /// ```
 ///
 pub fn send_ipc(target: taskh_t, length: u8) -> Status {
-    syscall!(Syscall::SendIPC, target as u32, length as u32).into()
+    syscall!(Syscall::SendIPC, target, length as u32).into()
 }
 
 /// Send signal to another job identified by its handle
@@ -484,6 +484,7 @@ pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
     syscall!(Syscall::SendSignal, resource, signal_type as u32).into()
 }
 
+#[allow(clippy::tabs_in_doc_comments)]
 /// Get the value of a given GPIO for a device identified by its handle
 ///
 /// # description
@@ -501,11 +502,11 @@ pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
 /// }
 ///
 /// i2c1_sda: i2c_sda_pb9  {
-///			label = "sda";
-///         pinmux = <&gpiob 9 STM32_DT_PIN_MODE_ALTFUNC(4)>;
-///         pincfg = <STM32_OTYPER_OPEN_DRAIN \
-///                           STM32_OSPEEDR_VERY_HIGH_SPEED \
-///                           STM32_PUPDR_PULL_UP>;
+///	    label = "sda";
+///     pinmux = <&gpiob 9 STM32_DT_PIN_MODE_ALTFUNC(4)>;
+///     pincfg = <STM32_OTYPER_OPEN_DRAIN \
+///               STM32_OSPEEDR_VERY_HIGH_SPEED \
+///               STM32_PUPDR_PULL_UP>;
 ///    };
 /// ```
 /// The task-level i2c1 table generated would then hold a one entry
@@ -658,7 +659,7 @@ pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
     };
     match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into() {
         Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into(),
-        any => return any,
+        any => any,
     }
 }
 
