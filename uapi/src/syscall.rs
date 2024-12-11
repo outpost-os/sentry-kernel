@@ -60,7 +60,7 @@ pub fn exit(status: i32) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn get_process_handle(process: ProcessLabel) -> Status {
+pub fn get_process_handle(process: TaskLabel) -> Status {
     syscall!(Syscall::GetProcessHandle, process).into()
 }
 
@@ -214,7 +214,7 @@ pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn start(process: ProcessLabel) -> Status {
+pub fn start(process: TaskLabel) -> Status {
     syscall!(Syscall::Start, process).into()
 }
 
@@ -251,7 +251,7 @@ pub fn start(process: ProcessLabel) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn map_dev(dev: devh_t) -> Status {
+pub fn map_dev(dev: DeviceHandle) -> Status {
     syscall!(Syscall::MapDev, dev).into()
 }
 
@@ -289,7 +289,7 @@ pub fn map_dev(dev: devh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn map_shm(shm: shmh_t) -> Status {
+pub fn map_shm(shm: ShmHandle) -> Status {
     syscall!(Syscall::MapShm, shm).into()
 }
 
@@ -321,7 +321,7 @@ pub fn map_shm(shm: shmh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn unmap_dev(dev: devh_t) -> Status {
+pub fn unmap_dev(dev: DeviceHandle) -> Status {
     syscall!(Syscall::UnmapDev, dev).into()
 }
 
@@ -352,7 +352,7 @@ pub fn unmap_dev(dev: devh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn unmap_shm(shm: shmh_t) -> Status {
+pub fn unmap_shm(shm: ShmHandle) -> Status {
     syscall!(Syscall::UnmapShm, shm).into()
 }
 
@@ -411,7 +411,7 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 /// [`get_shm_handle`], [`map_shm`], [`unmap_shm`] and [`shm_get_infos`].
 ///
 #[inline(always)]
-pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
+pub fn shm_set_credential(shm: ShmHandle, id: TaskHandle, shm_perm: u32) -> Status {
     syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
@@ -453,7 +453,7 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn send_ipc(target: taskh_t, length: u8) -> Status {
+pub fn send_ipc(target: TaskHandle, length: u8) -> Status {
     syscall!(Syscall::SendIPC, target, length as u32).into()
 }
 
@@ -797,7 +797,7 @@ pub fn pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_start_stream(dmah: dmah_t) -> Status {
+pub fn dma_start_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaStartStream, dmah).into()
 }
 
@@ -805,7 +805,7 @@ pub fn dma_start_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
+pub fn dma_suspend_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaSuspendStream, dmah).into()
 }
 
@@ -813,7 +813,7 @@ pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
+pub fn dma_get_stream_status(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
 
@@ -821,7 +821,7 @@ pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn shm_get_infos(shm: shmh_t) -> Status {
+pub fn shm_get_infos(shm: ShmHandle) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
 
@@ -829,7 +829,7 @@ pub fn shm_get_infos(shm: shmh_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_assign_stream(dmah: dmah_t) -> Status {
+pub fn dma_assign_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaAssignStream, dmah).into()
 }
 
@@ -837,7 +837,7 @@ pub fn dma_assign_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
+pub fn dma_unassign_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaUnassignStream, dmah).into()
 }
 
@@ -846,7 +846,7 @@ pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
+pub fn dma_get_stream_info(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaGetStreamInfo, dmah).into()
 }
 
@@ -854,7 +854,7 @@ pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_resume_stream(dmah: dmah_t) -> Status {
+pub fn dma_resume_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaResumeStream, dmah).into()
 }
 
