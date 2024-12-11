@@ -646,15 +646,24 @@ pub fn irq_disable(irq: u16) -> Status {
 /// The event source (a device for an interrupt, a PID for an IPC or signal) can be set.
 /// Setting the source to 0 means that any source is allowed.
 ///
-/// If received, event informations are set in the task SVC data
+/// If received, event information is set in the task SVC data
 /// structure and the function returns `Status::Ok`.
 ///
 /// This function must be the single blocking point of the function (excepting
 /// sleep() case)
 ///
+/// NOTE: The timeout is kept i32 by now due to C FFI. Usage of enumerate is not
+/// easy as, at the end, the value is set to a HW register... which is a u32, to be
+/// transferred to the kernel corresponding gate.
+///
 pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
-    match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into() {
-        Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout).into(),
+    let timeout= u32::try_from(timeout);
+    match timeout {
+        Ok(_) => (),
+        Err(_) => return Status::Invalid,
+    };
+    match syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into() {
+        Status::Intr => syscall!(Syscall::WaitForEvent, u32::from(mask), timeout.unwrap()).into(),
         any => return any,
     }
 }
