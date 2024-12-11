@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::{svc_exchange, systypes::*};
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
-use crate::{svc_exchange, systypes::*};
 
 /// Exits the current job
 ///
@@ -400,11 +400,7 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 /// Shared memory related syscalls:
 /// [`sys_get_shm_handle`], [`sys_map_shm`], [`sys_unmap_shm`] and [`sys_shm_get_infos`].
 ///
-pub fn shm_set_credential(
-    shm: shmh_t,
-    id: taskh_t,
-    shm_perm: u32,
-) -> Status {
+pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
     syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
@@ -487,7 +483,6 @@ pub fn send_ipc(target: taskh_t, length: u8) -> Status {
 pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
     syscall!(Syscall::SendSignal, resource, signal_type as u32).into()
 }
-
 
 /// Get the value of a given GPIO for a device identified by its handle
 ///
@@ -628,7 +623,7 @@ pub fn irq_acknowledge(irq: u16) -> Status {
 }
 
 /// enable (unmask) at interrupt controller level the given interrupt
-pub  fn irq_enable(irq: u16) -> Status {
+pub fn irq_enable(irq: u16) -> Status {
     syscall!(Syscall::IrqEnable, irq as u32).into()
 }
 
@@ -636,7 +631,6 @@ pub  fn irq_enable(irq: u16) -> Status {
 pub fn irq_disable(irq: u16) -> Status {
     syscall!(Syscall::IrqDisable, irq as u32).into()
 }
-
 
 /// Wait for input event. Single active blocking syscall.
 ///
@@ -657,7 +651,7 @@ pub fn irq_disable(irq: u16) -> Status {
 /// transferred to the kernel corresponding gate.
 ///
 pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
-    let timeout= u32::try_from(timeout);
+    let timeout = u32::try_from(timeout);
     match timeout {
         Ok(_) => (),
         Err(_) => return Status::Invalid,
@@ -821,7 +815,6 @@ pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
 pub fn dma_resume_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaResumeStream, dmah).into()
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -59,11 +59,7 @@ pub extern "C" fn __sys_unmap_shm(shm: shmh_t) -> Status {
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_shm_set_credential(
-    shm: shmh_t,
-    id: taskh_t,
-    shm_perm: u32,
-) -> Status {
+pub extern "C" fn __sys_shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
     crate::syscall::shm_set_credential(shm, id, shm_perm).into()
 }
 

@@ -65,7 +65,6 @@ test(
     'cargo-fmt',
     cargo_fmt,
     args: [cargo_manifest_opt, '--check' ],
-    should_fail: true,
     suite: 'uapi',
 )
 endif # cargo_fmt found

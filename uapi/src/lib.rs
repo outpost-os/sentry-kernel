@@ -38,7 +38,6 @@ mod arch;
 ///
 pub mod ffi_c;
 
-
 /// Sentry SVC_EXCHANGE area manipulation primitives
 ///
 /// # Usage
