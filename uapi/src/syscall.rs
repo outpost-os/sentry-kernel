@@ -59,6 +59,7 @@ pub fn exit(status: i32) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
+#[inline(always)]
 pub fn get_process_handle(process: ProcessLabel) -> Status {
     syscall!(Syscall::GetProcessHandle, process).into()
 }
@@ -87,6 +88,7 @@ pub fn get_process_handle(process: ProcessLabel) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
+#[inline(always)]
 pub fn get_shm_handle(shm: ShmLabel) -> Status {
     syscall!(Syscall::GetShmHandle, shm).into()
 }
@@ -115,6 +117,7 @@ pub fn get_shm_handle(shm: ShmLabel) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
+#[inline(always)]
 pub fn get_dma_stream_handle(stream: StreamLabel) -> Status {
     syscall!(Syscall::GetDmaStreamHandle, stream).into()
 }
@@ -143,6 +146,7 @@ pub fn get_dma_stream_handle(stream: StreamLabel) -> Status {
 /// syscall::sched_yield();
 /// ```
 ///
+#[inline(always)]
 pub fn sched_yield() -> Status {
     syscall!(Syscall::Yield).into()
 }
@@ -181,6 +185,7 @@ pub fn sched_yield() -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
     syscall!(Syscall::Sleep, u32::from(duration_ms), u32::from(mode)).into()
 }
@@ -208,6 +213,7 @@ pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn start(process: ProcessLabel) -> Status {
     syscall!(Syscall::Start, process).into()
 }
@@ -244,6 +250,7 @@ pub fn start(process: ProcessLabel) -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn map_dev(dev: devh_t) -> Status {
     syscall!(Syscall::MapDev, dev).into()
 }
@@ -281,6 +288,7 @@ pub fn map_dev(dev: devh_t) -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn map_shm(shm: shmh_t) -> Status {
     syscall!(Syscall::MapShm, shm).into()
 }
@@ -312,6 +320,7 @@ pub fn map_shm(shm: shmh_t) -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn unmap_dev(dev: devh_t) -> Status {
     syscall!(Syscall::UnmapDev, dev).into()
 }
@@ -342,6 +351,7 @@ pub fn unmap_dev(dev: devh_t) -> Status {
 /// }
 /// ```
 ///
+#[inline(always)]
 pub fn unmap_shm(shm: shmh_t) -> Status {
     syscall!(Syscall::UnmapShm, shm).into()
 }
@@ -400,6 +410,7 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 /// Shared memory related syscalls:
 /// [`sys_get_shm_handle`], [`sys_map_shm`], [`sys_unmap_shm`] and [`sys_shm_get_infos`].
 ///
+#[inline(always)]
 pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
     syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
@@ -441,6 +452,7 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 /// uapi::send_ipc(TargetTaskh, IpcLen)?continue_here;
 /// ```
 ///
+#[inline(always)]
 pub fn send_ipc(target: taskh_t, length: u8) -> Status {
     syscall!(Syscall::SendIPC, target, length as u32).into()
 }
@@ -480,6 +492,7 @@ pub fn send_ipc(target: taskh_t, length: u8) -> Status {
 /// send_signal(TargetTaskh, Signal::Pipe)?continue_here;
 /// ```
 ///
+#[inline(always)]
 pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
     syscall!(Syscall::SendSignal, resource, signal_type as u32).into()
 }
@@ -526,6 +539,7 @@ pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
 /// gpio_get(devh, Sda);
 /// ```
 ///
+#[inline(always)]
 pub fn gpio_get(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioGet, resource, io as u32).into()
 }
@@ -544,6 +558,7 @@ pub fn gpio_get(resource: u32, io: u8) -> Status {
 ///
 /// Except this specific behavior, this syscall behave the same way as [`sys_gpio_get`].
 ///
+#[inline(always)]
 pub fn gpio_set(resource: u32, io: u8, val: bool) -> Status {
     syscall!(Syscall::GpioSet, resource, io as u32, val as u32).into()
 }
@@ -559,6 +574,7 @@ pub fn gpio_set(resource: u32, io: u8, val: bool) -> Status {
 /// level, behave n the same way as `sys_gpio_set()` with `value` parameter set
 /// to `false`.
 ///
+#[inline(always)]
 pub fn gpio_reset(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioReset, resource, io as u32).into()
 }
@@ -573,6 +589,7 @@ pub fn gpio_reset(resource: u32, io: u8) -> Status {
 /// Its behavior is similar to [`sys_gpio_reset`], except that the new GPIO pin
 /// value is based on the inversion of its current value.
 ///
+#[inline(always)]
 pub fn gpio_toggle(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioToggle, resource, io as u32).into()
 }
@@ -587,6 +604,7 @@ pub fn gpio_toggle(resource: u32, io: u8) -> Status {
 /// The return values are similar to [`sys_gpio_get`]. The GPIO is synchronously
 /// set according to the corresponding pinmux definition.
 ///
+#[inline(always)]
 pub fn gpio_configure(resource: u32, io: u8) -> Status {
     syscall!(Syscall::GpioConfigure, resource, io as u32).into()
 }
@@ -613,22 +631,25 @@ pub fn gpio_configure(resource: u32, io: u8) -> Status {
 /// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
-#[no_mangle]
+#[inline(always)]
 pub fn get_device_handle(devlabel: u8) -> Status {
     syscall!(Syscall::GetDeviceHandle, devlabel as u32).into()
 }
 
 /// acknowledge at interrupt controller level the given interrupt
+#[inline(always)]
 pub fn irq_acknowledge(irq: u16) -> Status {
     syscall!(Syscall::IrqAcknowledge, irq as u32).into()
 }
 
 /// enable (unmask) at interrupt controller level the given interrupt
+#[inline(always)]
 pub fn irq_enable(irq: u16) -> Status {
     syscall!(Syscall::IrqEnable, irq as u32).into()
 }
 
 /// disable (mask) at interrupt controller level the given interrupt
+#[inline(always)]
 pub fn irq_disable(irq: u16) -> Status {
     syscall!(Syscall::IrqDisable, irq as u32).into()
 }
@@ -651,6 +672,7 @@ pub fn irq_disable(irq: u16) -> Status {
 /// easy as, at the end, the value is set to a HW register... which is a u32, to be
 /// transferred to the kernel corresponding gate.
 ///
+#[inline(always)]
 pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
     let timeout = u32::try_from(timeout);
     match timeout {
@@ -672,17 +694,20 @@ pub fn wait_for_event(mask: u8, timeout: i32) -> Status {
 ///
 /// it also accepts two other mode values that enable or prevent the
 /// CPU from sleeping.
+#[inline(always)]
 pub fn pm_manage(mode: CPUSleep) -> Status {
     syscall!(Syscall::PmManage, u32::from(mode)).into()
 }
 
 /// Send a SIGALRM signal to the task after `timeout_ms` milliseconds.
+#[inline(always)]
 pub fn alarm(timeout_ms: u32, flag: AlarmFlag) -> Status {
     syscall!(Syscall::Alarm, timeout_ms, u32::from(flag)).into()
 }
 
 /// Send a message from the current task's 'svc_exchange area' through
 /// the UART.
+#[inline(always)]
 pub fn log(length: usize) -> Status {
     if length > svc_exchange::SVC_EXCH_AREA_LEN {
         Status::Invalid
@@ -717,6 +742,7 @@ pub fn log(length: usize) -> Status {
 /// };
 /// ```
 ///
+#[inline(always)]
 pub fn get_random() -> Status {
     syscall!(Syscall::GetRandom).into()
 }
@@ -745,6 +771,7 @@ pub fn get_random() -> Status {
 /// This syscall returns the value in the SVC_EXCHANGE area, where it needs to
 /// be read afterward.
 ///
+#[inline(always)]
 pub fn get_cycle(precision: Precision) -> Status {
     syscall!(Syscall::GetCycle, precision as u32).into()
 }
@@ -756,6 +783,7 @@ pub fn get_cycle(precision: Precision) -> Status {
 ///
 /// - TODO: using dts instead
 /// - TODO: update documentation when moving to PM-related work
+#[inline(always)]
 pub fn pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
     syscall!(Syscall::PmSetClock, clk_reg, clkmsk, val).into()
 }
@@ -763,6 +791,7 @@ pub fn pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
 /// start a DMA stream
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_start_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaStartStream, dmah).into()
 }
@@ -770,6 +799,7 @@ pub fn dma_start_stream(dmah: dmah_t) -> Status {
 /// suspend a DMA stream
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaSuspendStream, dmah).into()
 }
@@ -777,6 +807,7 @@ pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
 /// get the status of a given DMA stream
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
@@ -784,6 +815,7 @@ pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
 /// get the static information of a given DMA stream
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn shm_get_infos(shm: shmh_t) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
@@ -791,6 +823,7 @@ pub fn shm_get_infos(shm: shmh_t) -> Status {
 /// assign a DMA stream to its corresponding hardware channel
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_assign_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaAssignStream, dmah).into()
 }
@@ -798,6 +831,7 @@ pub fn dma_assign_stream(dmah: dmah_t) -> Status {
 /// unassign a DMA stream from its corresponding hardware channel
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaUnassignStream, dmah).into()
 }
@@ -806,6 +840,7 @@ pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
 /// structured data through SVC_Exchange
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaGetStreamInfo, dmah).into()
 }
@@ -813,6 +848,7 @@ pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
 /// resume a DMA stream
 ///
 /// TODO: with complete DMA support
+#[inline(always)]
 pub fn dma_resume_stream(dmah: dmah_t) -> Status {
     syscall!(Syscall::DmaResumeStream, dmah).into()
 }
