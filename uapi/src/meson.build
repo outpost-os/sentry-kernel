@@ -8,7 +8,7 @@ uapi_libfile = files('lib.rs')
 # dependencies through meson introspect, we should add deps to inner modules
 uapi_modules = files([
   'panic.rs',
-  'svc_exchange.rs',
+  'exchange.rs',
   'syscall.rs',
   'systypes.rs',
 ])
