@@ -62,7 +62,7 @@ pub mod ffi_c;
 /// if unsafe is used, there is no UB risk when manipulating the exchange area
 /// based on the Operating System architecture.
 ///
-pub mod exchange;
+mod exchange;
 
 /// Sentry kernel low level syscall implementation
 ///
@@ -100,6 +100,18 @@ pub mod syscall;
 /// > the corresponding C types are defined in a dedicated include dir
 ///
 pub mod systypes;
+
+/// Copy a given generic type from the kernel exchange zone to the given mutable reference
+pub use self::exchange::copy_from_kernel as copy_from_kernel;
+
+/// Copy a given generic type to the kernel exchange zone from the given eference
+pub use self::exchange::copy_to_kernel as copy_to_kernel;
+
+/// Sentry exchangeable opaque trait, only defined for systypes defined types
+///
+/// This trait is declared in order to allow the attribute checking but is not
+/// exported as no upper layer type needs to implement it
+pub use self::exchange::SentryExchangeable as SentryExchangeable;
 
 #[cfg(not(feature = "std"))]
 mod panic;
