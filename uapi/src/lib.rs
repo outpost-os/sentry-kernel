@@ -37,7 +37,7 @@ mod arch;
 ///
 pub mod ffi_c;
 
-/// Sentry SVC_EXCHANGE area manipulation primitives
+/// Sentry kernel exchange area manipulation primitives
 ///
 /// # Usage
 ///
@@ -45,7 +45,7 @@ pub mod ffi_c;
 /// interface is used. Sentry kernel interactions should be, instead, made with
 /// an upper interface.
 ///
-/// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
+/// As the exchange area is a special userspace/kernelspace fixed size area
 /// made in order to exchange data between userspace and kernelspace without
 /// manipulating any pointer, this space has a particular meaning and usage, holding
 /// any type of content as a 'retention area' before and after system calls.
@@ -62,7 +62,7 @@ pub mod ffi_c;
 /// if unsafe is used, there is no UB risk when manipulating the exchange area
 /// based on the Operating System architecture.
 ///
-pub mod svc_exchange;
+pub mod exchange;
 
 /// Sentry kernel low level syscall implementation
 ///

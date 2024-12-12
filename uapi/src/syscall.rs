@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{svc_exchange, systypes::*};
+use crate::exchange;
+use crate::systypes::*;
 #[cfg(not(target_arch = "x86_64"))]
 use core::arch::asm;
 
@@ -714,7 +715,7 @@ pub fn alarm(timeout_ms: u32, flag: AlarmFlag) -> Status {
 /// the UART.
 #[inline(always)]
 pub fn log(length: usize) -> Status {
-    if length > svc_exchange::SVC_EXCH_AREA_LEN {
+    if length > exchange::length() {
         Status::Invalid
     } else {
         syscall!(Syscall::Log, length as u32).into()

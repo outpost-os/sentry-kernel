@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::systypes::*;
+use crate::exchange;
 
 #[no_mangle]
 pub extern "C" fn __sys_get_process_handle(process: TaskLabel) -> Status {
@@ -195,4 +196,21 @@ pub extern "C" fn __sys_dma_get_stream_info(dmah: StreamHandle) -> Status {
 #[no_mangle]
 pub extern "C" fn __sys_dma_resume_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_resume_stream(dmah)
+}
+
+#[no_mangle]
+pub extern "C" fn copy_from_user(from: *const u8, _length: usize) -> Status {
+    match exchange::copy_to_kernel(&from) {
+        Ok(_) => Status::Ok,
+        Err(err) => err,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn copy_to_user(mut to: *mut u8, _length: usize) -> Status
+{
+    match exchange::copy_from_kernel(&mut to) {
+        Ok(_) => Status::Ok,
+        Err(err) => err
+    }
 }
