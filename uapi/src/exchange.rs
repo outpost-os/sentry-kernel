@@ -130,3 +130,30 @@ where T:SentryExchangeable
 {
     to.from_kernel()
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn back_to_back_shminfo() {
+        let src = ShmInfo {
+            handle: 2,
+            label: 42,
+            base: 0x123456,
+            len: 64,
+            perms: 0x1,
+        };
+        let mut dst = ShmInfo {
+            handle: 0,
+            label: 0,
+            base: 0,
+            len: 0,
+            perms: 0,
+        };
+        let _ = src.to_kernel();
+        let _ = dst.from_kernel();
+        assert_eq!(src, dst);
+    }
+}

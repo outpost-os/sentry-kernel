@@ -867,7 +867,7 @@ pub mod dev {
 pub mod shm {
 
     #[repr(C)]
-    #[derive(Debug, Copy, Clone)]
+    #[derive(PartialEq, Debug, Copy, Clone)]
     pub struct ShmInfo {
         pub handle: crate::systypes::ShmHandle,
         pub label: u32,
