@@ -4,7 +4,7 @@
 use crate::systypes::*;
 
 #[no_mangle]
-pub extern "C" fn __sys_get_process_handle(process: ProcessLabel) -> Status {
+pub extern "C" fn __sys_get_process_handle(process: TaskLabel) -> Status {
     crate::syscall::get_process_handle(process)
 }
 
@@ -34,37 +34,41 @@ pub extern "C" fn __sys_sleep(duration_ms: SleepDuration, mode: SleepMode) -> St
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_start(process: ProcessLabel) -> Status {
+pub extern "C" fn __sys_start(process: TaskLabel) -> Status {
     crate::syscall::start(process)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_map_dev(dev: devh_t) -> Status {
-    crate::syscall::map_dev(dev as devh_t)
+pub extern "C" fn __sys_map_dev(dev: DeviceHandle) -> Status {
+    crate::syscall::map_dev(dev as DeviceHandle)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_map_shm(shm: shmh_t) -> Status {
-    crate::syscall::map_shm(shm as shmh_t)
+pub extern "C" fn __sys_map_shm(shm: ShmHandle) -> Status {
+    crate::syscall::map_shm(shm as ShmHandle)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_unmap_dev(dev: devh_t) -> Status {
-    crate::syscall::unmap_dev(dev as devh_t)
+pub extern "C" fn __sys_unmap_dev(dev: DeviceHandle) -> Status {
+    crate::syscall::unmap_dev(dev as DeviceHandle)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_unmap_shm(shm: shmh_t) -> Status {
-    crate::syscall::unmap_shm(shm as shmh_t)
+pub extern "C" fn __sys_unmap_shm(shm: ShmHandle) -> Status {
+    crate::syscall::unmap_shm(shm as ShmHandle)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
+pub extern "C" fn __sys_shm_set_credential(
+    shm: ShmHandle,
+    id: TaskHandle,
+    shm_perm: u32,
+) -> Status {
     crate::syscall::shm_set_credential(shm, id, shm_perm)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_send_ipc(target: taskh_t, length: u8) -> Status {
+pub extern "C" fn __sys_send_ipc(target: TaskHandle, length: u8) -> Status {
     crate::syscall::send_ipc(target, length)
 }
 
@@ -154,41 +158,41 @@ pub extern "C" fn __sys_pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Sta
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_start_stream(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_start_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_start_stream(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_suspend_stream(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_suspend_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_suspend_stream(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_get_stream_status(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_get_stream_status(dmah: StreamHandle) -> Status {
     crate::syscall::dma_get_stream_status(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_shm_get_infos(shm: shmh_t) -> Status {
+pub extern "C" fn __sys_shm_get_infos(shm: ShmHandle) -> Status {
     crate::syscall::shm_get_infos(shm)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_assign_stream(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_assign_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_assign_stream(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_unassign_stream(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_unassign_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_unassign_stream(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_get_stream_info(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_get_stream_info(dmah: StreamHandle) -> Status {
     crate::syscall::dma_get_stream_info(dmah)
 }
 
 #[no_mangle]
-pub extern "C" fn __sys_dma_resume_stream(dmah: dmah_t) -> Status {
+pub extern "C" fn __sys_dma_resume_stream(dmah: StreamHandle) -> Status {
     crate::syscall::dma_resume_stream(dmah)
 }

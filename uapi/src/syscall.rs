@@ -24,8 +24,8 @@ use core::arch::asm;
 ///
 /// # Example
 ///
-/// ```rust
-/// syscall::sys_exit(42);
+/// ```ignore
+/// sentry_uapi::syscall::exit(42);
 /// // unreachable
 /// ```
 ///
@@ -50,9 +50,9 @@ pub fn exit(status: i32) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match get_process_handle(tasklabel) {
-///    Status::Ok => (),
+/// ```ignore
+/// match sentry_uapi::syscall::get_process_handle(tasklabel) {
+///     Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
 /// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
@@ -60,7 +60,7 @@ pub fn exit(status: i32) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn get_process_handle(process: ProcessLabel) -> Status {
+pub fn get_process_handle(process: TaskLabel) -> Status {
     syscall!(Syscall::GetProcessHandle, process).into()
 }
 
@@ -79,9 +79,9 @@ pub fn get_process_handle(process: ProcessLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match sys_get_shm_handle(shmlabel) {
-///    Status::Ok => (),
+/// ```ignore
+/// match sentry_uapi::syscall::get_shm_handle(shmlabel) {
+///     Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
 /// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
@@ -108,8 +108,8 @@ pub fn get_shm_handle(shm: ShmLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match sys_get_dma_stream_handle(streamlabel) {
+/// ```ignore
+/// match get_dma_stream_handle(streamlabel) {
 ///    Status::Ok => (),
 ///     any_err => return (any_err),
 /// }
@@ -142,8 +142,8 @@ pub fn get_dma_stream_handle(stream: StreamLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// syscall::sched_yield();
+/// ```ignore
+/// sentry_uapi::syscall::sched_yield();
 /// ```
 ///
 #[inline(always)]
@@ -178,8 +178,8 @@ pub fn sched_yield() -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match sys_sleep(SleepMode::Deep, D5ms) {
+/// ```ignore
+/// match sentry_uapi::syscall::sleep(SleepMode::Deep, D5ms) {
 ///    Status::Intr => (),
 ///    Status::Timeout => (),
 /// }
@@ -206,15 +206,15 @@ pub fn sleep(duration_ms: SleepDuration, mode: SleepMode) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
-/// match sys_start(tsklabel) {
+/// ```ignore
+/// match start(tsklabel) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
 /// }
 /// ```
 ///
 #[inline(always)]
-pub fn start(process: ProcessLabel) -> Status {
+pub fn start(process: TaskLabel) -> Status {
     syscall!(Syscall::Start, process).into()
 }
 
@@ -222,14 +222,14 @@ pub fn start(process: ProcessLabel) -> Status {
 ///
 /// # Usage
 ///
-/// Maps a given device identified by its handle (see [`sys_get_device_handle`]).
+/// Maps a given device identified by its handle (see [`get_device_handle`]).
 ///
 /// The memory mapping system is responsible for verifying that there is enough space
 /// in the caller's memory layout, and if yes, do map, synchronously, the device area
 /// in the caller's memory. The device is mapped read-write, so that the caller can
 /// directly configure it.
 ///
-/// Any mapped device can be unmapped (see [`sys_unmap_dev`]).
+/// Any mapped device can be unmapped (see [`unmap_dev`]).
 ///
 /// This syscall returns Status::Ok if the device is successfully mapped by the kernel.
 ///
@@ -242,7 +242,7 @@ pub fn start(process: ProcessLabel) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match map_dev(devh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
@@ -251,7 +251,7 @@ pub fn start(process: ProcessLabel) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn map_dev(dev: devh_t) -> Status {
+pub fn map_dev(dev: DeviceHandle) -> Status {
     syscall!(Syscall::MapDev, dev).into()
 }
 
@@ -259,15 +259,15 @@ pub fn map_dev(dev: devh_t) -> Status {
 ///
 /// # Usage
 ///
-/// Maps a given shared identified by its handle (see [`sys_get_shm_handle`]).
+/// Maps a given shared identified by its handle (see [`get_shm_handle`]).
 ///
 /// The memory mapping system is responsible for verifying that there is enough space
 /// in the caller's memory layout, and if yes, do map, synchronously, the shared memory
 /// in the caller's memory.
 /// The memory access policy is based on the SHM policy defined for the caller through
-/// the [`sys_shm_set_credential`] syscall. The SHM mapping is synchronous.
+/// the [`shm_set_credential`] syscall. The SHM mapping is synchronous.
 ///
-/// Any shared memory can be unmapped (see [`sys_unmap_shm`]).
+/// Any shared memory can be unmapped (see [`unmap_shm`]).
 ///
 /// This syscall returns Status::Ok if the device is successfully mapped by the kernel.
 ///
@@ -280,7 +280,7 @@ pub fn map_dev(dev: devh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match map_shm(shmh) {
 ///    Status::Ok => (),
 ///    Status::Busy => (unmap_other()),
@@ -289,7 +289,7 @@ pub fn map_dev(dev: devh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn map_shm(shm: shmh_t) -> Status {
+pub fn map_shm(shm: ShmHandle) -> Status {
     syscall!(Syscall::MapShm, shm).into()
 }
 
@@ -298,13 +298,13 @@ pub fn map_shm(shm: shmh_t) -> Status {
 /// # Usage
 ///
 /// Unmap a device that has been previously mapped by the caller, once no more
-/// required. The device device is identified by its handle (see [`sys_get_device_handle`]).
+/// required. The device device is identified by its handle (see [`get_device_handle`]).
 ///
 /// The memory mapping system is responsible for verifying that the device is already
 /// mapped in the caller's memory layout. There is neither capability nor ownership check
 /// as these checks are made at map time. Unmapping is synchronous.
 ///
-/// An unmapped device can always be remapped later (see [`sys_map_dev`]).
+/// An unmapped device can always be remapped later (see [`map_dev`]).
 ///
 /// This syscall returns Status::Ok if the device is successfully unmapped by the kernel.
 ///
@@ -313,7 +313,7 @@ pub fn map_shm(shm: shmh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match unmap_dev(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -321,7 +321,7 @@ pub fn map_shm(shm: shmh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn unmap_dev(dev: devh_t) -> Status {
+pub fn unmap_dev(dev: DeviceHandle) -> Status {
     syscall!(Syscall::UnmapDev, dev).into()
 }
 
@@ -330,21 +330,21 @@ pub fn unmap_dev(dev: devh_t) -> Status {
 /// # Usage
 ///
 /// Unmap a shared memory that has been previously mapped by the caller, once no more
-/// required. The shared memory is identified by its handle (see [`sys_get_shm_handle`]).
+/// required. The shared memory is identified by its handle (see [`get_shm_handle`]).
 ///
 /// The memory mapping system is responsible for verifying that the shared memory is already
 /// mapped in the caller's memory layout. There is no ownership check
 /// as these checks are made at map time. Unmapping is synchronous.
 ///
 /// An unmapped shared memory can always be remapped later while credentials are
-/// still valid for the caller (see [`sys_map_shm`] and [`sys_shm_set_credential`]).
+/// still valid for the caller (see [`map_shm`] and [`shm_set_credential`]).
 ///
 /// This syscall returns Status::Ok if the shared memory is successfully unmapped by the kernel.
 /// If the shared memory is not already mapped by the caller, the syscall returns Status::Invalid.
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match unmap_shm(devh) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -352,7 +352,7 @@ pub fn unmap_dev(dev: devh_t) -> Status {
 /// ```
 ///
 #[inline(always)]
-pub fn unmap_shm(shm: shmh_t) -> Status {
+pub fn unmap_shm(shm: ShmHandle) -> Status {
     syscall!(Syscall::UnmapShm, shm).into()
 }
 
@@ -398,7 +398,7 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match shm_set_credential(shmh, myhandle, SHMPermission::Map | SHMPermission::Write) {
 ///    Status::Ok => (),
 ///    any_err => return(any_err),
@@ -408,10 +408,10 @@ pub fn unmap_shm(shm: shmh_t) -> Status {
 /// # See also
 ///
 /// Shared memory related syscalls:
-/// [`sys_get_shm_handle`], [`sys_map_shm`], [`sys_unmap_shm`] and [`sys_shm_get_infos`].
+/// [`get_shm_handle`], [`map_shm`], [`unmap_shm`] and [`shm_get_infos`].
 ///
 #[inline(always)]
-pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
+pub fn shm_set_credential(shm: ShmHandle, id: TaskHandle, shm_perm: u32) -> Status {
     syscall!(Syscall::SHMSetCredential, shm, id, shm_perm).into()
 }
 
@@ -426,10 +426,10 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 /// calling this syscall. The message length must be shorter than the SVC Exchange
 /// area.
 ///
-/// `sys_send_ipc()` is a blocking syscall. The current job is preempted and will
+/// `send_ipc()` is a blocking syscall. The current job is preempted and will
 /// be eligible again only if:
 ///
-///    * the target job reads the IPC content using [`sys_wait_for_event`]
+///    * the target job reads the IPC content using [`wait_for_event`]
 ///    * the target job terminates
 ///
 /// This syscall synchronously returns `Status::Invalid` If the target job handle
@@ -448,12 +448,12 @@ pub fn shm_set_credential(shm: shmh_t, id: taskh_t, shm_perm: u32) -> Status {
 ///
 /// # examples
 ///
-/// ```
+/// ```ignore
 /// uapi::send_ipc(TargetTaskh, IpcLen)?continue_here;
 /// ```
 ///
 #[inline(always)]
-pub fn send_ipc(target: taskh_t, length: u8) -> Status {
+pub fn send_ipc(target: TaskHandle, length: u8) -> Status {
     syscall!(Syscall::SendIPC, target, length as u32).into()
 }
 
@@ -488,7 +488,7 @@ pub fn send_ipc(target: taskh_t, length: u8) -> Status {
 ///
 /// # examples
 ///
-/// ```
+/// ```ignore
 /// send_signal(TargetTaskh, Signal::Pipe)?continue_here;
 /// ```
 ///
@@ -535,7 +535,7 @@ pub fn send_signal(resource: u32, signal_type: Signal) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// gpio_get(devh, Sda);
 /// ```
 ///
@@ -551,12 +551,12 @@ pub fn gpio_get(resource: u32, io: u8) -> Status {
 /// This syscall allows to get back the value of a GPIO identifier associated
 /// to the corresponding pinmux declared in the device tree.
 ///
-/// Its behavior is similar to [`sys_gpio_get`]. the value set is a classical
+/// Its behavior is similar to [`gpio_get`]. the value set is a classical
 /// boolean value, used in order to set high or low the value of the GPIO pin.
 ///
 /// If the given GPIO is in input mode, the syscall returns `Status::Badstate`.
 ///
-/// Except this specific behavior, this syscall behave the same way as [`sys_gpio_get`].
+/// Except this specific behavior, this syscall behave the same way as [`gpio_get`].
 ///
 #[inline(always)]
 pub fn gpio_set(resource: u32, io: u8, val: bool) -> Status {
@@ -570,8 +570,8 @@ pub fn gpio_set(resource: u32, io: u8, val: bool) -> Status {
 /// This syscall allows to get back the value of a GPIO identifier associated
 /// to the corresponding pinmux declared in the device tree.
 ///
-/// Its behavior is similar to [`sys_gpio_set`]. the value set is reset to low
-/// level, behave n the same way as `sys_gpio_set()` with `value` parameter set
+/// Its behavior is similar to [`gpio_set`]. the value set is reset to low
+/// level, behave n the same way as `gpio_set()` with `value` parameter set
 /// to `false`.
 ///
 #[inline(always)]
@@ -586,7 +586,7 @@ pub fn gpio_reset(resource: u32, io: u8) -> Status {
 /// This syscall invert the GPIO pin value of a GPIO identifier associated
 /// to the corresponding pinmux declared in the device tree.
 ///
-/// Its behavior is similar to [`sys_gpio_reset`], except that the new GPIO pin
+/// Its behavior is similar to [`gpio_reset`], except that the new GPIO pin
 /// value is based on the inversion of its current value.
 ///
 #[inline(always)]
@@ -599,9 +599,9 @@ pub fn gpio_toggle(resource: u32, io: u8) -> Status {
 /// # description
 ///
 /// This syscall configures the GPIO using the corresponding pinmux settings set
-/// in the device-tree. See [`sys_gpio_get`] for device-tree related description.
+/// in the device-tree. See [`gpio_get`] for device-tree related description.
 ///
-/// The return values are similar to [`sys_gpio_get`]. The GPIO is synchronously
+/// The return values are similar to [`gpio_get`]. The GPIO is synchronously
 /// set according to the corresponding pinmux definition.
 ///
 #[inline(always)]
@@ -623,12 +623,17 @@ pub fn gpio_configure(resource: u32, io: u8) -> Status {
 /// # Example
 ///
 /// ```rust
-/// match get_device_handle(devlabel) {
-///    Status::Ok => (),
-///     any_err => return (any_err),
+/// use sentry_uapi::{syscall, svc_exchange::*, systypes::*};
+///
+/// fn get_handle() -> Result<u32, sentry_uapi::systypes::Status> {
+///     let devlabel : u8 = 0x42;
+///     match syscall::get_device_handle(devlabel) {
+///         Status::Ok => (),
+///         any_err => return Err(any_err),
+///     };
+///     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
+///     Ok(u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?))
 /// }
-/// let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
-/// let handle = u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?);
 /// ```
 ///
 #[inline(always)]
@@ -735,7 +740,7 @@ pub fn log(length: usize) -> Status {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```ignore
 /// match (get_random()) {
 ///     Status::Ok => (),
 ///     any_err => return(any_err),
@@ -792,7 +797,7 @@ pub fn pm_set_clock(clk_reg: u32, clkmsk: u32, val: u32) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_start_stream(dmah: dmah_t) -> Status {
+pub fn dma_start_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaStartStream, dmah).into()
 }
 
@@ -800,7 +805,7 @@ pub fn dma_start_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
+pub fn dma_suspend_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaSuspendStream, dmah).into()
 }
 
@@ -808,7 +813,7 @@ pub fn dma_suspend_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
+pub fn dma_get_stream_status(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaGetStreamStatus, dmah).into()
 }
 
@@ -816,7 +821,7 @@ pub fn dma_get_stream_status(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn shm_get_infos(shm: shmh_t) -> Status {
+pub fn shm_get_infos(shm: ShmHandle) -> Status {
     syscall!(Syscall::ShmGetInfos, shm).into()
 }
 
@@ -824,7 +829,7 @@ pub fn shm_get_infos(shm: shmh_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_assign_stream(dmah: dmah_t) -> Status {
+pub fn dma_assign_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaAssignStream, dmah).into()
 }
 
@@ -832,7 +837,7 @@ pub fn dma_assign_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
+pub fn dma_unassign_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaUnassignStream, dmah).into()
 }
 
@@ -841,7 +846,7 @@ pub fn dma_unassign_stream(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
+pub fn dma_get_stream_info(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaGetStreamInfo, dmah).into()
 }
 
@@ -849,7 +854,7 @@ pub fn dma_get_stream_info(dmah: dmah_t) -> Status {
 ///
 /// TODO: with complete DMA support
 #[inline(always)]
-pub fn dma_resume_stream(dmah: dmah_t) -> Status {
+pub fn dma_resume_stream(dmah: StreamHandle) -> Status {
     syscall!(Syscall::DmaResumeStream, dmah).into()
 }
 
@@ -871,30 +876,26 @@ mod tests {
 
     #[test]
     fn basic_sleep() {
-        assert_eq!(
-            sys_sleep(SleepDuration::D1ms, SleepMode::Shallow),
-            Status::Ok
-        );
+        assert_eq!(sleep(SleepDuration::D1ms, SleepMode::Shallow), Status::Ok);
     }
 
     #[test]
     fn basic_start() {
-        assert_eq!(sys_start(ProcessLabel::Label0), Status::Ok);
+        assert_eq!(start(0), Status::Ok);
     }
 
     #[test]
     fn basic_yield() {
-        assert_eq!(sys_yield(), Status::Ok);
+        assert_eq!(sched_yield(), Status::Ok);
     }
 
     #[test]
     fn basic_exit() {
-        assert_eq!(sys_exit(1), Status::Ok);
+        assert_eq!(exit(1), Status::Ok);
     }
 
     #[test]
-    #[should_panic]
     fn invalid_status() {
-        assert_eq!(sys_exit(0xaaaa), Status::Ok);
+        assert_eq!(exit(0xaaaa), Status::Ok);
     }
 }

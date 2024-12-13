@@ -119,9 +119,12 @@ macro_rules! mirror_enum {
 }
 
 /// Sentry syscall return values
-/// NonSense must never be returned, as it means that an
-/// asynchronously updated return value.... has not been updated at all
-/// This must raise a security exception. All syscalls that can't set
+///
+/// Note: the kernel also hold, at kernel level, another value denoted
+/// 'NonSense'. This value must never be returned to userspace. This
+/// is why this value do not exist here.
+///
+/// Such a return should raise a security exception. All syscalls that can't set
 /// they return code synchronously (e.g. IPC), MUST use this value as
 /// default one
 #[repr(C)]
@@ -175,7 +178,7 @@ impl From<u32> for Status {
 /// A process label is a development-time fixed identifier that can be used hardcoded
 ///  in the source code. This can be used in order to get back remote process effective
 /// identifier from label at any time in order to communicate
-pub type ProcessLabel = u32;
+pub type TaskLabel = u32;
 
 /// A shm label is a development-time fixed identifier that can be used hardcoded
 /// in the source code. This label is set in the device-tree in the shm declaration,
@@ -190,10 +193,57 @@ pub type ShmLabel = u32;
 /// to manipulate it
 pub type StreamLabel = u32;
 
+/// A device label is a development-time fixed identifier that can be used hardcoded
+/// in the source code in order to identify declared device.
+/// This label is, by now, the result of the device tree analysis but will be replaced by
+/// a clean outpost,label field at dts level, in the same way other label are set, to
+/// highly simplify userspace level usage.
+/// This label is used to get back the associated handle at run time.
+pub type DeviceLabel = u32;
+
+/// A device handle is a unique identifier required to manipulate a devive
+///
+/// That handle is forged by the kernel at bootup time and vary from one boot to another.
+/// The device handle can be retrieved by using the [`crate::syscall::get_device_handle`]
+/// syscall.
+///
+pub type DeviceHandle = u32;
+
+/// A task handle is a unique identifier required to communicate with another task.
+///
+/// A task handle is associated to a job, meaning that if a task job terminates and
+/// is restarted, the associated handle is reforged and diverge from the previous one.
+///
+/// All jobs have a task handle. This handle is the only way to uniquely identify a
+/// given job with which we need to communicate..
+/// The task handle can be retrieved by using the [`crate::syscall::get_process_handle`]
+/// syscall.
+///
+pub type TaskHandle = u32;
+
+/// A SHM handle is a unique identifier required to manipulate a shared memory.
+///
+/// That handle is forged by the kernel at bootup time and vary from one boot to another.
+/// The SHM handle can be retrieved by using the [`crate::syscall::get_shm_handle`]
+/// syscall.
+///
+pub type ShmHandle = u32;
+
+/// A DMA stream handle is a unique identifier required to manipulate a DMA stream.
+///
+/// That handle is forged by the kernel at bootup time and vary from one boot to another.
+/// The DMA stream handle can be retrieved by using the [`crate::syscall::get_dma_stream_handle`]
+/// syscall.
+///
+pub type StreamHandle = u32;
+
 /// Definition of Sentry events
 ///
 /// Multiple events can targets a given task. These events are strictly
 /// identified so that the task can easily differentiate them.
+///
+/// As multiple events can be set at once, event field is using a
+/// bitfield model to keep C+Rust usage easy
 #[repr(C)]
 pub enum EventType {
     /// No event
@@ -206,6 +256,7 @@ pub enum EventType {
     Irq = 4,
     /// DMA stream event
     Dma = 8,
+    /// Any of the above events
     All = 15,
 }
 
@@ -275,19 +326,19 @@ impl From<EraseMode> for u32 {
 #[repr(C)]
 pub enum AlarmFlag {
     /// Start an alarm
-    AlrmStart,
+    AlarmStart,
     /// Start a periodic alarm
-    AlrmStartPeriodic,
+    AlarmStartPeriodic,
     /// Stop an alarm, being periodic or not
-    AlrmStop,
+    AlarmStop,
 }
 
 impl From<AlarmFlag> for u32 {
     fn from(mode: AlarmFlag) -> u32 {
         match mode {
-            AlarmFlag::AlrmStart => 0,
-            AlarmFlag::AlrmStartPeriodic => 1,
-            AlarmFlag::AlrmStop => 2,
+            AlarmFlag::AlarmStart => 0,
+            AlarmFlag::AlarmStartPeriodic => 1,
+            AlarmFlag::AlarmStop => 2,
         }
     }
 }
@@ -542,23 +593,283 @@ mirror_enum! {
     }
 }
 
-// TODO: using CamelCase instead, as independant of C Snake Case definitions
-#[allow(non_camel_case_types)]
-pub type devh_t = u32;
-#[allow(non_camel_case_types)]
-pub type taskh_t = u32;
-#[allow(non_camel_case_types)]
-pub type shmh_t = u32;
-#[allow(non_camel_case_types)]
-pub type dmah_t = u32;
+/// Device related types definitions
+pub mod dev {
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct InterruptInfo {
+        /// interrupt number
+        pub num: u16,
+        /// interrupt controler identifier
+        pub controller: u8,
+    }
+
+    #[test]
+    fn test_layout_it_info() {
+        const UNINIT: ::std::mem::MaybeUninit<InterruptInfo> = ::std::mem::MaybeUninit::uninit();
+        let ptr = UNINIT.as_ptr();
+        assert_eq!(
+            ::std::mem::size_of::<InterruptInfo>(),
+            4usize,
+            concat!("Size of: ", stringify!(InterruptInfo))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<InterruptInfo>(),
+            2usize,
+            concat!("Alignment of ", stringify!(InterruptInfo))
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).num) as usize - ptr as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(InterruptInfo),
+                "::",
+                stringify!(num)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).controller) as usize - ptr as usize },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(InterruptInfo),
+                "::",
+                stringify!(controller)
+            )
+        );
+    }
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct IoInfo {
+        /// GPIO port identifier, declared in DTS
+        pub port: u8,
+        /// GPIO pin identifier, declared in DTS
+        pub pin: u8,
+        pub mode: u8,
+        /// GPIO AF identifier, declared in DTS
+        pub af: u8,
+        /// GPIO ppull config, declared in DTS
+        pub ppull: u8,
+        /// GPIO speed config, declared in DTS
+        pub speed: u8,
+        // GPIO pupdr config, declared in DTS
+        pub pupdr: u32,
+    }
+    #[test]
+    fn test_layout_io_info() {
+        const UNINIT: ::std::mem::MaybeUninit<IoInfo> = ::std::mem::MaybeUninit::uninit();
+        let ptr = UNINIT.as_ptr();
+        assert_eq!(
+            ::std::mem::size_of::<IoInfo>(),
+            12usize,
+            concat!("Size of: ", stringify!(IoInfo))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<IoInfo>(),
+            4usize,
+            concat!("Alignment of ", stringify!(IoInfo))
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).port) as usize - ptr as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(port)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).pin) as usize - ptr as usize },
+            1usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(pin)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).mode) as usize - ptr as usize },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(mode)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).af) as usize - ptr as usize },
+            3usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(af)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).ppull) as usize - ptr as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(ppull)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).speed) as usize - ptr as usize },
+            5usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(speed)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).pupdr) as usize - ptr as usize },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(IoInfo),
+                "::",
+                stringify!(pupdr)
+            )
+        );
+    }
+
+    /// userspace oriented device definition
+    ///
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct DevInfo {
+        pub id: u32,
+        /// mappable device. Direct-IO (LED...) are not
+        pub mappable: bool,
+        /// for mappable devices, base address
+        pub baseaddr: usize,
+        /// for mappable devices, mapped size */\n/**<\n  number of device's interrupt.
+        /// Can be EXTI (button) or NVIC interrupts (SoC device)
+        pub size: usize,
+        /// number of device interrupts
+        pub num_interrupt: u8,
+        /// device interrupt list
+        pub its: [InterruptInfo; 8usize],
+        /// number of device I/O (pinmux)
+        pub num_ios: u8,
+        /// device I/O list
+        pub ios: [IoInfo; 8usize],
+    }
+    #[test]
+    fn bindgen_test_layout_DevInfo() {
+        const UNINIT: ::std::mem::MaybeUninit<DevInfo> = ::std::mem::MaybeUninit::uninit();
+        let ptr = UNINIT.as_ptr();
+        assert_eq!(
+            ::std::mem::size_of::<DevInfo>(),
+            160usize,
+            concat!("Size of: ", stringify!(DevInfo))
+        );
+        assert_eq!(
+            ::std::mem::align_of::<DevInfo>(),
+            8usize,
+            concat!("Alignment of ", stringify!(DevInfo))
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).id) as usize - ptr as usize },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(id)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).mappable) as usize - ptr as usize },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(mappable)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).baseaddr) as usize - ptr as usize },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(baseaddr)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).size) as usize - ptr as usize },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(size)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).num_interrupt) as usize - ptr as usize },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(num_interrupt)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).its) as usize - ptr as usize },
+            26usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(its)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).num_ios) as usize - ptr as usize },
+            58usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(num_ios)
+            )
+        );
+        assert_eq!(
+            unsafe { ::std::ptr::addr_of!((*ptr).ios) as usize - ptr as usize },
+            60usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(DevInfo),
+                "::",
+                stringify!(ios)
+            )
+        );
+    }
+}
 
 /// SHM related types definitions
 pub mod shm {
 
     #[repr(C)]
     #[derive(Debug, Copy, Clone)]
-    pub struct shm_infos {
-        pub handle: crate::systypes::shmh_t,
+    pub struct ShmInfo {
+        pub handle: crate::systypes::ShmHandle,
         pub label: u32,
         pub base: usize,
         pub len: usize,
@@ -567,24 +878,24 @@ pub mod shm {
 
     #[test]
     fn test_layout_shm_infos() {
-        const UNINIT: ::std::mem::MaybeUninit<shm_infos> = ::std::mem::MaybeUninit::uninit();
+        const UNINIT: ::std::mem::MaybeUninit<ShmInfo> = ::std::mem::MaybeUninit::uninit();
         let ptr = UNINIT.as_ptr();
         assert_eq!(
-            ::std::mem::size_of::<shm_infos>(),
+            ::std::mem::size_of::<ShmInfo>(),
             32usize,
-            concat!("Size of: ", stringify!(shm_infos))
+            concat!("Size of: ", stringify!(ShmInfo))
         );
         assert_eq!(
-            ::std::mem::align_of::<shm_infos>(),
+            ::std::mem::align_of::<ShmInfo>(),
             8usize,
-            concat!("Alignment of ", stringify!(shm_infos))
+            concat!("Alignment of ", stringify!(ShmInfo))
         );
         assert_eq!(
             unsafe { ::std::ptr::addr_of!((*ptr).handle) as usize - ptr as usize },
             0usize,
             concat!(
                 "Offset of field: ",
-                stringify!(shm_infos),
+                stringify!(ShmInfo),
                 "::",
                 stringify!(handle)
             )
@@ -738,7 +1049,7 @@ pub mod dma {
     /// # Usage
     ///
     /// This structure is delivered by the kernel into svc_exchange when
-    /// calling successfully [`crate::syscall::sys_dma_get_stream_info()`].
+    /// calling successfully [`crate::syscall::dma_get_stream_info()`].
     ///
     /// The structure content correspond to the static build-time information
     /// as defined in the device-tree and do not require any DTS manipulation
@@ -746,19 +1057,19 @@ pub mod dma {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```ignore
     /// let dmacfg: dma_stream_cfg;
-    /// match sys_get_dma_stream_info(dmah) {
+    /// match get_dma_stream_info(dmah) {
     ///    Status::Ok => (svc_exchange::copy_from(&dma_stream_cfg, mem::sizeof(dma_stream_cfg)))
     /// }
     /// ```
     ///
     #[repr(C)]
     #[derive(Debug, Copy, Clone)]
-    pub struct dma_stream_cfg {
+    pub struct GpdmaStreamConfig {
         pub channel: u16,
         pub stream: u16,
-        pub controler: u16,
+        pub controller: u16,
         pub transfer_type: u16,
         pub source: usize,
         pub dest: usize,
@@ -770,32 +1081,33 @@ pub mod dma {
         pub trigger: u8,
         pub priority: u8,
         pub transfer_mode: u8,
-        pub scr_beat_len: u8,
+        pub src_beat_len: u8,
         pub dest_beat_len: u8,
     }
 
     // test that the Rust structure fields offset do match the corresponding C one,
     // as the kernel delivers in its ABI the C-defined structure
     #[test]
-    fn bindgen_test_layout_gpdma_stream_cfg() {
-        const UNINIT: ::std::mem::MaybeUninit<gpdma_stream_cfg> = ::std::mem::MaybeUninit::uninit();
+    fn test_layout_gpdma_stream_cfg() {
+        const UNINIT: ::std::mem::MaybeUninit<GpdmaStreamConfig> =
+            ::std::mem::MaybeUninit::uninit();
         let ptr = UNINIT.as_ptr();
         assert_eq!(
-            ::std::mem::size_of::<gpdma_stream_cfg>(),
+            ::std::mem::size_of::<GpdmaStreamConfig>(),
             48usize,
-            concat!("Size of: ", stringify!(gpdma_stream_cfg))
+            concat!("Size of: ", stringify!(GpdmaStreamConfig))
         );
         assert_eq!(
-            ::std::mem::align_of::<gpdma_stream_cfg>(),
+            ::std::mem::align_of::<GpdmaStreamConfig>(),
             8usize,
-            concat!("Alignment of ", stringify!(gpdma_stream_cfg))
+            concat!("Alignment of ", stringify!(GpdmaStreamConfig))
         );
         assert_eq!(
             unsafe { ::std::ptr::addr_of!((*ptr).channel) as usize - ptr as usize },
             0usize,
             concat!(
                 "Offset of field: ",
-                stringify!(gpdma_stream_cfg),
+                stringify!(GpdmaStreamConfig),
                 "::",
                 stringify!(channel)
             )
