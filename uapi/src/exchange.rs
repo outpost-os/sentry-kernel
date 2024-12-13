@@ -96,7 +96,7 @@ impl SentryExchangeable for &mut [u8] {
 impl SentryExchangeable for &[u8] {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        Ok(Status::Invalid)
+        Err(Status::Invalid)
     }
 
     #[allow(static_mut_refs)]
