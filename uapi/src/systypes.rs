@@ -767,7 +767,7 @@ pub mod dev {
         pub ios: [IoInfo; 8usize],
     }
     #[test]
-    fn bindgen_test_layout_DevInfo() {
+    fn test_layout_devinfo() {
         const UNINIT: ::std::mem::MaybeUninit<DevInfo> = ::std::mem::MaybeUninit::uninit();
         let ptr = UNINIT.as_ptr();
         assert_eq!(
@@ -867,7 +867,7 @@ pub mod dev {
 pub mod shm {
 
     #[repr(C)]
-    #[derive(Debug, Copy, Clone)]
+    #[derive(PartialEq, Debug, Copy, Clone)]
     pub struct ShmInfo {
         pub handle: crate::systypes::ShmHandle,
         pub label: u32,

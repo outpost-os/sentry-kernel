@@ -37,7 +37,7 @@ mod arch;
 ///
 pub mod ffi_c;
 
-/// Sentry SVC_EXCHANGE area manipulation primitives
+/// Sentry kernel exchange area manipulation primitives
 ///
 /// # Usage
 ///
@@ -45,7 +45,7 @@ pub mod ffi_c;
 /// interface is used. Sentry kernel interactions should be, instead, made with
 /// an upper interface.
 ///
-/// As the SVC_EXCHANGE area is a special userspace/kernelspace fixed size area
+/// As the exchange area is a special userspace/kernelspace fixed size area
 /// made in order to exchange data between userspace and kernelspace without
 /// manipulating any pointer, this space has a particular meaning and usage, holding
 /// any type of content as a 'retention area' before and after system calls.
@@ -62,7 +62,7 @@ pub mod ffi_c;
 /// if unsafe is used, there is no UB risk when manipulating the exchange area
 /// based on the Operating System architecture.
 ///
-pub mod svc_exchange;
+mod exchange;
 
 /// Sentry kernel low level syscall implementation
 ///
@@ -100,6 +100,18 @@ pub mod syscall;
 /// > the corresponding C types are defined in a dedicated include dir
 ///
 pub mod systypes;
+
+/// Copy a given generic type from the kernel exchange zone to the given mutable reference
+pub use self::exchange::copy_from_kernel;
+
+/// Copy a given generic type to the kernel exchange zone from the given eference
+pub use self::exchange::copy_to_kernel;
+
+/// Sentry exchangeable opaque trait, only defined for systypes defined types
+///
+/// This trait is declared in order to allow the attribute checking but is not
+/// exported as no upper layer type needs to implement it
+pub use self::exchange::SentryExchangeable;
 
 #[cfg(not(feature = "std"))]
 mod panic;

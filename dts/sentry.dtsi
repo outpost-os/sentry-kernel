@@ -22,7 +22,7 @@
 		};
 
 		idle_code: idle_code@800c000 {
-			reg = <0x800c000 0x300>;
+			reg = <0x800c000 0x400>;
 			compatible = "outpost,memory-pool";
 		};
 
