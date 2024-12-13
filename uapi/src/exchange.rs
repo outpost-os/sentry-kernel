@@ -75,8 +75,8 @@ impl SentryExchangeable for &mut[u8] {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 EXCHANGE_AREA.as_ptr(),
-                (**self).as_mut().as_ptr() as *mut u8,
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.as_mut_ptr(),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -86,9 +86,9 @@ impl SentryExchangeable for &mut[u8] {
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                (**self).as_ptr() as *const u8,
+                self.as_ptr(),
                 EXCHANGE_AREA.as_mut_ptr(),
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -106,9 +106,9 @@ impl SentryExchangeable for &[u8] {
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                (**self).as_ptr() as *const u8,
+                self.as_ptr(),
                 EXCHANGE_AREA.as_mut_ptr(),
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
