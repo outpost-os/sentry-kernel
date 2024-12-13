@@ -12,16 +12,25 @@ const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
 #[unsafe(link_section = ".svcexchange")]
 static mut EXCHANGE_AREA: [u8; EXCHANGE_AREA_LEN] = [0u8; EXCHANGE_AREA_LEN];
 
-/// public trait of kernel-user exchangeable objects
+/// Trait of kernel-user exchangeable objects
 ///
-/// This trait is public at the crate-internal level in order to support
-/// ffi_c copy_to_user/copy_from_user implementation.
-/// Although, this very module is kept private, so that the crate external
-/// API do not deliver such a trait specification.
-/// This allows to ensure that only sentry-uapi local types are exchangeable
-/// with the Sentry kernel.
+/// This trait written in order to support the notion of "kernel-exchangeable"
+/// type. Any type that do support this trait can be delivered to (and/or received
+/// from) the kernel.
+///
+/// The effective implementation of this trait public functions are kept private,
+/// and can't be implemented out of this very crate in order to ensure that only
+/// this crate's declared types are exchangeable.
+/// To ensure such a restriction, this trait is hosted by the current, crate-private,
+/// module.
+///
+/// As a consequence, don't try to implement that trait in any of the upper layers.
+///
 pub trait SentryExchangeable {
+    /// Copy the current object to the kernel exchagne zone
     fn to_kernel(&self) -> Result<Status, Status>;
+
+    /// set the current object using the data delivered by the kernel in the exchange zone
     fn from_kernel(&mut self) -> Result<Status, Status>;
 }
 
