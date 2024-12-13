@@ -47,10 +47,10 @@ void test_sleep_duration(void)
          * get all the values, and then assert them
          */
         cycle_start_st = __sys_get_cycle(PRECISION_MILLISECONDS);
-        copy_to_user((uint8_t*)&start, sizeof(uint64_t));
+        copy_from_kernel((uint8_t*)&start, sizeof(uint64_t));
         sleep_st = __sys_sleep(duration, SLEEP_MODE_DEEP);
         cycle_end_st = __sys_get_cycle(PRECISION_MILLISECONDS);
-        copy_to_user((uint8_t*)&stop, sizeof(uint64_t));
+        copy_from_kernel((uint8_t*)&stop, sizeof(uint64_t));
 
         ASSERT_EQ(cycle_start_st, STATUS_OK);
         ASSERT_EQ(sleep_st, STATUS_TIMEOUT);

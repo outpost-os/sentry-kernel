@@ -44,7 +44,7 @@ size_t svcexchange_get_maxlen(void);
  * Callers must ensure memory pointed to by `from` up to `from + length` belongs to
  * a valid variable.
  */
-Status copy_from_user(const uint8_t *from, size_t length);
+Status copy_to_kernel(const uint8_t *from, size_t length);
 
 /**
  * Copy data from svc_exchange area to user-controlled buffer
@@ -54,7 +54,7 @@ Status copy_from_user(const uint8_t *from, size_t length);
  * Callers must ensure memory pointed to by `from` up to `from + length` belongs to
  * a valid variable.
  */
-Status copy_to_user(uint8_t *to, size_t length);
+Status copy_from_kernel(uint8_t *to, size_t length);
 
 /**
  * Clear overall svc_exchange area with default 0x0 pattern

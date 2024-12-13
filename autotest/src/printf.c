@@ -20,7 +20,7 @@ void dbgbuffer_flush(void);
 static inline void dbgbuffer_display(void)
 {
     uint16_t len = log_get_dbgbuf_offset();
-    copy_from_user(log_get_dbgbuf(), len);
+    copy_to_kernel(log_get_dbgbuf(), len);
     __sys_log(len);
 }
 
