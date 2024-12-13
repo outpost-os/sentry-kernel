@@ -199,18 +199,20 @@ pub extern "C" fn __sys_dma_resume_stream(dmah: StreamHandle) -> Status {
 }
 
 #[no_mangle]
-pub extern "C" fn copy_from_user(from: *const u8, _length: usize) -> Status {
-    match exchange::copy_to_kernel(&from) {
+pub extern "C" fn copy_from_user(from: *mut u8, length: usize) -> Status {
+    let mut u8_slice = unsafe{core::slice::from_raw_parts(from, length)};
+    match exchange::copy_to_kernel(&mut u8_slice) {
         Ok(_) => Status::Ok,
         Err(err) => err,
     }
 }
 
 #[no_mangle]
-pub extern "C" fn copy_to_user(mut to: *mut u8, _length: usize) -> Status
+pub extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status
 {
-    match exchange::copy_from_kernel(&mut to) {
+    let mut u8_slice = unsafe{core::slice::from_raw_parts(to, length)};
+    match exchange::copy_from_kernel(&mut u8_slice) {
         Ok(_) => Status::Ok,
-        Err(err) => err
+        Err(err) => err,
     }
 }

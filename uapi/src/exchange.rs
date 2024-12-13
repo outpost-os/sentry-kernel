@@ -69,13 +69,13 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
     }
 }
 
-impl SentryExchangeable for *mut u8 {
+impl SentryExchangeable for &mut[u8] {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 EXCHANGE_AREA.as_ptr(),
-                addr_of_mut!(*self) as *mut u8,
+                (**self).as_mut().as_ptr() as *mut u8,
                 core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
             );
         }
@@ -86,7 +86,7 @@ impl SentryExchangeable for *mut u8 {
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                addr_of!(*self) as *const u8,
+                (**self).as_ptr() as *const u8,
                 EXCHANGE_AREA.as_mut_ptr(),
                 core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
             );
@@ -95,17 +95,18 @@ impl SentryExchangeable for *mut u8 {
     }
 }
 
-impl SentryExchangeable for *const u8 {
+
+impl SentryExchangeable for &[u8] {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
-        Err(Status::Invalid)
+        Ok(Status::Invalid)
     }
 
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                addr_of!(*self) as *const u8,
+                (**self).as_ptr() as *const u8,
                 EXCHANGE_AREA.as_mut_ptr(),
                 core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
             );
@@ -113,20 +114,19 @@ impl SentryExchangeable for *const u8 {
         Ok(Status::Ok)
     }
 }
-
 
 pub const fn length() -> usize {
     EXCHANGE_AREA_LEN
 }
 
 pub fn copy_to_kernel<T>(from : &T) -> Result<Status,Status>
-    where T:SentryExchangeable
+    where T:SentryExchangeable + ?Sized
 {
     from.to_kernel()
 }
 
 pub fn copy_from_kernel<T>(to: &mut T) -> Result<Status,Status>
-where T:SentryExchangeable
+where T:SentryExchangeable + ?Sized
 {
     to.from_kernel()
 }
@@ -152,6 +152,15 @@ mod tests {
             len: 0,
             perms: 0,
         };
+        let _ = src.to_kernel();
+        let _ = dst.from_kernel();
+        assert_eq!(src, dst);
+    }
+
+    #[test]
+    fn back_to_back_c_string() {
+        let src : &[u8]= &[42,1,3,5,12];
+        let mut dst : &[u8] = &[0,0,0,0,0];
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(src, dst);
