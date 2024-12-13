@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::systypes::*;
 use crate::exchange;
+use crate::systypes::*;
 
 #[no_mangle]
 pub extern "C" fn __sys_get_process_handle(process: TaskLabel) -> Status {
@@ -200,7 +200,7 @@ pub extern "C" fn __sys_dma_resume_stream(dmah: StreamHandle) -> Status {
 
 #[no_mangle]
 pub extern "C" fn copy_from_user(from: *mut u8, length: usize) -> Status {
-    let u8_slice : &[u8] = unsafe{core::slice::from_raw_parts(from, length)};
+    let u8_slice: &[u8] = unsafe { core::slice::from_raw_parts(from, length) };
     match exchange::copy_to_kernel(&u8_slice) {
         Ok(_) => Status::Ok,
         Err(err) => err,
@@ -208,9 +208,9 @@ pub extern "C" fn copy_from_user(from: *mut u8, length: usize) -> Status {
 }
 
 #[no_mangle]
-pub extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status
-{
-    let mut u8_slice : &mut[u8] = unsafe{core::slice::from_raw_parts_mut(to, length) as &mut[u8]};
+pub extern "C" fn copy_to_user(to: *mut u8, length: usize) -> Status {
+    let mut u8_slice: &mut [u8] =
+        unsafe { core::slice::from_raw_parts_mut(to, length) as &mut [u8] };
     match exchange::copy_from_kernel(&mut u8_slice) {
         Ok(_) => Status::Ok,
         Err(err) => err,

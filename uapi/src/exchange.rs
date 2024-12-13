@@ -1,12 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Ledger SAS
 // SPDX-License-Identifier: Apache-2.0
 
-use core::ptr::*;
 use crate::systypes::shm::ShmInfo;
 use crate::systypes::Status;
+use core::ptr::*;
 
 const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
-
 
 /// The effective kernelspace/userspace exchange zone, set in a dedicated section
 ///
@@ -22,10 +21,9 @@ static mut EXCHANGE_AREA: [u8; EXCHANGE_AREA_LEN] = [0u8; EXCHANGE_AREA_LEN];
 /// This allows to ensure that only sentry-uapi local types are exchangeable
 /// with the Sentry kernel.
 pub trait SentryExchangeable {
-    fn to_kernel(&self) -> Result<Status,Status>;
+    fn to_kernel(&self) -> Result<Status, Status>;
     fn from_kernel(&mut self) -> Result<Status, Status>;
 }
-
 
 /// SentryExchangeable trait implementation for ShmInfo.
 /// Shminfo is a typical structure which is returned by the kernel to the
@@ -51,7 +49,7 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 
     #[cfg(test)]
     #[allow(static_mut_refs)]
-    fn to_kernel(&self) -> Result<Status,Status> {
+    fn to_kernel(&self) -> Result<Status, Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 addr_of!(*self) as *const u8,
@@ -64,12 +62,12 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 
     #[cfg(not(test))]
     #[allow(static_mut_refs)]
-    fn to_kernel(&self) -> Result<Status,Status> {
+    fn to_kernel(&self) -> Result<Status, Status> {
         Err(Status::Invalid)
     }
 }
 
-impl SentryExchangeable for &mut[u8] {
+impl SentryExchangeable for &mut [u8] {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
         unsafe {
@@ -83,7 +81,7 @@ impl SentryExchangeable for &mut[u8] {
     }
 
     #[allow(static_mut_refs)]
-    fn to_kernel(&self) -> Result<Status,Status> {
+    fn to_kernel(&self) -> Result<Status, Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 self.as_ptr(),
@@ -95,7 +93,6 @@ impl SentryExchangeable for &mut[u8] {
     }
 }
 
-
 impl SentryExchangeable for &[u8] {
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
@@ -103,7 +100,7 @@ impl SentryExchangeable for &[u8] {
     }
 
     #[allow(static_mut_refs)]
-    fn to_kernel(&self) -> Result<Status,Status> {
+    fn to_kernel(&self) -> Result<Status, Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 self.as_ptr(),
@@ -119,18 +116,19 @@ pub const fn length() -> usize {
     EXCHANGE_AREA_LEN
 }
 
-pub fn copy_to_kernel<T>(from : &T) -> Result<Status,Status>
-    where T:SentryExchangeable + ?Sized
+pub fn copy_to_kernel<T>(from: &T) -> Result<Status, Status>
+where
+    T: SentryExchangeable + ?Sized,
 {
     from.to_kernel()
 }
 
-pub fn copy_from_kernel<T>(to: &mut T) -> Result<Status,Status>
-where T:SentryExchangeable + ?Sized
+pub fn copy_from_kernel<T>(to: &mut T) -> Result<Status, Status>
+where
+    T: SentryExchangeable + ?Sized,
 {
     to.from_kernel()
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -159,8 +157,8 @@ mod tests {
 
     #[test]
     fn back_to_back_c_string() {
-        let src : &[u8]= &[42,1,3,5,12];
-        let mut dst : &mut[u8] = &mut[0,0,0,0,0];
+        let src: &[u8] = &[42, 1, 3, 5, 12];
+        let mut dst: &mut [u8] = &mut [0, 0, 0, 0, 0];
         assert_eq!(src.to_kernel(), Ok(Status::Ok));
         assert_eq!(dst.from_kernel(), Ok(Status::Ok));
         assert_eq!(src, dst);

@@ -102,16 +102,16 @@ pub mod syscall;
 pub mod systypes;
 
 /// Copy a given generic type from the kernel exchange zone to the given mutable reference
-pub use self::exchange::copy_from_kernel as copy_from_kernel;
+pub use self::exchange::copy_from_kernel;
 
 /// Copy a given generic type to the kernel exchange zone from the given eference
-pub use self::exchange::copy_to_kernel as copy_to_kernel;
+pub use self::exchange::copy_to_kernel;
 
 /// Sentry exchangeable opaque trait, only defined for systypes defined types
 ///
 /// This trait is declared in order to allow the attribute checking but is not
 /// exported as no upper layer type needs to implement it
-pub use self::exchange::SentryExchangeable as SentryExchangeable;
+pub use self::exchange::SentryExchangeable;
 
 #[cfg(not(feature = "std"))]
 mod panic;
