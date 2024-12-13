@@ -116,6 +116,20 @@ pub const fn length() -> usize {
     EXCHANGE_AREA_LEN
 }
 
+/// copy to kernel generic implementation
+///
+/// This API is a generic implementation in order to allow userspace to kernelspace
+/// exchange for any type that do implement the SentryExchangeable trait.
+///
+/// # Example
+///
+/// A basic usage would look like the following:
+///
+/// ```ignore
+/// let my_info: &[u8] = &[1,2,3,4];
+/// copy_to_kernel(my_info);
+/// ```
+///
 pub fn copy_to_kernel<T>(from: &T) -> Result<Status, Status>
 where
     T: SentryExchangeable + ?Sized,
