@@ -20,25 +20,25 @@ void test_cycles_duration(void)
     /* rearm quantum first */
     __sys_sched_yield();
     __sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&start, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&start, sizeof(uint64_t));
     for (idx = 0; idx <= 1000; ++idx) {
         __sys_get_cycle(PRECISION_MICROSECONDS);
     }
     __sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&stop, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&stop, sizeof(uint64_t));
 
     LOG("average get_cycle cost: %lu", (uint32_t)((stop - start) / idx));
 
     /* rearm quantum first */
     __sys_sched_yield();
     __sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&start, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&start, sizeof(uint64_t));
     for (idx = 0; idx <= 1000; ++idx) {
         __sys_get_cycle(PRECISION_MICROSECONDS);
-        copy_to_user((uint8_t*)&micro, sizeof(uint64_t));
+        copy_from_kernel((uint8_t*)&micro, sizeof(uint64_t));
     }
     __sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&stop, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&stop, sizeof(uint64_t));
 
     LOG("average get_cycle+copy cost: %lu", (uint32_t)((stop - start) / idx));
 
@@ -57,15 +57,15 @@ void test_cycles_precision(void)
      * get all the values, and then assert them
      */
     milli_st = __sys_get_cycle(PRECISION_MILLISECONDS);
-    copy_to_user((uint8_t*)&milli, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&milli, sizeof(uint64_t));
 
 
     micro_st = __sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&micro, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&micro, sizeof(uint64_t));
 
 
     nano_st = __sys_get_cycle(PRECISION_NANOSECONDS);
-    copy_to_user((uint8_t*)&nano, sizeof(uint64_t));
+    copy_from_kernel((uint8_t*)&nano, sizeof(uint64_t));
 
     cycle_st = __sys_get_cycle(PRECISION_CYCLE);
 

@@ -23,7 +23,7 @@ static void test_irq_spawn_two_it(void)
     timer_enable();
     /* waiting 1200ms */
     res = __sys_wait_for_event(EVENT_TYPE_IRQ, 0);
-    copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
+    copy_from_kernel(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
     ASSERT_EQ(*IRQn, irq);
@@ -31,7 +31,7 @@ static void test_irq_spawn_two_it(void)
     timer_enable();
     /* waiting 1200ms */
     res = __sys_wait_for_event(EVENT_TYPE_IRQ, 0);
-    copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
+    copy_from_kernel(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
     ASSERT_EQ(*IRQn, irq);
@@ -47,7 +47,7 @@ static void test_irq_spawn_one_it(void)
     timer_enable();
     /* waiting 1200ms */
     res = __sys_wait_for_event(EVENT_TYPE_IRQ, 0);
-    copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
+    copy_from_kernel(&tab[0], sizeof(exchange_event_t) + 4);
     ASSERT_EQ(res, STATUS_OK);
     uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
     ASSERT_EQ(*IRQn, irq);
@@ -70,7 +70,7 @@ static void test_irq_spawn_periodic(void)
         /* reeanble interrupt line (nvic unmasked)*/
         LOG("interrupt count %d wait", count);
         res = __sys_wait_for_event(EVENT_TYPE_IRQ, 0);
-        copy_to_user(&tab[0], sizeof(exchange_event_t) + 4);
+        copy_from_kernel(&tab[0], sizeof(exchange_event_t) + 4);
         ASSERT_EQ(res, STATUS_OK);
         uint32_t *IRQn = (uint32_t*)&((exchange_event_t*)tab)->data;
         ASSERT_EQ(*IRQn, irq);

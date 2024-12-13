@@ -18,7 +18,7 @@ void test_signal_sendrecv(void)
     exchange_event_t *header;
 
     ret = __sys_get_process_handle(0xbabeUL);
-    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    copy_from_kernel((uint8_t*)&handle, sizeof(taskh_t));
     LOG("handle is %lx", handle);
     ASSERT_EQ(ret, STATUS_OK);
     TEST_START();
@@ -27,7 +27,7 @@ void test_signal_sendrecv(void)
         LOG("sending signal %u to myself", sig);
         ret = __sys_send_signal(handle, sig);
         ret = __sys_wait_for_event(EVENT_TYPE_SIGNAL, timeout);
-        copy_to_user(data, 4+sizeof(exchange_event_t));
+        copy_from_kernel(data, 4+sizeof(exchange_event_t));
         header = (exchange_event_t*)&data[0];
         uint32_t* content = (uint32_t*)&header->data[0];
         LOG("%x:%u:%x:src=%lx signal=%lu",

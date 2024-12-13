@@ -137,7 +137,7 @@ Status timer_map(devh_t *handle)
     if (res != STATUS_OK) {
         goto end;
     }
-    copy_to_user((uint8_t*)handle, sizeof(devh_t));
+    copy_from_kernel((uint8_t*)handle, sizeof(devh_t));
     res = __sys_map_dev(*handle);
     if (res != STATUS_OK) {
         goto end;

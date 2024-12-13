@@ -37,10 +37,10 @@ void __attribute__((no_stack_protector, used, noreturn)) idle(uint32_t label, ui
     /* update SSP value with given seed */
     __stack_chk_guard = seed;
 
-    copy_from_user(welcommsg, 20);
+    copy_to_kernel(welcommsg, 20);
     __sys_log(20);
 
-    copy_from_user(yieldmsg, 26);
+    copy_to_kernel(yieldmsg, 26);
     __sys_log(26);
     /* TODO: yield() first, to force task scheduling */
     __sys_sched_yield();

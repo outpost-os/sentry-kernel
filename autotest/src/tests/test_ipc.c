@@ -14,7 +14,7 @@ void test_ipc_send_toobig(void)
     taskh_t handle = 0;
     uint8_t len = CONFIG_SVC_EXCHANGE_AREA_LEN+1;
     ret = __sys_get_process_handle(0xbabeUL);
-    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    copy_from_kernel((uint8_t*)&handle, sizeof(taskh_t));
     ASSERT_EQ(ret, STATUS_OK);
     TEST_START();
     LOG("sending invalid IPC size %lu", (uint32_t)len);
@@ -47,15 +47,15 @@ void test_ipc_sendrecv(void)
     exchange_event_t *header;
 
     ret = __sys_get_process_handle(0xbabeUL);
-    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    copy_from_kernel((uint8_t*)&handle, sizeof(taskh_t));
     LOG("handle is %lx", handle);
     ASSERT_EQ(ret, STATUS_OK);
     TEST_START();
     LOG("sending IPC to myself");
-    copy_from_user(msg, 20);
+    copy_to_kernel(msg, 20);
     ret = __sys_send_ipc(handle, 20);
     ret = __sys_wait_for_event(EVENT_TYPE_IPC, timeout);
-    copy_to_user(data, 20+sizeof(exchange_event_t));
+    copy_from_kernel(data, 20+sizeof(exchange_event_t));
     header = (exchange_event_t*)&data[0];
     uint32_t source = header->source;
     char *content = (char*)&header->data[0];
@@ -79,11 +79,11 @@ void test_ipc_deadlock(void)
     exchange_event_t *header;
 
     ret = __sys_get_process_handle(0xbabeUL);
-    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    copy_from_kernel((uint8_t*)&handle, sizeof(taskh_t));
     ASSERT_EQ(ret, STATUS_OK);
     TEST_START();
     LOG("sending IPC to myself");
-    copy_from_user(msg, 20);
+    copy_to_kernel(msg, 20);
     ret = __sys_send_ipc(handle, 20);
     ASSERT_EQ(ret, STATUS_OK);
     LOG("sending another IPC, should lead to STATUS_DEADLK");

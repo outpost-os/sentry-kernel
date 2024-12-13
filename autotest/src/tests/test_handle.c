@@ -21,11 +21,11 @@ void test_gethandle(void)
 
     TEST_START();
     /* clear svcexchange first */
-    copy_from_user((uint8_t*)&handle, sizeof(handle));
-    copy_to_user((uint8_t*)&handle, sizeof(handle));
+    copy_to_kernel((uint8_t*)&handle, sizeof(handle));
+    copy_from_kernel((uint8_t*)&handle, sizeof(handle));
     ASSERT_EQ(handle, 0);
     ret = __sys_get_process_handle(0xbabeUL);
-    copy_to_user((uint8_t*)&handle, sizeof(taskh_t));
+    copy_from_kernel((uint8_t*)&handle, sizeof(taskh_t));
     ASSERT_EQ(ret, STATUS_OK);
     LOG("received handle: %lx", handle);
     __builtin_memcpy(&khandle, &handle, sizeof(ktaskh_t));
