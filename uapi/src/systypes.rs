@@ -767,7 +767,7 @@ pub mod dev {
         pub ios: [IoInfo; 8usize],
     }
     #[test]
-    fn bindgen_test_layout_DevInfo() {
+    fn test_layout_devinfo() {
         const UNINIT: ::std::mem::MaybeUninit<DevInfo> = ::std::mem::MaybeUninit::uninit();
         let ptr = UNINIT.as_ptr();
         assert_eq!(

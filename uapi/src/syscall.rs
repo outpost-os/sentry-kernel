@@ -621,21 +621,6 @@ pub fn gpio_configure(resource: u32, io: u8) -> Status {
 /// requested device not in own by the caller, Status::Denied is returned.
 /// In these cases, the SVC_EXCHANGE area is not set.
 ///
-/// # Example
-///
-/// ```rust
-/// use sentry_uapi::{syscall, svc_exchange::*, systypes::*};
-///
-/// fn get_handle() -> Result<u32, sentry_uapi::systypes::Status> {
-///     let devlabel : u8 = 0x42;
-///     match syscall::get_device_handle(devlabel) {
-///         Status::Ok => (),
-///         any_err => return Err(any_err),
-///     };
-///     let exch_area = unsafe { &mut SVC_EXCHANGE_AREA[..4] };
-///     Ok(u32::from_ne_bytes(exch_area.try_into().map_err(|_| Status::Invalid)?))
-/// }
-/// ```
 ///
 #[inline(always)]
 pub fn get_device_handle(devlabel: u8) -> Status {
