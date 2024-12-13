@@ -75,8 +75,8 @@ impl SentryExchangeable for &mut[u8] {
         unsafe {
             core::ptr::copy_nonoverlapping(
                 EXCHANGE_AREA.as_ptr(),
-                (**self).as_mut().as_ptr() as *mut u8,
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.as_mut_ptr(),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -86,9 +86,9 @@ impl SentryExchangeable for &mut[u8] {
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                (**self).as_ptr() as *const u8,
+                self.as_ptr(),
                 EXCHANGE_AREA.as_mut_ptr(),
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -106,9 +106,9 @@ impl SentryExchangeable for &[u8] {
     fn to_kernel(&self) -> Result<Status,Status> {
         unsafe {
             core::ptr::copy_nonoverlapping(
-                (**self).as_ptr() as *const u8,
+                self.as_ptr(),
                 EXCHANGE_AREA.as_mut_ptr(),
-                core::mem::size_of::<ShmInfo>().min(EXCHANGE_AREA_LEN),
+                self.len().min(EXCHANGE_AREA_LEN),
             );
         }
         Ok(Status::Ok)
@@ -160,7 +160,7 @@ mod tests {
     #[test]
     fn back_to_back_c_string() {
         let src : &[u8]= &[42,1,3,5,12];
-        let mut dst : &[u8] = &[0,0,0,0,0];
+        let mut dst : &mut[u8] = &mut [0,0,0,0,0];
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(src, dst);
