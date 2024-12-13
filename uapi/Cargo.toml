@@ -3,11 +3,11 @@
 
 [package]
 name = "sentry-uapi"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
-license = "Apache 2.0"
+license = "Apache-2.0"
 description = "Sentry kernel user API implementation"
-categories = ["os::api"]
+categories = ["os", "no-std"]
 
 [dependencies]
 
