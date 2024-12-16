@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::systypes::shm::ShmInfo;
-use crate::systypes::Status;
+use crate::systypes::{ExchangeHeader, Status};
 use core::ptr::*;
 
 const EXCHANGE_AREA_LEN: usize = 128; // TODO: replace by CONFIG-defined value
@@ -74,6 +74,66 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
     fn to_kernel(&self) -> Result<Status, Status> {
         Err(Status::Invalid)
     }
+}
+
+// from-exchange related capacity to Exchang header
+impl ExchangeHeader {
+
+    unsafe fn from_addr(self, address: usize) -> &'static Self {
+        &*(address as *const Self)
+    }
+
+    pub unsafe fn from_exchange(self) -> &'static Self {
+        self.from_addr(EXCHANGE_AREA.as_mut_ptr() as usize)
+    }
+
+}
+
+/// Event SentryExchangeable trait implementation
+///
+/// Events are received from the kernel and hold a header and an associated data bloc.
+/// The SentryExchangeable trait only support, in nominal mode, the from_kernel() usage,
+/// as Events are not emitted but instead use the send_xxx syscalls API
+///
+impl SentryExchangeable for crate::systypes::Event<'_> {
+
+    #[allow(static_mut_refs)]
+    fn from_kernel(&mut self) -> Result<Status, Status> {
+        // declare exchange as header first
+        let k_header: &ExchangeHeader = unsafe { ExchangeHeader::from_exchange(self.header) };
+        if !k_header.is_valid() {
+            return Err(Status::Invalid);
+        }
+        // copy from Exchange
+        self.header = *k_header;
+        if self.header.is_ipc() {
+            todo!("")
+        }
+        else if self.header.is_signal() {
+            todo!("")
+        }
+        else if self.header.is_irq() {
+            todo!("")
+        } else if self.header.is_dma() {
+            todo!("")
+        } else {
+            Err(Status::Invalid)
+        }
+    }
+
+    /// Event can be used as source for to_kernel() when being an IPC
+    ///
+    /// Events not being and IPC do not need to emit any data in the
+    /// kernel exchange zone, leading to Err(Status::Invalid) return code.
+    ///
+    fn to_kernel(&self) -> Result<Status, Status> {
+        if self.header.is_ipc() {
+            self.data.to_kernel()
+        } else {
+            Err(Status::Invalid)
+        }
+    }
+
 }
 
 impl SentryExchangeable for &mut [u8] {

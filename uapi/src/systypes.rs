@@ -245,6 +245,7 @@ pub type StreamHandle = u32;
 /// As multiple events can be set at once, event field is using a
 /// bitfield model to keep C+Rust usage easy
 #[repr(C)]
+#[derive(Clone,PartialEq,Copy,Debug)]
 pub enum EventType {
     /// No event
     None = 0,
@@ -260,9 +261,18 @@ pub enum EventType {
     All = 15,
 }
 
-/// Event Type to register (u32) converter
-impl From<EventType> for u32 {
-    fn from(event: EventType) -> u32 {
+/// list of potential Event types, encoded as u8 to exchange with kernel
+///
+/// This value corresponds to a set of one or multiple EventType value, so
+/// that the job can wait for multiple events at a time.
+/// Events priority when returning from the kernel is described in the events
+/// chapter of the Sentry documentation.
+///
+pub type EventList = u8;
+
+
+impl From<EventType> for u8 {
+    fn from(event: EventType) -> u8 {
         match event {
             EventType::None => 0,
             EventType::Ipc => 1,
@@ -274,6 +284,19 @@ impl From<EventType> for u32 {
     }
 }
 
+impl From<u8> for EventType {
+    fn from(event: u8) -> EventType {
+        match event {
+            0 => EventType::None,
+            1 => EventType::Ipc,
+            2 => EventType::Signal,
+            4 => EventType::Irq,
+            8 => EventType::Dma,
+            15 => EventType::All,
+            _ => EventType::None,
+        }
+    }
+}
 /// Erase type that can be used to clear the SVC_Exchange.
 ///
 /// TODO: to be moved to svc_exchange module as used exclusively by
@@ -591,6 +614,58 @@ mirror_enum! {
         Microseconds,
         Milliseconds,
     }
+}
+
+
+/// Header received from the kernel when waiting for at one event type
+///
+/// Received when returning from [`crate::syscall::wait_for_event`] syscall with
+/// a [`Status::Ok`] value.
+/// The kernel return data for a single event type at a time, store in event field,
+/// while wait_for_event() allows waiting for multiple event at a time.
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ExchangeHeader {
+    pub event: EventType,
+    pub length: u8,
+    magic: u16,
+    pub peer: u32,
+}
+
+
+impl ExchangeHeader {
+
+    pub fn is_valid(self) -> bool {
+        // TODO: hard-coded by now
+        self.magic == 0x4242
+    }
+
+    pub fn is_ipc(self) -> bool {
+        ((self.event as u8) & (EventType::Ipc as u8)) != EventType::None.into()
+    }
+
+    pub fn is_signal(self) -> bool {
+        ((self.event as u8) & (EventType::Signal as u8)) != EventType::None.into()
+    }
+
+    pub fn is_irq(self) -> bool {
+        ((self.event as u8) & (EventType::Irq as u8)) != EventType::None.into()
+    }
+
+    pub fn is_dma(self) -> bool {
+        ((self.event as u8) & (EventType::Dma as u8)) != EventType::None.into()
+    }
+}
+
+/// Typical Event received by the kernel using the copy_from_kernel(my_event)
+///
+/// Event is SentryExchangeable, see [`crate::exchange::SentryExchangeable`] and
+/// the corresponding implementation for this struct for more information.
+///
+#[derive(Debug, Copy, Clone)]
+pub struct Event<'a> {
+    pub header: ExchangeHeader,
+    pub data: &'a [u8],
 }
 
 /// Device related types definitions
