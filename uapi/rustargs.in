@@ -1,3 +1,5 @@
 {% for arg in rustargs.split(' ') -%}
+{% if not arg.startswith('--target') -%}
 {{ arg }}
+{% endif -%}
 {% endfor -%}
