@@ -78,7 +78,6 @@ impl SentryExchangeable for crate::systypes::shm::ShmInfo {
 
 // from-exchange related capacity to Exchang header
 impl ExchangeHeader {
-
     unsafe fn from_addr(self, address: usize) -> &'static Self {
         &*(address as *const Self)
     }
@@ -96,8 +95,6 @@ impl ExchangeHeader {
     pub unsafe fn from_exchange_mut(self) -> &'static mut Self {
         self.from_addr_mut(EXCHANGE_AREA.as_mut_ptr() as usize)
     }
-
-
 }
 
 /// Event SentryExchangeable trait implementation
@@ -142,9 +139,7 @@ impl ExchangeHeader {
 /// }
 /// ```
 ///
-
 impl SentryExchangeable for crate::systypes::Event<'_> {
-
     #[allow(static_mut_refs)]
     fn from_kernel(&mut self) -> Result<Status, Status> {
         // declare exchange as header first
@@ -199,7 +194,8 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
     #[allow(static_mut_refs)]
     fn to_kernel(&self) -> Result<Status, Status> {
         // copy exchange header to exhcange zone
-        let k_header: &mut ExchangeHeader = unsafe { ExchangeHeader::from_exchange_mut (self.header) };
+        let k_header: &mut ExchangeHeader =
+            unsafe { ExchangeHeader::from_exchange_mut(self.header) };
         let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
         k_header.peer = self.header.peer;
         k_header.magic = self.header.magic;
@@ -211,7 +207,8 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
         }
         unsafe {
             let data_addr = EXCHANGE_AREA.as_ptr() as usize + header_len;
-            let data_ptr = data_addr as *mut [u8; EXCHANGE_AREA_LEN - core::mem::size_of::<ExchangeHeader>()];
+            let data_ptr =
+                data_addr as *mut [u8; EXCHANGE_AREA_LEN - core::mem::size_of::<ExchangeHeader>()];
             core::ptr::copy_nonoverlapping(
                 self.data.as_ptr(),
                 data_ptr as *mut u8,
@@ -335,7 +332,7 @@ mod tests {
                 length: 12,
                 magic: 0x4242,
             },
-            data: &mut[ 0x42; 12 ],
+            data: &mut [0x42; 12],
         };
         let mut dst = crate::systypes::Event {
             header: ExchangeHeader {
@@ -344,12 +341,15 @@ mod tests {
                 length: 0,
                 magic: 0,
             },
-            data: &mut[0; 12],
+            data: &mut [0; 12],
         };
         assert_eq!(src.to_kernel(), Ok(Status::Ok));
         assert_eq!(dst.from_kernel(), Ok(Status::Ok));
         assert_eq!(src.header, dst.header);
-        assert_eq!(src.data[..src.header.length.into()], dst.data[..src.header.length.into()]);
+        assert_eq!(
+            src.data[..src.header.length.into()],
+            dst.data[..src.header.length.into()]
+        );
         let mut shorter_dst = crate::systypes::Event {
             header: ExchangeHeader {
                 peer: 0,
@@ -357,7 +357,7 @@ mod tests {
                 length: 0,
                 magic: 0,
             },
-            data: &mut[0; 8],
+            data: &mut [0; 8],
         };
         // dest that are not able to hold overall data must not generate panic
         assert_eq!(shorter_dst.from_kernel(), Err(Status::Invalid));

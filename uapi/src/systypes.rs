@@ -245,7 +245,7 @@ pub type StreamHandle = u32;
 /// As multiple events can be set at once, event field is using a
 /// bitfield model to keep C+Rust usage easy
 #[repr(C)]
-#[derive(Clone,PartialEq,Copy,Debug)]
+#[derive(Clone, PartialEq, Copy, Debug)]
 pub enum EventType {
     /// No event
     None = 0,
@@ -269,7 +269,6 @@ pub enum EventType {
 /// chapter of the Sentry documentation.
 ///
 pub type EventList = u8;
-
 
 impl From<EventType> for u8 {
     fn from(event: EventType) -> u8 {
@@ -616,7 +615,6 @@ mirror_enum! {
     }
 }
 
-
 /// Header received from the kernel when waiting for at one event type
 ///
 /// Received when returning from [`crate::syscall::wait_for_event`] syscall with
@@ -633,7 +631,6 @@ pub struct ExchangeHeader {
     pub magic: u16,
     pub peer: u32,
 }
-
 
 #[test]
 fn test_layout_exchange_header() {
@@ -692,7 +689,6 @@ fn test_layout_exchange_header() {
 }
 
 impl ExchangeHeader {
-
     pub fn is_valid(self) -> bool {
         // TODO: hard-coded by now
         self.magic == 0x4242
