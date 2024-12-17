@@ -623,15 +623,73 @@ mirror_enum! {
 /// a [`Status::Ok`] value.
 /// The kernel return data for a single event type at a time, store in event field,
 /// while wait_for_event() allows waiting for multiple event at a time.
+
+//#[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ExchangeHeader {
-    pub event: EventType,
+    pub event: u8,
     pub length: u8,
-    magic: u16,
+    pub magic: u16,
     pub peer: u32,
 }
 
+
+#[test]
+fn test_layout_exchange_header() {
+    const UNINIT: ::std::mem::MaybeUninit<ExchangeHeader> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ExchangeHeader>(),
+        8usize,
+        concat!("Size of: ", stringify!(ExchangeHeader))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ExchangeHeader>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ExchangeHeader))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).event) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ExchangeHeader),
+            "::",
+            stringify!(event)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).length) as usize - ptr as usize },
+        1usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ExchangeHeader),
+            "::",
+            stringify!(length)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).magic) as usize - ptr as usize },
+        2usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ExchangeHeader),
+            "::",
+            stringify!(magic)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).peer) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ExchangeHeader),
+            "::",
+            stringify!(peer)
+        )
+    );
+}
 
 impl ExchangeHeader {
 
@@ -662,10 +720,10 @@ impl ExchangeHeader {
 /// Event is SentryExchangeable, see [`crate::exchange::SentryExchangeable`] and
 /// the corresponding implementation for this struct for more information.
 ///
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Event<'a> {
     pub header: ExchangeHeader,
-    pub data: &'a [u8],
+    pub data: &'a mut [u8],
 }
 
 /// Device related types definitions

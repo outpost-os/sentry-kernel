@@ -83,9 +83,20 @@ impl ExchangeHeader {
         &*(address as *const Self)
     }
 
-    pub unsafe fn from_exchange(self) -> &'static Self {
-        self.from_addr(EXCHANGE_AREA.as_mut_ptr() as usize)
+    #[cfg(test)]
+    unsafe fn from_addr_mut(self, address: usize) -> &'static mut Self {
+        &mut *(address as *mut Self)
     }
+
+    pub unsafe fn from_exchange(self) -> &'static Self {
+        self.from_addr(EXCHANGE_AREA.as_ptr() as usize)
+    }
+
+    #[cfg(test)]
+    pub unsafe fn from_exchange_mut(self) -> &'static mut Self {
+        self.from_addr_mut(EXCHANGE_AREA.as_mut_ptr() as usize)
+    }
+
 
 }
 
@@ -104,21 +115,33 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
         if !k_header.is_valid() {
             return Err(Status::Invalid);
         }
-        // copy from Exchange
         self.header = *k_header;
-        if self.header.is_ipc() {
-            todo!("")
+        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
+        // be sure we have enough size in exchange zone
+        if header_len + usize::from(self.header.length) > EXCHANGE_AREA_LEN {
+            return Err(Status::Invalid);
         }
-        else if self.header.is_signal() {
-            todo!("")
+        if usize::from(self.header.length) > EXCHANGE_AREA_LEN - header_len {
+            // the length field is set by the kernel and thus, should not be invalid
+            // yet we check that there is no overflow as we use an unsafe block to get
+            // back from the exchange area
+            return Err(Status::Invalid);
         }
-        else if self.header.is_irq() {
-            todo!("")
-        } else if self.header.is_dma() {
-            todo!("")
-        } else {
-            Err(Status::Invalid)
+        // copy the amount of data in data slice using the header length info.
+        // Note: here we do not do any semantic related content check (i.e. data length or content
+        // based on the exchange type) but we let the kernel ensuring the correlation instead.
+        unsafe {
+            let data_ptr: *const u8 = (EXCHANGE_AREA.as_ptr() as usize + header_len) as *const u8;
+            let data_slice = core::slice::from_raw_parts(data_ptr, self.header.length.into());
+            // the destination slice must have enough space to get back data from the exchange zone
+            if data_slice.iter().count() > self.data.len() {
+                return Err(Status::Invalid);
+            }
+            for (dst, src) in self.data.iter_mut().zip(data_slice.iter()) {
+                *dst = *src
+            }
         }
+        Ok(Status::Ok)
     }
 
     /// Event can be used as source for to_kernel() when being an IPC
@@ -126,6 +149,7 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
     /// Events not being and IPC do not need to emit any data in the
     /// kernel exchange zone, leading to Err(Status::Invalid) return code.
     ///
+    #[cfg(not(test))]
     fn to_kernel(&self) -> Result<Status, Status> {
         if self.header.is_ipc() {
             self.data.to_kernel()
@@ -134,6 +158,31 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
         }
     }
 
+    #[cfg(test)]
+    #[allow(static_mut_refs)]
+    fn to_kernel(&self) -> Result<Status, Status> {
+        // copy exchange header to exhcange zone
+        let k_header: &mut ExchangeHeader = unsafe { ExchangeHeader::from_exchange_mut (self.header) };
+        let header_len = core::mem::size_of::<ExchangeHeader>() as usize;
+        k_header.peer = self.header.peer;
+        k_header.magic = self.header.magic;
+        k_header.length = self.header.length;
+        k_header.event = self.header.event;
+        // now append data to header in exchange zone
+        if usize::from(self.header.length) > self.data.len() {
+            return Err(Status::Invalid);
+        }
+        unsafe {
+            let data_addr = EXCHANGE_AREA.as_ptr() as usize + header_len;
+            let data_ptr = data_addr as *mut [u8; EXCHANGE_AREA_LEN - core::mem::size_of::<ExchangeHeader>()];
+            core::ptr::copy_nonoverlapping(
+                self.data.as_ptr(),
+                data_ptr as *mut u8,
+                self.header.length.into(),
+            );
+        }
+        Ok(Status::Ok)
+    }
 }
 
 impl SentryExchangeable for &mut [u8] {
@@ -215,6 +264,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::systypes::EventType;
+
     use super::*;
 
     #[test]
@@ -236,6 +287,43 @@ mod tests {
         let _ = src.to_kernel();
         let _ = dst.from_kernel();
         assert_eq!(src, dst);
+    }
+
+    #[test]
+    fn back_to_back_event() {
+        let src = crate::systypes::Event {
+            header: ExchangeHeader {
+                peer: 0x42,
+                event: EventType::Irq.into(),
+                length: 12,
+                magic: 0x4242,
+            },
+            data: &mut[ 0x42; 12 ],
+        };
+        let mut dst = crate::systypes::Event {
+            header: ExchangeHeader {
+                peer: 0,
+                event: EventType::None.into(),
+                length: 0,
+                magic: 0,
+            },
+            data: &mut[0; 12],
+        };
+        assert_eq!(src.to_kernel(), Ok(Status::Ok));
+        assert_eq!(dst.from_kernel(), Ok(Status::Ok));
+        assert_eq!(src.header, dst.header);
+        assert_eq!(src.data[..src.header.length.into()], dst.data[..src.header.length.into()]);
+        let mut shorter_dst = crate::systypes::Event {
+            header: ExchangeHeader {
+                peer: 0,
+                event: EventType::None.into(),
+                length: 0,
+                magic: 0,
+            },
+            data: &mut[0; 8],
+        };
+        // dest that are not able to hold overall data must not generate panic
+        assert_eq!(shorter_dst.from_kernel(), Err(Status::Invalid));
     }
 
     #[test]
