@@ -693,22 +693,6 @@ impl ExchangeHeader {
         // TODO: hard-coded by now
         self.magic == 0x4242
     }
-
-    pub fn is_ipc(self) -> bool {
-        ((self.event as u8) & (EventType::Ipc as u8)) != EventType::None.into()
-    }
-
-    pub fn is_signal(self) -> bool {
-        ((self.event as u8) & (EventType::Signal as u8)) != EventType::None.into()
-    }
-
-    pub fn is_irq(self) -> bool {
-        ((self.event as u8) & (EventType::Irq as u8)) != EventType::None.into()
-    }
-
-    pub fn is_dma(self) -> bool {
-        ((self.event as u8) & (EventType::Dma as u8)) != EventType::None.into()
-    }
 }
 
 /// Typical Event received by the kernel using the copy_from_kernel(my_event)

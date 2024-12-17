@@ -183,7 +183,9 @@ impl SentryExchangeable for crate::systypes::Event<'_> {
     ///
     #[cfg(not(test))]
     fn to_kernel(&self) -> Result<Status, Status> {
-        if self.header.is_ipc() {
+        use crate::systypes::EventType;
+
+        if self.header.event == EventType::Ipc.into() {
             self.data.to_kernel()
         } else {
             Err(Status::Invalid)
