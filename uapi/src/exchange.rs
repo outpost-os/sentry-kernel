@@ -102,10 +102,47 @@ impl ExchangeHeader {
 
 /// Event SentryExchangeable trait implementation
 ///
-/// Events are received from the kernel and hold a header and an associated data bloc.
-/// The SentryExchangeable trait only support, in nominal mode, the from_kernel() usage,
-/// as Events are not emitted but instead use the send_xxx syscalls API
+/// Events are objects that are used to hold event ifnormation that need to be delivered or
+/// received from the kernel.
 ///
+/// Events are received from the kernel and hold a header and an associated data bloc.
+/// The SentryExchangeable trait only support, in nominal mode, the from_kernel() usage for any
+/// event, and to_kernel when emitting IPC
+///
+/// This trait allows to easily receive or deliver properly formatted events, including the
+/// event header forged by the kernel and associated data.
+///
+/// # Example
+///
+/// ```ignore
+/// let mut my_event = uapi::systypes::Event {
+///     header: uapi::systypes::ExchangeHeader {
+///         peer: 0,
+///         event: uapi::systypes::EventType::None.into(),
+///         length: 0,
+///         magic: 0,
+///     },
+///     data: &mut[0; 12],
+/// };
+/// // wait for kernel events of type IRQ or IPC
+/// let _ = uapi::syscall::wait_for_event(
+///             uapi::systypes::EventType::IRQ.into() | uapi::systypes::EventType::Ipc.into(),
+///             0;
+///         );
+/// // get back event data from kernel
+/// let _ = my_event.from_kernel();
+/// // handle event
+/// if !my_event.header.is_valid() {
+///     return Err(),
+/// }
+/// match my_event.header.event {
+///     EventType::Irq => treat_irq(&my_event.data, my_event.length),
+///     EventType::IPC => treat_ipc(&my_event.data,  my_event.length),
+///     any_other      => Err(),
+/// }
+/// ```
+///
+
 impl SentryExchangeable for crate::systypes::Event<'_> {
 
     #[allow(static_mut_refs)]
