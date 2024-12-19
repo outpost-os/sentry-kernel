@@ -3,17 +3,10 @@ sys_get_random
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for get_random syscall
-
-      mod uapi {
-         fn get_random() -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for get_random syscall
 
-      enum Status sys_get_random(void);
+      enum Status __sys_get_random(void);
 
 **Usage**
 
@@ -28,7 +21,7 @@ sys_get_random
       :caption: sample bare usage of sys_log
 
       uint32_t seed = 0;
-      if (sys_get_random() != STATUS_OK) {
+      if (__sys_get_random() != STATUS_OK) {
          // [...]
       }
       memcpy(&seed, _s_svc_exchange, sizeof(uint32_t));

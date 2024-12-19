@@ -6,13 +6,6 @@ sys_wait_for_event
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for wait_for_event syscall
-
-      mod uapi {
-         fn wait_for_event(mask: u8, timeout: i32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for wait_for_event syscall
 
@@ -25,7 +18,7 @@ sys_wait_for_event
         EVENT_TYPE_ALL = 0xf,
       } EventType;
 
-      enum Status sys_wait_for_event(uint8_t mask, int32_t timeout);
+      enum Status __sys_wait_for_event(uint8_t mask, int32_t timeout);
 
 **Usage**
 
@@ -115,7 +108,7 @@ sys_wait_for_event
       :caption: Typicall wait_for_event usage
 
       exchange_event_t * event = NULL;
-      status = wait_for_event(EVENT_TYPE_IPC | EVENT_TYPE_SIGNAL, WFE_WAIT_NO);
+      status = __sys_wait_for_event(EVENT_TYPE_IPC | EVENT_TYPE_SIGNAL, WFE_WAIT_NO);
       switch (status) {
          case STATUS_OKAY:
             /* an IPC or signal is received */

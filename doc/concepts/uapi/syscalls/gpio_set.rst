@@ -3,17 +3,10 @@ sys_gpio_set
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for gpio_set syscall
-
-      mod uapi {
-         fn gpio_set(device: devh_t, io_identifier: u8, value: bool) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for gpio_set syscall
 
-      enum Status sys_gpio_set(devh_t device, uint8_t io_identifier, bool value);
+      enum Status __sys_gpio_set(devh_t device, uint8_t io_identifier, bool value);
 
 **Usage**
 
@@ -43,7 +36,7 @@ sys_gpio_set
       :linenos:
       :caption: setting I/O 0 (fist element of the pinctrl)
 
-      if (sys_gpio_set(myhandle, 0, 1) != STATUS_OK) {
+      if (__sys_gpio_set(myhandle, 0, 1) != STATUS_OK) {
          // [...]
       }
 

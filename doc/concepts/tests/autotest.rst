@@ -201,7 +201,7 @@ A typical basic test looks like the following the following:
     TEST_START();
 
     micro_st = sys_get_cycle(PRECISION_MICROSECONDS);
-    copy_to_user((uint8_t*)&micro, sizeof(uint64_t));;
+    copy_from_kernel((uint8_t*)&micro, sizeof(uint64_t));;
 
     ASSERT_EQ(micro_st, STATUS_OK);
     ASSERT_GT((int)micro, 0);

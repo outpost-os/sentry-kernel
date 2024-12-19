@@ -3,19 +3,11 @@ sys_map_dev
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for device mapping syscall
-
-      mod uapi {
-         fn map_dev(devh: dev_handle) -> Status
-         fn unmap_dev(devh: dev_handle) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for device mapping syscall
 
-      enum Status sys_map_dev(devh_t dev);
-      enum Status sys_unmap_dev(devh_t dev);
+      enum Status __sys_map_dev(devh_t dev);
+      enum Status __sys_unmap_dev(devh_t dev);
 
 **Usage**
 
@@ -39,7 +31,7 @@ sys_map_dev
       devh_t mydriver_handle = mydriver_get_handle();
       res = sys_map_dev(mydriver_handle);
       // manipulating device registers.....
-      res = sys_unmap_dev(mydriver_handle);
+      res = __sys_unmap_dev(mydriver_handle);
 
    .. note::
       the libShield libc typically delivers a mmap() implementation with, for

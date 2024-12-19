@@ -3,17 +3,10 @@ sys_irq_acknowledge
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for irq_acknowledge syscall
-
-      mod uapi {
-         fn irq_acknowledge(irq: u16) -> Status
-       }
-
    .. code-block:: c
       :caption: C UAPI for irq_acknowledge syscall
 
-      enum Status sys_irq_acknowledge(uint16_t IRQn);
+      enum Status __sys_irq_acknowledge(uint16_t IRQn);
 
 **Usage**
 
@@ -31,7 +24,7 @@ sys_irq_acknowledge
       int my_handler(uint16_t IRQn) {
          // executing the handler
          // [...]
-         if (sys_irq_acknowledge(myIRQn) != STATUS_OK) {
+         if (__sys_irq_acknowledge(myIRQn) != STATUS_OK) {
             // [...]
          }
          // [...]

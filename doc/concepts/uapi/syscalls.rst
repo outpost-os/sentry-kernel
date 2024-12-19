@@ -23,6 +23,9 @@ In the kernel counter part:
      also depend on `systypes`
 
 
+The UAPI description is made for C usage of the UAPI. For Rust definition, please
+refer to the Rust generated documentation.
+
 .. index::
   single: UAPI; syscalls
   single: UAPI; syscall definition

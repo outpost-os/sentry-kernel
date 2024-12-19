@@ -4,17 +4,10 @@ sys_shm_get_infos
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for shm_get_infos syscall
-
-      mod uapi {
-         fn shm_get_infos(shm: shm_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for shm_get_infos syscall
 
-      enum Status sys_shm_get_infos(shmh_t shm);
+      enum Status __sys_shm_get_infos(shmh_t shm);
 
 **Usage**
 
@@ -56,19 +49,19 @@ sys_shm_get_infos
       uint32_t my_shm_label=0xf00UL;
       taskh_t myself;
       shm_infos_t infos;
-      if (sys_get_task_handle(myself_label) != STATUS_OK) {
+      if (__sys_get_task_handle(myself_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&myself, sizeof(taskh_t));
-      if (sys_get_shm_handle(my_shm_label) != STATUS_OK) {
+      copy_from_kernel(&myself, sizeof(taskh_t));
+      if (__sys_get_shm_handle(my_shm_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&my_shm_handle, sizeof(shmh_t));
+      copy_from_kernel(&my_shm_handle, sizeof(shmh_t));
 
-      if (sys_shm_get_infos(my_shm_handle)) {
+      if (__sys_shm_get_infos(my_shm_handle)) {
         // [...]
       }
-      copy_to_user(&infos, sizeof(shm_infos_t));
+      copy_from_kernel(&infos, sizeof(shm_infos_t));
       printf("SHM base address is %lx\n", infos.base);
 
 **Required capability**

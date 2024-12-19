@@ -3,19 +3,11 @@ sys_map_shm
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for SHM mapping syscall
-
-      mod uapi {
-         fn map_shm(shmh: shmh_t) -> Status
-         fn unmap_shm(shmh: shmh_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for device mapping syscall
 
-      enum Status sys_map_shm(shmh_t shm);
-      enum Status sys_unmap_shm(shmh_t shm);
+      enum Status __sys_map_shm(shmh_t shm);
+      enum Status __sys_unmap_shm(shmh_t shm);
 
 **Usage**
 
@@ -32,10 +24,10 @@ sys_map_shm
       shmh_t shm;
       uint32_t shm_label = 0xf00UL;
 
-      if (sys_get_shmhandle(shm_label) != STATUS_OK) {
+      if (__sys_get_shmhandle(shm_label) != STATUS_OK) {
          // [...]
       }
-      res = sys_map_shm(shm_label);
+      res = __sys_map_shm(shm_label);
 
    .. note::
       the SHM credential must be set through `sys_shm_set_credential()` in order to be allowed to map the SHM.

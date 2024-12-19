@@ -3,17 +3,10 @@ sys_pm_clock_set
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for pm_clock_gate syscall
-
-      mod uapi {
-         fn pm_clock_set(clk_reg_offset: u32, clk_reg_value: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for pm_clock_set syscall
 
-      enum Status sys_pm_clock_set(uint32_t reg_offset, uint32_t reg_value);
+      enum Status __sys_pm_clock_set(uint32_t reg_offset, uint32_t reg_value);
 
 **Usage**
 

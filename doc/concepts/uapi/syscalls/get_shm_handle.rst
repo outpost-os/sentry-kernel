@@ -4,17 +4,10 @@ sys_get_shm_handle
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for get_shm_handle syscall
-
-      mod uapi {
-         fn get_shm_handle(label: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for get_shm_handle syscall
 
-      enum Status sys_get_shm_handle(uint32_t label);
+      enum Status __sys_get_shm_handle(uint32_t label);
 
 **Usage**
 
@@ -38,10 +31,10 @@ sys_get_shm_handle
 
       uint32_t my_peer_label=0xbabe;
       taskh_t my_peer_handle;
-      if (sys_get_shm_handle(my_shm_label) != STATUS_OK) {
+      if (__sys_get_shm_handle(my_shm_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&my_peer_handle, sizeof(shmh_t));
+      __copy_from_kernel(&my_peer_handle, sizeof(shmh_t));
 
 **Required capability**
 

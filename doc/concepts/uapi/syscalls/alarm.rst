@@ -5,17 +5,10 @@ sys_alarm
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for alarm syscall
-
-      mod uapi {
-         fn alarm(timeout_ms: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for alarm syscall
 
-      enum Status sys_alarm(uint32_t timeout_ms);
+      enum Status __sys_alarm(uint32_t timeout_ms);
 
 **Usage**
 
@@ -33,10 +26,10 @@ sys_alarm
       :linenos:
       :caption: sample bare usage of sys_alarm
 
-      if (sys_alarm(200) != STATUS_OKAY) {
+      if (__sys_alarm(200) != STATUS_OKAY) {
          // [...]
       }
-      res = sys_wait_event([...]);
+      res = __sys_wait_event([...]);
       /* alarm received 200ms later */
 
    .. note::

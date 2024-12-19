@@ -4,17 +4,10 @@ sys_shm_set_credential
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for shm_set_crendential syscall
-
-      mod uapi {
-         fn shm_set_credential(shm: shm_t, target: taskh_t, shm_perm: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for shm_set_crendential syscall
 
-      enum Status sys_get_shm_handle(shmh_t shm, taskh_t target, uint32_t perms);
+      enum Status __sys_get_shm_handle(shmh_t shm, taskh_t target, uint32_t perms);
 
 **Usage**
 
@@ -59,16 +52,16 @@ sys_shm_set_credential
 
       uint32_t my_shm_label=0xf00UL;
       taskh_t myself;
-      if (sys_get_task_handle(myself_label) != STATUS_OK) {
+      if (__sys_get_task_handle(myself_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&myself, sizeof(taskh_t));
-      if (sys_get_shm_handle(my_shm_label) != STATUS_OK) {
+      copy_from_kernel(&myself, sizeof(taskh_t));
+      if (__sys_get_shm_handle(my_shm_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&my_shm_handle, sizeof(shmh_t));
+      copy_from_kernel(&my_shm_handle, sizeof(shmh_t));
 
-      sys_shm_set_credential(my_shm_handle, myself, SHM_PERMISSION_MAP | SHM_PERMISSION_WRITE);
+      __sys_shm_set_credential(my_shm_handle, myself, SHM_PERMISSION_MAP | SHM_PERMISSION_WRITE);
 
 **Required capability**
 

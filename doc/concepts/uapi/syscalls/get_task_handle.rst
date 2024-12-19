@@ -4,17 +4,10 @@ sys_get_task_handle
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for get_task_handle syscall
-
-      mod uapi {
-         fn get_task_handle(label: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for get_task_handle syscall
 
-      enum Status sys_get_task_handle(uint32_t label);
+      enum Status __sys_get_task_handle(uint32_t label);
 
 **Usage**
 
@@ -47,11 +40,11 @@ sys_get_task_handle
 
       uint32_t my_peer_label=0xbabe;
       taskh_t my_peer_handle;
-      if (sys_get_handle(my_peer_label) != STATUS_OK) {
+      if (__sys_get_handle(my_peer_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&my_peer_handle, sizeof(taskh_t));
-      sys_send_signal(my_peer_handle, SIGNAL_POLL);
+      copy_from_kernel(&my_peer_handle, sizeof(taskh_t));
+      __sys_send_signal(my_peer_handle, SIGNAL_POLL);
 
 **Required capability**
 

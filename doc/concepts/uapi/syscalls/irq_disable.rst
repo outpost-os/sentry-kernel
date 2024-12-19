@@ -3,17 +3,10 @@ sys_irq_disable
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for irq_disable syscall
-
-      mod uapi {
-         fn irq_disable(irq: u16) -> Status
-       }
-
    .. code-block:: c
       :caption: C UAPI for irq_disable syscall
 
-      enum Status sys_irq_disable(uint16_t IRQn);
+      enum Status __sys_irq_disable(uint16_t IRQn);
 
 **Usage**
 
@@ -38,7 +31,7 @@ sys_irq_disable
       :linenos:
       :caption: disable given IRQ of an owned device
 
-      if (sys_irq_disable(myIRQn) != STATUS_OK) {
+      if (__sys_irq_disable(myIRQn) != STATUS_OK) {
             // [...]
       }
 

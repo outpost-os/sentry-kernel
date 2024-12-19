@@ -4,17 +4,10 @@ sys_send_ipc
 
 **API definition**
 
-   .. code-block:: rust
-       :caption: Rust UAPI for send_ipc syscall
-
-       mod uapi {
-           fn send_ipc(target: taskh_t, len: u32) -> Status
-       }
-
    .. code-block:: c
        :caption: C UAPI for send_ipc syscall
 
-       enum Status sys_send_ipc(taskh_t target, uint32_t len);
+       enum Status __sys_send_ipc(taskh_t target, uint32_t len);
 
 **Usage**
 

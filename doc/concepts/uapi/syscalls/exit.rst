@@ -3,17 +3,10 @@ sys_exit
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for exit syscall
-
-      mod uapi {
-         fn exit(status: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for exit syscall
 
-      enum Status sys_exit(uint32_t status);
+      enum Status __sys_exit(uint32_t status);
 
 
 **Usage**

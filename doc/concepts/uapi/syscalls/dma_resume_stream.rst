@@ -4,17 +4,10 @@ sys_dma_resume_stream
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for dma_resume_stream syscall
-
-      mod uapi {
-         fn dma_resume_stream(handle: dmah_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for dma_resume_stream syscall
 
-      enum Status sys_dma_resume_stream(dmah_t handle);
+      enum Status __sys_dma_resume_stream(dmah_t handle);
 
 **Usage**
 
@@ -58,17 +51,17 @@ sys_dma_resume_stream
 
       #include <uapi.h>
 
-      if (sys_dma_start_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_start_stream(stream_handle) != STATUS_OK) {
          // the channel may be already assigned, unassign first
       }
       // DMA behave in circular mode
 
-      if (sys_dma_suspend_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_suspend_stream(stream_handle) != STATUS_OK) {
          // [...]
       }
       // working on DMA source or destination....
       // resume stream no that SW update is done
-      if (sys_dma_resume_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_resume_stream(stream_handle) != STATUS_OK) {
          // [...]
       }
 

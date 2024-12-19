@@ -3,17 +3,10 @@ sys_irq_enable
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for irq_enable syscall
-
-      mod uapi {
-         fn irq_enable(irq: u16) -> Status
-       }
-
    .. code-block:: c
       :caption: C UAPI for irq_enable syscall
 
-      enum Status sys_irq_enable(uint16_t IRQn);
+      enum Status __sys_irq_enable(uint16_t IRQn);
 
 **Usage**
 
@@ -41,7 +34,7 @@ sys_irq_enable
 
       // configure the device (and device-relative IRQ config)
       // [...]
-      if (sys_irq_enable(myIRQn) != STATUS_OK) {
+      if (__sys_irq_enable(myIRQn) != STATUS_OK) {
             // [...]
       }
 

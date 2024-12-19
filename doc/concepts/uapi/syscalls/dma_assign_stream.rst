@@ -4,17 +4,10 @@ sys_dma_assign_stream
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for dma_assign_stream syscall
-
-      mod uapi {
-         fn dma_assign_stream(handle: dmah_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for dma_assign_stream syscall
 
-      enum Status sys_dma_assign_stream(dmah_t handle);
+      enum Status __sys_dma_assign_stream(dmah_t handle);
 
 **Usage**
 
@@ -53,7 +46,7 @@ sys_dma_assign_stream
       :linenos:
       :caption: sample DMA stream assignation
 
-      if (sys_dma_assign_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_assign_stream(stream_handle) != STATUS_OK) {
          // the channel may be already assigned, unassign first
       }
 
