@@ -4,17 +4,10 @@ sys_dma_start_stream
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for dma_start_stream syscall
-
-      mod uapi {
-         fn dma_start_stream(handle: dmah_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for dma_start_stream syscall
 
-      enum Status sys_dma_start_stream(dmah_t handle);
+      enum Status __sys_dma_start_stream(dmah_t handle);
 
 **Usage**
 
@@ -59,10 +52,10 @@ sys_dma_start_stream
 
       #include <uapi.h>
 
-      if (sys_dma_start_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_start_stream(stream_handle) != STATUS_OK) {
          // the channel may be already assigned, unassign first
       }
-      if (sys_wait_for_event(EVENT_TYPE_DMA, WFE_WAIT_FOREVER) != STATUS_OK) {
+      if (__sys_wait_for_event(EVENT_TYPE_DMA, WFE_WAIT_FOREVER) != STATUS_OK) {
          // error while waiting for DMA event
       }
       // handle DMA event corresponding to previously started DMA stream

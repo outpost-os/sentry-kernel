@@ -4,17 +4,10 @@ sys_dma_unassign_stream
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for dma_unassign_stream syscall
-
-      mod uapi {
-         fn dma_unassign_stream(handle: dmah_t) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for dma_unassign_stream syscall
 
-      enum Status sys_dma_unassign_stream(dmah_t handle);
+      enum Status __sys_dma_unassign_stream(dmah_t handle);
 
 **Usage**
 
@@ -56,16 +49,16 @@ sys_dma_unassign_stream
       :linenos:
       :caption: sample DMA stream unassignation
 
-      if (sys_dma_start_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_start_stream(stream_handle) != STATUS_OK) {
          // the channel may be already assigned, unassign first
       }
-      if (sys_wait_for_event(EVENT_TYPE_DMA, WFE_WAIT_FOREVER) != STATUS_OK) {
+      if (__sys_wait_for_event(EVENT_TYPE_DMA, WFE_WAIT_FOREVER) != STATUS_OK) {
          // error while waiting for DMA event
       }
       // handle DMA event corresponding to previously started DMA stream
 
       // unasign stream if Transfer Complete event received
-      if (sys_dma_unassigned_stream(stream_handle) != STATUS_OK) {
+      if (__sys_dma_unassigned_stream(stream_handle) != STATUS_OK) {
          // the channel may be already assigned, unassign first
       }
 

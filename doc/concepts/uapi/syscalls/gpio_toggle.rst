@@ -3,17 +3,10 @@ sys_gpio_toggle
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for gpio_toggle syscall
-
-      mod uapi {
-         fn gpio_toggle(device: devh_t, io_identifier: u8) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for gpio_set syscall
 
-      enum Status sys_gpio_toggle(devh_t device, uint8_t io_identifier);
+      enum Status __sys_gpio_toggle(devh_t device, uint8_t io_identifier);
 
 **Usage**
 
@@ -43,7 +36,7 @@ sys_gpio_toggle
       :linenos:
       :caption: toggling I/O 0 (fist element of the pinctrl)
 
-      if (sys_gpio_toggle(myhandle, 0) != STATUS_OK) {
+      if (__sys_gpio_toggle(myhandle, 0) != STATUS_OK) {
          // [...]
       }
 
