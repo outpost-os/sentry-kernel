@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Ledger SAS
+# SPDX-FileCopyrightText: 2024 - 2025 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 # NOTE: the timer identifier may vary from SoC familly to another, and as such
@@ -19,10 +19,11 @@ stm32_timer_dts_template_h = files('stm32-basic-timer-dt.h.in')
 stm32_timer_dts_dtsgen_c = dtsgen.process(stm32_timer_dts_template_c)
 stm32_timer_dts_dtsgen_h = dtsgen.process(stm32_timer_dts_template_h)
 
-autotest_drivers_src += [
+autotest_driver_timer_src = [
     timer_h,
     stm32_timer_dts_dtsgen_c,
     stm32_timer_dts_dtsgen_h,
+    files('stm32-basic-timer.c'),
 ]
 
-autotest_sources += files('stm32-basic-timer.c')
+autotest_sourceset.add(when: 'CONFIG_AUTOTEST_TIMER_DRIVER', if_true: autotest_driver_timer_src)

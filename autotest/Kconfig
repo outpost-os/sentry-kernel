@@ -5,6 +5,10 @@ if BUILD_TARGET_AUTOTEST
 
 menu "Autotest configuration"
 
+config AUTOTEST_TIMER_DRIVER
+    bool
+    default n
+
 config TEST_YIELD
     bool "yield test suite"
     default y
@@ -46,11 +50,13 @@ config TEST_SHM
     default y
 
 config TEST_DMA
-    bool "Shared memory manipulation test suite"
+    bool "Direct Memory Access test suite"
+    select TEST_SHM
     default n
 
 config TEST_IRQ
     bool "User interrupts test suite, need timer support at autotest level"
+    select AUTOTEST_TIMER_DRIVER
     default n
 
 endmenu
