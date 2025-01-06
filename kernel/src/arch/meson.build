@@ -22,6 +22,7 @@ sentry_arch_lib = static_library(
     sources: [
         arch_source_set_config.sources(),
         arch_header_set_config.sources(),
+        managers_header_set_config.sources(),
     ],
     include_directories: kernel_inc,
     c_args: [ target_arch_args, global_build_args ],

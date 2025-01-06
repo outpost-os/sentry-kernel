@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Ledger SAS
+# SPDX-FileCopyrightText: 2023 - 2025 Ledger SAS
 # SPDX-License-Identifier: Apache-2.0
 
 if not with_autotest
@@ -8,6 +8,8 @@ endif
 if meson.is_subproject()
 warning('!!! Are you sure you want to build the autotest task as a subproject ?')
 endif
+
+ssmod = import('sourceset')
 
 # local tool for easy ELF parsing to json file
 parseelf = find_program('parseelf.py', required: true, dirs: [meson.project_source_root() / 'tools'])
@@ -21,10 +23,14 @@ userspace_args = [
 
 # populated in src
 autotest_ldscript_template = files()
-autotest_drivers_src = []
+autotest_sourceset = ssmod.source_set()
+autotest_headerset = ssmod.source_set()
 
 subdir('include')
 subdir('src')
+
+autotest_sources = autotest_sourceset.apply(kconfig_data, strict: false).sources()
+autotest_headers = autotest_headerset.apply(kconfig_data, strict: false).sources()
 
 autotest_ldscript = custom_target('autotest_ldscript',
     input: autotest_ldscript_template,
@@ -45,7 +51,7 @@ uapi_inc = include_directories('../uapi/include')
 autotest_elf = executable(
     autotest_task_name,
     name_suffix: 'elf',
-    sources: [autotest_sources, autotest_headers, devices_dtsgen_h, shm_dtsgen_h, autotest_drivers_src ],
+    sources: [ autotest_sources, autotest_headers ],
     include_directories: [ uapi_inc, autotest_inc ],
     dependencies: [ sentry_c_uapi_dep ],
     c_args: [ target_arch_args, global_build_args, userspace_args ],
