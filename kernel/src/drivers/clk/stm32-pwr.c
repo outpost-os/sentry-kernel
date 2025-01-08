@@ -19,7 +19,7 @@
 #include "pwr_defs.h"
 
 /* TODO: move stm32l4/f4 in a dedicated file */
-#if defined(CONFIG_SOC_SUBFAMILY_STM32L4)
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32WB)
 #define PWR_CR_REG PWR_CR1_REG
 #define PWR_CR_VOS_MASK PWR_CR1_VOS_MASK
 #define PWR_CR_VOS_SHIFT PWR_CR1_VOS_SHIFT
@@ -28,7 +28,7 @@
 #endif
 
 /* FIXME */
-#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4)
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4) || defined(CONFIG_SOC_SUBFAMILY_STM32WB)
 # if defined(CONFIG_ARCH_MCU_STM32F401)
 #  define DEFAULT_SCALE_MODE POWER_VOS_SCALE_2
 # else
@@ -59,7 +59,7 @@ kstatus_t pwr_probe(void)
     return pwr_set_voltage_regulator_scaling(DEFAULT_SCALE_MODE);
 }
 
-#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4)
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32F4) || defined(CONFIG_SOC_SUBFAMILY_STM32WB)
 /*@
     requires scale_is_valid(scale);
     ensures \result == K_STATUS_OKAY;
