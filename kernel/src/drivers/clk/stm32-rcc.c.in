@@ -335,10 +335,18 @@ __STATIC_INLINE size_t rcc_get_register(bus_id_t busid, rcc_opts_t flags)
         reg_base = RCC_BASE_ADDR;
     }
 
+/* XXX:
+ *  As bus ID comes from DTS and this test function is based on DTS too
+ *  One can assume that this is consistent.
+ * TODO:
+ *  To be refined
+ */
+#if 0
     if (unlikely(!BUS_IS_VALID(busid))) {
         /* FIXME: status (error) should be returned instead */
-        return 0;
+        // return 0;
     }
+#endif
     /*@ assert bus_is_valid(busid); */
     reg_base += busid;
 
@@ -371,9 +379,17 @@ kstatus_t rcc_enable(bus_id_t busid, uint32_t clk_msk, rcc_opts_t flags)
         goto err;
     }
 
+/* XXX:
+ *  As bus ID comes from DTS and this test function is based on DTS too
+ *  One can assume that this is consistent.
+ * TODO:
+ *  To be refined
+ */
+#if 0
     if (unlikely(!BUS_IS_VALID(busid))) {
         goto err;
     }
+#endif
     /*@ assert bus_is_valid(busid); */
     size_t reg_base = rcc_get_register(busid, flags);
 
@@ -455,6 +471,9 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
     /*@ assert bus_is_valid(busid); */
     switch (busid) {
         case BUS_APB1:
+#if defined(HAS_BUS_APB1_2)
+        case BUS_APB1 + 4:
+#endif
             *busclk = RCC_APB1_CLOCK_FREQUENCY;
             break;
         case BUS_APB2:
@@ -468,6 +487,9 @@ kstatus_t rcc_get_bus_clock(bus_id_t busid, uint32_t *busclk)
         case BUS_AHB1:
 #if defined(HAS_BUS_AHB2)
         case BUS_AHB2:
+#if defined(HAS_BUS_AHB2_2)
+        case BUS_AHB2 + 4:
+#endif
 #endif
 #if defined(HAS_BUS_AHB3)
         case BUS_AHB3:

@@ -81,6 +81,8 @@
 #define RCC_HSI48RDY RCC_CRRCR_HSI48RDY
 #endif
 
+#define HAS_BUS_APB1_2
+
 {#- There is only one main PLL for stm32f4xx families #}
 {%- set pll = dts.get_compatible("st,stm32l4xx-pll")[0] %}
 {%- if pll is not none and pll.status == "okay"%}
