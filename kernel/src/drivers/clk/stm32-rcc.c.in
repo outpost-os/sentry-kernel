@@ -111,6 +111,22 @@ __STATIC_INLINE kstatus_t rcc_enable_hse(void)
     return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSERDY, HSE_STARTUP_TIMEOUT);
 }
 
+#if defined(HAS_HSI48_CLOCK)
+__STATIC_INLINE kstatus_t rcc_enable_hsi48(void)
+{
+    kstatus_t status = K_STATUS_OKAY;
+    uint32_t reg;
+
+    reg = ioread32(RCC_BASE_ADDR + RCC_HSI48_REG);
+    reg |= RCC_HSI48ON;
+    iowrite32(RCC_BASE_ADDR + RCC_HSI48_REG, reg);
+
+    return iopoll32_until_set(RCC_BASE_ADDR + RCC_HSI48_REG, RCC_HSI48RDY, 500);
+}
+#endif /* RCC_CR_HSI48ON */
+
+
+
 /**
  * @brief Convert AHB divisor (power of 2) to register value
  *
@@ -217,6 +233,13 @@ __STATIC_INLINE kstatus_t rcc_init_system_clk(void)
 
     {%- if dts.clocks.clk_hsi.status == "okay" %}
     status = rcc_enable_hsi();
+    if (unlikely(status != K_STATUS_OKAY)) {
+        goto err;
+    }
+    {%- endif %}
+
+    {%- if dts.clocks.clk_hsi48 is defined and dts.clocks.clk_hsi48.status == "okay" %}
+    status = rcc_enable_hsi48();
     if (unlikely(status != K_STATUS_OKAY)) {
         goto err;
     }
