@@ -71,6 +71,16 @@
  */
 #define RCC_CIR_REG RCC_CICR_REG
 
+/*
+ * For stm32l496/4a6 subfamily, HSI48 control is held by CRRCR register
+ */
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L49_Ax)
+#define HAS_HSI48_CLOCK
+#define RCC_HSI48_REG RCC_CRRCR_REG
+#define RCC_HSI48ON RCC_CRRCR_HSI48ON
+#define RCC_HSI48RDY RCC_CRRCR_HSI48RDY
+#endif
+
 {#- There is only one main PLL for stm32f4xx families #}
 {%- set pll = dts.get_compatible("st,stm32l4xx-pll")[0] %}
 {%- if pll is not none and pll.status == "okay"%}

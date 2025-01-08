@@ -49,6 +49,14 @@
 #define RCC_APB2_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
 #define RCC_APB3_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
 
+/*
+ * For stm32u5 family, HSI48 control is held by CR register
+ */
+#define HAS_HSI48_CLOCK
+#define RCC_HSI48_REG RCC_CR_REG
+#define RCC_HSI48ON RCC_CR_HSI48ON
+#define RCC_HSI48RDY RCC_CR_HSI48RDY
+
 typedef enum stm32u5_pll_id {
     PLL_ID_1 = 0,
     PLL_ID_2 = 1,
@@ -102,18 +110,6 @@ static inline  void __stm32_rcc_set_peripheral_bus_div(
     cfgr3.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR3_REG);
     cfgr3.reg.ppre3 = ppre3;
     iowrite32(RCC_BASE_ADDR + RCC_CFGR3_REG, cfgr3.raw);
-}
-
-static inline kstatus_t rcc_enable_hsi48(void)
-{
-    kstatus_t status = K_STATUS_OKAY;
-    uint32_t rcc_cr;
-
-    rcc_cr = ioread32(RCC_BASE_ADDR + RCC_CR_REG);
-    rcc_cr |= RCC_CR_HSI48ON;
-    iowrite32(RCC_BASE_ADDR + RCC_CR_REG, rcc_cr);
-
-    return iopoll32_until_set(RCC_BASE_ADDR + RCC_CR_REG, RCC_CR_HSI48RDY, 500);
 }
 
 kstatus_t rcc_select_system_clock(void);
