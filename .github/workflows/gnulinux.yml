@@ -29,11 +29,11 @@ jobs:
           if "${{ github.event_name }}" == "pull_request":
             operating_system = [ 'mesonbuild/ubuntu-rolling', 'mesonbuild/arch:latest' ]
             toolchain = [ 'gcc|12.3.Rel1', 'gcc|10.3-2021.07', 'gcc|13.2.Rel1' ]
-            config = [ 'nucleo_u5a5_autotest', 'nucleo_u5a5_nooutput', 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'stm32f429i_disc1_autotest' ]
+            config = [ 'nucleo_u5a5_autotest', 'nucleo_wb55_autotest', 'nucleo_u5a5_nooutput', 'stm32f429i_disc1_debug', 'stm32f429i_disc1_release', 'stm32f429i_disc1_autotest' ]
           else:
             operating_system = [ 'mesonbuild/ubuntu-rolling' ]
             toolchain = [ 'gcc|12.3.Rel1' ]
-            config = [ 'nucleo_u5a5_autotest', 'stm32f429i_disc1_debug', 'nucleo_l476rg_debug', 'nucleo_f401re' ]
+            config = [ 'nucleo_u5a5_autotest', 'nucleo_wb55_autotest', 'stm32f429i_disc1_debug', 'nucleo_l476rg_debug', 'nucleo_f401re' ]
           with open(os.environ['GITHUB_OUTPUT'], 'w') as gh_out:
             gh_out.write(f"operating_system={operating_system}\n")
             gh_out.write(f"toolchain={toolchain}\n")
