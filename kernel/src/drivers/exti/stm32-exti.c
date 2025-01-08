@@ -16,11 +16,19 @@
 #include "exti_defs.h"
 #include "stm32-exti-dt.h"
 
-#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || defined(CONFIG_SOC_SUBFAMILY_STM32U5)
+#if defined(CONFIG_SOC_SUBFAMILY_STM32L4) || \
+    defined(CONFIG_SOC_SUBFAMILY_STM32U5) || \
+    defined(CONFIG_SOC_SUBFAMILY_STM32WB)
 /* there are 40 possible interrupts and events sources, meaning that
  * there are two register banks, redirecting default naming to bank 1 */
+#if !defined(CONFIG_SOC_SUBFAMILY_STM32WB)
 #define EXTI_IMR_REG EXTI_IMR1_REG
 #define EXTI_EMR_REG EXTI_EMR1_REG
+#else
+#define EXTI_IMR_REG EXTI_C1IMR1_REG
+#define EXTI_EMR_REG EXTI_C1EMR1_REG
+#endif
+
 #define EXTI_RTSR_REG EXTI_RTSR1_REG
 #define EXTI_FTSR_REG EXTI_FTSR1_REG
 #define EXTI_SWIER_REG EXTI_SWIER1_REG
