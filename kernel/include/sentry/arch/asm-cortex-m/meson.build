@@ -61,6 +61,8 @@ buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32L4', if_true: files('stm32l4
 # see: https://git.orange.ledgerlabs.net/outpost/sentry-kernel/issues/188
 # rework this as this is weak
 buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32U5', if_true: files('stm32l4-buses.h.in'))
+buses_h_in_set.add(when: 'CONFIG_SOC_SUBFAMILY_STM32WB', if_true: files('stm32l4-buses.h.in'))
+
 # here, we can add other templates for other ARM SoC famillies if needed
 buses_h_in_set_config = buses_h_in_set.apply(kconfig_data, strict: false)
 
