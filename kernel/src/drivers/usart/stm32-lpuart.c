@@ -17,15 +17,27 @@
 #include "usart_priv.h"
 #include "stm32-usart-dt.h"
 
+#if defined(LPUART_CR1_DISABLED_REG)
+#define LPUART_CR1_REG LPUART_CR1_DISABLED_REG
+#define LPUART_CR1_UE LPUART_CR1_DISABLED_UE
+#define LPUART_CR1_TE LPUART_CR1_DISABLED_TE
+#endif /* LPUART_CR1_DISABLED_REG */
+
+#if defined(LPUART_ISR_DISABLED_REG)
+#define LPUART_ISR_REG LPUART_ISR_DISABLED_REG
+#define LPUART_ISR_TEACK LPUART_ISR_DISABLED_TEACK
+#define LPUART_ISR_TXE LPUART_ISR_DISABLED_TXE
+#define LPUART_ISR_TC LPUART_ISR_DISABLED_TC
+#endif /* LPUART_ISR_DISABLED_REG */
 
 static kstatus_t stm32_lpuart_enable(stm32_usartport_desc_t const *usart)
 {
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
 
-    reg = ioread32(usart->base_addr + LPUART_CR1_DISABLED_REG);
-    reg |= LPUART_CR1_DISABLED_UE;
-    iowrite32(usart->base_addr + LPUART_CR1_DISABLED_REG, reg);
+    reg = ioread32(usart->base_addr + LPUART_CR1_REG);
+    reg |= LPUART_CR1_UE;
+    iowrite32(usart->base_addr + LPUART_CR1_REG, reg);
 
     return status;
 }
@@ -35,9 +47,9 @@ static kstatus_t stm32_lpuart_disable(stm32_usartport_desc_t const *usart)
     kstatus_t status = K_STATUS_OKAY;
     size_t reg;
 
-    reg = ioread32(usart->base_addr + LPUART_CR1_DISABLED_REG);
-    reg &= ~LPUART_CR1_DISABLED_UE;
-    iowrite32(usart->base_addr + LPUART_CR1_DISABLED_REG, reg);
+    reg = ioread32(usart->base_addr + LPUART_CR1_REG);
+    reg &= ~LPUART_CR1_UE;
+    iowrite32(usart->base_addr + LPUART_CR1_REG, reg);
 
     return status;
 }
@@ -45,29 +57,29 @@ static kstatus_t stm32_lpuart_disable(stm32_usartport_desc_t const *usart)
 static void __stm32_lpuart_wait_te_ack(stm32_usartport_desc_t const *usart, bool enable)
 {
     /* XXX: if DISabled, poll until bit set, cleared if disabled */
-    uint32_t val = enable ? 0 : LPUART_ISR_DISABLED_TEACK;
-    while ((ioread32(usart->base_addr + LPUART_ISR_DISABLED_REG) & LPUART_ISR_DISABLED_TEACK) == val);
+    uint32_t val = enable ? 0 : LPUART_ISR_TEACK;
+    while ((ioread32(usart->base_addr + LPUART_ISR_REG) & LPUART_ISR_TEACK) == val);
 }
 
 static void stm32_lpuart_tx_enable(stm32_usartport_desc_t const *usart)
 {
-    uint32_t cr1 = ioread32(usart->base_addr + LPUART_CR1_DISABLED_REG);
-    cr1 |= LPUART_CR1_DISABLED_TE;
-    iowrite32(usart->base_addr + LPUART_CR1_DISABLED_REG, cr1);
+    uint32_t cr1 = ioread32(usart->base_addr + LPUART_CR1_REG);
+    cr1 |= LPUART_CR1_TE;
+    iowrite32(usart->base_addr + LPUART_CR1_REG, cr1);
     __stm32_lpuart_wait_te_ack(usart, true);
 }
 
 static void stm32_lpuart_tx_disable(stm32_usartport_desc_t const *usart)
 {
-    uint32_t cr1 = ioread32(usart->base_addr + LPUART_CR1_DISABLED_REG);
-    cr1 &= ~LPUART_CR1_DISABLED_TE;
-    iowrite32(usart->base_addr + LPUART_CR1_DISABLED_REG, cr1);
+    uint32_t cr1 = ioread32(usart->base_addr + LPUART_CR1_REG);
+    cr1 &= ~LPUART_CR1_TE;
+    iowrite32(usart->base_addr + LPUART_CR1_REG, cr1);
     __stm32_lpuart_wait_te_ack(usart, false);
 }
 
 static void stm32_lpuart_wait_for_tx_empty(stm32_usartport_desc_t const *usart)
 {
-    while ((ioread32(usart->base_addr + LPUART_ISR_DISABLED_REG) & LPUART_ISR_DISABLED_TXE) == 0);
+    while ((ioread32(usart->base_addr + LPUART_ISR_REG) & LPUART_ISR_TXE) == 0);
 }
 
 static void __stm32_lpuart_clear_tx_done(stm32_usartport_desc_t const *usart)
@@ -77,7 +89,7 @@ static void __stm32_lpuart_clear_tx_done(stm32_usartport_desc_t const *usart)
 
 static void stm32_lpuart_wait_for_tx_done(stm32_usartport_desc_t const *usart)
 {
-    while ((ioread32(usart->base_addr + LPUART_ISR_DISABLED_REG) & LPUART_ISR_DISABLED_TC) == 0);
+    while ((ioread32(usart->base_addr + LPUART_ISR_REG) & LPUART_ISR_TC) == 0);
     __stm32_lpuart_clear_tx_done(usart);
 }
 
@@ -125,7 +137,7 @@ static void stm32_lpuart_putc(const stm32_usartport_desc_t *usart, uint8_t c)
 static void stm32_lpuart_setup(const stm32_usartport_desc_t *usart)
 {
     /* Standard uart 8N1 configuration */
-    iowrite32(usart->base_addr + LPUART_CR1_DISABLED_REG, 0x0UL);
+    iowrite32(usart->base_addr + LPUART_CR1_REG, 0x0UL);
     iowrite32(usart->base_addr + LPUART_CR2_REG, 0x0UL);
     iowrite32(usart->base_addr + LPUART_CR3_REG, 0x0UL);
 }
