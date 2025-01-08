@@ -3,17 +3,10 @@ sys_gpio_reset
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for gpio_reset syscall
-
-      mod uapi {
-         fn gpio_reset(device: devh_t, io_identifier: u8) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for gpio_reset syscall
 
-      enum Status sys_gpio_reset(devh_t device, uint8_t io_identifier);
+      enum Status __sys_gpio_reset(devh_t device, uint8_t io_identifier);
 
 **Usage**
 
@@ -43,7 +36,7 @@ sys_gpio_reset
       :linenos:
       :caption: getting I/O 0 from button
 
-      if (sys_gpio_reset(myhandle, 0) != STATUS_OK) {
+      if (__sys_gpio_reset(myhandle, 0) != STATUS_OK) {
          // [...]
       }
 

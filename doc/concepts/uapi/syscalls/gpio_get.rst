@@ -3,17 +3,10 @@ sys_gpio_get
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for gpio_get syscall
-
-      mod uapi {
-         fn gpio_get(device: devh_t, io_identifier: u8) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for gpio_get syscall
 
-      enum Status sys_gpio_get(devh_t device, uint8_t io_identifier);
+      enum Status __sys_gpio_get(devh_t device, uint8_t io_identifier);
 
 **Usage**
 
@@ -43,10 +36,10 @@ sys_gpio_get
       :linenos:
       :caption: getting I/O 0 from button
 
-      if (sys_gpio_get(myhandle, 0) != STATUS_OK) {
+      if (__sys_gpio_get(myhandle, 0) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(uint8_t *button_value, sizeof(uint8_t));
+      copy_from_kernel(uint8_t *button_value, sizeof(uint8_t));
 
 **Required capability**
 

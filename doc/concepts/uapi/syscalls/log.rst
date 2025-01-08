@@ -3,17 +3,10 @@ sys_log
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for log syscall
-
-      mod uapi {
-         fn log(length: usize) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for log syscall
 
-      enum Status sys_log(size_t length);
+      enum Status __sys_log(size_t length);
 
 **Usage**
 
@@ -30,7 +23,7 @@ sys_log
       enum Status res = STATUS_INVALID;
       if (len <=> CONFIG_SVC_EXCHANGE_AREA_LEN) {
          memcpy(&_s_svc_exchange, data, len);
-         res = sys_log(len);
+         res = __sys_log(len);
       }
 
    .. note::

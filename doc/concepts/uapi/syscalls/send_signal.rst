@@ -3,17 +3,10 @@ sys_send_signal
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for send_signal syscall
-
-      mod uapi {
-         fn send_signal(target: taskh_t, signal: uapi::Signal) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for send_signal syscall
 
-      enum Status sys_send_signal(taskh_t target, enum Signal signal);
+      enum Status __sys_send_signal(taskh_t target, enum Signal signal);
 
 **Usage**
 
@@ -38,7 +31,7 @@ sys_send_signal
       :caption: sample bare usage of sys_send_signal
 
       uint32_t seed = 0;
-      if (sys_send_signal(target, SIGNAL_USR1) != STATUS_OK) {
+      if (__sys_send_signal(target, SIGNAL_USR1) != STATUS_OK) {
          // [...]
       }
 

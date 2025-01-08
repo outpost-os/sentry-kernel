@@ -4,17 +4,10 @@ sys_get_dma_handle
 
 **API definition**
 
-   .. code-block:: rust
-      :caption: Rust UAPI for get_dma_stream_handle syscall
-
-      mod uapi {
-         fn get_dma_stream_handle(label: u32) -> Status
-      }
-
    .. code-block:: c
       :caption: C UAPI for get_dma_stream_handle syscall
 
-      enum Status sys_get_dma_stream_handle(uint32_t label);
+      enum Status __sys_get_dma_stream_handle(uint32_t label);
 
 **Usage**
 
@@ -37,10 +30,10 @@ sys_get_dma_handle
 
       uint32_t my_stream_label = 0x42;
       dmah_t my_stream_handle;
-      if (sys_get_dma_stream_handle(my_dma_label) != STATUS_OK) {
+      if (__sys_get_dma_stream_handle(my_dma_label) != STATUS_OK) {
          // [...]
       }
-      copy_to_user(&my_dma_handle, sizeof(devh_t));
+      copy_from_kernel(&my_dma_handle, sizeof(devh_t));
 
 **Required capability**
 
