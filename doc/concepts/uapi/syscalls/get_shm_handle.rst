@@ -34,7 +34,7 @@ sys_get_shm_handle
       if (__sys_get_shm_handle(my_shm_label) != STATUS_OK) {
          // [...]
       }
-      __copy_from_kernel(&my_peer_handle, sizeof(shmh_t));
+      copy_from_kernel(&my_peer_handle, sizeof(shmh_t));
 
 **Required capability**
 
