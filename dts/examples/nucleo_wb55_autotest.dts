@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) 2025 Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <st/wb/stm32wb55Xg.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
+#include <sentry.dtsi>
+
+/{
+	chosen {
+		sentry,debug_stdout = <&lpuart1>;
+		sentry,autotestram_section = <&autotest_ram>;
+		sentry,autotestcode_section = <&autotest_code>;
+	};
+};
+
+/{
+	reserved-memory {
+		autotest_code: autotest_code@800d000 {
+			reg = <0x8010000 0xe000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		autotest_ram: autotest_memory@20008000 {
+			reg = <0x20008000 0x1000>;
+			compatible = "outpost,memory-pool";
+		};
+    };
+};
+
+&flash0 {
+	reg = <0x08000000 DT_SIZE_M(1)>;
+};
+
+&sram0 {
+	reg = <0x20000000 DT_SIZE_K(192)>;
+};
+
+
+&flash {
+	wait-state = <3>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&clk_lsi1 {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&clk_hsi48 {
+	status = "okay";
+};
+
+&clk_msi {
+	status = "okay";
+};
+
+&pll {
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(64)>;
+	bus-prescalers = <0>, <0>, <0>;
+	bus-names = "ahb", "apb1", "apb2";
+	status = "okay";
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+&exti {
+	events = <49>;
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&syscfg {
+	status = "okay";
+};
+
+&lpuart1{
+	status = "okay";
+	pinctrl-0 = <&lpuart1_tx>, <&lpuart1_rx>;
+};
+
+&pinctrl {
+	lpuart1_tx: lpuart1_tx  {
+		pinmux = <&gpioa 2 STM32_DT_PIN_MODE_ALTFUNC(8)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	lpuart1_rx: lpuart1_rx  {
+		pinmux = <&gpioa 3 STM32_DT_PIN_MODE_ALTFUNC(8)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};

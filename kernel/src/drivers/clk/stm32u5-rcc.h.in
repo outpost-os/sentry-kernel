@@ -57,6 +57,9 @@
 #define RCC_HSI48ON RCC_CR_HSI48ON
 #define RCC_HSI48RDY RCC_CR_HSI48RDY
 
+#define HAS_BUS_APB1_2
+#define HAS_BUS_AHB2_2
+
 typedef enum stm32u5_pll_id {
     PLL_ID_1 = 0,
     PLL_ID_2 = 1,

@@ -146,6 +146,21 @@ stm32u5_rcc_h = dtsgen.process(
 bsp_clk_private_gen_header_set.add(stm32u5_rcc_h)
 endif
 
+if kconfig_data.get('CONFIG_SOC_SUBFAMILY_STM32WB', 0) == 1
+stm32wb_rcc_c_template = files('stm32wb-rcc.c.in')
+stm32wb_rcc_c = dtsgen.process(
+    stm32wb_rcc_c_template,
+    preserve_path_from: meson.current_source_dir(),
+)
+bsp_clk_private_gen_source_set.add(stm32wb_rcc_c)
+stm32wb_rcc_h_template = files('stm32wb-rcc.h.in')
+stm32wb_rcc_h = dtsgen.process(
+    stm32wb_rcc_h_template,
+    preserve_path_from: meson.current_source_dir(),
+)
+bsp_clk_private_gen_header_set.add(stm32wb_rcc_h)
+endif
+
 pwr_h = custom_target('gen_pwr',
     input: peripheral_defs_in,
     output: '@0@_defs.h'.format('pwr'),

@@ -65,6 +65,16 @@ typedef enum clk_vos_scale {
       s == POWER_VOS_SCALE_2 ||
       s == POWER_VOS_SCALE_1;
 */
+#elif defined(CONFIG_SOC_SUBFAMILY_STM32WB)
+typedef enum clk_vos_scale {
+    POWER_VOS_SCALE_1   = 0x1UL,
+    POWER_VOS_SCALE_2   = 0x2UL,
+} clk_vos_scale_t;
+/*@
+    predicate scale_is_valid(uint8_t s) =
+      s == POWER_VOS_SCALE_2 ||
+      s == POWER_VOS_SCALE_1;
+*/
 #endif
 kstatus_t pwr_probe(void);
 
