@@ -1,0 +1,61 @@
+// SPDX-FileCopyrightText: 2025 Ledger SAS
+// SPDX-License-Identifier: Apache-2.0
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+#ifndef __STM32WB_RCC_H
+#define __STM32WB_RCC_H
+
+#ifndef CONFIG_SOC_SUBFAMILY_STM32WB
+#error "this header should not be included in SoCs others than STM32WB family"
+#endif
+
+#include <sentry/io.h>
+#include <sentry/arch/asm-generic/layout.h>
+#include "rcc_defs.h"
+
+#define RCC_SYSCLOCK_FREQUENCY_MAX (64*MEGA)
+#define RCC_AHB_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
+#define RCC_APB1_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
+#define RCC_APB2_BUS_FREQUENCY_MAX RCC_SYSCLOCK_FREQUENCY_MAX
+
+#define HAS_HSI48_CLOCK
+#define RCC_HSI48_REG RCC_CRRCR_REG
+#define RCC_HSI48ON RCC_CRRCR_HSI48ON
+#define RCC_HSI48RDY RCC_CRRCR_HSI48RDY
+
+static inline void __stm32_rcc_set_peripheral_bus_div(uint32_t hpre, uint32_t ppre1, uint32_t ppre2)
+{
+    union {
+        rcc_cfgr_t cfgr;
+        uint32_t raw;
+    } reg;
+
+    reg.raw = ioread32(RCC_BASE_ADDR + RCC_CFGR_REG);
+    reg.cfgr.hpre = hpre;
+    reg.cfgr.ppre1 = ppre1;
+    reg.cfgr.ppre2 = ppre2;
+    iowrite32(RCC_BASE_ADDR + RCC_CFGR_REG, reg.raw);
+}
+
+kstatus_t rcc_select_system_clock(void);
+kstatus_t rcc_enable_pll(void);
+
+#endif /* __STM32WB_RCC_H */
