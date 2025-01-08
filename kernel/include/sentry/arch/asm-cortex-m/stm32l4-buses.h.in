@@ -24,9 +24,36 @@
 #ifndef BUSES_H
 #define BUSES_H
 
+{#-
+    XXX:
+     Note that `name` comes from svd soc name in lowercase.
+     That being said, heterogeneous soc (i.e. with 2 distinct cpu cores, e.g. a generic core
+     and a dedicated for radio or machine learning) are suffixed with an `_` as separator
+     between soc family name and core arch to consider.
+-#}
+{%- set name = name.split('_')[0] %}
+
 #include <dt-bindings/clock/{{ name[:-2].lower() }}_clock.h>
 
-{% set peripheral = (peripherals|selectattr('groupName', 'eq', 'RCC')|first) or (peripherals|selectattr('name', 'eq', NAME)|first) -%}
+{%- set peripheral = (peripherals|selectattr('groupName', 'eq', 'RCC')|first) or (peripherals|selectattr('name', 'eq', NAME)|first) -%}
+
+{%- macro get_busses_reset(registers) %}
+    {% set reset = [] %}
+    {% for reg in registers if reg.name.endswith('RSTR') or reg.name.endswith('RSTR1') %}
+    {% set _ = reset.append(reg.name[:4]) %}
+    {% endfor %}
+    {{ reset|unique|list }}
+{%- endmacro %}
+
+{%- macro get_busses_clken(registers) %}
+    {%- set clken = [] -%}
+    {%- for reg in registers if reg.name.startswith('A') and (reg.name.endswith('ENR') or reg.name.endswith('ENR1')) %}
+    {%- set _ = clken.append(reg.name[:4]) %}
+    {%- endfor %}
+    {{- clken|unique|list -}}
+{%- endmacro %}
+
+{%- set busses = (get_busses_clken(peripheral.registers)|trim(chars='[]')).split(',')|map("trim", chars=' \'')|list %}
 
 /**
  * @brief list of platform bused.
@@ -34,48 +61,31 @@
  * This template works for all STM32L4 SoCs
  */
 typedef enum bus_identifier {
-    {% for register in peripheral.registers -%}
-    {% if register.name.endswith('RSTR') -%}
-    BUS_{{register.name[0:4]}} = STM32_CLOCK_BUS_{{register.name[0:4]}},
-    {% endif -%}
-    {% if register.name.endswith('RSTR1') -%}
-    BUS_{{register.name[0:4]}} = STM32_CLOCK_BUS_{{register.name[0:4]}},
-    {% endif -%}
-    {% endfor -%}
+    {%- for bus in busses %}
+    BUS_{{bus}} = STM32_CLOCK_BUS_{{bus}},
+    {%- endfor %}
 } bus_id_t;
 
 /*
  * XXX:
  *  Fixme with clock tree issue (188, 254)
  */
-{% for register in peripheral.registers -%}
-{% if register.name.endswith('RSTR') or register.name.endswith('RSTR1') -%}
-#define HAS_BUS_{{register.name[0:4]}} 1
-{% endif -%}
-{% endfor %}
+{%- for bus in busses %}
+#define HAS_BUS_{{bus}} 1
+{%- endfor %}
 
 #define BUS_IS_VALID(bus) ( \
-    {% for register in peripheral.registers -%}
-    {% if register.name.endswith('RSTR') -%}
-    (bus == BUS_{{register.name[0:4]}}) || \
-    {% endif -%}
-    {% if register.name.endswith('RSTR1') -%}
-    (bus == BUS_{{register.name[0:4]}}) || \
-    {% endif -%}
-    {% endfor -%}
+    {%- for bus in busses %}
+    (bus == BUS_{{bus}}) || \
+    {%- endfor %}
     false)
 
 /*@
   logic boolean bus_is_valid(uint32_t bus) =
     (
-        {% for register in peripheral.registers -%}
-        {% if register.name.endswith('RSTR') -%}
-        bus == STM32_CLOCK_BUS_{{register.name[0:4]}} ||
-        {% endif -%}
-        {% if register.name.endswith('RSTR1') -%}
-        bus == STM32_CLOCK_BUS_{{register.name[0:4]}} ||
-        {% endif -%}
-        {% endfor -%}
+        {%- for bus in busses %}
+        (bus == BUS_{{bus}}) ||
+        {%- endfor -%}
         \false
     );
 */
