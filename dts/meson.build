@@ -14,34 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-dtsi_files = (
+dtsi_files = files(
   'sentry.dtsi'
 )
 
 install_data(
   dtsi_files,
-  install_dir: get_option('datadir') + 'dts',
+  install_dir: get_option('datadir') + '/dts',
   install_tag: 'devel',
 )
 
-examples_dts_files = (
-  'nucleo_f401re.dts',
-  'nucleo_l476rg_autotest.dts',
-  'nucleo_l476rg_debug.dts',
-  'nucleo_l476rg.dts',
-  'nucleo_u5a5_autotest_defconfig',
-  'nucleo_u5a5_autotest.dts',
-  'nucleo_u5a5.dts',
-  'nucleo_u5a5_nooutput.dts',
-  'nucleo_wb55_autotest.dts',
-  'stm32f429i_disc1_autotest.dts',
-  'stm32f429i_disc1_debug.dts',
-  'stm32f429i_disc1.dts',
-  'stm32f429i_disc1_release.dts',
+examples_dts_files = files(
+  'examples/nucleo_f401re.dts',
+  'examples/nucleo_l476rg_autotest.dts',
+  'examples/nucleo_l476rg_debug.dts',
+  'examples/nucleo_l476rg.dts',
+  'examples/nucleo_u5a5_autotest.dts',
+  'examples/nucleo_u5a5.dts',
+  'examples/nucleo_u5a5_nooutput.dts',
+  'examples/nucleo_wb55_autotest.dts',
+  'examples/stm32f429i_disc1_autotest.dts',
+  'examples/stm32f429i_disc1_debug.dts',
+  'examples/stm32f429i_disc1.dts',
+  'examples/stm32f429i_disc1_release.dts',
 )
 
 install_data(
-  example_dts_files,
-  install_dir: get_option('datadir') + 'dts/board',
+  examples_dts_files,
+  follow_symlinks: true,
+  install_dir: get_option('datadir') + '/dts/board',
   install_tag: 'devel',
 )
