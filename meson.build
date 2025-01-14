@@ -184,6 +184,7 @@ endif
 # Finally, kernel can be built and then tools that might need some kernel headers.
 subdir('support/arch')
 subdir('schemas')
+subdir('dts')
 subdir('uapi')
 subdir('idle')
 subdir('autotest')
