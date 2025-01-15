@@ -41,7 +41,7 @@ examples_dts_files = files(
 
 install_data(
   examples_dts_files,
-  follow_symlinks: true,
+  follow_symlinks: false,
   install_dir: get_option('datadir') + '/dts/board',
   install_tag: 'devel',
 )
