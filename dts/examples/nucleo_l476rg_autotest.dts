@@ -1,0 +1,179 @@
+/*
+ * Copyright (c) 2023,Ledger SAS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <st/l4/stm32l476Xg.dtsi>
+#include <dt-bindings/pinctrl/stm32-pinctrl.h>
+#include <sentry.dtsi>
+
+/{
+	chosen {
+		sentry,debug_stdout = <&usart1>;
+        sentry,autotestram_section = <&autotest_ram>;
+		sentry,autotestcode_section = <&autotest_code>;
+	};
+    reserved-memory {
+		autotest_code: autotest_code@800d000 {
+			reg = <0x800d000 0x3000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		autotest_ram: autotest_memory@20008000 {
+			reg = <0x20008000 0x1000>;
+			compatible = "outpost,memory-pool";
+		};
+
+		shm_autotest_1: memory@2000a000 {
+			// mappable, dma allowed
+			reg = <0x2000a000 0x256>;
+			outpost,shm;
+			dma-pool;
+			outpost,label = <0xf00>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_2: memory@2000b000 {
+			// mappable, dma allowed
+			reg = <0x2000b000 0x100>;
+			outpost,shm;
+			dma-pool;
+			outpost,label = <0xf01>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_3: memory@2000b100 {
+			// mappable, dma refused
+			reg = <0x2000b100 0x100>;
+			outpost,shm;
+			outpost,label = <0xf02>;
+			outpost,owner = <0xbabe>;
+		};
+
+		shm_autotest_4: memory@2000b200 {
+			// not mappable, dma allowed
+			reg = <0x2000b200 0x100>;
+			outpost,shm;
+			dma-pool;
+			outpost,no-map;
+			outpost,label = <0xf03>;
+			outpost,owner = <0xbabe>;
+		};
+	};
+
+};
+
+&flash0 {
+	reg = <0x08000000 DT_SIZE_K(512)>;
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&pll {
+	vco_m_div = <2>;
+	vco_n_mul = <36>;
+	pqr_div = <0>, <6>, <4>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+	compatible = "st,stm32l4xx-pll";
+};
+
+&flash {
+	wait-state = <3>; /* According to voltage supply and sysclock */
+	status = "okay";
+};
+
+&exti {
+	events = <40>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(72)>;
+	bus-prescalers = <1>, <2>, <2>;
+	bus-names = "ahb", "apb1", "apb2";
+	status = "okay";
+
+	mco {
+		pinctrl-0 = <&rcc_mco_pa8>;
+		clockout = <&pll>; /* XXX use reg value from svd */
+		prescaler = <4>;
+		status = "okay";
+	};
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+&gpiof {
+	status = "okay";
+};
+
+&gpiog {
+	status = "okay";
+};
+
+&usart1 {
+	status = "okay";
+	pinctrl-0 = <&usart1_tx>, <&usart1_rx>;
+};
+
+&pinctrl {
+	usart1_tx: usart1_tx_pa9  {
+		pinmux = <&gpioa 9 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	usart1_rx: usart1_rx_pa10  {
+		pinmux = <&gpioa 10 STM32_DT_PIN_MODE_ALTFUNC(7)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+
+	rcc_mco_pa8: rcc_mco_pa8  {
+		pinmux = <&gpioa 8 STM32_DT_PIN_MODE_ALTFUNC(0)>;
+		pincfg = <STM32_OTYPER_PUSH_PULL \
+				  STM32_OSPEEDR_VERY_HIGH_SPEED \
+				  STM32_PUPDR_NO_PULL>;
+	};
+};
+
+&rng {
+	/* XXX: badly defined in orig dts */
+	clocks = <&rcc STM32_CLOCK_BUS_AHB2 0x00040000>;
+	status = "okay";
+};
+
+&syscfg {
+	status = "okay";
+};
